@@ -98,6 +98,21 @@ from el_psy_quant.portfolio import equity_curve
 equity = equity_curve(strategy_returns, initial_capital=1_000.0)
 ```
 
+## Minimal backtest pipeline
+
+Compose the existing single-asset research functions end to end:
+
+```python
+from el_psy_quant.backtesting import moving_average_crossover_pipeline
+
+result = moving_average_crossover_pipeline(
+    close,
+    fast_window=20,
+    slow_window=50,
+    initial_capital=1_000.0,
+)
+```
+
 ## Core Principles
 
 - AI writes, humans decide.
