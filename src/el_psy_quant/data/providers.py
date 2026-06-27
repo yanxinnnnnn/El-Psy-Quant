@@ -28,6 +28,6 @@ class YahooFinanceProvider:
             period=period,
             interval="1d",
             auto_adjust=False,
+            multi_level_index=False,
             progress=False,
         )
-
