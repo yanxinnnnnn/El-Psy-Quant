@@ -10,20 +10,22 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 1 — Research Pipeline Foundation** is complete.
+**Milestone 2 — Performance & Local Data Foundation** is complete.
 
-The project can now run a deterministic single-asset moving-average crossover research pipeline from close prices to an equity curve.
+The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic metrics, summarize the backtest, and reproduce the workflow from local CSV data.
 
-See the milestone summary:
+See the milestone summaries:
 
 ```text
 docs/milestones/milestone-001-research-pipeline-foundation.md
+docs/milestones/milestone-002-performance-and-local-data.md
 ```
 
 ## Current Capabilities
 
 - Market data provider abstraction.
 - Yahoo Finance daily price provider.
+- Local CSV daily price loader.
 - Basic indicators:
   - simple moving average
   - exponential moving average
@@ -33,6 +35,12 @@ docs/milestones/milestone-001-research-pipeline-foundation.md
 - Daily strategy return calculation using previous-day positions.
 - Equity curve calculation using compounded returns.
 - Minimal moving-average crossover research pipeline.
+- Basic performance metrics:
+  - total return
+  - max drawdown
+- Compact backtest summary.
+- Deterministic in-memory research example.
+- Deterministic local CSV research example.
 
 ## Quick Start
 
@@ -127,11 +135,12 @@ uv run python examples/csv_research_example.py
 
 ```text
 el_psy_quant/
-  data/          # Market data providers
+  data/          # Market data providers and local CSV loading
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Positions, returns, and equity curves
   backtesting/   # Small research pipelines
+  performance/   # Metrics and backtest summaries
 ```
 
 ## Documentation
@@ -163,19 +172,20 @@ AGENTS.md
 - Prefer simple, reviewable code over clever code.
 - Keep tests deterministic and network-free where possible.
 - Make timing assumptions explicit to avoid look-ahead bias.
+- Validate data at the boundary.
 
 ## Next Milestone
 
-**Milestone 2 — Performance & Research Evaluation**
+**Milestone 3 — Data Reproducibility & Research Workflow**
 
 Planned direction:
 
-1. Add basic performance metrics such as total return and max drawdown.
-2. Add a small backtest summary layer.
-3. Add a minimal local research example.
-4. Add a deterministic local data path such as CSV input or cache support.
+1. Add a small local data cache foundation.
+2. Add a Yahoo-to-CSV workflow that bridges live data and reproducible local research.
+3. Add a CSV pipeline convenience function.
+4. Refresh milestone documentation again after the data workflow is stable.
 
-The guiding principle for the next milestone: do not chase profitability yet. First, make strategy evaluation honest, reproducible, and easy to inspect.
+The guiding principle for the next milestone: do not chase more strategy complexity yet. Make the data workflow reproducible, inspectable, and boring.
 
 ## Disclaimer
 
