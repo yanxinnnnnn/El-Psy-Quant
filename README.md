@@ -68,6 +68,16 @@ slow = simple_moving_average(close, window=50)
 signals = crossover_signal(fast, slow)
 ```
 
+## Positions
+
+Convert signal events into a daily long-only position state:
+
+```python
+from el_psy_quant.portfolio import long_only_position
+
+positions = long_only_position(signals)
+```
+
 ## Core Principles
 
 - AI writes, humans decide.
