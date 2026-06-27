@@ -108,6 +108,15 @@ summary = backtest_summary(result)
 uv run python examples/minimal_research_example.py
 ```
 
+## Load Local CSV Prices
+
+```python
+from el_psy_quant.data import load_daily_prices_csv
+
+prices = load_daily_prices_csv("data/sample_prices.csv")
+close = prices["Close"]
+```
+
 ## Module Overview
 
 ```text
