@@ -94,6 +94,14 @@ return_over_period = total_return(result["equity"])
 worst_drawdown = max_drawdown(result["equity"])
 ```
 
+## Backtest Summary
+
+```python
+from el_psy_quant.performance import backtest_summary
+
+summary = backtest_summary(result)
+```
+
 ## Module Overview
 
 ```text
