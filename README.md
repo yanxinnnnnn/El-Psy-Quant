@@ -78,6 +78,16 @@ from el_psy_quant.portfolio import long_only_position
 positions = long_only_position(signals)
 ```
 
+## Strategy returns
+
+Apply the previous day's position to each day's asset return:
+
+```python
+from el_psy_quant.portfolio import strategy_return
+
+strategy_returns = strategy_return(positions, returns)
+```
+
 ## Core Principles
 
 - AI writes, humans decide.
