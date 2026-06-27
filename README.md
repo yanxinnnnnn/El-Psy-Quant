@@ -44,6 +44,18 @@ prices = YahooFinanceProvider().download_daily_prices("AAPL", period="1y")
 print(prices.tail())
 ```
 
+## Indicators
+
+Indicator functions are pure pandas transformations and do not fetch data:
+
+```python
+from el_psy_quant.indicators import daily_return, simple_moving_average
+
+close = prices["Close"]
+sma_20 = simple_moving_average(close, window=20)
+returns = daily_return(close)
+```
+
 ## Core Principles
 
 - AI writes, humans decide.
