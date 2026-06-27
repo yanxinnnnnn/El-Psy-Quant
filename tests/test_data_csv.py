@@ -72,6 +72,15 @@ not-a-date,100,110,99,105,1000
         load_daily_prices_csv(write_csv(tmp_path, content))
 
 
+def test_blank_date_raises_value_error(tmp_path: Path) -> None:
+    content = """Date,Open,High,Low,Close,Volume
+,100,110,99,105,1000
+"""
+
+    with pytest.raises(ValueError, match="Date contains invalid values"):
+        load_daily_prices_csv(write_csv(tmp_path, content))
+
+
 def test_duplicate_dates_raise_value_error(tmp_path: Path) -> None:
     content = """Date,Open,High,Low,Close,Volume
 2024-01-01,100,110,99,105,1000
@@ -103,4 +112,3 @@ def test_loader_is_exported_from_data_package() -> None:
     from el_psy_quant import data
 
     assert data.load_daily_prices_csv is load_daily_prices_csv
-
