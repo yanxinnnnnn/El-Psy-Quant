@@ -19,6 +19,8 @@ def load_daily_prices_csv(path: str | Path) -> pd.DataFrame:
         dates = pd.to_datetime(prices["Date"], errors="raise")
     except (TypeError, ValueError) as exc:
         raise ValueError("Date contains invalid values") from exc
+    if dates.isna().any():
+        raise ValueError("Date contains invalid values")
 
     prices = prices.drop(columns="Date")
     prices.index = pd.DatetimeIndex(dates, name="Date")
@@ -29,4 +31,3 @@ def load_daily_prices_csv(path: str | Path) -> pd.DataFrame:
         raise ValueError("Close must not contain NaN values")
 
     return prices.sort_index()
-
