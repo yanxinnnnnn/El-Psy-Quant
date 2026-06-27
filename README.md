@@ -56,6 +56,18 @@ sma_20 = simple_moving_average(close, window=20)
 returns = daily_return(close)
 ```
 
+## Signals
+
+Signals represent crossover events rather than persistent positions:
+
+```python
+from el_psy_quant.signals import crossover_signal
+
+fast = simple_moving_average(close, window=20)
+slow = simple_moving_average(close, window=50)
+signals = crossover_signal(fast, slow)
+```
+
 ## Core Principles
 
 - AI writes, humans decide.
