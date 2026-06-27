@@ -85,6 +85,15 @@ strategy_return
 equity
 ```
 
+## Basic Performance Metrics
+
+```python
+from el_psy_quant.performance import max_drawdown, total_return
+
+return_over_period = total_return(result["equity"])
+worst_drawdown = max_drawdown(result["equity"])
+```
+
 ## Module Overview
 
 ```text
