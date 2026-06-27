@@ -117,6 +117,12 @@ prices = load_daily_prices_csv("data/sample_prices.csv")
 close = prices["Close"]
 ```
 
+## Run the CSV Research Example
+
+```bash
+uv run python examples/csv_research_example.py
+```
+
 ## Module Overview
 
 ```text
