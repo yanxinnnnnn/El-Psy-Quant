@@ -102,6 +102,12 @@ from el_psy_quant.performance import backtest_summary
 summary = backtest_summary(result)
 ```
 
+## Run the Local Research Example
+
+```bash
+uv run python examples/minimal_research_example.py
+```
+
 ## Module Overview
 
 ```text
