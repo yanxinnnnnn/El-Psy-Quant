@@ -88,6 +88,16 @@ from el_psy_quant.portfolio import strategy_return
 strategy_returns = strategy_return(positions, returns)
 ```
 
+## Equity curve
+
+Compound strategy returns into an equity curve:
+
+```python
+from el_psy_quant.portfolio import equity_curve
+
+equity = equity_curve(strategy_returns, initial_capital=1_000.0)
+```
+
 ## Core Principles
 
 - AI writes, humans decide.
