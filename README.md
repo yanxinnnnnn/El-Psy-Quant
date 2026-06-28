@@ -10,9 +10,9 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 4 — Research Experimentation Foundation** is complete.
+**Milestone 5 — Strategy Realism Foundation** is complete.
 
-The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, and summarize parameter-sweep results with a descriptive overview table.
+The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, summarize parameter-sweep results, apply transaction costs and slippage when positions change, and extract basic trade records from position changes.
 
 See the milestone summaries:
 
@@ -21,6 +21,7 @@ docs/milestones/milestone-001-research-pipeline-foundation.md
 docs/milestones/milestone-002-performance-and-local-data.md
 docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
 docs/milestones/milestone-004-research-experimentation-foundation.md
+docs/milestones/milestone-005-strategy-realism-foundation.md
 ```
 
 ## Current Capabilities
@@ -42,8 +43,12 @@ docs/milestones/milestone-004-research-experimentation-foundation.md
   - daily return
 - Moving-average crossover signal events.
 - Long-only position state conversion.
-- Daily strategy return calculation using previous-day positions.
-- Equity curve calculation using compounded returns.
+- Daily gross strategy return calculation using previous-day positions.
+- Transaction cost drag when positions change.
+- Slippage drag when positions change.
+- Net strategy return calculation after transaction costs and slippage.
+- Equity curve calculation using compounded net returns.
+- Basic trade record extraction from long-only position changes.
 - Minimal moving-average crossover research pipeline.
 - Basic performance metrics:
   - total return
@@ -100,6 +105,9 @@ signal
 position
 asset_return
 strategy_return
+transaction_cost
+slippage
+net_strategy_return
 equity
 ```
 
@@ -226,8 +234,8 @@ el_psy_quant/
   data/          # Market data providers, CSV loading, cache helpers, and data workflows
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
-  portfolio/     # Positions, returns, and equity curves
-  backtesting/   # Research pipelines, local-file workflows, and experiment helpers
+  portfolio/     # Positions, returns, equity, costs, slippage, and trade records
+  backtesting/   # Research pipelines, local-file workflows, experiments, and trade helpers
   performance/   # Metrics and backtest summaries
 ```
 
@@ -269,19 +277,21 @@ AGENTS.md
 - Validate data at the boundary.
 - Keep live downloads explicit and local research reproducible.
 - Treat parameter search as comparison, not alpha discovery.
+- Separate gross returns, frictions, net returns, and equity.
+- Treat trade records as inspection data, not broker-grade accounting truth.
 
 ## Next Milestone
 
-**Milestone 5 — Strategy Realism Foundation**
+**Milestone 6 — Risk & Benchmark Foundation**
 
 Planned direction:
 
-1. Add a simple transaction cost model for position changes.
-2. Add a simple slippage model for position changes.
-3. Extract basic trade records from position changes.
-4. Refresh milestone documentation again after the realism layer is stable.
+1. Add CAGR and annualized volatility with explicit period assumptions.
+2. Add Sharpe-style evaluation with configurable risk-free rate and frequency.
+3. Compare strategy results against benchmark CSV input.
+4. Refresh milestone documentation again after the risk and benchmark layer is stable.
 
-The guiding principle for the next milestone: a backtest without costs, slippage, and trade visibility is still a toy. Make the toy less fake before claiming strategy quality.
+The guiding principle for the next milestone: a strategy result without risk context and benchmark comparison is incomplete. Make evaluation more disciplined before adding multi-asset complexity.
 
 ## Disclaimer
 
