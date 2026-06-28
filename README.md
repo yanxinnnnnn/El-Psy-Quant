@@ -131,6 +131,19 @@ close = prices["Close"]
 uv run python examples/csv_research_example.py
 ```
 
+## Run the Research Pipeline from CSV
+
+```python
+from el_psy_quant.backtesting import moving_average_crossover_from_csv
+
+result, summary = moving_average_crossover_from_csv(
+    "data/cache/AAPL.csv",
+    fast_window=20,
+    slow_window=50,
+    initial_capital=1_000.0,
+)
+```
+
 ## Local Data Cache
 
 ```python
