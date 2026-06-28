@@ -185,6 +185,12 @@ el_psy_quant/
 
 ## Documentation
 
+The project roadmap lives in:
+
+```text
+docs/roadmap.md
+```
+
 Sprint specifications live in:
 
 ```text
