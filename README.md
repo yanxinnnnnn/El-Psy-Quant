@@ -197,6 +197,18 @@ from el_psy_quant.backtesting import moving_average_crossover_trade_records
 trades = moving_average_crossover_trade_records(result)
 ```
 
+Annualized metrics require an explicit frequency. For daily trading data, 252
+periods per year is common, but it is not universal.
+
+```python
+from el_psy_quant.performance import annualized_volatility, cagr
+
+annual_return = cagr(result["equity"], periods_per_year=252)
+annual_vol = annualized_volatility(
+    result["net_strategy_return"], periods_per_year=252
+)
+```
+
 ```python
 from el_psy_quant.backtesting import moving_average_crossover_from_csv
 

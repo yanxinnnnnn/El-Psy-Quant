@@ -2,10 +2,18 @@
 
 import pandas as pd
 
-from el_psy_quant.performance.metrics import max_drawdown, total_return
+from el_psy_quant.performance.metrics import (
+    annualized_volatility,
+    cagr,
+    max_drawdown,
+    total_return,
+)
 
 
-def backtest_summary(result: pd.DataFrame) -> dict[str, float]:
+def backtest_summary(
+    result: pd.DataFrame,
+    periods_per_year: int | float | None = None,
+) -> dict[str, float]:
     """Return a small performance summary from a pipeline result."""
     for column in ("equity", "strategy_return"):
         if column not in result.columns:
@@ -19,11 +27,22 @@ def backtest_summary(result: pd.DataFrame) -> dict[str, float]:
         raise ValueError("strategy_return must not contain NaN values")
 
     equity = result["equity"]
-    return {
+    summary = {
         "initial_equity": float(equity.iloc[0]),
         "final_equity": float(equity.iloc[-1]),
         "total_return": total_return(equity),
         "max_drawdown": max_drawdown(equity),
         "periods": float(len(result)),
     }
+    if periods_per_year is not None:
+        returns_column = (
+            "net_strategy_return"
+            if "net_strategy_return" in result
+            else "strategy_return"
+        )
+        summary["cagr"] = cagr(equity, periods_per_year)
+        summary["annualized_volatility"] = annualized_volatility(
+            result[returns_column], periods_per_year
+        )
+    return summary
 
