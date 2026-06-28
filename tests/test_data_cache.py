@@ -94,6 +94,14 @@ def test_non_datetime_index_raises_value_error(tmp_path: Path) -> None:
         write_daily_prices_cache(prices, tmp_path, "AAPL")
 
 
+def test_missing_date_raises_value_error(tmp_path: Path) -> None:
+    prices = make_prices()
+    prices.index = pd.DatetimeIndex([pd.Timestamp("2024-01-01"), pd.NaT])
+
+    with pytest.raises(ValueError, match="must not contain missing dates"):
+        write_daily_prices_cache(prices, tmp_path, "AAPL")
+
+
 def test_duplicate_dates_raise_value_error(tmp_path: Path) -> None:
     prices = make_prices()
     prices.index = pd.to_datetime(["2024-01-01", "2024-01-01"])
@@ -121,4 +129,3 @@ def test_cache_functions_are_exported_from_data_package() -> None:
     assert data.cache_path is cache_path
     assert data.read_daily_prices_cache is read_daily_prices_cache
     assert data.write_daily_prices_cache is write_daily_prices_cache
-
