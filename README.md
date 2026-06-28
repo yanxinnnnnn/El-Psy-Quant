@@ -140,6 +140,17 @@ path = write_daily_prices_cache(prices, "data/cache", "AAPL")
 cached_prices = read_daily_prices_cache("data/cache", "AAPL")
 ```
 
+## Download Yahoo Prices to the Local Cache
+
+Calling this workflow performs a live download before writing the CSV cache.
+
+```python
+from el_psy_quant.data import download_daily_prices_to_cache, read_daily_prices_cache
+
+path = download_daily_prices_to_cache("AAPL", "data/cache", period="5y")
+prices = read_daily_prices_cache("data/cache", "AAPL")
+```
+
 ## Module Overview
 
 ```text
