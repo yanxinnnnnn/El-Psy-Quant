@@ -186,6 +186,12 @@ summary = moving_average_crossover_parameter_sweep(
 )
 ```
 
+```python
+from el_psy_quant.backtesting import summarize_parameter_sweep_results
+
+overview = summarize_parameter_sweep_results(summary)
+```
+
 ## Module Overview
 
 ```text
