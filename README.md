@@ -131,6 +131,15 @@ close = prices["Close"]
 uv run python examples/csv_research_example.py
 ```
 
+## Local Data Cache
+
+```python
+from el_psy_quant.data import read_daily_prices_cache, write_daily_prices_cache
+
+path = write_daily_prices_cache(prices, "data/cache", "AAPL")
+cached_prices = read_daily_prices_cache("data/cache", "AAPL")
+```
+
 ## Module Overview
 
 ```text
