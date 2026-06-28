@@ -18,6 +18,26 @@ RESULT_COLUMNS = [
     "max_drawdown",
     "periods",
 ]
+OVERVIEW_COLUMNS = [
+    "runs",
+    "fast_window_min",
+    "fast_window_max",
+    "slow_window_min",
+    "slow_window_max",
+    "initial_equity_min",
+    "initial_equity_max",
+    "final_equity_min",
+    "final_equity_mean",
+    "final_equity_max",
+    "total_return_min",
+    "total_return_mean",
+    "total_return_max",
+    "max_drawdown_min",
+    "max_drawdown_mean",
+    "max_drawdown_max",
+    "periods_min",
+    "periods_max",
+]
 
 
 def moving_average_crossover_parameter_sweep(
@@ -62,3 +82,34 @@ def moving_average_crossover_parameter_sweep(
         .sort_values(["fast_window", "slow_window"])
         .reset_index(drop=True)
     )
+
+
+def summarize_parameter_sweep_results(results: pd.DataFrame) -> pd.DataFrame:
+    """Return a one-row descriptive overview of parameter sweep results."""
+    if results.empty:
+        raise ValueError("results must not be empty")
+    missing = [column for column in RESULT_COLUMNS if column not in results]
+    if missing:
+        raise ValueError(f"missing required columns: {', '.join(missing)}")
+
+    overview = {
+        "runs": len(results),
+        "fast_window_min": results["fast_window"].min(),
+        "fast_window_max": results["fast_window"].max(),
+        "slow_window_min": results["slow_window"].min(),
+        "slow_window_max": results["slow_window"].max(),
+        "initial_equity_min": results["initial_equity"].min(),
+        "initial_equity_max": results["initial_equity"].max(),
+        "final_equity_min": results["final_equity"].min(),
+        "final_equity_mean": results["final_equity"].mean(),
+        "final_equity_max": results["final_equity"].max(),
+        "total_return_min": results["total_return"].min(),
+        "total_return_mean": results["total_return"].mean(),
+        "total_return_max": results["total_return"].max(),
+        "max_drawdown_min": results["max_drawdown"].min(),
+        "max_drawdown_mean": results["max_drawdown"].mean(),
+        "max_drawdown_max": results["max_drawdown"].max(),
+        "periods_min": results["periods"].min(),
+        "periods_max": results["periods"].max(),
+    }
+    return pd.DataFrame([overview], columns=OVERVIEW_COLUMNS)
