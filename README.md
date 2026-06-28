@@ -209,6 +209,19 @@ annual_vol = annualized_volatility(
 )
 ```
 
+Sharpe compares excess return with volatility. Its frequency and risk-free-rate
+assumptions must be explicit; a higher value is not proof of strategy quality.
+
+```python
+from el_psy_quant.performance import sharpe_ratio
+
+sharpe = sharpe_ratio(
+    result["net_strategy_return"],
+    periods_per_year=252,
+    annual_risk_free_rate=0.02,
+)
+```
+
 ```python
 from el_psy_quant.backtesting import moving_average_crossover_from_csv
 

@@ -108,6 +108,7 @@ def test_summary_adds_annualized_metrics_when_frequency_is_provided() -> None:
     assert result["annualized_volatility"] == pytest.approx(
         result_frame["net_strategy_return"].std(ddof=1) * 2**0.5
     )
+    assert "sharpe_ratio" in result
 
 
 def test_summary_annualized_volatility_falls_back_to_gross_returns() -> None:
@@ -123,4 +124,23 @@ def test_summary_annualized_volatility_falls_back_to_gross_returns() -> None:
 def test_summary_rejects_invalid_period_frequency() -> None:
     with pytest.raises(ValueError, match="periods_per_year must be positive"):
         backtest_summary(make_result(), periods_per_year=0)
+
+
+def test_summary_risk_free_rate_affects_sharpe() -> None:
+    zero_rate = backtest_summary(make_result(), periods_per_year=2)
+    positive_rate = backtest_summary(
+        make_result(), periods_per_year=2, annual_risk_free_rate=0.02
+    )
+
+    assert positive_rate["sharpe_ratio"] < zero_rate["sharpe_ratio"]
+
+
+def test_zero_volatility_only_raises_when_annualized_metrics_requested() -> None:
+    result = pd.DataFrame(
+        {"equity": [1.0, 1.0], "strategy_return": [0.0, 0.0]}
+    )
+
+    assert "sharpe_ratio" not in backtest_summary(result)
+    with pytest.raises(ValueError, match="annualized volatility must not be zero"):
+        backtest_summary(result, periods_per_year=252)
 
