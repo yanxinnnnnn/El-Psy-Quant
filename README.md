@@ -173,6 +173,19 @@ result, summary = moving_average_crossover_from_csv(
 )
 ```
 
+## Sweep Moving-Average Parameters
+
+```python
+from el_psy_quant.backtesting import moving_average_crossover_parameter_sweep
+
+summary = moving_average_crossover_parameter_sweep(
+    "data/cache/AAPL.csv",
+    fast_windows=[5, 10, 20],
+    slow_windows=[20, 50, 100],
+    initial_capital=1_000.0,
+)
+```
+
 ## Module Overview
 
 ```text
