@@ -15,6 +15,7 @@ def moving_average_crossover_from_csv(
     slow_window: int,
     initial_capital: float = 1.0,
     transaction_cost_rate: float = 0.0,
+    slippage_rate: float = 0.0,
 ) -> tuple[pd.DataFrame, dict[str, float]]:
     """Run the moving-average crossover research flow from a local CSV."""
     prices = load_daily_prices_csv(path)
@@ -24,5 +25,6 @@ def moving_average_crossover_from_csv(
         slow_window,
         initial_capital,
         transaction_cost_rate,
+        slippage_rate,
     )
     return result, backtest_summary(result)

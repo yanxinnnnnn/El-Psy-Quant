@@ -165,8 +165,9 @@ prices = read_daily_prices_cache("data/cache", "AAPL")
 
 ## Run the Research Pipeline from CSV
 
-Transaction costs are charged when the position changes. `strategy_return` is
-gross, `net_strategy_return` is after costs, and `equity` uses net returns.
+Transaction costs and slippage are charged when the position changes.
+`strategy_return` is gross, `net_strategy_return` is after both drags, and
+`equity` uses net returns.
 
 ```python
 result = moving_average_crossover_pipeline(
@@ -175,6 +176,7 @@ result = moving_average_crossover_pipeline(
     slow_window=50,
     initial_capital=1_000.0,
     transaction_cost_rate=0.001,
+    slippage_rate=0.0005,
 )
 ```
 
