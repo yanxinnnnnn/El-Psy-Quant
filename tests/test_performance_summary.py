@@ -97,3 +97,30 @@ def test_periods_equals_number_of_rows() -> None:
 
     assert result["periods"] == len(result_frame)
 
+
+def test_summary_adds_annualized_metrics_when_frequency_is_provided() -> None:
+    result_frame = make_result()
+    result_frame["net_strategy_return"] = [0.0, 0.08, -0.04]
+
+    result = backtest_summary(result_frame, periods_per_year=2)
+
+    assert result["cagr"] == pytest.approx(0.045)
+    assert result["annualized_volatility"] == pytest.approx(
+        result_frame["net_strategy_return"].std(ddof=1) * 2**0.5
+    )
+
+
+def test_summary_annualized_volatility_falls_back_to_gross_returns() -> None:
+    result_frame = make_result()
+
+    result = backtest_summary(result_frame, periods_per_year=2)
+
+    assert result["annualized_volatility"] == pytest.approx(
+        result_frame["strategy_return"].std(ddof=1) * 2**0.5
+    )
+
+
+def test_summary_rejects_invalid_period_frequency() -> None:
+    with pytest.raises(ValueError, match="periods_per_year must be positive"):
+        backtest_summary(make_result(), periods_per_year=0)
+
