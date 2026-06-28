@@ -1,0 +1,131 @@
+# El-Psy-Quant Roadmap
+
+## Purpose
+
+This roadmap turns the sprint-by-sprint project plan into a clearer milestone timeline.
+
+It is a rolling plan, not a contract. The order should change if the project learns something important, but the guiding principle stays the same:
+
+```text
+Build a reproducible research platform before chasing strategy complexity.
+```
+
+## Timeline Overview
+
+```mermaid
+flowchart LR
+    M1["Milestone 1<br/>Research Pipeline Foundation<br/>Sprints 1-7 ✅"] --> M2["Milestone 2<br/>Performance & Local Data Foundation<br/>Sprints 8-12 ✅"]
+    M2 --> M3["Milestone 3<br/>Data Reproducibility & Research Workflow<br/>Sprints 13-16 ✅"]
+    M3 --> M4["Milestone 4<br/>Research Experimentation Foundation<br/>Sprints 17-20"]
+    M4 --> M5["Milestone 5<br/>Strategy Realism Foundation<br/>Sprints 21-24"]
+    M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28"]
+    M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32"]
+    M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36"]
+```
+
+## Milestone Table
+
+| Milestone | Sprint Range | Status | Theme | Exit Criteria |
+|---|---:|---|---|---|
+| Milestone 1 — Research Pipeline Foundation | Sprints 1-7 | Complete | Build the first minimal moving-average crossover research pipeline. | Close prices can produce signals, positions, returns, and an equity curve. |
+| Milestone 2 — Performance & Local Data Foundation | Sprints 8-12 | Complete | Add evaluation metrics and deterministic local CSV input. | The project can summarize backtests and run research from local CSV data. |
+| Milestone 3 — Data Reproducibility & Research Workflow | Sprints 13-16 | Complete | Add local cache, Yahoo-to-cache workflow, and CSV-to-pipeline helper. | Live data can be persisted locally, and local CSV research can run through one helper. |
+| Milestone 4 — Research Experimentation Foundation | Sprints 17-20 | Planned | Make experiments repeatable and comparable. | Multiple parameter runs can be executed and compared without claiming false alpha. |
+| Milestone 5 — Strategy Realism Foundation | Sprints 21-24 | Planned | Add realistic frictions and trade-level visibility. | Backtests can include basic costs/slippage and expose trade records. |
+| Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Planned | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
+| Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Planned | Move from single-symbol to multi-symbol research. | The platform can run the same strategy workflow across multiple symbols. |
+| Milestone 8 — Research Operations Foundation | Sprints 33-36 | Planned | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
+
+## Detailed Sprint Timeline
+
+### Completed Milestones
+
+Detailed histories for completed milestones live in:
+
+```text
+docs/milestones/milestone-001-research-pipeline-foundation.md
+docs/milestones/milestone-002-performance-and-local-data.md
+docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
+```
+
+| Sprint | Milestone | Status | Main Deliverable |
+|---:|---|---|---|
+| S1-S7 | Milestone 1 | Complete | Market data provider, indicators, signals, positions, strategy returns, equity curve, and minimal MA crossover pipeline. |
+| S8 | Milestone 2 | Complete | `total_return` and `max_drawdown`. |
+| S9 | Milestone 2 | Complete | `backtest_summary`. |
+| S10 | Milestone 2 | Complete | Deterministic in-memory research example. |
+| S11 | Milestone 2 | Complete | `load_daily_prices_csv`. |
+| S12 | Milestone 2 | Complete | CSV research example with bundled sample data. |
+| S13 | Milestone 3 | Complete | Local CSV cache helpers. |
+| S14 | Milestone 3 | Complete | `download_daily_prices_to_cache`. |
+| S15 | Milestone 3 | Complete | `moving_average_crossover_from_csv`. |
+| S16 | Milestone 3 | Complete | Milestone 3 documentation refresh. |
+
+### Planned Milestone 4 — Research Experimentation Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S17 | Planned | Improve live download failure clarity. | Better errors for empty downloads and provider failures. | No retry framework, no rate-limit system, no provider rewrite. |
+| S18 | Planned | Run deterministic parameter sweeps. | Moving-average window sweep using local CSV input. | No profitability claims, no overfitting theater. |
+| S19 | Planned | Summarize experiment results. | DataFrame summary for multiple parameter runs. | No dashboard, no report framework. |
+| S20 | Planned | Close milestone. | Milestone 4 documentation refresh. | Keep README accurate, not hyped. |
+
+### Planned Milestone 5 — Strategy Realism Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S21 | Planned | Add basic transaction cost support. | Simple cost model applied to strategy returns. | No broker-specific fee model yet. |
+| S22 | Planned | Add basic slippage support. | Simple slippage model for signal/position changes. | No order book simulation. |
+| S23 | Planned | Add trade-level visibility. | Basic trade record extraction from positions/signals. | No full accounting engine. |
+| S24 | Planned | Close milestone. | Milestone 5 documentation refresh. | Keep assumptions explicit. |
+
+### Planned Milestone 6 — Risk & Benchmark Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S25 | Planned | Add annualized metrics carefully. | CAGR and annualized volatility with explicit period assumptions. | No hidden annualization assumptions. |
+| S26 | Planned | Add Sharpe-style evaluation. | Sharpe ratio with configurable risk-free rate and frequency. | Explain limitations clearly. |
+| S27 | Planned | Add benchmark comparison. | Compare strategy equity/returns against benchmark CSV. | No claims of outperformance without context. |
+| S28 | Planned | Close milestone. | Milestone 6 documentation refresh. | Keep evaluation honest. |
+
+### Planned Milestone 7 — Multi-Asset Research Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S29 | Planned | Support multi-symbol local input. | Batch loading from local CSV/cache paths. | No portfolio optimizer yet. |
+| S30 | Planned | Run strategy across many symbols. | Multi-symbol parameter/result execution helper. | Keep per-symbol results inspectable. |
+| S31 | Planned | Aggregate multi-symbol summaries. | Cross-symbol experiment summary table. | No capital allocation optimization yet. |
+| S32 | Planned | Close milestone. | Milestone 7 documentation refresh. | Stay reproducible and deterministic. |
+
+### Planned Milestone 8 — Research Operations Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S33 | Planned | Add simple experiment config. | YAML or TOML config for local experiments. | No complex config framework. |
+| S34 | Planned | Add local experiment output layout. | Deterministic folder structure for experiment results. | No database yet. |
+| S35 | Planned | Add a minimal CLI wrapper. | Small command to run a local configured experiment. | CLI wraps existing functions; it must not become the core. |
+| S36 | Planned | Close milestone. | Milestone 8 documentation refresh. | Keep workflows boring and repeatable. |
+
+## Roadmap Principles
+
+1. Local reproducibility beats live convenience.
+2. Evaluation discipline comes before strategy complexity.
+3. Parameter search is not alpha discovery.
+4. Costs, slippage, and benchmarks should arrive before serious strategy claims.
+5. Multi-asset research should come after single-asset workflow is stable.
+6. CLI and operations should wrap stable functions, not drive architecture.
+7. Every milestone should leave the repository easier to understand than before.
+
+## Current Next Step
+
+The next sprint is:
+
+```text
+Sprint 17 — Download Failure Handling
+```
+
+Reason:
+
+Yahoo Finance already produced a rate-limit error during local testing. The current cache writer correctly rejects empty data, but the user-facing error can be clearer.
+
+Sprint 17 should improve that failure path without adding retries, refresh logic, or provider complexity.
