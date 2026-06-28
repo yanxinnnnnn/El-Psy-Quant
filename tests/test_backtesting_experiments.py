@@ -94,6 +94,19 @@ def test_custom_initial_capital_is_reflected_in_every_row(tmp_path: Path) -> Non
     assert result["initial_equity"].tolist() == [1_000.0, 1_000.0]
 
 
+def test_transaction_cost_rate_adjusts_sweep_summary(tmp_path: Path) -> None:
+    path = tmp_path / "prices.csv"
+    write_prices(path)
+
+    without_costs = moving_average_crossover_parameter_sweep(path, [1], [2])
+    with_costs = moving_average_crossover_parameter_sweep(
+        path, [1], [2], transaction_cost_rate=0.01
+    )
+
+    assert with_costs.loc[0, "final_equity"] < without_costs.loc[0, "final_equity"]
+    assert with_costs.loc[0, "total_return"] < without_costs.loc[0, "total_return"]
+
+
 @pytest.mark.parametrize(
     ("fast_windows", "slow_windows", "message"),
     [([], [2], "fast_windows"), ([1], [], "slow_windows")],

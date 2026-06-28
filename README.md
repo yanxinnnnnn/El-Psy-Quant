@@ -165,6 +165,19 @@ prices = read_daily_prices_cache("data/cache", "AAPL")
 
 ## Run the Research Pipeline from CSV
 
+Transaction costs are charged when the position changes. `strategy_return` is
+gross, `net_strategy_return` is after costs, and `equity` uses net returns.
+
+```python
+result = moving_average_crossover_pipeline(
+    close,
+    fast_window=20,
+    slow_window=50,
+    initial_capital=1_000.0,
+    transaction_cost_rate=0.001,
+)
+```
+
 ```python
 from el_psy_quant.backtesting import moving_average_crossover_from_csv
 

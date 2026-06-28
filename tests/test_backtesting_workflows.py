@@ -13,6 +13,8 @@ EXPECTED_RESULT_COLUMNS = [
     "position",
     "asset_return",
     "strategy_return",
+    "transaction_cost",
+    "net_strategy_return",
     "equity",
 ]
 EXPECTED_SUMMARY_KEYS = {
@@ -66,6 +68,22 @@ def test_custom_initial_capital_is_reflected_in_summary(tmp_path: Path) -> None:
     )
 
     assert summary["initial_equity"] == 1_000.0
+
+
+def test_transaction_cost_rate_produces_cost_adjusted_result(tmp_path: Path) -> None:
+    path = tmp_path / "prices.csv"
+    write_prices(path)
+
+    result, _ = moving_average_crossover_from_csv(
+        path, 1, 2, transaction_cost_rate=0.01
+    )
+
+    pd.testing.assert_series_equal(
+        result["net_strategy_return"],
+        (result["strategy_return"] - result["transaction_cost"]).rename(
+            "net_strategy_return"
+        ),
+    )
 
 
 def test_invalid_csv_error_is_propagated(tmp_path: Path) -> None:
