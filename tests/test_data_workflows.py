@@ -33,6 +33,26 @@ class FakeProvider:
         return make_prices()
 
 
+class EmptyProvider(FakeProvider):
+    def download_daily_prices(
+        self, ticker: str, period: str = "5y"
+    ) -> pd.DataFrame:
+        self.calls.append((ticker, period))
+        return make_prices().iloc[0:0]
+
+
+class FailingProvider(FakeProvider):
+    def __init__(self, error: Exception) -> None:
+        super().__init__()
+        self.error = error
+
+    def download_daily_prices(
+        self, ticker: str, period: str = "5y"
+    ) -> pd.DataFrame:
+        self.calls.append((ticker, period))
+        raise self.error
+
+
 def test_downloads_prices_writes_cache_and_returns_path(tmp_path: Path) -> None:
     provider = FakeProvider()
 
@@ -56,6 +76,34 @@ def test_strips_ticker_before_download_and_cache_write(tmp_path: Path) -> None:
 
     assert provider.calls == [("aapl", "5y")]
     assert path == tmp_path / "AAPL.csv"
+
+
+def test_empty_download_raises_clear_error_without_writing_cache(
+    tmp_path: Path,
+) -> None:
+    provider = EmptyProvider()
+
+    with pytest.raises(ValueError, match="no price data downloaded for AAPL"):
+        download_daily_prices_to_cache("AAPL", tmp_path, provider=provider)
+
+    assert provider.calls == [("AAPL", "5y")]
+    assert not (tmp_path / "AAPL.csv").exists()
+
+
+def test_provider_error_is_wrapped_and_preserved_without_writing_cache(
+    tmp_path: Path,
+) -> None:
+    original = ConnectionError("provider unavailable")
+    provider = FailingProvider(original)
+
+    with pytest.raises(
+        RuntimeError, match="failed to download price data for AAPL"
+    ) as error:
+        download_daily_prices_to_cache("AAPL", tmp_path, provider=provider)
+
+    assert error.value.__cause__ is original
+    assert provider.calls == [("AAPL", "5y")]
+    assert not (tmp_path / "AAPL.csv").exists()
 
 
 @pytest.mark.parametrize(

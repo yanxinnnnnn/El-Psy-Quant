@@ -150,6 +150,8 @@ cached_prices = read_daily_prices_cache("data/cache", "AAPL")
 ## Download Yahoo Prices to the Local Cache
 
 Calling this workflow performs a live download before writing the CSV cache.
+Live providers can fail or be rate-limited. Failed or empty downloads are not
+written to the local cache.
 
 ```python
 from el_psy_quant.data import download_daily_prices_to_cache, read_daily_prices_cache
