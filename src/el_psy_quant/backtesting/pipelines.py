@@ -3,7 +3,12 @@
 import pandas as pd
 
 from el_psy_quant.indicators import daily_return, simple_moving_average
-from el_psy_quant.portfolio import equity_curve, long_only_position, strategy_return
+from el_psy_quant.portfolio import (
+    equity_curve,
+    long_only_position,
+    strategy_return,
+    transaction_cost,
+)
 from el_psy_quant.signals import crossover_signal
 
 
@@ -12,6 +17,7 @@ def moving_average_crossover_pipeline(
     fast_window: int,
     slow_window: int,
     initial_capital: float = 1.0,
+    transaction_cost_rate: float = 0.0,
 ) -> pd.DataFrame:
     """Compose the single-asset moving-average crossover research pipeline."""
     if fast_window >= slow_window:
@@ -25,7 +31,9 @@ def moving_average_crossover_pipeline(
     position = long_only_position(signal)
     asset_return = daily_return(close)
     returns = strategy_return(position, asset_return)
-    equity = equity_curve(returns, initial_capital)
+    costs = transaction_cost(position, transaction_cost_rate)
+    net_returns = returns - costs
+    equity = equity_curve(net_returns, initial_capital)
 
     return pd.DataFrame(
         {
@@ -36,6 +44,8 @@ def moving_average_crossover_pipeline(
             "position": position,
             "asset_return": asset_return,
             "strategy_return": returns,
+            "transaction_cost": costs,
+            "net_strategy_return": net_returns,
             "equity": equity,
         },
         index=close.index,

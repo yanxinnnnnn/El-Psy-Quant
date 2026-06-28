@@ -45,6 +45,7 @@ def moving_average_crossover_parameter_sweep(
     fast_windows: Iterable[int],
     slow_windows: Iterable[int],
     initial_capital: float = 1.0,
+    transaction_cost_rate: float = 0.0,
 ) -> pd.DataFrame:
     """Summarize valid moving-average window pairs for one local CSV."""
     fast_windows = list(fast_windows)
@@ -65,6 +66,7 @@ def moving_average_crossover_parameter_sweep(
                 fast_window,
                 slow_window,
                 initial_capital,
+                transaction_cost_rate,
             )
             rows.append(
                 {
