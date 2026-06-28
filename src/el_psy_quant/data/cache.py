@@ -35,6 +35,8 @@ def write_daily_prices_cache(
         raise ValueError(f"missing required columns: {', '.join(missing)}")
     if not isinstance(prices.index, pd.DatetimeIndex):
         raise ValueError("prices must have a DatetimeIndex")
+    if prices.index.isna().any():
+        raise ValueError("prices index must not contain missing dates")
     if prices.index.has_duplicates:
         raise ValueError("prices index must not contain duplicate dates")
     if prices["Close"].isna().any():
@@ -52,4 +54,3 @@ def read_daily_prices_cache(cache_dir: str | Path, symbol: str) -> pd.DataFrame:
     if not path.exists():
         raise FileNotFoundError(path)
     return load_daily_prices_csv(path)
-
