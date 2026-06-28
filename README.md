@@ -10,9 +10,9 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 3 — Data Reproducibility & Research Workflow** is complete.
+**Milestone 4 — Research Experimentation Foundation** is complete.
 
-The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache, and run research directly from local CSV files.
+The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, and summarize parameter-sweep results with a descriptive overview table.
 
 See the milestone summaries:
 
@@ -20,6 +20,7 @@ See the milestone summaries:
 docs/milestones/milestone-001-research-pipeline-foundation.md
 docs/milestones/milestone-002-performance-and-local-data.md
 docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
+docs/milestones/milestone-004-research-experimentation-foundation.md
 ```
 
 ## Current Capabilities
@@ -31,8 +32,10 @@ docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
   - deterministic cache file paths
   - cache writing
   - cache reading
-- Explicit Yahoo-to-CSV cache workflow.
+- Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
 - CSV-to-pipeline convenience workflow.
+- Deterministic moving-average parameter sweep from local CSV input.
+- Descriptive parameter-sweep overview summary.
 - Basic indicators:
   - simple moving average
   - exponential moving average
@@ -200,7 +203,7 @@ el_psy_quant/
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Positions, returns, and equity curves
-  backtesting/   # Research pipelines and local-file workflows
+  backtesting/   # Research pipelines, local-file workflows, and experiment helpers
   performance/   # Metrics and backtest summaries
 ```
 
@@ -241,19 +244,20 @@ AGENTS.md
 - Make timing assumptions explicit to avoid look-ahead bias.
 - Validate data at the boundary.
 - Keep live downloads explicit and local research reproducible.
+- Treat parameter search as comparison, not alpha discovery.
 
 ## Next Milestone
 
-**Milestone 4 — Research Experimentation Foundation**
+**Milestone 5 — Strategy Realism Foundation**
 
 Planned direction:
 
-1. Improve live download failure handling so provider errors and empty downloads are easier to understand.
-2. Add a deterministic moving-average parameter sweep using local CSV input.
-3. Add a small experiment result summary table.
-4. Refresh milestone documentation again after the experimentation layer is stable.
+1. Add a simple transaction cost model for position changes.
+2. Add a simple slippage model for position changes.
+3. Extract basic trade records from position changes.
+4. Refresh milestone documentation again after the realism layer is stable.
 
-The guiding principle for the next milestone: do not confuse parameter search with alpha discovery. Make experiments repeatable, comparable, and easy to inspect.
+The guiding principle for the next milestone: a backtest without costs, slippage, and trade visibility is still a toy. Make the toy less fake before claiming strategy quality.
 
 ## Disclaimer
 
