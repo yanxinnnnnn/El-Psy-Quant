@@ -20,5 +20,14 @@ def download_daily_prices_to_cache(
         raise ValueError("period must not be empty")
 
     market_data = provider if provider is not None else YahooFinanceProvider()
-    prices = market_data.download_daily_prices(ticker, period=period)
+    try:
+        prices = market_data.download_daily_prices(ticker, period=period)
+    except Exception as exc:
+        raise RuntimeError(
+            f"failed to download price data for {ticker}"
+        ) from exc
+
+    if prices.empty:
+        raise ValueError(f"no price data downloaded for {ticker}")
+
     return write_daily_prices_cache(prices, cache_dir, ticker)
