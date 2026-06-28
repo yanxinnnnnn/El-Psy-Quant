@@ -107,6 +107,19 @@ def test_transaction_cost_rate_adjusts_sweep_summary(tmp_path: Path) -> None:
     assert with_costs.loc[0, "total_return"] < without_costs.loc[0, "total_return"]
 
 
+def test_slippage_rate_adjusts_sweep_summary(tmp_path: Path) -> None:
+    path = tmp_path / "prices.csv"
+    write_prices(path)
+
+    without_slippage = moving_average_crossover_parameter_sweep(path, [1], [2])
+    with_slippage = moving_average_crossover_parameter_sweep(
+        path, [1], [2], slippage_rate=0.01
+    )
+
+    assert with_slippage.loc[0, "final_equity"] < without_slippage.loc[0, "final_equity"]
+    assert with_slippage.loc[0, "total_return"] < without_slippage.loc[0, "total_return"]
+
+
 @pytest.mark.parametrize(
     ("fast_windows", "slow_windows", "message"),
     [([], [2], "fast_windows"), ([1], [], "slow_windows")],

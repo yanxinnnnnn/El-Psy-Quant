@@ -14,6 +14,7 @@ EXPECTED_RESULT_COLUMNS = [
     "asset_return",
     "strategy_return",
     "transaction_cost",
+    "slippage",
     "net_strategy_return",
     "equity",
 ]
@@ -84,6 +85,22 @@ def test_transaction_cost_rate_produces_cost_adjusted_result(tmp_path: Path) -> 
             "net_strategy_return"
         ),
     )
+
+
+def test_slippage_rate_produces_adjusted_result(tmp_path: Path) -> None:
+    path = tmp_path / "prices.csv"
+    write_prices(path)
+
+    result, _ = moving_average_crossover_from_csv(
+        path, 1, 2, slippage_rate=0.01
+    )
+
+    expected = (
+        result["strategy_return"]
+        - result["transaction_cost"]
+        - result["slippage"]
+    ).rename("net_strategy_return")
+    pd.testing.assert_series_equal(result["net_strategy_return"], expected)
 
 
 def test_invalid_csv_error_is_propagated(tmp_path: Path) -> None:

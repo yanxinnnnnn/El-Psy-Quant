@@ -6,6 +6,7 @@ from el_psy_quant.indicators import daily_return, simple_moving_average
 from el_psy_quant.portfolio import (
     equity_curve,
     long_only_position,
+    slippage_cost,
     strategy_return,
     transaction_cost,
 )
@@ -28,6 +29,7 @@ def test_pipeline_returns_expected_columns_in_order() -> None:
         "asset_return",
         "strategy_return",
         "transaction_cost",
+        "slippage",
         "net_strategy_return",
         "equity",
     ]
@@ -51,10 +53,13 @@ def test_pipeline_composes_existing_functions() -> None:
     asset_return = daily_return(close)
     returns = strategy_return(position, asset_return)
     costs = transaction_cost(position, 0.01)
-    net_returns = returns - costs
+    slippage = slippage_cost(position, 0.005)
+    net_returns = returns - costs - slippage
     equity = equity_curve(net_returns, initial_capital=100.0)
 
-    result = moving_average_crossover_pipeline(close, 2, 3, 100.0, 0.01)
+    result = moving_average_crossover_pipeline(
+        close, 2, 3, 100.0, 0.01, 0.005
+    )
 
     expected = pd.DataFrame(
         {
@@ -66,6 +71,7 @@ def test_pipeline_composes_existing_functions() -> None:
             "asset_return": asset_return,
             "strategy_return": returns,
             "transaction_cost": costs,
+            "slippage": slippage,
             "net_strategy_return": net_returns,
             "equity": equity,
         }
@@ -127,6 +133,21 @@ def test_negative_transaction_cost_rate_raises_value_error() -> None:
     with pytest.raises(ValueError, match="cost_rate must not be negative"):
         moving_average_crossover_pipeline(
             pd.Series([1.0, 2.0, 3.0]), 1, 2, transaction_cost_rate=-0.01
+        )
+
+
+def test_default_slippage_is_zero() -> None:
+    result = moving_average_crossover_pipeline(
+        pd.Series([1.0, 2.0, 3.0]), 1, 2
+    )
+
+    assert (result["slippage"] == 0.0).all()
+
+
+def test_negative_slippage_rate_raises_value_error() -> None:
+    with pytest.raises(ValueError, match="slippage_rate must not be negative"):
+        moving_average_crossover_pipeline(
+            pd.Series([1.0, 2.0, 3.0]), 1, 2, slippage_rate=-0.01
         )
 
 

@@ -6,6 +6,7 @@ from el_psy_quant.indicators import daily_return, simple_moving_average
 from el_psy_quant.portfolio import (
     equity_curve,
     long_only_position,
+    slippage_cost,
     strategy_return,
     transaction_cost,
 )
@@ -18,6 +19,7 @@ def moving_average_crossover_pipeline(
     slow_window: int,
     initial_capital: float = 1.0,
     transaction_cost_rate: float = 0.0,
+    slippage_rate: float = 0.0,
 ) -> pd.DataFrame:
     """Compose the single-asset moving-average crossover research pipeline."""
     if fast_window >= slow_window:
@@ -32,7 +34,8 @@ def moving_average_crossover_pipeline(
     asset_return = daily_return(close)
     returns = strategy_return(position, asset_return)
     costs = transaction_cost(position, transaction_cost_rate)
-    net_returns = returns - costs
+    slippage = slippage_cost(position, slippage_rate)
+    net_returns = returns - costs - slippage
     equity = equity_curve(net_returns, initial_capital)
 
     return pd.DataFrame(
@@ -45,6 +48,7 @@ def moving_average_crossover_pipeline(
             "asset_return": asset_return,
             "strategy_return": returns,
             "transaction_cost": costs,
+            "slippage": slippage,
             "net_strategy_return": net_returns,
             "equity": equity,
         },
