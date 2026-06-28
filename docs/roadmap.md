@@ -17,7 +17,7 @@ flowchart LR
     M1["Milestone 1<br/>Research Pipeline Foundation<br/>Sprints 1-7 ✅"] --> M2["Milestone 2<br/>Performance & Local Data Foundation<br/>Sprints 8-12 ✅"]
     M2 --> M3["Milestone 3<br/>Data Reproducibility & Research Workflow<br/>Sprints 13-16 ✅"]
     M3 --> M4["Milestone 4<br/>Research Experimentation Foundation<br/>Sprints 17-20 ✅"]
-    M4 --> M5["Milestone 5<br/>Strategy Realism Foundation<br/>Sprints 21-24"]
+    M4 --> M5["Milestone 5<br/>Strategy Realism Foundation<br/>Sprints 21-24 ✅"]
     M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28"]
     M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32"]
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36"]
@@ -31,7 +31,7 @@ flowchart LR
 | Milestone 2 — Performance & Local Data Foundation | Sprints 8-12 | Complete | Add evaluation metrics and deterministic local CSV input. | The project can summarize backtests and run research from local CSV data. |
 | Milestone 3 — Data Reproducibility & Research Workflow | Sprints 13-16 | Complete | Add local cache, Yahoo-to-cache workflow, and CSV-to-pipeline helper. | Live data can be persisted locally, and local CSV research can run through one helper. |
 | Milestone 4 — Research Experimentation Foundation | Sprints 17-20 | Complete | Make experiments repeatable and comparable. | Multiple parameter runs can be executed and summarized without claiming false alpha. |
-| Milestone 5 — Strategy Realism Foundation | Sprints 21-24 | Planned | Add realistic frictions and trade-level visibility. | Backtests can include basic costs/slippage and expose trade records. |
+| Milestone 5 — Strategy Realism Foundation | Sprints 21-24 | Complete | Add realistic frictions and trade-level visibility. | Backtests include basic costs/slippage and expose trade records. |
 | Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Planned | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
 | Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Planned | Move from single-symbol to multi-symbol research. | The platform can run the same strategy workflow across multiple symbols. |
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Planned | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
@@ -47,6 +47,7 @@ docs/milestones/milestone-001-research-pipeline-foundation.md
 docs/milestones/milestone-002-performance-and-local-data.md
 docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
 docs/milestones/milestone-004-research-experimentation-foundation.md
+docs/milestones/milestone-005-strategy-realism-foundation.md
 ```
 
 | Sprint | Milestone | Status | Main Deliverable |
@@ -65,15 +66,10 @@ docs/milestones/milestone-004-research-experimentation-foundation.md
 | S18 | Milestone 4 | Complete | `moving_average_crossover_parameter_sweep`. |
 | S19 | Milestone 4 | Complete | `summarize_parameter_sweep_results`. |
 | S20 | Milestone 4 | Complete | Milestone 4 documentation refresh. |
-
-### Planned Milestone 5 — Strategy Realism Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S21 | Planned | Add basic transaction cost support. | Simple cost model applied to strategy returns. | No broker-specific fee model yet. |
-| S22 | Planned | Add basic slippage support. | Simple slippage model for signal/position changes. | No order book simulation. |
-| S23 | Planned | Add trade-level visibility. | Basic trade record extraction from positions/signals. | No full accounting engine. |
-| S24 | Planned | Close milestone. | Milestone 5 documentation refresh. | Keep assumptions explicit. |
+| S21 | Milestone 5 | Complete | `transaction_cost` and cost-adjusted net returns. |
+| S22 | Milestone 5 | Complete | `slippage_cost` and slippage-adjusted net returns. |
+| S23 | Milestone 5 | Complete | `long_only_trade_records` and crossover trade record extraction. |
+| S24 | Milestone 5 | Complete | Milestone 5 documentation refresh. |
 
 ### Planned Milestone 6 — Risk & Benchmark Foundation
 
@@ -117,11 +113,11 @@ docs/milestones/milestone-004-research-experimentation-foundation.md
 The next sprint is:
 
 ```text
-Sprint 21 — Transaction Cost Foundation
+Sprint 25 — Annualized Metrics Foundation
 ```
 
 Reason:
 
-Milestone 4 made experiments repeatable and comparable, but the strategy is still too clean. It does not account for transaction costs, slippage, or trade-level visibility.
+Milestone 5 made the backtest less fake by adding transaction costs, slippage, and trade records. The next gap is evaluation discipline: total return and max drawdown are useful, but they do not explain annualized performance or volatility.
 
-Sprint 21 should add a simple explicit transaction cost model for position changes without building broker-specific fee schedules or a full accounting engine.
+Sprint 25 should add CAGR and annualized volatility with explicit period assumptions, without hiding frequency choices or making strategy-quality claims.
