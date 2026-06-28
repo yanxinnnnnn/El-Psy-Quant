@@ -180,6 +180,15 @@ result = moving_average_crossover_pipeline(
 )
 ```
 
+Trade records are extracted from position changes for inspection, not
+broker-grade accounting.
+
+```python
+from el_psy_quant.backtesting import moving_average_crossover_trade_records
+
+trades = moving_average_crossover_trade_records(result)
+```
+
 ```python
 from el_psy_quant.backtesting import moving_average_crossover_from_csv
 
