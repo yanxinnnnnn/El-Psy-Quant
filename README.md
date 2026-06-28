@@ -10,15 +10,16 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 2 — Performance & Local Data Foundation** is complete.
+**Milestone 3 — Data Reproducibility & Research Workflow** is complete.
 
-The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic metrics, summarize the backtest, and reproduce the workflow from local CSV data.
+The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache, and run research directly from local CSV files.
 
 See the milestone summaries:
 
 ```text
 docs/milestones/milestone-001-research-pipeline-foundation.md
 docs/milestones/milestone-002-performance-and-local-data.md
+docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
 ```
 
 ## Current Capabilities
@@ -26,6 +27,12 @@ docs/milestones/milestone-002-performance-and-local-data.md
 - Market data provider abstraction.
 - Yahoo Finance daily price provider.
 - Local CSV daily price loader.
+- Local CSV data cache:
+  - deterministic cache file paths
+  - cache writing
+  - cache reading
+- Explicit Yahoo-to-CSV cache workflow.
+- CSV-to-pipeline convenience workflow.
 - Basic indicators:
   - simple moving average
   - exponential moving average
@@ -131,19 +138,6 @@ close = prices["Close"]
 uv run python examples/csv_research_example.py
 ```
 
-## Run the Research Pipeline from CSV
-
-```python
-from el_psy_quant.backtesting import moving_average_crossover_from_csv
-
-result, summary = moving_average_crossover_from_csv(
-    "data/cache/AAPL.csv",
-    fast_window=20,
-    slow_window=50,
-    initial_capital=1_000.0,
-)
-```
-
 ## Local Data Cache
 
 ```python
@@ -164,15 +158,28 @@ path = download_daily_prices_to_cache("AAPL", "data/cache", period="5y")
 prices = read_daily_prices_cache("data/cache", "AAPL")
 ```
 
+## Run the Research Pipeline from CSV
+
+```python
+from el_psy_quant.backtesting import moving_average_crossover_from_csv
+
+result, summary = moving_average_crossover_from_csv(
+    "data/cache/AAPL.csv",
+    fast_window=20,
+    slow_window=50,
+    initial_capital=1_000.0,
+)
+```
+
 ## Module Overview
 
 ```text
 el_psy_quant/
-  data/          # Market data providers and local CSV loading
+  data/          # Market data providers, CSV loading, cache helpers, and data workflows
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Positions, returns, and equity curves
-  backtesting/   # Small research pipelines
+  backtesting/   # Research pipelines and local-file workflows
   performance/   # Metrics and backtest summaries
 ```
 
@@ -206,19 +213,20 @@ AGENTS.md
 - Keep tests deterministic and network-free where possible.
 - Make timing assumptions explicit to avoid look-ahead bias.
 - Validate data at the boundary.
+- Keep live downloads explicit and local research reproducible.
 
 ## Next Milestone
 
-**Milestone 3 — Data Reproducibility & Research Workflow**
+**Milestone 4 — Research Experimentation Foundation**
 
 Planned direction:
 
-1. Add a small local data cache foundation.
-2. Add a Yahoo-to-CSV workflow that bridges live data and reproducible local research.
-3. Add a CSV pipeline convenience function.
-4. Refresh milestone documentation again after the data workflow is stable.
+1. Improve live download failure handling so provider errors and empty downloads are easier to understand.
+2. Add a deterministic moving-average parameter sweep using local CSV input.
+3. Add a small experiment result summary table.
+4. Refresh milestone documentation again after the experimentation layer is stable.
 
-The guiding principle for the next milestone: do not chase more strategy complexity yet. Make the data workflow reproducible, inspectable, and boring.
+The guiding principle for the next milestone: do not confuse parameter search with alpha discovery. Make experiments repeatable, comparable, and easy to inspect.
 
 ## Disclaimer
 
