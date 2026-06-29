@@ -222,6 +222,21 @@ sharpe = sharpe_ratio(
 )
 ```
 
+Benchmark comparison uses a local CSV and simple buy-and-hold performance over
+shared dates. Outperformance claims should be made carefully.
+
+```python
+from el_psy_quant.backtesting import compare_to_buy_and_hold_benchmark
+
+comparison = compare_to_buy_and_hold_benchmark(
+    result,
+    "data/cache/SPY.csv",
+    initial_capital=1_000.0,
+    periods_per_year=252,
+    annual_risk_free_rate=0.02,
+)
+```
+
 ```python
 from el_psy_quant.backtesting import moving_average_crossover_from_csv
 
