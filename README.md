@@ -10,9 +10,9 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 6 — Risk & Benchmark Foundation** is complete.
+**Milestone 7 — Multi-Asset Research Foundation** is complete.
 
-The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic and annualized metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, summarize parameter-sweep results, apply transaction costs and slippage when positions change, extract basic trade records from position changes, calculate Sharpe-style risk-adjusted metrics, and compare strategy results against a local CSV buy-and-hold benchmark over shared dates.
+The project can now run deterministic single-symbol and multi-symbol moving-average crossover research workflows, evaluate results with basic and annualized metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, summarize parameter-sweep results, apply transaction costs and slippage when positions change, extract basic trade records from position changes, calculate Sharpe-style risk-adjusted metrics, compare strategy results against a local CSV buy-and-hold benchmark over shared dates, load multiple local symbols, run the existing strategy independently across symbols, and summarize cross-symbol results into a compact comparison table.
 
 See the milestone summaries:
 
@@ -23,6 +23,7 @@ docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
 docs/milestones/milestone-004-research-experimentation-foundation.md
 docs/milestones/milestone-005-strategy-realism-foundation.md
 docs/milestones/milestone-006-risk-and-benchmark-foundation.md
+docs/milestones/milestone-007-multi-asset-research-foundation.md
 ```
 
 ## Current Capabilities
@@ -34,6 +35,10 @@ docs/milestones/milestone-006-risk-and-benchmark-foundation.md
   - deterministic cache file paths
   - cache writing
   - cache reading
+- Multi-symbol local input:
+  - load multiple local CSV files by symbol
+  - read multiple cached price files by symbol
+  - normalize and validate symbols consistently
 - Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
 - CSV-to-pipeline convenience workflow.
 - Deterministic moving-average parameter sweep from local CSV input.
@@ -51,6 +56,8 @@ docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 - Equity curve calculation using compounded net returns.
 - Basic trade record extraction from long-only position changes.
 - Minimal moving-average crossover research pipeline.
+- Independent multi-symbol moving-average crossover execution.
+- Cross-symbol summary table for independent per-symbol results.
 - Basic performance metrics:
   - total return
   - max drawdown
@@ -283,11 +290,11 @@ from el_psy_quant.backtesting import summarize_parameter_sweep_results
 overview = summarize_parameter_sweep_results(summary)
 ```
 
-## Multi-Symbol Local Input
+## Multi-Symbol Research
 
-Multi-symbol loading and strategy execution are local-only. Each symbol runs
-independently on its own dates; this does not align dates, allocate capital, or
-build a portfolio yet.
+Multi-symbol loading, execution, and summaries are local-only. Each symbol runs
+independently on its own dates. This does not align dates, allocate capital,
+rebalance positions, or build a portfolio.
 
 ```python
 from el_psy_quant.data import load_daily_prices_csvs, read_daily_prices_caches
@@ -334,11 +341,11 @@ summary = summarize_multi_symbol_results(
 
 ```text
 el_psy_quant/
-  data/          # Market data providers, CSV loading, cache helpers, and data workflows
+  data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Positions, returns, equity, costs, slippage, and trade records
-  backtesting/   # Research pipelines, local-file workflows, experiments, trade helpers, and benchmarks
+  backtesting/   # Research pipelines, local-file workflows, experiments, trade helpers, benchmarks, and multi-symbol research helpers
   performance/   # Metrics, annualized evaluation, Sharpe-style ratio, and backtest summaries
 ```
 
@@ -384,19 +391,20 @@ AGENTS.md
 - Treat trade records as inspection data, not broker-grade accounting truth.
 - Keep annualization and risk-free-rate assumptions explicit.
 - Compare against benchmarks before making strategy-quality claims.
+- Treat multi-symbol research as breadth, not portfolio construction.
 
 ## Next Milestone
 
-**Milestone 7 — Multi-Asset Research Foundation**
+**Milestone 8 — Research Operations Foundation**
 
 Planned direction:
 
-1. Support loading multiple local CSV/cache paths into a symbol-to-prices structure.
-2. Run the existing moving-average crossover workflow across multiple symbols.
-3. Aggregate multi-symbol results into a compact summary table.
-4. Refresh milestone documentation again after the multi-asset layer is stable.
+1. Add a simple YAML or TOML config format for local experiments.
+2. Add a deterministic local output folder structure for experiment results.
+3. Add a small CLI wrapper around stable experiment functions.
+4. Refresh milestone documentation again after the research operations layer is stable.
 
-The guiding principle for the next milestone: single-symbol research is useful, but real research eventually needs breadth. Add multi-symbol capability while keeping results reproducible and inspectable.
+The guiding principle for the next milestone: make local research workflows configurable, repeatable, and inspectable without turning the project into a heavy framework.
 
 ## Disclaimer
 
