@@ -19,7 +19,7 @@ flowchart LR
     M3 --> M4["Milestone 4<br/>Research Experimentation Foundation<br/>Sprints 17-20 ✅"]
     M4 --> M5["Milestone 5<br/>Strategy Realism Foundation<br/>Sprints 21-24 ✅"]
     M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28 ✅"]
-    M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32"]
+    M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32 ✅"]
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36"]
 ```
 
@@ -33,7 +33,7 @@ flowchart LR
 | Milestone 4 — Research Experimentation Foundation | Sprints 17-20 | Complete | Make experiments repeatable and comparable. | Multiple parameter runs can be executed and summarized without claiming false alpha. |
 | Milestone 5 — Strategy Realism Foundation | Sprints 21-24 | Complete | Add realistic frictions and trade-level visibility. | Backtests include basic costs/slippage and expose trade records. |
 | Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Complete | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
-| Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Planned | Move from single-symbol to multi-symbol research. | The platform can run the same strategy workflow across multiple symbols. |
+| Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Complete | Move from single-symbol to multi-symbol research. | The platform can load, run, and summarize independent multi-symbol research workflows. |
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Planned | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
 
 ## Detailed Sprint Timeline
@@ -49,6 +49,7 @@ docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
 docs/milestones/milestone-004-research-experimentation-foundation.md
 docs/milestones/milestone-005-strategy-realism-foundation.md
 docs/milestones/milestone-006-risk-and-benchmark-foundation.md
+docs/milestones/milestone-007-multi-asset-research-foundation.md
 ```
 
 | Sprint | Milestone | Status | Main Deliverable |
@@ -75,15 +76,10 @@ docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 | S26 | Milestone 6 | Complete | `sharpe_ratio`. |
 | S27 | Milestone 6 | Complete | `compare_to_buy_and_hold_benchmark`. |
 | S28 | Milestone 6 | Complete | Milestone 6 documentation refresh. |
-
-### Planned Milestone 7 — Multi-Asset Research Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S29 | Planned | Support multi-symbol local input. | Batch loading from local CSV/cache paths. | No portfolio optimizer yet. |
-| S30 | Planned | Run strategy across many symbols. | Multi-symbol parameter/result execution helper. | Keep per-symbol results inspectable. |
-| S31 | Planned | Aggregate multi-symbol summaries. | Cross-symbol experiment summary table. | No capital allocation optimization yet. |
-| S32 | Planned | Close milestone. | Milestone 7 documentation refresh. | Stay reproducible and deterministic. |
+| S29 | Milestone 7 | Complete | `load_daily_prices_csvs` and `read_daily_prices_caches`. |
+| S30 | Milestone 7 | Complete | `moving_average_crossover_multi_symbol`. |
+| S31 | Milestone 7 | Complete | `summarize_multi_symbol_results`. |
+| S32 | Milestone 7 | Complete | Milestone 7 documentation refresh. |
 
 ### Planned Milestone 8 — Research Operations Foundation
 
@@ -109,11 +105,11 @@ docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 The next sprint is:
 
 ```text
-Sprint 29 — Multi-Symbol Local Input
+Sprint 33 — Experiment Config Foundation
 ```
 
 Reason:
 
-Milestone 6 improved evaluation discipline with annualized metrics, Sharpe-style risk adjustment, and local benchmark comparison. The next gap is breadth: the platform is still mostly single-symbol.
+Milestone 7 added multi-symbol breadth: local multi-symbol input, independent multi-symbol execution, and cross-symbol summaries. The next gap is operations: repeated experiments are still mostly driven by direct function calls and ad hoc user code.
 
-Sprint 29 should add a deterministic local multi-symbol input helper without introducing portfolio optimization, allocation logic, live downloads, or multi-asset strategy complexity.
+Sprint 33 should add a small local experiment config format without introducing a heavy framework, database, dashboard, or scheduler.
