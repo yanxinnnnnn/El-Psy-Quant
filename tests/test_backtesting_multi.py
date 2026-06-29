@@ -4,11 +4,23 @@ import pytest
 from el_psy_quant.backtesting import (
     moving_average_crossover_multi_symbol,
     moving_average_crossover_pipeline,
+    summarize_multi_symbol_results,
 )
+from el_psy_quant.performance import backtest_summary
 
 
 def make_prices(values: list[float], dates: list[str]) -> pd.DataFrame:
     return pd.DataFrame({"Close": values}, index=pd.to_datetime(dates))
+
+
+def make_result(values: list[float]) -> pd.DataFrame:
+    equity = pd.Series(values)
+    return pd.DataFrame(
+        {
+            "equity": equity,
+            "strategy_return": equity.pct_change().fillna(0.0),
+        }
+    )
 
 
 def test_runs_pipeline_per_normalized_symbol_in_input_order() -> None:
@@ -110,3 +122,88 @@ def test_multi_symbol_helper_is_exported() -> None:
         backtesting.moving_average_crossover_multi_symbol
         is moving_average_crossover_multi_symbol
     )
+
+
+def test_summarizes_normalized_symbols_in_input_order() -> None:
+    msft = make_result([1_000.0, 1_100.0, 1_045.0])
+    aapl = make_result([1_000.0, 900.0, 990.0, 1_089.0])
+
+    result = summarize_multi_symbol_results({" msft ": msft, "aapl": aapl})
+
+    assert list(result.columns) == [
+        "symbol",
+        "initial_equity",
+        "final_equity",
+        "total_return",
+        "max_drawdown",
+        "periods",
+    ]
+    assert result["symbol"].tolist() == ["MSFT", "AAPL"]
+    assert result.iloc[0].drop(labels="symbol").to_dict() == pytest.approx(
+        backtest_summary(msft)
+    )
+    assert result.iloc[1].drop(labels="symbol").to_dict() == pytest.approx(
+        backtest_summary(aapl)
+    )
+
+
+def test_summary_adds_annualized_metrics_when_frequency_is_provided() -> None:
+    pipeline_result = make_result([1_000.0, 1_100.0, 1_045.0])
+
+    result = summarize_multi_symbol_results(
+        {"AAPL": pipeline_result},
+        periods_per_year=252,
+        annual_risk_free_rate=0.02,
+    )
+    expected = backtest_summary(pipeline_result, 252, 0.02)
+
+    assert list(result.columns) == ["symbol", *expected]
+    assert result.iloc[0].drop(labels="symbol").to_dict() == pytest.approx(expected)
+
+
+def test_summary_omits_annualized_metrics_without_frequency() -> None:
+    result = summarize_multi_symbol_results(
+        {"AAPL": make_result([1_000.0, 1_100.0])}
+    )
+
+    assert "cagr" not in result
+    assert "annualized_volatility" not in result
+    assert "sharpe_ratio" not in result
+
+
+def test_summary_rejects_empty_mapping() -> None:
+    with pytest.raises(ValueError, match="results_by_symbol must not be empty"):
+        summarize_multi_symbol_results({})
+
+
+@pytest.mark.parametrize(
+    ("results_by_symbol", "message"),
+    [
+        ({"  ": make_result([1.0, 2.0])}, "symbol must not be empty"),
+        (
+            {
+                "AAPL": make_result([1.0, 2.0]),
+                " aapl ": make_result([2.0, 3.0]),
+            },
+            "duplicate symbol: AAPL",
+        ),
+    ],
+)
+def test_summary_rejects_invalid_symbols(
+    results_by_symbol: dict[str, pd.DataFrame], message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        summarize_multi_symbol_results(results_by_symbol)
+
+
+def test_summary_propagates_backtest_summary_validation_errors() -> None:
+    with pytest.raises(ValueError, match="'equity' column"):
+        summarize_multi_symbol_results(
+            {"AAPL": pd.DataFrame({"strategy_return": [0.0]})}
+        )
+
+
+def test_summary_helper_is_exported() -> None:
+    from el_psy_quant import backtesting
+
+    assert backtesting.summarize_multi_symbol_results is summarize_multi_symbol_results
