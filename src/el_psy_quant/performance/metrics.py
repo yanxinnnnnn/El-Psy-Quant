@@ -59,3 +59,22 @@ def annualized_volatility(
 
     return float(returns.std(ddof=1) * periods_per_year**0.5)
 
+
+def sharpe_ratio(
+    returns: pd.Series,
+    periods_per_year: int | float,
+    annual_risk_free_rate: float = 0.0,
+) -> float:
+    """Return annualized arithmetic excess return per unit of volatility."""
+    annualized_vol = annualized_volatility(returns, periods_per_year)
+    if annualized_vol == 0:
+        raise ValueError("annualized volatility must not be zero")
+
+    periodic_risk_free_rate = (
+        1 + annual_risk_free_rate
+    ) ** (1 / periods_per_year) - 1
+    annualized_excess_return = (
+        returns - periodic_risk_free_rate
+    ).mean() * periods_per_year
+    return float(annualized_excess_return / annualized_vol)
+

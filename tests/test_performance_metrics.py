@@ -5,6 +5,7 @@ from el_psy_quant.performance import (
     annualized_volatility,
     cagr,
     max_drawdown,
+    sharpe_ratio,
     total_return,
 )
 
@@ -121,4 +122,45 @@ def test_annualized_metrics_are_exported() -> None:
 
     assert performance.cagr is cagr
     assert performance.annualized_volatility is annualized_volatility
+
+
+@pytest.mark.parametrize("annual_risk_free_rate", [0.0, 0.02])
+def test_sharpe_ratio_uses_periodic_risk_free_rate(
+    annual_risk_free_rate: float,
+) -> None:
+    returns = pd.Series([0.01, -0.005, 0.02])
+    periods_per_year = 12
+    periodic_rate = (1 + annual_risk_free_rate) ** (1 / periods_per_year) - 1
+    expected = (
+        (returns - periodic_rate).mean()
+        * periods_per_year
+        / (returns.std(ddof=1) * periods_per_year**0.5)
+    )
+
+    assert sharpe_ratio(
+        returns, periods_per_year, annual_risk_free_rate
+    ) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    ("returns", "periods_per_year", "message"),
+    [
+        ([], 1, "returns must not be empty"),
+        ([0.0, float("nan")], 1, "returns must not contain NaN"),
+        ([0.0, 0.1], 0, "periods_per_year must be positive"),
+        ([0.0], 1, "returns must contain at least two observations"),
+        ([0.1, 0.1], 1, "annualized volatility must not be zero"),
+    ],
+)
+def test_sharpe_ratio_rejects_invalid_inputs(
+    returns: list[float], periods_per_year: float, message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        sharpe_ratio(pd.Series(returns, dtype=float), periods_per_year)
+
+
+def test_sharpe_ratio_is_exported() -> None:
+    from el_psy_quant import performance
+
+    assert performance.sharpe_ratio is sharpe_ratio
 

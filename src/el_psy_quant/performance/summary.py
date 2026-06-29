@@ -6,6 +6,7 @@ from el_psy_quant.performance.metrics import (
     annualized_volatility,
     cagr,
     max_drawdown,
+    sharpe_ratio,
     total_return,
 )
 
@@ -13,6 +14,7 @@ from el_psy_quant.performance.metrics import (
 def backtest_summary(
     result: pd.DataFrame,
     periods_per_year: int | float | None = None,
+    annual_risk_free_rate: float = 0.0,
 ) -> dict[str, float]:
     """Return a small performance summary from a pipeline result."""
     for column in ("equity", "strategy_return"):
@@ -43,6 +45,9 @@ def backtest_summary(
         summary["cagr"] = cagr(equity, periods_per_year)
         summary["annualized_volatility"] = annualized_volatility(
             result[returns_column], periods_per_year
+        )
+        summary["sharpe_ratio"] = sharpe_ratio(
+            result[returns_column], periods_per_year, annual_risk_free_rate
         )
     return summary
 
