@@ -317,6 +317,19 @@ results_by_symbol = moving_average_crossover_multi_symbol(
 )
 ```
 
+Cross-symbol summaries compare independent per-symbol results. They do not
+align dates, allocate capital, or build a portfolio.
+
+```python
+from el_psy_quant.backtesting import summarize_multi_symbol_results
+
+summary = summarize_multi_symbol_results(
+    results_by_symbol,
+    periods_per_year=252,
+    annual_risk_free_rate=0.02,
+)
+```
+
 ## Module Overview
 
 ```text
