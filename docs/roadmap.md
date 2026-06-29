@@ -18,7 +18,7 @@ flowchart LR
     M2 --> M3["Milestone 3<br/>Data Reproducibility & Research Workflow<br/>Sprints 13-16 ✅"]
     M3 --> M4["Milestone 4<br/>Research Experimentation Foundation<br/>Sprints 17-20 ✅"]
     M4 --> M5["Milestone 5<br/>Strategy Realism Foundation<br/>Sprints 21-24 ✅"]
-    M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28"]
+    M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28 ✅"]
     M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32"]
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36"]
 ```
@@ -32,7 +32,7 @@ flowchart LR
 | Milestone 3 — Data Reproducibility & Research Workflow | Sprints 13-16 | Complete | Add local cache, Yahoo-to-cache workflow, and CSV-to-pipeline helper. | Live data can be persisted locally, and local CSV research can run through one helper. |
 | Milestone 4 — Research Experimentation Foundation | Sprints 17-20 | Complete | Make experiments repeatable and comparable. | Multiple parameter runs can be executed and summarized without claiming false alpha. |
 | Milestone 5 — Strategy Realism Foundation | Sprints 21-24 | Complete | Add realistic frictions and trade-level visibility. | Backtests include basic costs/slippage and expose trade records. |
-| Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Planned | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
+| Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Complete | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
 | Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Planned | Move from single-symbol to multi-symbol research. | The platform can run the same strategy workflow across multiple symbols. |
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Planned | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
 
@@ -48,6 +48,7 @@ docs/milestones/milestone-002-performance-and-local-data.md
 docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
 docs/milestones/milestone-004-research-experimentation-foundation.md
 docs/milestones/milestone-005-strategy-realism-foundation.md
+docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 ```
 
 | Sprint | Milestone | Status | Main Deliverable |
@@ -70,15 +71,10 @@ docs/milestones/milestone-005-strategy-realism-foundation.md
 | S22 | Milestone 5 | Complete | `slippage_cost` and slippage-adjusted net returns. |
 | S23 | Milestone 5 | Complete | `long_only_trade_records` and crossover trade record extraction. |
 | S24 | Milestone 5 | Complete | Milestone 5 documentation refresh. |
-
-### Planned Milestone 6 — Risk & Benchmark Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S25 | Planned | Add annualized metrics carefully. | CAGR and annualized volatility with explicit period assumptions. | No hidden annualization assumptions. |
-| S26 | Planned | Add Sharpe-style evaluation. | Sharpe ratio with configurable risk-free rate and frequency. | Explain limitations clearly. |
-| S27 | Planned | Add benchmark comparison. | Compare strategy equity/returns against benchmark CSV. | No claims of outperformance without context. |
-| S28 | Planned | Close milestone. | Milestone 6 documentation refresh. | Keep evaluation honest. |
+| S25 | Milestone 6 | Complete | `cagr` and `annualized_volatility`. |
+| S26 | Milestone 6 | Complete | `sharpe_ratio`. |
+| S27 | Milestone 6 | Complete | `compare_to_buy_and_hold_benchmark`. |
+| S28 | Milestone 6 | Complete | Milestone 6 documentation refresh. |
 
 ### Planned Milestone 7 — Multi-Asset Research Foundation
 
@@ -113,11 +109,11 @@ docs/milestones/milestone-005-strategy-realism-foundation.md
 The next sprint is:
 
 ```text
-Sprint 25 — Annualized Metrics Foundation
+Sprint 29 — Multi-Symbol Local Input
 ```
 
 Reason:
 
-Milestone 5 made the backtest less fake by adding transaction costs, slippage, and trade records. The next gap is evaluation discipline: total return and max drawdown are useful, but they do not explain annualized performance or volatility.
+Milestone 6 improved evaluation discipline with annualized metrics, Sharpe-style risk adjustment, and local benchmark comparison. The next gap is breadth: the platform is still mostly single-symbol.
 
-Sprint 25 should add CAGR and annualized volatility with explicit period assumptions, without hiding frequency choices or making strategy-quality claims.
+Sprint 29 should add a deterministic local multi-symbol input helper without introducing portfolio optimization, allocation logic, live downloads, or multi-asset strategy complexity.
