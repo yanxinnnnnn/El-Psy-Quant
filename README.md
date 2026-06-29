@@ -283,6 +283,26 @@ from el_psy_quant.backtesting import summarize_parameter_sweep_results
 overview = summarize_parameter_sweep_results(summary)
 ```
 
+## Multi-Symbol Local Input
+
+Multi-symbol loading is local-only; it does not run strategies or allocate
+capital yet.
+
+```python
+from el_psy_quant.data import load_daily_prices_csvs, read_daily_prices_caches
+
+prices_by_symbol = load_daily_prices_csvs(
+    {
+        "AAPL": "data/cache/AAPL.csv",
+        "MSFT": "data/cache/MSFT.csv",
+    }
+)
+cached_prices_by_symbol = read_daily_prices_caches(
+    "data/cache",
+    ["AAPL", "MSFT"],
+)
+```
+
 ## Module Overview
 
 ```text
