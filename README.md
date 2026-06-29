@@ -285,8 +285,9 @@ overview = summarize_parameter_sweep_results(summary)
 
 ## Multi-Symbol Local Input
 
-Multi-symbol loading is local-only; it does not run strategies or allocate
-capital yet.
+Multi-symbol loading and strategy execution are local-only. Each symbol runs
+independently on its own dates; this does not align dates, allocate capital, or
+build a portfolio yet.
 
 ```python
 from el_psy_quant.data import load_daily_prices_csvs, read_daily_prices_caches
@@ -300,6 +301,19 @@ prices_by_symbol = load_daily_prices_csvs(
 cached_prices_by_symbol = read_daily_prices_caches(
     "data/cache",
     ["AAPL", "MSFT"],
+)
+```
+
+```python
+from el_psy_quant.backtesting import moving_average_crossover_multi_symbol
+from el_psy_quant.data import read_daily_prices_caches
+
+prices_by_symbol = read_daily_prices_caches("data/cache", ["AAPL", "MSFT"])
+results_by_symbol = moving_average_crossover_multi_symbol(
+    prices_by_symbol,
+    fast_window=20,
+    slow_window=50,
+    initial_capital=1_000.0,
 )
 ```
 
