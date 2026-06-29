@@ -10,9 +10,9 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 5 — Strategy Realism Foundation** is complete.
+**Milestone 6 — Risk & Benchmark Foundation** is complete.
 
-The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, summarize parameter-sweep results, apply transaction costs and slippage when positions change, and extract basic trade records from position changes.
+The project can now run a deterministic single-asset moving-average crossover research pipeline, evaluate the result with basic and annualized metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, summarize parameter-sweep results, apply transaction costs and slippage when positions change, extract basic trade records from position changes, calculate Sharpe-style risk-adjusted metrics, and compare strategy results against a local CSV buy-and-hold benchmark over shared dates.
 
 See the milestone summaries:
 
@@ -22,6 +22,7 @@ docs/milestones/milestone-002-performance-and-local-data.md
 docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
 docs/milestones/milestone-004-research-experimentation-foundation.md
 docs/milestones/milestone-005-strategy-realism-foundation.md
+docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 ```
 
 ## Current Capabilities
@@ -53,7 +54,12 @@ docs/milestones/milestone-005-strategy-realism-foundation.md
 - Basic performance metrics:
   - total return
   - max drawdown
-- Compact backtest summary.
+- Annualized performance metrics:
+  - CAGR
+  - annualized volatility
+- Sharpe-style risk-adjusted evaluation with explicit frequency and risk-free-rate assumptions.
+- Local CSV buy-and-hold benchmark comparison over shared dates.
+- Compact backtest summary with optional annualized and risk-adjusted metrics.
 - Deterministic in-memory research example.
 - Deterministic local CSV research example.
 
@@ -126,6 +132,16 @@ worst_drawdown = max_drawdown(result["equity"])
 from el_psy_quant.performance import backtest_summary
 
 summary = backtest_summary(result)
+```
+
+Annualized summary metrics are optional and require explicit assumptions:
+
+```python
+summary = backtest_summary(
+    result,
+    periods_per_year=252,
+    annual_risk_free_rate=0.02,
+)
 ```
 
 ## Run the Local Research Example
@@ -275,8 +291,8 @@ el_psy_quant/
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Positions, returns, equity, costs, slippage, and trade records
-  backtesting/   # Research pipelines, local-file workflows, experiments, and trade helpers
-  performance/   # Metrics and backtest summaries
+  backtesting/   # Research pipelines, local-file workflows, experiments, trade helpers, and benchmarks
+  performance/   # Metrics, annualized evaluation, Sharpe-style ratio, and backtest summaries
 ```
 
 ## Documentation
@@ -319,19 +335,21 @@ AGENTS.md
 - Treat parameter search as comparison, not alpha discovery.
 - Separate gross returns, frictions, net returns, and equity.
 - Treat trade records as inspection data, not broker-grade accounting truth.
+- Keep annualization and risk-free-rate assumptions explicit.
+- Compare against benchmarks before making strategy-quality claims.
 
 ## Next Milestone
 
-**Milestone 6 — Risk & Benchmark Foundation**
+**Milestone 7 — Multi-Asset Research Foundation**
 
 Planned direction:
 
-1. Add CAGR and annualized volatility with explicit period assumptions.
-2. Add Sharpe-style evaluation with configurable risk-free rate and frequency.
-3. Compare strategy results against benchmark CSV input.
-4. Refresh milestone documentation again after the risk and benchmark layer is stable.
+1. Support loading multiple local CSV/cache paths into a symbol-to-prices structure.
+2. Run the existing moving-average crossover workflow across multiple symbols.
+3. Aggregate multi-symbol results into a compact summary table.
+4. Refresh milestone documentation again after the multi-asset layer is stable.
 
-The guiding principle for the next milestone: a strategy result without risk context and benchmark comparison is incomplete. Make evaluation more disciplined before adding multi-asset complexity.
+The guiding principle for the next milestone: single-symbol research is useful, but real research eventually needs breadth. Add multi-symbol capability while keeping results reproducible and inspectable.
 
 ## Disclaimer
 
