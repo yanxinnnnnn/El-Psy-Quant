@@ -41,6 +41,8 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
   - normalize and validate symbols consistently
 - Local YAML experiment config loading and validation only; no experiment
   execution, output folders, or CLI behavior.
+- Deterministic local experiment output directories and reserved artifact paths;
+  no result files are written yet.
 - Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
 - CSV-to-pipeline convenience workflow.
 - Deterministic moving-average parameter sweep from local CSV input.
@@ -370,11 +372,29 @@ config = load_experiment_config("experiment.yaml")
 This foundation only loads and validates local configuration. It does not run
 experiments, write output folders, or add CLI behavior.
 
+## Local Experiment Output Layout
+
+Create deterministic local directories for future experiment artifacts:
+
+```python
+from el_psy_quant.outputs import create_experiment_output_layout
+
+layout = create_experiment_output_layout(
+    "outputs",
+    "ma-crossover-local",
+    run_id="20260630T141500Z",
+)
+```
+
+This creates the experiment, run, results, and logs directories. It does not
+run experiments, write result files, or add a database or CLI.
+
 ## Module Overview
 
 ```text
 el_psy_quant/
   config.py      # Load and validate local YAML experiment settings; no execution or CLI
+  outputs.py     # Create deterministic local experiment directories and reserved paths
   data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
