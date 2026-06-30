@@ -39,6 +39,8 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
   - load multiple local CSV files by symbol
   - read multiple cached price files by symbol
   - normalize and validate symbols consistently
+- Local YAML experiment config loading and validation only; no experiment
+  execution, output folders, or CLI behavior.
 - Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
 - CSV-to-pipeline convenience workflow.
 - Deterministic moving-average parameter sweep from local CSV input.
@@ -337,10 +339,42 @@ summary = summarize_multi_symbol_results(
 )
 ```
 
+## Local Experiment Configuration
+
+Experiments can be described by a small local YAML file:
+
+```yaml
+experiment:
+  name: ma-crossover-local
+  strategy: moving_average_crossover
+data:
+  source: csv
+  paths:
+    AAPL: data/cache/AAPL.csv
+    MSFT: data/cache/MSFT.csv
+parameters:
+  fast_window: 20
+  slow_window: 50
+  initial_capital: 1000.0
+evaluation:
+  periods_per_year: 252
+  annual_risk_free_rate: 0.02
+```
+
+```python
+from el_psy_quant.config import load_experiment_config
+
+config = load_experiment_config("experiment.yaml")
+```
+
+This foundation only loads and validates local configuration. It does not run
+experiments, write output folders, or add CLI behavior.
+
 ## Module Overview
 
 ```text
 el_psy_quant/
+  config.py      # Load and validate local YAML experiment settings; no execution or CLI
   data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
