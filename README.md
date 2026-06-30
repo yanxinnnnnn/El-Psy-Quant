@@ -39,6 +39,8 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
   - load multiple local CSV files by symbol
   - read multiple cached price files by symbol
   - normalize and validate symbols consistently
+- Local YAML experiment config loading and validation only; no experiment
+  execution, output folders, or CLI behavior.
 - Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
 - CSV-to-pipeline convenience workflow.
 - Deterministic moving-average parameter sweep from local CSV input.
@@ -372,6 +374,7 @@ experiments, write output folders, or add CLI behavior.
 
 ```text
 el_psy_quant/
+  config.py      # Load and validate local YAML experiment settings; no execution or CLI
   data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
