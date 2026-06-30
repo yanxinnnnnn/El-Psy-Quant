@@ -20,7 +20,7 @@ flowchart LR
     M4 --> M5["Milestone 5<br/>Strategy Realism Foundation<br/>Sprints 21-24 ✅"]
     M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28 ✅"]
     M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32 ✅"]
-    M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36"]
+    M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36 ✅"]
 ```
 
 ## Milestone Table
@@ -34,7 +34,7 @@ flowchart LR
 | Milestone 5 — Strategy Realism Foundation | Sprints 21-24 | Complete | Add realistic frictions and trade-level visibility. | Backtests include basic costs/slippage and expose trade records. |
 | Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Complete | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
 | Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Complete | Move from single-symbol to multi-symbol research. | The platform can load, run, and summarize independent multi-symbol research workflows. |
-| Milestone 8 — Research Operations Foundation | Sprints 33-36 | Planned | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
+| Milestone 8 — Research Operations Foundation | Sprints 33-36 | Complete | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
 
 ## Detailed Sprint Timeline
 
@@ -50,6 +50,7 @@ docs/milestones/milestone-004-research-experimentation-foundation.md
 docs/milestones/milestone-005-strategy-realism-foundation.md
 docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 docs/milestones/milestone-007-multi-asset-research-foundation.md
+docs/milestones/milestone-008-research-operations-foundation.md
 ```
 
 | Sprint | Milestone | Status | Main Deliverable |
@@ -81,14 +82,14 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
 | S31 | Milestone 7 | Complete | `summarize_multi_symbol_results`. |
 | S32 | Milestone 7 | Complete | Milestone 7 documentation refresh. |
 
-### Planned Milestone 8 — Research Operations Foundation
+### Completed Milestone 8 — Research Operations Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S33 | Complete | Add simple experiment config. | YAML config for local experiments. | No complex config framework. |
 | S34 | Complete | Add local experiment output layout. | Deterministic folder structure for experiment results. | No database yet. |
 | S35 | Complete | Add a minimal CLI wrapper. | Small command to run a local configured experiment. | CLI wraps existing functions; it must not become the core. |
-| S36 | Planned | Close milestone. | Milestone 8 documentation refresh. | Keep workflows boring and repeatable. |
+| S36 | Complete | Close milestone. | Milestone 8 documentation refresh. | Keep workflows boring and repeatable. |
 
 ## Roadmap Principles
 
@@ -105,11 +106,11 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
 The next sprint is:
 
 ```text
-Sprint 36 — Milestone 8 Documentation Refresh
+Sprint 37 — Milestone 9 Planning
 ```
 
 Reason:
 
-Sprint 33 added local YAML experiment configuration, Sprint 34 added a
-deterministic output path contract, and Sprint 35 added a thin CLI wrapper.
-Sprint 36 should close Milestone 8 with a concise documentation refresh.
+Milestone 8 closed the local research operations loop: YAML config,
+deterministic output layout, and a thin CLI run command. Sprint 37 should decide
+the next platform direction before new functionality is added.
