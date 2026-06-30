@@ -87,7 +87,7 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
 |---:|---|---|---|---|
 | S33 | Complete | Add simple experiment config. | YAML config for local experiments. | No complex config framework. |
 | S34 | Complete | Add local experiment output layout. | Deterministic folder structure for experiment results. | No database yet. |
-| S35 | Planned | Add a minimal CLI wrapper. | Small command to run a local configured experiment. | CLI wraps existing functions; it must not become the core. |
+| S35 | Complete | Add a minimal CLI wrapper. | Small command to run a local configured experiment. | CLI wraps existing functions; it must not become the core. |
 | S36 | Planned | Close milestone. | Milestone 8 documentation refresh. | Keep workflows boring and repeatable. |
 
 ## Roadmap Principles
@@ -105,11 +105,11 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
 The next sprint is:
 
 ```text
-Sprint 35 — Minimal CLI Wrapper
+Sprint 36 — Milestone 8 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 33 added local YAML experiment configuration, and Sprint 34 added a
-deterministic local output path contract. Sprint 35 should add a minimal CLI
-wrapper around stable functions without making the CLI the architecture.
+Sprint 33 added local YAML experiment configuration, Sprint 34 added a
+deterministic output path contract, and Sprint 35 added a thin CLI wrapper.
+Sprint 36 should close Milestone 8 with a concise documentation refresh.
