@@ -43,6 +43,8 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
   execution, output folders, or CLI behavior.
 - Deterministic local experiment output directories and reserved artifact paths;
   no result files are written yet.
+- Minimal `argparse` CLI for the current local configured crossover workflow,
+  writing only copied config, basic metadata, and a cross-symbol summary.
 - Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
 - CSV-to-pipeline convenience workflow.
 - Deterministic moving-average parameter sweep from local CSV input.
@@ -389,10 +391,30 @@ layout = create_experiment_output_layout(
 This creates the experiment, run, results, and logs directories. It does not
 run experiments, write result files, or add a database or CLI.
 
+## Run a Local Configured Experiment
+
+```bash
+el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
+```
+
+The command runs the current moving-average crossover workflow from local CSV
+or cache data and writes only:
+
+```text
+config.yaml
+metadata.json
+results/summary.csv
+logs/
+```
+
+It does not download live data or add dashboards, reports, databases, portfolio
+construction, or interactive prompts.
+
 ## Module Overview
 
 ```text
 el_psy_quant/
+  cli.py         # Thin argparse entrypoint for local configured experiments
   config.py      # Load and validate local YAML experiment settings; no execution or CLI
   outputs.py     # Create deterministic local experiment directories and reserved paths
   data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
