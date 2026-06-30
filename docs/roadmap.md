@@ -85,8 +85,8 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
-| S33 | Planned | Add simple experiment config. | YAML or TOML config for local experiments. | No complex config framework. |
-| S34 | Planned | Add local experiment output layout. | Deterministic folder structure for experiment results. | No database yet. |
+| S33 | Complete | Add simple experiment config. | YAML config for local experiments. | No complex config framework. |
+| S34 | Complete | Add local experiment output layout. | Deterministic folder structure for experiment results. | No database yet. |
 | S35 | Planned | Add a minimal CLI wrapper. | Small command to run a local configured experiment. | CLI wraps existing functions; it must not become the core. |
 | S36 | Planned | Close milestone. | Milestone 8 documentation refresh. | Keep workflows boring and repeatable. |
 
@@ -105,11 +105,11 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
 The next sprint is:
 
 ```text
-Sprint 33 — Experiment Config Foundation
+Sprint 35 — Minimal CLI Wrapper
 ```
 
 Reason:
 
-Milestone 7 added multi-symbol breadth: local multi-symbol input, independent multi-symbol execution, and cross-symbol summaries. The next gap is operations: repeated experiments are still mostly driven by direct function calls and ad hoc user code.
-
-Sprint 33 should add a small local experiment config format without introducing a heavy framework, database, dashboard, or scheduler.
+Sprint 33 added local YAML experiment configuration, and Sprint 34 added a
+deterministic local output path contract. Sprint 35 should add a minimal CLI
+wrapper around stable functions without making the CLI the architecture.
