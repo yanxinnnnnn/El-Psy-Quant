@@ -21,6 +21,7 @@ flowchart LR
     M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28 ✅"]
     M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32 ✅"]
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36 ✅"]
+    M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41"]
 ```
 
 ## Milestone Table
@@ -35,6 +36,7 @@ flowchart LR
 | Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Complete | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
 | Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Complete | Move from single-symbol to multi-symbol research. | The platform can load, run, and summarize independent multi-symbol research workflows. |
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Complete | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
+| Milestone 9 — Project Quality Foundation | Sprints 37-41 | Planned | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently without relying only on local claims. |
 
 ## Detailed Sprint Timeline
 
@@ -91,6 +93,16 @@ docs/milestones/milestone-008-research-operations-foundation.md
 | S35 | Complete | Add a minimal CLI wrapper. | Small command to run a local configured experiment. | CLI wraps existing functions; it must not become the core. |
 | S36 | Complete | Close milestone. | Milestone 8 documentation refresh. | Keep workflows boring and repeatable. |
 
+### Planned Milestone 9 — Project Quality Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S37 | Complete | Plan the next platform foundation milestone. | Milestone 9 scope and sprint sequence. | Choose quality before more surface area. |
+| S38 | Planned | Add GitHub Actions CI. | Automated pytest, ruff, import, and CLI help checks on PRs. | No deployment or release automation. |
+| S39 | Planned | Add repository hygiene guardrails. | Line-ending normalization and PR review hygiene. | No style bikeshedding. |
+| S40 | Planned | Add a local quality check entrypoint. | One local command that mirrors CI checks. | No heavy task-runner framework. |
+| S41 | Planned | Close milestone. | Milestone 9 documentation refresh. | Keep quality gates simple and maintainable. |
+
 ## Roadmap Principles
 
 1. Local reproducibility beats live convenience.
@@ -99,18 +111,19 @@ docs/milestones/milestone-008-research-operations-foundation.md
 4. Costs, slippage, and benchmarks should arrive before serious strategy claims.
 5. Multi-asset research should come after single-asset workflow is stable.
 6. CLI and operations should wrap stable functions, not drive architecture.
-7. Every milestone should leave the repository easier to understand than before.
+7. Automated quality gates should verify claims before humans review deeper logic.
+8. Every milestone should leave the repository easier to understand than before.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 37 — Milestone 9 Planning
+Sprint 38 — GitHub Actions CI Foundation
 ```
 
 Reason:
 
-Milestone 8 closed the local research operations loop: YAML config,
-deterministic output layout, and a thin CLI run command. Sprint 37 should decide
-the next platform direction before new functionality is added.
+Milestone 8 added a usable local research operations loop. Sprint 38 should add
+GitHub-hosted quality checks so future PR reviews do not rely only on local test
+claims from Codex or a human contributor.
