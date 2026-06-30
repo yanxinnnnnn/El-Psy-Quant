@@ -337,6 +337,37 @@ summary = summarize_multi_symbol_results(
 )
 ```
 
+## Local Experiment Configuration
+
+Experiments can be described by a small local YAML file:
+
+```yaml
+experiment:
+  name: ma-crossover-local
+  strategy: moving_average_crossover
+data:
+  source: csv
+  paths:
+    AAPL: data/cache/AAPL.csv
+    MSFT: data/cache/MSFT.csv
+parameters:
+  fast_window: 20
+  slow_window: 50
+  initial_capital: 1000.0
+evaluation:
+  periods_per_year: 252
+  annual_risk_free_rate: 0.02
+```
+
+```python
+from el_psy_quant.config import load_experiment_config
+
+config = load_experiment_config("experiment.yaml")
+```
+
+This foundation only loads and validates local configuration. It does not run
+experiments, write output folders, or add CLI behavior.
+
 ## Module Overview
 
 ```text
