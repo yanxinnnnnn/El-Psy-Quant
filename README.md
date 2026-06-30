@@ -471,11 +471,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 37 — Milestone 9 Planning**
+**Sprint 38 — GitHub Actions CI Foundation**
 
-Milestone 8 closed the first local research operations loop: config, output
-layout, and a thin CLI runner. The next step is to choose the next platform
-direction deliberately before adding more surface area.
+Milestone 9 will focus on project quality before adding more research surface area. The next sprint should add GitHub-hosted checks so future PRs prove that `pytest`, `ruff`, import checks, and CLI help still work.
 
 ## Disclaimer
 
