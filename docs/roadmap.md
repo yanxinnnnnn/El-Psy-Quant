@@ -10,6 +10,12 @@ It is a rolling plan, not a contract. The order should change if the project lea
 Build a reproducible research platform before chasing strategy complexity.
 ```
 
+For the longer-term CTO platform plan beyond the current milestone, see:
+
+```text
+docs/strategy/future-platform-roadmap.md
+```
+
 ## Timeline Overview
 
 ```mermaid
@@ -102,6 +108,28 @@ docs/milestones/milestone-008-research-operations-foundation.md
 | S39 | Planned | Add repository hygiene guardrails. | Line-ending normalization and PR review hygiene. | No style bikeshedding. |
 | S40 | Planned | Add a local quality check entrypoint. | One local command that mirrors CI checks. | No heavy task-runner framework. |
 | S41 | Planned | Close milestone. | Milestone 9 documentation refresh. | Keep quality gates simple and maintainable. |
+
+## Future Platform Direction
+
+The long-term CTO roadmap is documented in:
+
+```text
+docs/strategy/future-platform-roadmap.md
+```
+
+The recommended sequence after Milestone 9 is:
+
+```text
+Milestone 10 — Experiment Artifact & Comparison Foundation
+Milestone 11 — Strategy Interface Foundation
+Milestone 12 — Data Integrity & Universe Foundation
+Milestone 13 — Portfolio Construction Foundation
+Milestone 14 — Portfolio Risk & Attribution Foundation
+Milestone 15 — Backtest Execution Realism Foundation
+Milestone 16 — Paper Trading Foundation
+```
+
+The guiding idea is to build a research system that is hard to fool before adding live trading or strategy complexity.
 
 ## Roadmap Principles
 
