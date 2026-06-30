@@ -10,9 +10,9 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 7 — Multi-Asset Research Foundation** is complete.
+**Milestone 8 — Research Operations Foundation** is complete.
 
-The project can now run deterministic single-symbol and multi-symbol moving-average crossover research workflows, evaluate results with basic and annualized metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, summarize parameter-sweep results, apply transaction costs and slippage when positions change, extract basic trade records from position changes, calculate Sharpe-style risk-adjusted metrics, compare strategy results against a local CSV buy-and-hold benchmark over shared dates, load multiple local symbols, run the existing strategy independently across symbols, and summarize cross-symbol results into a compact comparison table.
+The project can now run deterministic single-symbol and multi-symbol moving-average crossover research workflows, evaluate results with basic and annualized metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, summarize parameter-sweep results, apply transaction costs and slippage when positions change, extract basic trade records from position changes, calculate Sharpe-style risk-adjusted metrics, compare strategy results against a local CSV buy-and-hold benchmark over shared dates, load multiple local symbols, run the existing strategy independently across symbols, summarize cross-symbol results into a compact comparison table, describe local experiments with YAML, create deterministic local output folders, and run one local configured experiment from a thin CLI wrapper.
 
 See the milestone summaries:
 
@@ -24,6 +24,7 @@ docs/milestones/milestone-004-research-experimentation-foundation.md
 docs/milestones/milestone-005-strategy-realism-foundation.md
 docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 docs/milestones/milestone-007-multi-asset-research-foundation.md
+docs/milestones/milestone-008-research-operations-foundation.md
 ```
 
 ## Current Capabilities
@@ -39,10 +40,8 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
   - load multiple local CSV files by symbol
   - read multiple cached price files by symbol
   - normalize and validate symbols consistently
-- Local YAML experiment config loading and validation only; no experiment
-  execution, output folders, or CLI behavior.
-- Deterministic local experiment output directories and reserved artifact paths;
-  no result files are written yet.
+- Local YAML experiment config loading and validation for configured local research workflows.
+- Deterministic local experiment output directories and reserved artifact paths.
 - Minimal `argparse` CLI for the current local configured crossover workflow,
   writing only copied config, basic metadata, and a cross-symbol summary.
 - Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
@@ -371,8 +370,8 @@ from el_psy_quant.config import load_experiment_config
 config = load_experiment_config("experiment.yaml")
 ```
 
-This foundation only loads and validates local configuration. It does not run
-experiments, write output folders, or add CLI behavior.
+The config loader validates local experiment settings. The current configured
+workflow supports the existing moving-average crossover strategy only.
 
 ## Local Experiment Output Layout
 
@@ -388,8 +387,8 @@ layout = create_experiment_output_layout(
 )
 ```
 
-This creates the experiment, run, results, and logs directories. It does not
-run experiments, write result files, or add a database or CLI.
+The layout helper creates the experiment, run, results, and logs directories.
+It does not itself run experiments, write result files, or add a database.
 
 ## Run a Local Configured Experiment
 
@@ -468,19 +467,15 @@ AGENTS.md
 - Keep annualization and risk-free-rate assumptions explicit.
 - Compare against benchmarks before making strategy-quality claims.
 - Treat multi-symbol research as breadth, not portfolio construction.
+- Keep operational wrappers thin; CLI should wrap stable functions, not become the architecture.
 
-## Next Milestone
+## Next Step
 
-**Milestone 8 — Research Operations Foundation**
+**Sprint 37 — Milestone 9 Planning**
 
-Planned direction:
-
-1. Add a simple YAML or TOML config format for local experiments.
-2. Add a deterministic local output folder structure for experiment results.
-3. Add a small CLI wrapper around stable experiment functions.
-4. Refresh milestone documentation again after the research operations layer is stable.
-
-The guiding principle for the next milestone: make local research workflows configurable, repeatable, and inspectable without turning the project into a heavy framework.
+Milestone 8 closed the first local research operations loop: config, output
+layout, and a thin CLI runner. The next step is to choose the next platform
+direction deliberately before adding more surface area.
 
 ## Disclaimer
 
