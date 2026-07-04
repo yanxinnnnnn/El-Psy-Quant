@@ -35,4 +35,4 @@ The script is an entrypoint, not a task-runner framework.
 - `uv run python scripts/check.py` runs the four CI checks in order.
 - Each command is visible before it runs.
 - The script fails fast and returns the failed command's nonzero status.
-- Existing GitHub CI remains unchanged.
+- GitHub CI invokes the script as the single source of truth for quality checks.
