@@ -482,9 +482,9 @@ AGENTS.md
 
 ## Next Step
 
-**Milestone 10 Planning — Experiment Artifact & Comparison Foundation**
+**Sprint 43 — Experiment Run Manifest Foundation**
 
-Milestone 10 should make experiment outputs easier to inspect, persist, and compare before the project adds more strategy surface area.
+Sprint 43 should add a small local `manifest.json` artifact so each configured experiment run records what happened and where its artifacts live before the project adds comparison features.
 
 ## Disclaimer
 
