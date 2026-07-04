@@ -28,7 +28,7 @@ flowchart LR
     M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32 ✅"]
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36 ✅"]
     M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41 ✅"]
-    M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Planned"]
+    M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Sprints 42-46"]
 ```
 
 ## Milestone Table
@@ -44,7 +44,7 @@ flowchart LR
 | Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Complete | Move from single-symbol to multi-symbol research. | The platform can load, run, and summarize independent multi-symbol research workflows. |
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Complete | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
 | Milestone 9 — Project Quality Foundation | Sprints 37-41 | Complete | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently without relying only on local claims. |
-| Milestone 10 — Experiment Artifact & Comparison Foundation | TBD | Planned | Make experiment outputs easier to inspect and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
+| Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Planned | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
 
 ## Detailed Sprint Timeline
 
@@ -112,6 +112,16 @@ docs/milestones/milestone-009-project-quality-foundation.md
 | S40 | Complete | Add a local quality check entrypoint. | One local command that mirrors CI checks. | No heavy task-runner framework. |
 | S41 | Complete | Close milestone. | Milestone 9 documentation refresh. | Keep quality gates simple and maintainable. |
 
+### Planned Milestone 10 — Experiment Artifact & Comparison Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S42 | Complete | Plan Milestone 10. | Milestone 10 scope and sprint sequence. | No implementation during planning. |
+| S43 | Planned | Add experiment run manifest. | Stable `manifest.json` describing a run. | No database or dashboard. |
+| S44 | Planned | Add metrics artifact. | Stable machine-readable metrics output. | No new metrics unless already available. |
+| S45 | Planned | Add experiment comparison. | Compare saved experiment runs from local artifacts. | No strategy optimization engine. |
+| S46 | Planned | Close milestone. | Milestone 10 documentation refresh. | Keep artifact rules simple. |
+
 ## Future Platform Direction
 
 The long-term CTO roadmap is documented in:
@@ -144,15 +154,16 @@ The guiding idea is to build a research system that is hard to fool before addin
 6. CLI and operations should wrap stable functions, not drive architecture.
 7. Automated quality gates should verify claims before humans review deeper logic.
 8. Every milestone should leave the repository easier to understand than before.
+9. Experiments that cannot be inspected later are not research assets.
 
 ## Current Next Step
 
-The next step is:
+The next sprint is:
 
 ```text
-Milestone 10 Planning — Experiment Artifact & Comparison Foundation
+Sprint 43 — Experiment Run Manifest Foundation
 ```
 
 Reason:
 
-Milestone 8 made local experiments runnable, and Milestone 9 made future changes easier to trust. The next high-leverage step is to make experiment outputs easier to inspect, persist, and compare before adding more strategies.
+Milestone 8 made local experiments runnable, and Milestone 9 made future changes easier to trust. Sprint 43 should add a small run manifest so every local experiment run records what happened and where its artifacts live before the project adds more comparison features.
