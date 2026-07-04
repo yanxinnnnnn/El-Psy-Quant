@@ -10,9 +10,9 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 8 — Research Operations Foundation** is complete.
+**Milestone 9 — Project Quality Foundation** is complete.
 
-The project can now run deterministic single-symbol and multi-symbol moving-average crossover research workflows, evaluate results with basic and annualized metrics, persist daily prices to a local CSV cache, connect Yahoo Finance downloads to that cache with clearer failure handling, run research directly from local CSV files, sweep moving-average parameters, summarize parameter-sweep results, apply transaction costs and slippage when positions change, extract basic trade records from position changes, calculate Sharpe-style risk-adjusted metrics, compare strategy results against a local CSV buy-and-hold benchmark over shared dates, load multiple local symbols, run the existing strategy independently across symbols, summarize cross-symbol results into a compact comparison table, describe local experiments with YAML, create deterministic local output folders, and run one local configured experiment from a thin CLI wrapper.
+The project can now run deterministic single-symbol and multi-symbol moving-average crossover research workflows, evaluate results with basic and annualized metrics, persist daily prices to a local CSV cache, run configured local experiments from YAML, write deterministic local experiment outputs, and use a basic project quality loop with GitHub Actions CI, repository hygiene guardrails, a pull request template, and a local quality gate that mirrors CI.
 
 See the milestone summaries:
 
@@ -25,6 +25,7 @@ docs/milestones/milestone-005-strategy-realism-foundation.md
 docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 docs/milestones/milestone-007-multi-asset-research-foundation.md
 docs/milestones/milestone-008-research-operations-foundation.md
+docs/milestones/milestone-009-project-quality-foundation.md
 ```
 
 ## Current Capabilities
@@ -44,6 +45,9 @@ docs/milestones/milestone-008-research-operations-foundation.md
 - Deterministic local experiment output directories and reserved artifact paths.
 - Minimal `argparse` CLI for the current local configured crossover workflow,
   writing only copied config, basic metadata, and a cross-symbol summary.
+- GitHub Actions CI for pull requests and pushes to `main`.
+- Local quality gate in `scripts/check.py`, used by CI as the quality command source of truth.
+- Repository hygiene guardrails through `.gitattributes` and a concise pull request template.
 - Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
 - CSV-to-pipeline convenience workflow.
 - Deterministic moving-average parameter sweep from local CSV input.
@@ -83,7 +87,7 @@ Install [uv](https://docs.astral.sh/uv/), then install the project and developme
 uv sync
 ```
 
-Run the project checks:
+Run the project checks individually:
 
 ```bash
 uv run pytest
@@ -474,12 +478,13 @@ AGENTS.md
 - Compare against benchmarks before making strategy-quality claims.
 - Treat multi-symbol research as breadth, not portfolio construction.
 - Keep operational wrappers thin; CLI should wrap stable functions, not become the architecture.
+- Let automated quality gates verify basic claims before deeper human review.
 
 ## Next Step
 
-**Sprint 38 — GitHub Actions CI Foundation**
+**Milestone 10 Planning — Experiment Artifact & Comparison Foundation**
 
-Milestone 9 will focus on project quality before adding more research surface area. The next sprint should add GitHub-hosted checks so future PRs prove that `pytest`, `ruff`, import checks, and CLI help still work.
+Milestone 10 should make experiment outputs easier to inspect, persist, and compare before the project adds more strategy surface area.
 
 ## Disclaimer
 
