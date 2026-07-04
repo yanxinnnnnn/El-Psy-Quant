@@ -104,8 +104,8 @@ docs/milestones/milestone-008-research-operations-foundation.md
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S37 | Complete | Plan the next platform foundation milestone. | Milestone 9 scope and sprint sequence. | Choose quality before more surface area. |
-| S38 | Planned | Add GitHub Actions CI. | Automated pytest, ruff, import, and CLI help checks on PRs. | No deployment or release automation. |
-| S39 | Planned | Add repository hygiene guardrails. | Line-ending normalization and PR review hygiene. | No style bikeshedding. |
+| S38 | Complete | Add GitHub Actions CI. | Automated pytest, ruff, import, and CLI help checks on PRs. | No deployment or release automation. |
+| S39 | Complete | Add repository hygiene guardrails. | Line-ending normalization and PR review hygiene. | No style bikeshedding. |
 | S40 | Planned | Add a local quality check entrypoint. | One local command that mirrors CI checks. | No heavy task-runner framework. |
 | S41 | Planned | Close milestone. | Milestone 9 documentation refresh. | Keep quality gates simple and maintainable. |
 
@@ -147,11 +147,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 38 — GitHub Actions CI Foundation
+Sprint 40 — Local Quality Check Entrypoint
 ```
 
 Reason:
 
-Milestone 8 added a usable local research operations loop. Sprint 38 should add
-GitHub-hosted quality checks so future PR reviews do not rely only on local test
-claims from Codex or a human contributor.
+Sprint 38 added GitHub-hosted quality checks, and Sprint 39 added line-ending
+and pull-request review guardrails. Sprint 40 should add one small local command
+that mirrors the CI checks without introducing a heavy task runner.
