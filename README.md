@@ -91,6 +91,12 @@ uv run ruff check .
 uv run python -c "import el_psy_quant"
 ```
 
+Run the same complete quality gate as GitHub Actions with one local command:
+
+```bash
+uv run python scripts/check.py
+```
+
 ## Minimal Research Pipeline Example
 
 ```python
