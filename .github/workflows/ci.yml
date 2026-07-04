@@ -27,14 +27,5 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Run tests
-        run: uv run pytest
-
-      - name: Run lint checks
-        run: uv run ruff check .
-
-      - name: Check package import
-        run: uv run python -c "import el_psy_quant"
-
-      - name: Check CLI help
-        run: uv run el-psy-quant --help
+      - name: Run quality checks
+        run: uv run python scripts/check.py
