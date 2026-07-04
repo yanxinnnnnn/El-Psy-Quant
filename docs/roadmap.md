@@ -27,7 +27,8 @@ flowchart LR
     M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28 ✅"]
     M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32 ✅"]
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36 ✅"]
-    M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41"]
+    M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41 ✅"]
+    M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Planned"]
 ```
 
 ## Milestone Table
@@ -42,7 +43,8 @@ flowchart LR
 | Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Complete | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
 | Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Complete | Move from single-symbol to multi-symbol research. | The platform can load, run, and summarize independent multi-symbol research workflows. |
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Complete | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
-| Milestone 9 — Project Quality Foundation | Sprints 37-41 | Planned | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently without relying only on local claims. |
+| Milestone 9 — Project Quality Foundation | Sprints 37-41 | Complete | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently without relying only on local claims. |
+| Milestone 10 — Experiment Artifact & Comparison Foundation | TBD | Planned | Make experiment outputs easier to inspect and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
 
 ## Detailed Sprint Timeline
 
@@ -59,6 +61,7 @@ docs/milestones/milestone-005-strategy-realism-foundation.md
 docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 docs/milestones/milestone-007-multi-asset-research-foundation.md
 docs/milestones/milestone-008-research-operations-foundation.md
+docs/milestones/milestone-009-project-quality-foundation.md
 ```
 
 | Sprint | Milestone | Status | Main Deliverable |
@@ -99,7 +102,7 @@ docs/milestones/milestone-008-research-operations-foundation.md
 | S35 | Complete | Add a minimal CLI wrapper. | Small command to run a local configured experiment. | CLI wraps existing functions; it must not become the core. |
 | S36 | Complete | Close milestone. | Milestone 8 documentation refresh. | Keep workflows boring and repeatable. |
 
-### Planned Milestone 9 — Project Quality Foundation
+### Completed Milestone 9 — Project Quality Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
@@ -107,7 +110,7 @@ docs/milestones/milestone-008-research-operations-foundation.md
 | S38 | Complete | Add GitHub Actions CI. | Automated pytest, ruff, import, and CLI help checks on PRs. | No deployment or release automation. |
 | S39 | Complete | Add repository hygiene guardrails. | Line-ending normalization and PR review hygiene. | No style bikeshedding. |
 | S40 | Complete | Add a local quality check entrypoint. | One local command that mirrors CI checks. | No heavy task-runner framework. |
-| S41 | Planned | Close milestone. | Milestone 9 documentation refresh. | Keep quality gates simple and maintainable. |
+| S41 | Complete | Close milestone. | Milestone 9 documentation refresh. | Keep quality gates simple and maintainable. |
 
 ## Future Platform Direction
 
@@ -144,14 +147,12 @@ The guiding idea is to build a research system that is hard to fool before addin
 
 ## Current Next Step
 
-The next sprint is:
+The next step is:
 
 ```text
-Sprint 41 — Milestone 9 Documentation Refresh
+Milestone 10 Planning — Experiment Artifact & Comparison Foundation
 ```
 
 Reason:
 
-Sprint 38 added GitHub-hosted checks, Sprint 39 added repository hygiene
-guardrails, and Sprint 40 added a matching local quality command. Sprint 41
-should close Milestone 9 with a concise documentation refresh.
+Milestone 8 made local experiments runnable, and Milestone 9 made future changes easier to trust. The next high-leverage step is to make experiment outputs easier to inspect, persist, and compare before adding more strategies.
