@@ -10,15 +10,17 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 10 — Experiment Artifact & Comparison Foundation** is complete.
+**Milestone 11 — Strategy Interface Foundation** is planned.
 
-The project can now run deterministic single-symbol and multi-symbol moving-average crossover research workflows, evaluate results with basic and annualized metrics, persist daily prices to a local CSV cache, run configured local experiments from YAML, write stable local experiment artifacts, compare saved run folders from local artifacts, and use a basic project quality loop with GitHub Actions CI, repository hygiene guardrails, a pull request template, and a local quality gate that mirrors CI.
+Milestone 10 — Experiment Artifact & Comparison Foundation is complete. The project can now run configured local experiments, write stable local experiment artifacts, and compare saved run folders from local artifacts.
 
 The completed Milestone 10 artifact chain is:
 
 ```text
 manifest.json -> results/metrics.json -> comparison DataFrame
 ```
+
+Milestone 11 should define how strategies plug into the research system before the project adds more strategies.
 
 See the milestone summaries:
 
@@ -475,15 +477,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 47 — Milestone 11 Planning**
+**Sprint 48 — Strategy Interface Contract Foundation**
 
-Milestone 10 closed the artifact chain:
-
-```text
-configured run -> stable manifest -> stable metrics artifact -> deterministic comparison table
-```
-
-The next step is to plan **Milestone 11 — Strategy Interface Foundation**, so future strategies can plug into the research system without weakening artifact discipline or rushing into strategy proliferation.
+The next sprint should define the smallest useful strategy boundary before moving the existing moving-average crossover implementation behind it.
 
 ## Disclaimer
 
