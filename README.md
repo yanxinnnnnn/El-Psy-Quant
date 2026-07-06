@@ -478,9 +478,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 48 — Strategy Interface Contract Foundation**
+**Sprint 49 — Moving-Average Strategy Adapter**
 
-The next sprint should define the smallest useful strategy boundary before moving the existing moving-average crossover implementation behind it.
+Sprint 49 should adapt the existing moving-average crossover logic to the new
+Strategy contract without changing its behavior.
 
 ## Disclaimer
 
