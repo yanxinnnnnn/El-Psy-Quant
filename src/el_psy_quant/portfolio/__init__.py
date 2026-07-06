@@ -2,6 +2,10 @@
 
 from el_psy_quant.portfolio.alignment import align_strategy_returns
 from el_psy_quant.portfolio.costs import transaction_cost
+from el_psy_quant.portfolio.contribution import (
+    summarize_symbol_contributions,
+    symbol_contribution_returns,
+)
 from el_psy_quant.portfolio.drawdown import inspect_portfolio_drawdown
 from el_psy_quant.portfolio.equity import equity_curve
 from el_psy_quant.portfolio.positions import long_only_position
@@ -31,7 +35,9 @@ __all__ = [
     "portfolio_risk_summary",
     "slippage_cost",
     "strategy_return",
+    "summarize_symbol_contributions",
     "summarize_portfolio_return",
+    "symbol_contribution_returns",
     "transaction_cost",
     "validate_static_weights",
     "weighted_portfolio_return",
