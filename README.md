@@ -10,7 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 14 — Portfolio Risk & Attribution Foundation** is planned.
+**Milestone 14 — Portfolio Risk & Attribution Foundation** is complete.
 
 Milestone 13 completed portfolio construction:
 
@@ -18,7 +18,16 @@ Milestone 13 completed portfolio construction:
 strategy return streams -> aligned portfolio inputs -> portfolio return aggregation -> portfolio summary artifact
 ```
 
-Milestone 14 should now explain portfolio-level risk and contribution before the project moves toward execution realism.
+Milestone 14 completed the first portfolio risk and attribution layer:
+
+```text
+portfolio_return -> risk metrics
+portfolio_equity -> drawdown inspection
+aligned_returns + static_weights -> symbol contribution
+risk + drawdown + contribution -> attribution summary artifact
+```
+
+The next milestone is **Milestone 15 — Backtest Execution Realism Foundation**. It should be planned before implementation starts.
 
 See the milestone summaries in:
 
@@ -49,6 +58,7 @@ docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
   - validated static portfolio weights
   - weighted portfolio returns
   - standalone portfolio summary artifacts
+- Portfolio risk and attribution foundation:
   - portfolio return risk metrics
   - single worst portfolio drawdown inspection
   - static-weight per-symbol contribution returns and summaries
@@ -120,17 +130,20 @@ artifact = build_portfolio_summary_artifact(
 
 Portfolio construction is different from independent multi-symbol summaries because it must define date alignment, aggregation, weights, and recorded assumptions.
 
-## Portfolio Risk Direction
+## Portfolio Risk And Attribution
 
-Milestone 14 should add the first layer of portfolio risk and attribution on top of the portfolio construction foundation.
+Milestone 14 adds the first standalone portfolio risk and attribution layer on top of the portfolio construction foundation.
 
-The intended chain is:
+The completed chain is:
 
 ```text
-portfolio return risk -> drawdown inspection -> symbol contribution returns -> attribution summary artifact
+portfolio_return -> risk metrics
+portfolio_equity -> drawdown inspection
+aligned_returns + static_weights -> symbol contribution
+risk + drawdown + contribution -> attribution summary artifact
 ```
 
-This milestone should explain portfolio behavior before introducing optimization, dynamic rebalancing, or execution realism.
+This layer explains portfolio behavior before adding optimization, dynamic rebalancing, or execution realism.
 
 ## Local Experiment Configuration
 
@@ -186,10 +199,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 69 — Milestone 14 Documentation Refresh**
+**Sprint 70 — Milestone 15 Planning**
 
-Sprint 69 should close Milestone 14 with a focused documentation refresh and no
-new product behavior.
+Sprint 70 should plan Milestone 15 — Backtest Execution Realism Foundation before implementation starts.
 
 ## Disclaimer
 
