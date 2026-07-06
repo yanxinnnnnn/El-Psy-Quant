@@ -10,9 +10,15 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 9 — Project Quality Foundation** is complete.
+**Milestone 10 — Experiment Artifact & Comparison Foundation** is complete.
 
-The project can now run deterministic single-symbol and multi-symbol moving-average crossover research workflows, evaluate results with basic and annualized metrics, persist daily prices to a local CSV cache, run configured local experiments from YAML, write deterministic local experiment outputs, and use a basic project quality loop with GitHub Actions CI, repository hygiene guardrails, a pull request template, and a local quality gate that mirrors CI.
+The project can now run deterministic single-symbol and multi-symbol moving-average crossover research workflows, evaluate results with basic and annualized metrics, persist daily prices to a local CSV cache, run configured local experiments from YAML, write stable local experiment artifacts, compare saved run folders from local artifacts, and use a basic project quality loop with GitHub Actions CI, repository hygiene guardrails, a pull request template, and a local quality gate that mirrors CI.
+
+The completed Milestone 10 artifact chain is:
+
+```text
+manifest.json -> results/metrics.json -> comparison DataFrame
+```
 
 See the milestone summaries:
 
@@ -26,6 +32,7 @@ docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 docs/milestones/milestone-007-multi-asset-research-foundation.md
 docs/milestones/milestone-008-research-operations-foundation.md
 docs/milestones/milestone-009-project-quality-foundation.md
+docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
 ```
 
 ## Current Capabilities
@@ -43,8 +50,15 @@ docs/milestones/milestone-009-project-quality-foundation.md
   - normalize and validate symbols consistently
 - Local YAML experiment config loading and validation for configured local research workflows.
 - Deterministic local experiment output directories and reserved artifact paths.
-- Minimal `argparse` CLI for the current local configured crossover workflow,
-  writing only copied config, basic metadata, and a cross-symbol summary.
+- Minimal `argparse` CLI for the current local configured crossover workflow.
+- Stable configured-run artifacts:
+  - copied `config.yaml`
+  - `metadata.json`
+  - `manifest.json`
+  - `results/summary.csv`
+  - `results/metrics.json`
+  - `logs/`
+- Saved-run comparison helper that combines existing metrics from local run artifacts without ranking or recomputing metrics.
 - GitHub Actions CI for pull requests and pushes to `main`.
 - Local quality gate in `scripts/check.py`, used by CI as the quality command source of truth.
 - Repository hygiene guardrails through `.gitattributes` and a concise pull request template.
@@ -153,18 +167,14 @@ worst_drawdown = max_drawdown(result["equity"])
 ```python
 from el_psy_quant.performance import backtest_summary
 
-summary = backtest_summary(result)
-```
-
-Annualized summary metrics are optional and require explicit assumptions:
-
-```python
 summary = backtest_summary(
     result,
     periods_per_year=252,
     annual_risk_free_rate=0.02,
 )
 ```
+
+Annualized metrics require explicit assumptions. A higher Sharpe-style value is not proof of strategy quality.
 
 ## Run the Local Research Example
 
@@ -198,9 +208,7 @@ cached_prices = read_daily_prices_cache("data/cache", "AAPL")
 
 ## Download Yahoo Prices to the Local Cache
 
-Calling this workflow performs a live download before writing the CSV cache.
-Live providers can fail or be rate-limited. Failed or empty downloads are not
-written to the local cache.
+Calling this workflow performs a live download before writing the CSV cache. Live providers can fail or be rate-limited. Failed or empty downloads are not written to the local cache.
 
 ```python
 from el_psy_quant.data import download_daily_prices_to_cache, read_daily_prices_cache
@@ -211,9 +219,7 @@ prices = read_daily_prices_cache("data/cache", "AAPL")
 
 ## Run the Research Pipeline from CSV
 
-Transaction costs and slippage are charged when the position changes.
-`strategy_return` is gross, `net_strategy_return` is after both drags, and
-`equity` uses net returns.
+Transaction costs and slippage are charged when the position changes. `strategy_return` is gross, `net_strategy_return` is after both drags, and `equity` uses net returns.
 
 ```python
 result = moving_average_crossover_pipeline(
@@ -226,8 +232,7 @@ result = moving_average_crossover_pipeline(
 )
 ```
 
-Trade records are extracted from position changes for inspection, not
-broker-grade accounting.
+Trade records are extracted from position changes for inspection, not broker-grade accounting.
 
 ```python
 from el_psy_quant.backtesting import moving_average_crossover_trade_records
@@ -235,33 +240,7 @@ from el_psy_quant.backtesting import moving_average_crossover_trade_records
 trades = moving_average_crossover_trade_records(result)
 ```
 
-Annualized metrics require an explicit frequency. For daily trading data, 252
-periods per year is common, but it is not universal.
-
-```python
-from el_psy_quant.performance import annualized_volatility, cagr
-
-annual_return = cagr(result["equity"], periods_per_year=252)
-annual_vol = annualized_volatility(
-    result["net_strategy_return"], periods_per_year=252
-)
-```
-
-Sharpe compares excess return with volatility. Its frequency and risk-free-rate
-assumptions must be explicit; a higher value is not proof of strategy quality.
-
-```python
-from el_psy_quant.performance import sharpe_ratio
-
-sharpe = sharpe_ratio(
-    result["net_strategy_return"],
-    periods_per_year=252,
-    annual_risk_free_rate=0.02,
-)
-```
-
-Benchmark comparison uses a local CSV and simple buy-and-hold performance over
-shared dates. Outperformance claims should be made carefully.
+Benchmark comparison uses a local CSV and simple buy-and-hold performance over shared dates. Outperformance claims should be made carefully.
 
 ```python
 from el_psy_quant.backtesting import compare_to_buy_and_hold_benchmark
@@ -305,11 +284,11 @@ from el_psy_quant.backtesting import summarize_parameter_sweep_results
 overview = summarize_parameter_sweep_results(summary)
 ```
 
+Parameter search is comparison, not alpha discovery.
+
 ## Multi-Symbol Research
 
-Multi-symbol loading, execution, and summaries are local-only. Each symbol runs
-independently on its own dates. This does not align dates, allocate capital,
-rebalance positions, or build a portfolio.
+Multi-symbol loading, execution, and summaries are local-only. Each symbol runs independently on its own dates. This does not align dates, allocate capital, rebalance positions, or build a portfolio.
 
 ```python
 from el_psy_quant.data import load_daily_prices_csvs, read_daily_prices_caches
@@ -328,19 +307,16 @@ cached_prices_by_symbol = read_daily_prices_caches(
 
 ```python
 from el_psy_quant.backtesting import moving_average_crossover_multi_symbol
-from el_psy_quant.data import read_daily_prices_caches
 
-prices_by_symbol = read_daily_prices_caches("data/cache", ["AAPL", "MSFT"])
 results_by_symbol = moving_average_crossover_multi_symbol(
-    prices_by_symbol,
+    cached_prices_by_symbol,
     fast_window=20,
     slow_window=50,
     initial_capital=1_000.0,
 )
 ```
 
-Cross-symbol summaries compare independent per-symbol results. They do not
-align dates, allocate capital, or build a portfolio.
+Cross-symbol summaries compare independent per-symbol results. They do not align dates, allocate capital, or build a portfolio.
 
 ```python
 from el_psy_quant.backtesting import summarize_multi_symbol_results
@@ -380,8 +356,7 @@ from el_psy_quant.config import load_experiment_config
 config = load_experiment_config("experiment.yaml")
 ```
 
-The config loader validates local experiment settings. The current configured
-workflow supports the existing moving-average crossover strategy only.
+The config loader validates local experiment settings. The current configured workflow supports the existing moving-average crossover strategy only.
 
 ## Local Experiment Output Layout
 
@@ -397,8 +372,7 @@ layout = create_experiment_output_layout(
 )
 ```
 
-The layout helper creates the experiment, run, results, and logs directories.
-It does not itself run experiments, write result files, or add a database.
+The layout helper creates the experiment, run, results, and logs directories. It does not itself run experiments, write result files, or add a database.
 
 ## Run a Local Configured Experiment
 
@@ -406,8 +380,7 @@ It does not itself run experiments, write result files, or add a database.
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The command runs the current moving-average crossover workflow from local CSV
-or cache data and writes only:
+The command runs the current moving-average crossover workflow from local CSV or cache data and writes only:
 
 ```text
 config.yaml
@@ -418,13 +391,11 @@ results/metrics.json
 logs/
 ```
 
-`manifest.json` records the experiment identity, data source, parameters,
-evaluation assumptions, and run-relative artifact paths.
-`results/metrics.json` contains the metrics already present in `summary.csv` in
-a machine-readable form and records that source artifact with a relative path.
+`manifest.json` records the experiment identity, data source, parameters, evaluation assumptions, and run-relative artifact paths.
 
-It does not download live data or add dashboards, reports, databases, portfolio
-construction, or interactive prompts.
+`results/metrics.json` contains the metrics already present in `summary.csv` in a machine-readable form and records that source artifact with a relative path.
+
+It does not download live data or add dashboards, reports, databases, portfolio construction, or interactive prompts.
 
 ## Compare Saved Experiment Runs
 
@@ -436,8 +407,7 @@ comparison = compare_experiment_runs(
 )
 ```
 
-The helper reads each run's manifest and metrics artifact, preserving run and
-symbol order without calculating new metrics or ranking performance.
+The helper reads each run's manifest and metrics artifact, preserving run and symbol order without calculating new metrics or ranking performance.
 
 ## Module Overview
 
@@ -500,12 +470,20 @@ AGENTS.md
 - Treat multi-symbol research as breadth, not portfolio construction.
 - Keep operational wrappers thin; CLI should wrap stable functions, not become the architecture.
 - Let automated quality gates verify basic claims before deeper human review.
+- Keep experiment artifacts inspectable and portable before adding platform complexity.
+- Define strategy interfaces before strategy proliferation.
 
 ## Next Step
 
-**Sprint 43 — Experiment Run Manifest Foundation**
+**Sprint 47 — Milestone 11 Planning**
 
-Sprint 43 should add a small local `manifest.json` artifact so each configured experiment run records what happened and where its artifacts live before the project adds comparison features.
+Milestone 10 closed the artifact chain:
+
+```text
+configured run -> stable manifest -> stable metrics artifact -> deterministic comparison table
+```
+
+The next step is to plan **Milestone 11 — Strategy Interface Foundation**, so future strategies can plug into the research system without weakening artifact discipline or rushing into strategy proliferation.
 
 ## Disclaimer
 
