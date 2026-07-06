@@ -500,10 +500,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 56 — Configured Run Input Validation Wiring**
+**Sprint 57 — Milestone 12 Documentation Refresh**
 
-Sprint 56 should apply the price and symbol-universe validation boundaries to
-configured runs while preserving current results and artifacts.
+Sprint 57 should refresh Milestone 12 documentation and close the milestone
+without expanding data, strategy, or execution scope.
 
 ## Disclaimer
 

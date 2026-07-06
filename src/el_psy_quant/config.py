@@ -7,6 +7,8 @@ from typing import Any, Literal
 
 import yaml
 
+from el_psy_quant.data.universe import build_symbol_universe
+
 
 @dataclass(frozen=True)
 class ExperimentDataConfig:
@@ -72,18 +74,6 @@ def _number(value: object, field: str) -> float:
     return float(value)
 
 
-def _normalize_symbols(symbols: list[object]) -> tuple[str, ...]:
-    normalized_symbols: list[str] = []
-    seen: set[str] = set()
-    for symbol in symbols:
-        normalized = _non_empty_string(symbol, "symbol").upper()
-        if normalized in seen:
-            raise ValueError(f"duplicate symbol: {normalized}")
-        seen.add(normalized)
-        normalized_symbols.append(normalized)
-    return tuple(normalized_symbols)
-
-
 def _parse_data(raw: object) -> ExperimentDataConfig:
     data = _require_mapping(raw, "data")
     source = data.get("source")
@@ -94,7 +84,7 @@ def _parse_data(raw: object) -> ExperimentDataConfig:
         raw_paths = _require_mapping(data.get("paths"), "data.paths")
         if not raw_paths:
             raise ValueError("data.paths must not be empty")
-        symbols = _normalize_symbols(list(raw_paths))
+        symbols = build_symbol_universe(raw_paths)
         paths = {
             symbol: _non_empty_string(path, f"data.paths.{symbol}")
             for symbol, path in zip(symbols, raw_paths.values(), strict=True)
@@ -108,7 +98,7 @@ def _parse_data(raw: object) -> ExperimentDataConfig:
     return ExperimentDataConfig(
         source="cache",
         cache_dir=cache_dir,
-        symbols=_normalize_symbols(raw_symbols),
+        symbols=build_symbol_universe(raw_symbols),
     )
 
 

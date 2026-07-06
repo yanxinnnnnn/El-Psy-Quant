@@ -56,5 +56,5 @@ A task is done only when:
 
 Milestone 12 — Data Integrity & Universe Foundation is in progress.
 
-The next focus is Sprint 56 — Configured Run Input Validation Wiring. Apply the
-price and symbol-universe boundaries without changing results or artifacts.
+The next focus is Sprint 57 — Milestone 12 Documentation Refresh. Close the
+milestone without expanding data, strategy, or execution scope.

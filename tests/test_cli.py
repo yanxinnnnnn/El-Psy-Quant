@@ -204,6 +204,32 @@ def test_unsupported_strategy_name_returns_nonzero(tmp_path: Path, capsys) -> No
     assert "experiment.strategy" in captured.err
 
 
+def test_invalid_prices_fail_before_strategy_resolution(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    config_path, _ = write_config(tmp_path)
+    aapl_path = tmp_path / "aapl.csv"
+    aapl_path.write_text(
+        PRICES_CSV.replace("2024-01-01,10,11,9,10,100", "2024-01-01,10,11,9,bad,100"),
+        encoding="utf-8",
+    )
+
+    def unexpected_resolver(name: str) -> Strategy:
+        raise AssertionError(f"resolver must not be called for {name}")
+
+    monkeypatch.setattr(cli, "resolve_strategy", unexpected_resolver)
+
+    exit_code = main(
+        ["run", str(config_path), "--output-root", str(tmp_path / "outputs")]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "AAPL price data invalid" in captured.err
+    assert "Close must contain numeric values" in captured.err
+
+
 def test_console_script_entrypoint_exists() -> None:
     project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
 

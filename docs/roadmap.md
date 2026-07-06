@@ -164,7 +164,7 @@ Strategy protocol -> MovingAverageCrossoverStrategy -> resolve_strategy -> confi
 | S53 | Complete | Plan Milestone 12. | Data integrity and universe milestone scope. | No implementation during planning. |
 | S54 | Complete | Validate local price data. | Small price DataFrame validation layer. | No live data or external validation. |
 | S55 | Complete | Define symbol universe discipline. | Explicit configured symbol universe helper or representation. | No investable universe database. |
-| S56 | Planned | Wire configured input validation. | Configured experiments validate inputs before strategy execution. | Preserve artifact schemas and CLI shape. |
+| S56 | Complete | Wire configured input validation. | Configured experiments validate inputs before strategy execution. | Preserve artifact schemas and CLI shape. |
 | S57 | Planned | Close milestone. | Milestone 12 documentation refresh. | No scope expansion. |
 
 Milestone 12 should make research inputs harder to misuse before adding more strategies.
@@ -209,11 +209,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 56 — Configured Run Input Validation Wiring
+Sprint 57 — Milestone 12 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 55 added an immutable, order-preserving local research symbol universe.
-Sprint 56 should apply the price and universe boundaries to configured runs
-while preserving current results and artifacts.
+Sprint 56 applied the price and symbol-universe boundaries before configured
+strategy execution while preserving current results and artifacts. Sprint 57
+should refresh Milestone 12 documentation and close the milestone.
