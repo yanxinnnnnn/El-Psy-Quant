@@ -56,19 +56,30 @@ def run_configured_experiment(
     )
 
     summary_path = layout.results_dir / "summary.csv"
+    summary_artifact = summary_path.relative_to(layout.run_dir).as_posix()
     shutil.copyfile(config_path, layout.config_path)
     metadata = {
         "experiment_name": config.name,
         "strategy": config.strategy,
         "data_source": config.data.source,
         "run_id": layout.run_dir.name,
-        "summary_path": summary_path.relative_to(layout.run_dir).as_posix(),
+        "summary_path": summary_artifact,
     }
     layout.metadata_path.write_text(
         json.dumps(metadata, indent=2) + "\n",
         encoding="utf-8",
     )
     summary.to_csv(summary_path, index=False)
+    metrics = {
+        "schema_version": 1,
+        "run_id": layout.run_dir.name,
+        "source_artifact": summary_artifact,
+        "metrics": summary.to_dict(orient="records"),
+    }
+    layout.metrics_path.write_text(
+        json.dumps(metrics, indent=2) + "\n",
+        encoding="utf-8",
+    )
     manifest = {
         "schema_version": 1,
         "experiment_name": config.name,
@@ -94,7 +105,10 @@ def run_configured_experiment(
             "metadata": layout.metadata_path.relative_to(
                 layout.run_dir
             ).as_posix(),
-            "summary": summary_path.relative_to(layout.run_dir).as_posix(),
+            "summary": summary_artifact,
+            "metrics": layout.metrics_path.relative_to(
+                layout.run_dir
+            ).as_posix(),
             "logs_dir": layout.logs_dir.relative_to(layout.run_dir).as_posix(),
         },
     }

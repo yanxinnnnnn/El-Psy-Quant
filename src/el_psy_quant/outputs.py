@@ -17,6 +17,7 @@ class ExperimentOutputLayout:
     metadata_path: Path
     manifest_path: Path
     results_dir: Path
+    metrics_path: Path
     logs_dir: Path
 
 
@@ -67,5 +68,6 @@ def create_experiment_output_layout(
         metadata_path=run_dir / "metadata.json",
         manifest_path=run_dir / "manifest.json",
         results_dir=results_dir,
+        metrics_path=results_dir / "metrics.json",
         logs_dir=logs_dir,
     )

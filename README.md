@@ -414,11 +414,14 @@ config.yaml
 metadata.json
 manifest.json
 results/summary.csv
+results/metrics.json
 logs/
 ```
 
 `manifest.json` records the experiment identity, data source, parameters,
 evaluation assumptions, and run-relative artifact paths.
+`results/metrics.json` contains the metrics already present in `summary.csv` in
+a machine-readable form and records that source artifact with a relative path.
 
 It does not download live data or add dashboards, reports, databases, portfolio
 construction, or interactive prompts.

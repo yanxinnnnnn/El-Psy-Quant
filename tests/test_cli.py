@@ -98,6 +98,7 @@ def test_main_runs_csv_config_and_writes_minimal_artifacts(
             "config": "config.yaml",
             "metadata": "metadata.json",
             "summary": "results/summary.csv",
+            "metrics": "results/metrics.json",
             "logs_dir": "logs",
         },
     }
@@ -107,6 +108,17 @@ def test_main_runs_csv_config_and_writes_minimal_artifacts(
     )
     summary = pd.read_csv(run_dir / "results" / "summary.csv")
     assert summary["symbol"].tolist() == ["AAPL", "MSFT"]
+    metrics = json.loads(
+        (run_dir / "results" / "metrics.json").read_text(encoding="utf-8")
+    )
+    assert {key: value for key, value in metrics.items() if key != "metrics"} == {
+        "schema_version": 1,
+        "run_id": "20260630T141500Z",
+        "source_artifact": "results/summary.csv",
+    }
+    pd.testing.assert_frame_equal(pd.DataFrame(metrics["metrics"]), summary)
+    assert not Path(metrics["source_artifact"]).is_absolute()
+    assert ".." not in Path(metrics["source_artifact"]).parts
     assert set(run_dir.rglob("*")) == {
         run_dir / "results",
         run_dir / "logs",
@@ -114,6 +126,7 @@ def test_main_runs_csv_config_and_writes_minimal_artifacts(
         run_dir / "metadata.json",
         run_dir / "manifest.json",
         run_dir / "results" / "summary.csv",
+        run_dir / "results" / "metrics.json",
     }
 
 
