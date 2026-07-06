@@ -51,6 +51,7 @@ docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
   - standalone portfolio summary artifacts
   - portfolio return risk metrics
   - single worst portfolio drawdown inspection
+  - static-weight per-symbol contribution returns and summaries
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -184,10 +185,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 67 — Symbol Contribution Foundation**
+**Sprint 68 — Attribution Summary Artifact Foundation**
 
-Sprint 67 should add deterministic per-symbol portfolio return contribution
-without introducing dynamic rebalancing or broader attribution scope.
+Sprint 68 should persist a small attribution summary artifact without changing
+portfolio construction, configured-run schemas, or runtime behavior.
 
 ## Disclaimer
 

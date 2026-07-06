@@ -56,5 +56,5 @@ A task is done only when:
 
 Milestone 14 — Portfolio Risk & Attribution Foundation is in progress.
 
-The next focus is Sprint 67 — Symbol Contribution Foundation. Add deterministic
-per-symbol portfolio return contribution without dynamic rebalancing scope.
+The next focus is Sprint 68 — Attribution Summary Artifact Foundation. Persist
+a small attribution summary without configured-run or broader runtime changes.
