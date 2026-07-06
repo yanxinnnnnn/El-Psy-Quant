@@ -10,7 +10,7 @@ The project is built like a startup product, not a one-off learning script.
 
 ## Mission
 
-Build a production-ready platform that can ingest market data, research strategies, run backtests, generate reports, and eventually support simulated execution workflows.
+Build a production-ready platform that can ingest market data, research strategies, run backtests, generate reports, and eventually support paper trading and small-scale live trading.
 
 ## Operating Model
 
