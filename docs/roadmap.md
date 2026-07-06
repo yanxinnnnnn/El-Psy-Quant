@@ -32,7 +32,7 @@ flowchart LR
     M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Sprints 47-52 ✅"]
     M11 --> M12["Milestone 12<br/>Data Integrity & Universe Foundation<br/>Sprints 53-57 ✅"]
     M12 --> M13["Milestone 13<br/>Portfolio Construction Foundation<br/>Sprints 58-63 ✅"]
-    M13 --> M14["Milestone 14<br/>Portfolio Risk & Attribution Foundation<br/>Sprint 64 planning next"]
+    M13 --> M14["Milestone 14<br/>Portfolio Risk & Attribution Foundation<br/>Sprints 64-69 planned"]
 ```
 
 ## Milestone Table
@@ -52,18 +52,9 @@ flowchart LR
 | Milestone 11 — Strategy Interface Foundation | Sprints 47-52 | Complete | Define cleaner strategy boundaries before adding more strategies. | Strategies plug into configured workflows through a stable interface. |
 | Milestone 12 — Data Integrity & Universe Foundation | Sprints 53-57 | Complete | Improve data validation, symbol universe discipline, and input assumptions. | Configured runs validate symbol and price inputs before strategy execution. |
 | Milestone 13 — Portfolio Construction Foundation | Sprints 58-63 | Complete | Define portfolio-level construction before attribution and execution realism. | Portfolio inputs, equal-weight returns, configurable static weights, and summary artifacts are introduced under explicit assumptions. |
-| Milestone 14 — Portfolio Risk & Attribution Foundation | Sprint 64+ | Planned | Explain portfolio-level behavior after construction is explicit. | To be planned in Sprint 64. |
+| Milestone 14 — Portfolio Risk & Attribution Foundation | Sprints 64-69 | Planned | Explain portfolio-level behavior after construction is explicit. | Portfolio risk, drawdown, contribution, and attribution artifacts are planned under conservative assumptions. |
 
 ## Completed Milestone 13 — Portfolio Construction Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S58 | Complete | Plan Milestone 13. | Portfolio construction scope and sprint sequence. | No implementation during planning. |
-| S59 | Complete | Align portfolio inputs. | Deterministic alignment of symbol return streams. | No allocation logic yet. |
-| S60 | Complete | Add equal-weight portfolio returns. | Simple portfolio return aggregation with explicit assumptions. | No optimizer. |
-| S61 | Complete | Add configurable portfolio weights. | Validate and apply user-supplied static weights. | No dynamic rebalancing model. |
-| S62 | Complete | Add portfolio summary artifact. | Standalone machine-readable portfolio summary artifact. | Preserve artifact discipline. |
-| S63 | Complete | Close milestone. | Milestone 13 documentation refresh. | No scope expansion. |
 
 Milestone 13 closed this chain:
 
@@ -71,18 +62,33 @@ Milestone 13 closed this chain:
 strategy return streams -> aligned portfolio inputs -> portfolio return aggregation -> portfolio summary artifact
 ```
 
-## Milestone Documentation
-
-Completed milestone summaries live in:
-
-```text
-docs/milestones/
-```
-
-The latest completed milestone summary is:
+See:
 
 ```text
 docs/milestones/milestone-013-portfolio-construction-foundation.md
+```
+
+## Planned Milestone 14 — Portfolio Risk & Attribution Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S64 | Complete | Plan Milestone 14. | Portfolio risk and attribution scope and sprint sequence. | No implementation during planning. |
+| S65 | Planned | Add portfolio risk metrics. | Small risk summary for portfolio return series. | No optimizer or factor model. |
+| S66 | Planned | Add drawdown inspection. | Inspect portfolio drawdown periods and depth. | No stress-testing engine. |
+| S67 | Planned | Add symbol contribution. | Attribute portfolio return contribution from aligned symbol returns and static weights. | No dynamic rebalancing. |
+| S68 | Planned | Add attribution summary artifact. | Persist portfolio risk and contribution summary. | Preserve artifact discipline. |
+| S69 | Planned | Close milestone. | Milestone 14 documentation refresh. | No scope expansion. |
+
+Milestone 14 should follow this conservative chain:
+
+```text
+portfolio return risk -> drawdown inspection -> symbol contribution returns -> attribution summary artifact
+```
+
+See:
+
+```text
+docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
 ```
 
 ## Future Platform Direction
@@ -111,15 +117,16 @@ The guiding idea is to build a research system that is hard to fool before addin
 10. Strategy interfaces should come before strategy proliferation.
 11. Data validation should protect the strategy boundary before more strategies are added.
 12. Portfolio construction should define capital, alignment, and allocation assumptions before portfolio risk attribution.
+13. Portfolio risk should be explainable before execution realism.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 64 — Milestone 14 Planning
+Sprint 65 — Portfolio Risk Metrics Foundation
 ```
 
 Reason:
 
-Milestone 13 completed portfolio construction. Sprint 64 should plan Milestone 14 — Portfolio Risk & Attribution Foundation before adding attribution code.
+Sprint 64 planned Milestone 14. Sprint 65 should add the smallest useful portfolio risk metrics from an existing portfolio return series before moving into drawdown inspection or contribution attribution.

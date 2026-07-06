@@ -54,6 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 13 — Portfolio Construction Foundation is complete.
+Milestone 14 — Portfolio Risk & Attribution Foundation is planned.
 
-The next focus is Sprint 64 — Milestone 14 Planning. Plan portfolio risk and attribution without adding implementation before the milestone scope is agreed.
+The next focus is Sprint 65 — Portfolio Risk Metrics Foundation. Add the smallest useful portfolio risk metrics from an existing portfolio return series without adding optimization, dynamic rebalancing, or execution scope.
