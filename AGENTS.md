@@ -54,6 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 14 — Portfolio Risk & Attribution Foundation is complete.
+Milestone 15 — Backtest Execution Realism Foundation is planned.
 
-The next focus is Sprint 70 — Milestone 15 Planning. Plan execution realism before adding new product behavior.
+The next focus is Sprint 71 — Execution Assumptions Foundation. Define the execution-assumption boundary before adding order intent or fill models.
