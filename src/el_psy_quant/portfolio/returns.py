@@ -1,10 +1,13 @@
-"""Daily strategy return calculation."""
+"""Strategy and portfolio return calculations."""
+
+from collections.abc import Mapping
 
 import pandas as pd
 
+from el_psy_quant.portfolio.weights import validate_static_weights
 
-def equal_weight_portfolio_return(aligned_returns: pd.DataFrame) -> pd.Series:
-    """Compute the row-wise mean of validated aligned symbol returns."""
+
+def _validate_aligned_returns(aligned_returns: pd.DataFrame) -> None:
     if not isinstance(aligned_returns, pd.DataFrame):
         raise ValueError("aligned_returns must be a pandas DataFrame")
     if len(aligned_returns.index) == 0:
@@ -26,7 +29,25 @@ def equal_weight_portfolio_return(aligned_returns: pd.DataFrame) -> pd.Series:
     if aligned_returns.isna().any().any():
         raise ValueError("aligned_returns must not contain missing values")
 
+
+def equal_weight_portfolio_return(aligned_returns: pd.DataFrame) -> pd.Series:
+    """Compute the row-wise mean of validated aligned symbol returns."""
+    _validate_aligned_returns(aligned_returns)
     return aligned_returns.mean(axis=1).rename("portfolio_return")
+
+
+def weighted_portfolio_return(
+    aligned_returns: pd.DataFrame,
+    weights: Mapping[str, float],
+) -> pd.Series:
+    """Compute static-weight portfolio returns from aligned symbol returns."""
+    _validate_aligned_returns(aligned_returns)
+    validated_weights = validate_static_weights(aligned_returns.columns, weights)
+    weighted_returns = aligned_returns.mul(
+        validated_weights.to_numpy(),
+        axis="columns",
+    )
+    return weighted_returns.sum(axis=1).rename("portfolio_return")
 
 
 def strategy_return(position: pd.Series, asset_return: pd.Series) -> pd.Series:

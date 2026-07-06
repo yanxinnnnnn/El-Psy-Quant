@@ -374,7 +374,7 @@ el_psy_quant/
   data/          # Price validation, symbol universes, providers, and local input helpers
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
-  portfolio/     # Return alignment/aggregation, positions, equity, costs, and trades
+  portfolio/     # Alignment, static weights, return aggregation, equity, and costs
   backtesting/   # Research pipelines, local-file workflows, experiments, trade helpers, benchmarks, and multi-symbol research helpers
   performance/   # Metrics, annualized evaluation, Sharpe-style ratio, and backtest summaries
 ```
@@ -430,10 +430,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 61 — Configurable Portfolio Weights Foundation**
+**Sprint 62 — Portfolio Summary Artifact Foundation**
 
-Sprint 61 should validate and apply user-supplied static portfolio weights
-without adding optimization, rebalancing, or portfolio artifacts.
+Sprint 62 should persist a small portfolio summary artifact without expanding
+configured-run, optimization, or execution scope.
 
 ## Disclaimer
 
