@@ -56,5 +56,5 @@ A task is done only when:
 
 Milestone 13 — Portfolio Construction Foundation is in progress.
 
-The next focus is Sprint 61 — Configurable Portfolio Weights Foundation. Add
-validated static weights without optimization or rebalancing.
+The next focus is Sprint 62 — Portfolio Summary Artifact Foundation. Persist a
+small portfolio summary without expanding optimization or execution scope.
