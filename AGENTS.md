@@ -54,4 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Sprint 1 focuses on project bootstrap and the first market data capability.
+Milestone 11 — Strategy Interface Foundation is complete.
+
+The next focus is Sprint 53 — Milestone 12 Planning, which should define the Data Integrity & Universe Foundation before the project adds more strategies.

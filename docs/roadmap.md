@@ -29,7 +29,8 @@ flowchart LR
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36 ✅"]
     M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41 ✅"]
     M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Sprints 42-46 ✅"]
-    M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Sprints 47-52"]
+    M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Sprints 47-52 ✅"]
+    M11 --> M12["Milestone 12<br/>Data Integrity & Universe Foundation<br/>Sprints 53+ planned"]
 ```
 
 ## Milestone Table
@@ -46,7 +47,8 @@ flowchart LR
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Complete | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
 | Milestone 9 — Project Quality Foundation | Sprints 37-41 | Complete | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently without relying only on local claims. |
 | Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Complete | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
-| Milestone 11 — Strategy Interface Foundation | Sprints 47-52 | Planned | Define cleaner strategy boundaries before adding more strategies. | Strategies can plug into research workflows through a stable interface without breaking artifact discipline. |
+| Milestone 11 — Strategy Interface Foundation | Sprints 47-52 | Complete | Define cleaner strategy boundaries before adding more strategies. | Strategies plug into configured research workflows through a stable interface without breaking artifact discipline. |
+| Milestone 12 — Data Integrity & Universe Foundation | Sprints 53+ | Planned | Improve data validation, symbol universe discipline, and input assumptions. | Research inputs are harder to misuse before the project adds more strategies. |
 
 ## Detailed Sprint Timeline
 
@@ -65,6 +67,7 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
 docs/milestones/milestone-008-research-operations-foundation.md
 docs/milestones/milestone-009-project-quality-foundation.md
 docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
+docs/milestones/milestone-011-strategy-interface-foundation.md
 ```
 
 | Sprint | Milestone | Status | Main Deliverable |
@@ -131,7 +134,7 @@ Milestone 10 closed the local artifact chain:
 manifest.json -> results/metrics.json -> comparison DataFrame
 ```
 
-### Planned Milestone 11 — Strategy Interface Foundation
+### Completed Milestone 11 — Strategy Interface Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
@@ -140,9 +143,13 @@ manifest.json -> results/metrics.json -> comparison DataFrame
 | S49 | Complete | Wrap existing crossover logic. | Moving-average crossover strategy implementation behind the interface. | Preserve current behavior. |
 | S50 | Complete | Add strategy resolver. | Small resolver for supported strategy names. | No plugin framework. |
 | S51 | Complete | Wire configured experiments through strategy boundary. | Configured run path uses resolver/interface while preserving artifacts. | No broad CLI redesign. |
-| S52 | Planned | Close milestone. | Milestone 11 documentation refresh. | No scope expansion. |
+| S52 | Complete | Close milestone. | Milestone 11 documentation refresh. | No scope expansion. |
 
-Milestone 11 should define the strategy seam before adding more strategies.
+Milestone 11 closed the strategy interface chain:
+
+```text
+Strategy protocol -> MovingAverageCrossoverStrategy -> resolve_strategy -> configured experiment execution
+```
 
 ## Future Platform Direction
 
@@ -183,11 +190,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 52 — Milestone 11 Documentation Refresh
+Sprint 53 — Milestone 12 Planning
 ```
 
 Reason:
 
-Sprint 51 routed configured experiments through the resolver and Strategy
-interface while preserving current results and artifacts. Sprint 52 should
-refresh Milestone 11 documentation and close the milestone without scope growth.
+Milestone 11 established the strategy boundary without adding strategy sprawl.
+Sprint 53 should plan Milestone 12 — Data Integrity & Universe Foundation, so
+future research inputs are safer before the project adds more strategies.

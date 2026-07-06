@@ -10,17 +10,17 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 11 — Strategy Interface Foundation** is planned.
+**Milestone 11 — Strategy Interface Foundation** is complete.
 
-Milestone 10 — Experiment Artifact & Comparison Foundation is complete. The project can now run configured local experiments, write stable local experiment artifacts, and compare saved run folders from local artifacts.
-
-The completed Milestone 10 artifact chain is:
+Milestone 11 established the strategy boundary for configured experiments:
 
 ```text
-manifest.json -> results/metrics.json -> comparison DataFrame
+Strategy protocol -> MovingAverageCrossoverStrategy -> resolve_strategy -> configured experiment execution
 ```
 
-Milestone 11 should define how strategies plug into the research system before the project adds more strategies.
+The existing moving-average crossover behavior is preserved, but configured experiments now execute through the strategy resolver and `Strategy.run(...)` instead of directly depending on moving-average implementation details.
+
+The next milestone should be **Milestone 12 — Data Integrity & Universe Foundation**. The project should make data inputs and symbol universes harder to misuse before adding more strategies.
 
 See the milestone summaries:
 
@@ -35,6 +35,7 @@ docs/milestones/milestone-007-multi-asset-research-foundation.md
 docs/milestones/milestone-008-research-operations-foundation.md
 docs/milestones/milestone-009-project-quality-foundation.md
 docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
+docs/milestones/milestone-011-strategy-interface-foundation.md
 ```
 
 ## Current Capabilities
@@ -52,7 +53,7 @@ docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
   - normalize and validate symbols consistently
 - Local YAML experiment config loading and validation for configured local research workflows.
 - Deterministic local experiment output directories and reserved artifact paths.
-- Minimal `argparse` CLI for the current local configured crossover workflow.
+- Minimal `argparse` CLI for local configured experiments.
 - Stable configured-run artifacts:
   - copied `config.yaml`
   - `metadata.json`
@@ -61,6 +62,12 @@ docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
   - `results/metrics.json`
   - `logs/`
 - Saved-run comparison helper that combines existing metrics from local run artifacts without ranking or recomputing metrics.
+- Strategy interface foundation:
+  - minimal `Strategy` protocol
+  - strategy result validation helper
+  - `MovingAverageCrossoverStrategy` adapter
+  - deterministic exact-name strategy resolver
+  - configured experiment execution through the strategy boundary
 - GitHub Actions CI for pull requests and pushes to `main`.
 - Local quality gate in `scripts/check.py`, used by CI as the quality command source of truth.
 - Repository hygiene guardrails through `.gitattributes` and a concise pull request template.
@@ -360,6 +367,22 @@ config = load_experiment_config("experiment.yaml")
 
 The config loader validates local experiment settings. The current configured workflow supports the existing moving-average crossover strategy only.
 
+## Strategy Interface
+
+Strategies use a small structural contract:
+
+```python
+from el_psy_quant.strategies import Strategy, resolve_strategy, supported_strategy_names
+```
+
+The current supported strategy name is:
+
+```text
+moving_average_crossover
+```
+
+Configured experiments resolve that name through `resolve_strategy(...)` and execute the returned strategy through `Strategy.run(...)` for each symbol.
+
 ## Local Experiment Output Layout
 
 Create deterministic local directories for future experiment artifacts:
@@ -382,7 +405,7 @@ The layout helper creates the experiment, run, results, and logs directories. It
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The command runs the current moving-average crossover workflow from local CSV or cache data and writes only:
+The command resolves the configured strategy, runs the current moving-average crossover workflow from local CSV or cache data, and writes only:
 
 ```text
 config.yaml
@@ -478,10 +501,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 52 — Milestone 11 Documentation Refresh**
+**Sprint 53 — Milestone 12 Planning**
 
-Sprint 52 should refresh Milestone 11 documentation and close the milestone
-without expanding strategy or execution scope.
+Sprint 53 should plan Milestone 12 — Data Integrity & Universe Foundation, so
+future research inputs are safer before the project adds more strategies.
 
 ## Disclaimer
 
