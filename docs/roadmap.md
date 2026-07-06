@@ -117,7 +117,7 @@ docs/milestones/milestone-009-project-quality-foundation.md
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S42 | Complete | Plan Milestone 10. | Milestone 10 scope and sprint sequence. | No implementation during planning. |
-| S43 | Planned | Add experiment run manifest. | Stable `manifest.json` describing a run. | No database or dashboard. |
+| S43 | Complete | Add experiment run manifest. | Stable `manifest.json` describing a run. | No database or dashboard. |
 | S44 | Planned | Add metrics artifact. | Stable machine-readable metrics output. | No new metrics unless already available. |
 | S45 | Planned | Add experiment comparison. | Compare saved experiment runs from local artifacts. | No strategy optimization engine. |
 | S46 | Planned | Close milestone. | Milestone 10 documentation refresh. | Keep artifact rules simple. |
@@ -161,9 +161,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 43 — Experiment Run Manifest Foundation
+Sprint 44 — Experiment Metrics Artifact Foundation
 ```
 
 Reason:
 
-Milestone 8 made local experiments runnable, and Milestone 9 made future changes easier to trust. Sprint 43 should add a small run manifest so every local experiment run records what happened and where its artifacts live before the project adds more comparison features.
+Sprint 43 added a stable run manifest describing each configured experiment and
+its artifacts. Sprint 44 should add a machine-readable metrics artifact using
+the metrics the project already computes, without inventing new evaluation logic.

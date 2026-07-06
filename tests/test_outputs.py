@@ -24,6 +24,7 @@ def test_creates_expected_directory_tree_and_paths(tmp_path: Path) -> None:
         run_dir=run_dir,
         config_path=run_dir / "config.yaml",
         metadata_path=run_dir / "metadata.json",
+        manifest_path=run_dir / "manifest.json",
         results_dir=run_dir / "results",
         logs_dir=run_dir / "logs",
     )
@@ -38,6 +39,7 @@ def test_does_not_write_reserved_files(tmp_path: Path) -> None:
 
     assert not layout.config_path.exists()
     assert not layout.metadata_path.exists()
+    assert not layout.manifest_path.exists()
     assert list(layout.results_dir.iterdir()) == []
     assert list(layout.logs_dir.iterdir()) == []
 

@@ -412,9 +412,13 @@ or cache data and writes only:
 ```text
 config.yaml
 metadata.json
+manifest.json
 results/summary.csv
 logs/
 ```
+
+`manifest.json` records the experiment identity, data source, parameters,
+evaluation assumptions, and run-relative artifact paths.
 
 It does not download live data or add dashboards, reports, databases, portfolio
 construction, or interactive prompts.
