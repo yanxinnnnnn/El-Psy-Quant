@@ -56,5 +56,5 @@ A task is done only when:
 
 Milestone 13 — Portfolio Construction Foundation is in progress.
 
-The next focus is Sprint 60 — Equal-Weight Portfolio Return Foundation. Compute
-portfolio returns from aligned inputs without adding configurable weights.
+The next focus is Sprint 61 — Configurable Portfolio Weights Foundation. Add
+validated static weights without optimization or rebalancing.
