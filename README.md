@@ -442,7 +442,7 @@ el_psy_quant/
   config.py      # Load and validate local YAML experiment settings; no execution or CLI
   outputs.py     # Create deterministic local experiment directories and reserved paths
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
-  data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
+  data/          # Price validation, providers, CSV/cache helpers, workflows, and multi-symbol input
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Positions, returns, equity, costs, slippage, and trade records
@@ -500,9 +500,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 54 — Price Data Validation Foundation**
+**Sprint 55 — Symbol Universe Definition Foundation**
 
-Sprint 54 should add a small local price DataFrame validation layer before strategy execution. Start there before expanding the strategy count or adding portfolio logic.
+Sprint 55 should define an explicit symbol universe boundary without adding an
+investable-universe database or portfolio construction.
 
 ## Disclaimer
 

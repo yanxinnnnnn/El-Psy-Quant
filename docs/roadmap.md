@@ -162,7 +162,7 @@ Strategy protocol -> MovingAverageCrossoverStrategy -> resolve_strategy -> confi
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S53 | Complete | Plan Milestone 12. | Data integrity and universe milestone scope. | No implementation during planning. |
-| S54 | Planned | Validate local price data. | Small price DataFrame validation layer. | No live data or external validation. |
+| S54 | Complete | Validate local price data. | Small price DataFrame validation layer. | No live data or external validation. |
 | S55 | Planned | Define symbol universe discipline. | Explicit configured symbol universe helper or representation. | No investable universe database. |
 | S56 | Planned | Wire configured input validation. | Configured experiments validate inputs before strategy execution. | Preserve artifact schemas and CLI shape. |
 | S57 | Planned | Close milestone. | Milestone 12 documentation refresh. | No scope expansion. |
@@ -209,9 +209,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 54 — Price Data Validation Foundation
+Sprint 55 — Symbol Universe Definition Foundation
 ```
 
 Reason:
 
-Milestone 12 starts by validating local price data before expanding the strategy count or adding portfolio logic.
+Sprint 54 added a reusable structural validation boundary for local daily price
+data. Sprint 55 should define explicit symbol universe discipline without adding
+an investable-universe database or portfolio construction.
