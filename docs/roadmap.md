@@ -139,7 +139,7 @@ manifest.json -> results/metrics.json -> comparison DataFrame
 | S48 | Complete | Define strategy contract. | Minimal strategy interface / protocol and tests. | No new strategy. |
 | S49 | Complete | Wrap existing crossover logic. | Moving-average crossover strategy implementation behind the interface. | Preserve current behavior. |
 | S50 | Complete | Add strategy resolver. | Small resolver for supported strategy names. | No plugin framework. |
-| S51 | Planned | Wire configured experiments through strategy boundary. | Configured run path uses resolver/interface while preserving artifacts. | No broad CLI redesign. |
+| S51 | Complete | Wire configured experiments through strategy boundary. | Configured run path uses resolver/interface while preserving artifacts. | No broad CLI redesign. |
 | S52 | Planned | Close milestone. | Milestone 11 documentation refresh. | No scope expansion. |
 
 Milestone 11 should define the strategy seam before adding more strategies.
@@ -183,11 +183,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 51 — Configured Experiment Strategy Wiring
+Sprint 52 — Milestone 11 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 50 added deterministic exact-name resolution for supported strategies.
-Sprint 51 should route configured experiments through that strategy boundary
-while preserving current results and artifacts.
+Sprint 51 routed configured experiments through the resolver and Strategy
+interface while preserving current results and artifacts. Sprint 52 should
+refresh Milestone 11 documentation and close the milestone without scope growth.

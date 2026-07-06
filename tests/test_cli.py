@@ -4,7 +4,9 @@ from pathlib import Path
 
 import pandas as pd
 
+from el_psy_quant import cli
 from el_psy_quant.cli import main
+from el_psy_quant.strategies import Strategy
 
 PRICES_CSV = """Date,Open,High,Low,Close,Volume
 2024-01-01,10,11,9,10,100
@@ -45,10 +47,33 @@ evaluation:
 
 
 def test_main_runs_csv_config_and_writes_minimal_artifacts(
-    tmp_path: Path, capsys
+    tmp_path: Path, capsys, monkeypatch
 ) -> None:
     config_path, config_text = write_config(tmp_path)
     output_root = tmp_path / "outputs"
+    resolved_names: list[str] = []
+    strategy_calls: list[tuple[pd.DataFrame, dict[str, object]]] = []
+    original_resolve_strategy = cli.resolve_strategy
+
+    class RecordingStrategy:
+        name = "moving_average_crossover"
+
+        def __init__(self, delegate: Strategy) -> None:
+            self.delegate = delegate
+
+        def run(
+            self,
+            prices: pd.DataFrame,
+            parameters: dict[str, object],
+        ) -> pd.DataFrame:
+            strategy_calls.append((prices, dict(parameters)))
+            return self.delegate.run(prices, parameters)
+
+    def recording_resolver(name: str) -> Strategy:
+        resolved_names.append(name)
+        return RecordingStrategy(original_resolve_strategy(name))
+
+    monkeypatch.setattr(cli, "resolve_strategy", recording_resolver)
 
     exit_code = main(
         [
@@ -63,6 +88,18 @@ def test_main_runs_csv_config_and_writes_minimal_artifacts(
 
     run_dir = output_root / "cli-local-test" / "20260630T141500Z"
     assert exit_code == 0
+    assert resolved_names == ["moving_average_crossover"]
+    assert len(strategy_calls) == 2
+    assert all("Close" in prices for prices, _ in strategy_calls)
+    assert [parameters for _, parameters in strategy_calls] == [
+        {
+            "fast_window": 2,
+            "slow_window": 3,
+            "initial_capital": 1_000.0,
+            "transaction_cost_rate": 0.0,
+            "slippage_rate": 0.0,
+        }
+    ] * 2
     assert capsys.readouterr().out.strip() == str(run_dir)
     assert (run_dir / "config.yaml").read_text(encoding="utf-8") == config_text
     metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
@@ -145,6 +182,26 @@ def test_invalid_config_returns_nonzero_and_prints_error(
     assert captured.out == ""
     assert captured.err.startswith("error: ")
     assert "must not be empty" in captured.err
+
+
+def test_unsupported_strategy_name_returns_nonzero(tmp_path: Path, capsys) -> None:
+    config_path, _ = write_config(tmp_path)
+    config_path.write_text(
+        config_path.read_text(encoding="utf-8").replace(
+            "moving_average_crossover",
+            "Moving_Average_Crossover",
+        ),
+        encoding="utf-8",
+    )
+
+    exit_code = main(
+        ["run", str(config_path), "--output-root", str(tmp_path / "outputs")]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "experiment.strategy" in captured.err
 
 
 def test_console_script_entrypoint_exists() -> None:

@@ -7,13 +7,11 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from el_psy_quant.backtesting import (
-    moving_average_crossover_multi_symbol,
-    summarize_multi_symbol_results,
-)
+from el_psy_quant.backtesting import summarize_multi_symbol_results
 from el_psy_quant.config import load_experiment_config
 from el_psy_quant.data import load_daily_prices_csvs, read_daily_prices_caches
 from el_psy_quant.outputs import create_experiment_output_layout
+from el_psy_quant.strategies import resolve_strategy
 
 
 def run_configured_experiment(
@@ -41,14 +39,18 @@ def run_configured_experiment(
         )
 
     parameters = config.parameters
-    results_by_symbol = moving_average_crossover_multi_symbol(
-        prices_by_symbol,
-        fast_window=parameters.fast_window,
-        slow_window=parameters.slow_window,
-        initial_capital=parameters.initial_capital,
-        transaction_cost_rate=parameters.transaction_cost_rate,
-        slippage_rate=parameters.slippage_rate,
-    )
+    parameter_mapping = {
+        "fast_window": parameters.fast_window,
+        "slow_window": parameters.slow_window,
+        "initial_capital": parameters.initial_capital,
+        "transaction_cost_rate": parameters.transaction_cost_rate,
+        "slippage_rate": parameters.slippage_rate,
+    }
+    strategy = resolve_strategy(config.strategy)
+    results_by_symbol = {
+        symbol: strategy.run(prices, parameter_mapping)
+        for symbol, prices in prices_by_symbol.items()
+    }
     summary = summarize_multi_symbol_results(
         results_by_symbol,
         periods_per_year=config.evaluation.periods_per_year,

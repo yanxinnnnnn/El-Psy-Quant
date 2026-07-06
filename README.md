@@ -478,10 +478,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 51 — Configured Experiment Strategy Wiring**
+**Sprint 52 — Milestone 11 Documentation Refresh**
 
-Sprint 51 should route configured experiments through the strategy
-resolver/interface while preserving current results and artifacts.
+Sprint 52 should refresh Milestone 11 documentation and close the milestone
+without expanding strategy or execution scope.
 
 ## Disclaimer
 
