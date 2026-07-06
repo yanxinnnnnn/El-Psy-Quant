@@ -54,7 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 14 — Portfolio Risk & Attribution Foundation is near closeout.
+Milestone 14 — Portfolio Risk & Attribution Foundation is complete.
 
-The next focus is Sprint 69 — Milestone 14 Documentation Refresh. Close the
-milestone with documentation only and no new product behavior.
+The next focus is Sprint 70 — Milestone 15 Planning. Plan execution realism before adding new product behavior.

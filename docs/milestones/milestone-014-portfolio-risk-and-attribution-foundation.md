@@ -2,15 +2,15 @@
 
 ## Status
 
-Planned.
+Complete.
 
 ## Product Goal
 
 Make portfolio-level behavior explainable after portfolio construction has become explicit.
 
-Milestone 13 answered how aligned symbol return streams become portfolio returns and summary artifacts. Milestone 14 should now explain where portfolio risk, drawdowns, and return contribution come from without jumping to optimization, dynamic rebalancing, or execution.
+Milestone 13 answered how aligned symbol return streams become portfolio returns and summary artifacts. Milestone 14 explains where portfolio risk, drawdowns, and return contribution come from without jumping to optimization, dynamic rebalancing, or execution.
 
-## Why This Comes Now
+## Why This Came Now
 
 The project can now build a portfolio-level return series from:
 
@@ -18,60 +18,95 @@ The project can now build a portfolio-level return series from:
 strategy return streams -> aligned portfolio inputs -> portfolio return aggregation -> portfolio summary artifact
 ```
 
-That makes portfolio-level risk work meaningful. Before Milestone 13, risk attribution would have rested on unclear alignment and weighting assumptions. After Milestone 13, attribution can be tied to explicit static construction inputs.
+That made portfolio-level risk work meaningful. Before Milestone 13, risk attribution would have rested on unclear alignment and weighting assumptions. After Milestone 13, attribution could be tied to explicit static construction inputs.
 
-## Planned Sprint Sequence
+## Completed Sprint Sequence
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S64 | Complete | Plan Milestone 14. | Portfolio risk and attribution scope and sprint sequence. | No implementation during planning. |
-| S65 | Planned | Add portfolio risk metrics. | Small risk summary for portfolio return series. | No optimizer or factor model. |
-| S66 | Planned | Add drawdown inspection. | Inspect portfolio drawdown periods and depth. | No stress-testing engine. |
-| S67 | Planned | Add symbol contribution. | Attribute portfolio return contribution from aligned symbol returns and static weights. | No dynamic rebalancing. |
-| S68 | Planned | Add attribution summary artifact. | Persist portfolio risk and contribution summary. | Preserve artifact discipline. |
-| S69 | Planned | Close milestone. | Milestone 14 documentation refresh. | No scope expansion. |
+| S65 | Complete | Add portfolio risk metrics. | Small risk summary for portfolio return series. | No optimizer or factor model. |
+| S66 | Complete | Add drawdown inspection. | Inspect the single worst portfolio drawdown event. | No stress-testing engine. |
+| S67 | Complete | Add symbol contribution. | Static-weight contribution returns and summaries from aligned symbol returns. | No dynamic rebalancing. |
+| S68 | Complete | Add attribution summary artifact. | Standalone artifact composed from risk, drawdown, and contribution summaries. | Preserve artifact discipline. |
+| S69 | Complete | Close milestone. | Milestone 14 documentation refresh. | No scope expansion. |
 
-## Planned Work
+## Completed Work
 
 ### Portfolio Risk Metrics
 
-The first implementation sprint should add a small portfolio risk summary from portfolio return series.
+Sprint 65 added `portfolio_risk_summary(...)` for an existing portfolio return Series.
 
-Expected candidates include existing-style metrics such as:
+It reports deterministic, JSON-compatible distribution and loss-frequency values, including:
 
-- volatility
-- downside or drawdown-oriented summary where scoped
-- worst period return
-- best period return
-- positive / negative period counts if useful
+- periods
+- arithmetic mean return
+- sample volatility for two or more observations
+- one-observation volatility as `0.0`
+- min and max return
+- positive, negative, and zero period counts
+- loss rate
+- optional annualized volatility when an explicit frequency is supplied
 
-The sprint should avoid pretending to be a full institutional risk model.
+These metrics describe the portfolio return series itself. They do not claim to be a full institutional risk model.
 
 ### Drawdown Inspection
 
-Portfolio drawdown should become inspectable, not just summarized as one number.
+Sprint 66 added `inspect_portfolio_drawdown(...)` for an existing portfolio equity Series.
 
-The project should be able to identify simple drawdown windows and make the result easy to review. This should remain local and deterministic.
+It identifies the single worst running-peak drawdown event and reports:
+
+- max drawdown
+- peak date
+- trough date
+- recovery date
+- recovered flag
+- observation-count duration fields
+
+Dates are serialized as ISO strings. Increasing, flat, and one-observation equity series are treated as explicit zero-drawdown cases.
 
 ### Symbol Contribution
 
-With aligned returns and static weights available, the project can compute simple per-symbol contribution to portfolio return.
+Sprint 67 added static-weight per-symbol contribution returns and summaries.
 
-The initial contribution model should be explicit:
+The contribution model is explicit:
 
 ```text
 symbol_contribution[t] = aligned_return[t, symbol] * static_weight[symbol]
 ```
 
-This is contribution under static-weight assumptions, not dynamic attribution, Brinson attribution, factor attribution, or optimization.
+The contribution helpers preserve aligned dates and symbol order. Row-wise contribution sums equal the existing static-weight portfolio return.
 
 ### Attribution Summary Artifact
 
-Risk and contribution results should become inspectable and portable through a small artifact, following the existing artifact discipline.
+Sprint 68 added `build_attribution_summary_artifact(...)` as a standalone, machine-readable artifact builder.
+
+The artifact composes existing helper outputs instead of reimplementing their calculations:
+
+```text
+portfolio_return -> risk metrics
+portfolio_equity -> drawdown inspection
+aligned_returns + static_weights -> symbol contribution
+risk + drawdown + contribution -> attribution summary artifact
+```
+
+The artifact records construction metadata, risk, drawdown, contribution summary records, and evaluation assumptions in deterministic JSON-compatible form.
+
+## Assumptions
+
+Milestone 14 keeps the assumptions deliberately conservative:
+
+- portfolio returns already exist before risk is summarized
+- portfolio equity already exists before drawdown is inspected
+- aligned symbol returns and static weights already exist before contribution is calculated
+- static weights are validated through the existing weight boundary
+- symbol order is explicit and preserved
+- durations are observation counts, not calendar-day durations
+- attribution artifacts are standalone local research outputs, not configured-run artifacts
 
 ## Guardrails
 
-Milestone 14 should avoid:
+Milestone 14 deliberately did not add:
 
 - portfolio optimization
 - dynamic weights
@@ -80,10 +115,11 @@ Milestone 14 should avoid:
 - broker execution assumptions
 - cash, financing, tax, borrow, or margin models
 - covariance matrix optimization
-- VaR or stress testing unless explicitly scoped later
-- full factor models unless explicitly scoped later
+- VaR or stress testing
+- full factor models
 - dashboards or databases
 - broad configured-run integration
+- YAML configuration changes
 - broad CLI expansion
 - strategy changes
 - resolver changes
@@ -91,12 +127,12 @@ Milestone 14 should avoid:
 
 ## Exit Criteria
 
-Milestone 14 is complete when:
+Milestone 14 is complete because:
 
 - portfolio return risk can be summarized under explicit assumptions
 - drawdowns can be inspected in a deterministic local form
 - symbol-level contribution can be calculated from aligned returns and static weights
-- attribution outputs can be summarized or persisted consistently
+- attribution outputs can be summarized in a standalone artifact
 - documentation explains assumptions, limits, and what remains out of scope
 
 ## Relationship To Future Milestones
@@ -108,7 +144,7 @@ Execution realism should wait until portfolio behavior and risk are explainable.
 ## Current Next Step
 
 ```text
-Sprint 65 — Portfolio Risk Metrics Foundation
+Sprint 70 — Milestone 15 Planning
 ```
 
-Start by adding simple portfolio risk metrics before moving into contribution or attribution artifacts.
+Plan Milestone 15 before adding execution realism behavior.
