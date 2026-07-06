@@ -28,7 +28,8 @@ flowchart LR
     M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32 ✅"]
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36 ✅"]
     M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41 ✅"]
-    M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Sprints 42-46"]
+    M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Sprints 42-46 ✅"]
+    M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Planned"]
 ```
 
 ## Milestone Table
@@ -44,7 +45,8 @@ flowchart LR
 | Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Complete | Move from single-symbol to multi-symbol research. | The platform can load, run, and summarize independent multi-symbol research workflows. |
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Complete | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
 | Milestone 9 — Project Quality Foundation | Sprints 37-41 | Complete | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently without relying only on local claims. |
-| Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Planned | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
+| Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Complete | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
+| Milestone 11 — Strategy Interface Foundation | TBD | Planned | Define cleaner strategy boundaries before adding more strategies. | Strategies can plug into research workflows through a stable interface without breaking artifact discipline. |
 
 ## Detailed Sprint Timeline
 
@@ -62,6 +64,7 @@ docs/milestones/milestone-006-risk-and-benchmark-foundation.md
 docs/milestones/milestone-007-multi-asset-research-foundation.md
 docs/milestones/milestone-008-research-operations-foundation.md
 docs/milestones/milestone-009-project-quality-foundation.md
+docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
 ```
 
 | Sprint | Milestone | Status | Main Deliverable |
@@ -112,7 +115,7 @@ docs/milestones/milestone-009-project-quality-foundation.md
 | S40 | Complete | Add a local quality check entrypoint. | One local command that mirrors CI checks. | No heavy task-runner framework. |
 | S41 | Complete | Close milestone. | Milestone 9 documentation refresh. | Keep quality gates simple and maintainable. |
 
-### Planned Milestone 10 — Experiment Artifact & Comparison Foundation
+### Completed Milestone 10 — Experiment Artifact & Comparison Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
@@ -120,7 +123,13 @@ docs/milestones/milestone-009-project-quality-foundation.md
 | S43 | Complete | Add experiment run manifest. | Stable `manifest.json` describing a run. | No database or dashboard. |
 | S44 | Complete | Add metrics artifact. | Stable machine-readable metrics output. | No new metrics unless already available. |
 | S45 | Complete | Add experiment comparison. | Compare saved experiment runs from local artifacts. | No strategy optimization engine. |
-| S46 | Planned | Close milestone. | Milestone 10 documentation refresh. | Keep artifact rules simple. |
+| S46 | Complete | Close milestone. | Milestone 10 documentation refresh. | Keep artifact rules simple. |
+
+Milestone 10 closed the local artifact chain:
+
+```text
+manifest.json -> results/metrics.json -> comparison DataFrame
+```
 
 ## Future Platform Direction
 
@@ -130,10 +139,9 @@ The long-term CTO roadmap is documented in:
 docs/strategy/future-platform-roadmap.md
 ```
 
-The recommended sequence after Milestone 9 is:
+The recommended sequence after Milestone 10 is:
 
 ```text
-Milestone 10 — Experiment Artifact & Comparison Foundation
 Milestone 11 — Strategy Interface Foundation
 Milestone 12 — Data Integrity & Universe Foundation
 Milestone 13 — Portfolio Construction Foundation
@@ -155,17 +163,16 @@ The guiding idea is to build a research system that is hard to fool before addin
 7. Automated quality gates should verify claims before humans review deeper logic.
 8. Every milestone should leave the repository easier to understand than before.
 9. Experiments that cannot be inspected later are not research assets.
+10. Strategy interfaces should come before strategy proliferation.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 46 — Milestone 10 Documentation Refresh
+Sprint 47 — Milestone 11 Planning
 ```
 
 Reason:
 
-Sprint 45 added a deterministic comparison helper for existing saved metrics.
-Sprint 46 should refresh Milestone 10 documentation and close the milestone
-without expanding the artifact or comparison scope.
+Milestone 10 made saved experiment runs inspectable and comparable through local artifacts. The next step is to plan Milestone 11 — Strategy Interface Foundation, so future strategies can plug into the research system without weakening artifact discipline or rushing into strategy proliferation.
