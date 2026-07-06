@@ -12,6 +12,11 @@ def normalize_symbol(symbol: str) -> str:
 
 def build_symbol_universe(symbols: Iterable[str]) -> tuple[str, ...]:
     """Build an immutable, order-preserving local research universe."""
+    if isinstance(symbols, str):
+        raise ValueError(
+            "symbols must be an iterable of symbol strings, not a single symbol"
+        )
+
     normalized_symbols: list[str] = []
     seen: set[str] = set()
     for symbol in symbols:

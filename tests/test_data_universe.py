@@ -26,6 +26,11 @@ def test_build_symbol_universe_accepts_one_pass_iterable() -> None:
     assert build_symbol_universe(symbols) == ("NVDA", "AAPL")
 
 
+def test_build_symbol_universe_rejects_single_string_input() -> None:
+    with pytest.raises(ValueError, match="not a single symbol"):
+        build_symbol_universe("MSFT")
+
+
 def test_build_symbol_universe_rejects_normalized_duplicates() -> None:
     with pytest.raises(ValueError, match="duplicate symbol: AAPL"):
         build_symbol_universe(["AAPL", " aapl "])
