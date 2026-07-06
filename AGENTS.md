@@ -54,6 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 12 — Data Integrity & Universe Foundation is complete.
+Milestone 13 — Portfolio Construction Foundation is planned.
 
-The next focus is Sprint 58 — Milestone 13 Planning. Plan Portfolio Construction Foundation before adding portfolio allocation behavior.
+The next focus is Sprint 59 — Portfolio Input Alignment Foundation. Align symbol return streams before adding portfolio allocation behavior.

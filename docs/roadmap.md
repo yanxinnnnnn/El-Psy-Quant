@@ -31,7 +31,7 @@ flowchart LR
     M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Sprints 42-46 ✅"]
     M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Sprints 47-52 ✅"]
     M11 --> M12["Milestone 12<br/>Data Integrity & Universe Foundation<br/>Sprints 53-57 ✅"]
-    M12 --> M13["Milestone 13<br/>Portfolio Construction Foundation<br/>planned"]
+    M12 --> M13["Milestone 13<br/>Portfolio Construction Foundation<br/>Sprints 58-63 planned"]
 ```
 
 ## Milestone Table
@@ -50,7 +50,7 @@ flowchart LR
 | Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Complete | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
 | Milestone 11 — Strategy Interface Foundation | Sprints 47-52 | Complete | Define cleaner strategy boundaries before adding more strategies. | Strategies plug into configured research workflows through a stable interface without breaking artifact discipline. |
 | Milestone 12 — Data Integrity & Universe Foundation | Sprints 53-57 | Complete | Improve data validation, symbol universe discipline, and input assumptions. | Configured runs validate symbol and price inputs before strategy execution. |
-| Milestone 13 — Portfolio Construction Foundation | TBD | Planned | Define portfolio-level construction before risk attribution and execution realism. | Portfolio assumptions, allocation boundaries, and alignment rules are documented before implementation. |
+| Milestone 13 — Portfolio Construction Foundation | Sprints 58-63 | Planned | Define portfolio-level construction before risk attribution and execution realism. | Portfolio inputs, equal-weight returns, configurable weights, and summary artifacts are introduced under explicit assumptions. |
 
 ## Detailed Sprint Timeline
 
@@ -71,6 +71,12 @@ docs/milestones/milestone-009-project-quality-foundation.md
 docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
 docs/milestones/milestone-011-strategy-interface-foundation.md
 docs/milestones/milestone-012-data-integrity-and-universe-foundation.md
+```
+
+Current and planned milestone notes live in:
+
+```text
+docs/milestones/milestone-013-portfolio-construction-foundation.md
 ```
 
 | Sprint | Milestone | Status | Main Deliverable |
@@ -172,15 +178,20 @@ configured symbols -> local price data -> configured input validation -> strateg
 
 ### Planned Milestone 13 — Portfolio Construction Foundation
 
-Milestone 13 should define portfolio construction carefully before implementing allocation behavior.
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S58 | Complete | Plan Milestone 13. | Portfolio construction scope and sprint sequence. | No implementation during planning. |
+| S59 | Planned | Align portfolio inputs. | Deterministic alignment of symbol return streams. | No allocation logic yet. |
+| S60 | Planned | Add equal-weight portfolio returns. | Simple portfolio return aggregation with explicit assumptions. | No optimization engine. |
+| S61 | Planned | Add configurable portfolio weights. | Validate and apply user-supplied static weights. | No dynamic rebalancing model unless explicitly scoped. |
+| S62 | Planned | Add portfolio summary artifact. | Persist portfolio-level summary from local runs. | Preserve artifact discipline. |
+| S63 | Planned | Close milestone. | Milestone 13 documentation refresh. | No scope expansion. |
 
-The first sprint should be:
+Milestone 13 should introduce portfolio construction through this conservative chain:
 
 ```text
-Sprint 58 — Milestone 13 Planning
+aligned portfolio inputs -> equal-weight portfolio returns -> configurable weights -> portfolio summary artifact
 ```
-
-Planning should define portfolio boundaries, capital assumptions, date-alignment rules, allocation semantics, and out-of-scope constraints before code is added.
 
 ## Future Platform Direction
 
@@ -223,9 +234,9 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 58 — Milestone 13 Planning
+Sprint 59 — Portfolio Input Alignment Foundation
 ```
 
 Reason:
 
-Milestone 12 completed the local input-validation boundary. The next step is to plan portfolio construction before combining independent per-symbol results into portfolio-level behavior.
+Milestone 13 should start by aligning symbol return streams deterministically before adding allocation logic, equal-weight returns, configurable weights, or portfolio artifacts.
