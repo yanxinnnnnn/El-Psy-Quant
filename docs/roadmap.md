@@ -136,7 +136,7 @@ manifest.json -> results/metrics.json -> comparison DataFrame
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S47 | Complete | Plan Milestone 11. | Strategy interface milestone scope and sprint sequence. | No implementation during planning. |
-| S48 | Planned | Define strategy contract. | Minimal strategy interface / protocol and tests. | No new strategy. |
+| S48 | Complete | Define strategy contract. | Minimal strategy interface / protocol and tests. | No new strategy. |
 | S49 | Planned | Wrap existing crossover logic. | Moving-average crossover strategy implementation behind the interface. | Preserve current behavior. |
 | S50 | Planned | Add strategy resolver. | Small resolver for supported strategy names. | No plugin framework. |
 | S51 | Planned | Wire configured experiments through strategy boundary. | Configured run path uses resolver/interface while preserving artifacts. | No broad CLI redesign. |
@@ -183,9 +183,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 48 — Strategy Interface Contract Foundation
+Sprint 49 — Moving-Average Strategy Adapter
 ```
 
 Reason:
 
-Milestone 11 should first define the smallest useful strategy boundary. The current workflow is still hard-wired to moving-average crossover. Sprint 48 should create the contract before the existing strategy is migrated behind it.
+Sprint 48 defined the smallest useful strategy boundary and result-shape
+validation. Sprint 49 should adapt the existing moving-average crossover logic
+to that contract without changing its behavior.
