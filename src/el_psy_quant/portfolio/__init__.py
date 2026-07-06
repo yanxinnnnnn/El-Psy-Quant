@@ -1,5 +1,6 @@
 """Pure portfolio calculation functions."""
 
+from el_psy_quant.portfolio.alignment import align_strategy_returns
 from el_psy_quant.portfolio.costs import transaction_cost
 from el_psy_quant.portfolio.equity import equity_curve
 from el_psy_quant.portfolio.positions import long_only_position
@@ -8,6 +9,7 @@ from el_psy_quant.portfolio.slippage import slippage_cost
 from el_psy_quant.portfolio.trades import long_only_trade_records
 
 __all__ = [
+    "align_strategy_returns",
     "equity_curve",
     "long_only_trade_records",
     "long_only_position",

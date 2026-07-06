@@ -181,7 +181,7 @@ configured symbols -> local price data -> configured input validation -> strateg
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S58 | Complete | Plan Milestone 13. | Portfolio construction scope and sprint sequence. | No implementation during planning. |
-| S59 | Planned | Align portfolio inputs. | Deterministic alignment of symbol return streams. | No allocation logic yet. |
+| S59 | Complete | Align portfolio inputs. | Deterministic alignment of symbol return streams. | No allocation logic yet. |
 | S60 | Planned | Add equal-weight portfolio returns. | Simple portfolio return aggregation with explicit assumptions. | No optimization engine. |
 | S61 | Planned | Add configurable portfolio weights. | Validate and apply user-supplied static weights. | No dynamic rebalancing model unless explicitly scoped. |
 | S62 | Planned | Add portfolio summary artifact. | Persist portfolio-level summary from local runs. | Preserve artifact discipline. |
@@ -234,9 +234,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 59 — Portfolio Input Alignment Foundation
+Sprint 60 — Equal-Weight Portfolio Return Foundation
 ```
 
 Reason:
 
-Milestone 13 should start by aligning symbol return streams deterministically before adding allocation logic, equal-weight returns, configurable weights, or portfolio artifacts.
+Sprint 59 added deterministic inner-join alignment for per-symbol return streams.
+Sprint 60 should compute equal-weight portfolio returns without adding
+configurable weights, rebalancing, or portfolio artifacts.
