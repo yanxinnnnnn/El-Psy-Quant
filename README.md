@@ -10,15 +10,15 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 13 — Portfolio Construction Foundation** is planned.
+**Milestone 13 — Portfolio Construction Foundation** is complete.
 
-Milestone 12 closed the configured input-boundary chain:
+Milestone 13 closed the portfolio construction chain:
 
 ```text
-configured symbols -> local price data -> configured input validation -> strategy execution
+strategy return streams -> aligned portfolio inputs -> portfolio return aggregation -> portfolio summary artifact
 ```
 
-Milestone 13 should now define how independent per-symbol research results become portfolio-level returns under explicit assumptions about alignment, capital, weights, and aggregation.
+The next step is **Sprint 64 — Milestone 14 Planning**, which should plan **Milestone 14 — Portfolio Risk & Attribution Foundation**.
 
 See the milestone summaries:
 
@@ -79,6 +79,12 @@ docs/milestones/milestone-013-portfolio-construction-foundation.md
   - `MovingAverageCrossoverStrategy` adapter
   - deterministic exact-name strategy resolver
   - configured experiment execution through the strategy boundary
+- Portfolio construction foundation:
+  - deterministic alignment of per-symbol strategy return streams
+  - equal-weight portfolio return calculation from aligned inputs
+  - validated static portfolio weights
+  - weighted portfolio return calculation from aligned inputs
+  - standalone portfolio summary artifacts
 - GitHub Actions CI for pull requests and pushes to `main`.
 - Local quality gate in `scripts/check.py`, used by CI as the quality command source of truth.
 - Repository hygiene guardrails through `.gitattributes` and a concise pull request template.
@@ -121,18 +127,18 @@ Install [uv](https://docs.astral.sh/uv/), then install the project and developme
 uv sync
 ```
 
-Run the project checks individually:
+Run the complete quality gate used by GitHub Actions:
+
+```bash
+uv run python scripts/check.py
+```
+
+Or run the checks individually:
 
 ```bash
 uv run pytest
 uv run ruff check .
 uv run python -c "import el_psy_quant"
-```
-
-Run the same complete quality gate as GitHub Actions with one local command:
-
-```bash
-uv run python scripts/check.py
 ```
 
 ## Minimal Research Pipeline Example
@@ -157,21 +163,7 @@ result = moving_average_crossover_pipeline(
 print(result.tail())
 ```
 
-The result includes all intermediate research outputs:
-
-```text
-close
-fast_sma
-slow_sma
-signal
-position
-asset_return
-strategy_return
-transaction_cost
-slippage
-net_strategy_return
-equity
-```
+The result includes intermediate research outputs such as signals, positions, returns, costs, slippage, net returns, and equity.
 
 ## Data Validation
 
@@ -205,46 +197,11 @@ build_symbol_universe(["msft", " AAPL "])
 # ("MSFT", "AAPL")
 ```
 
-This is not an investable universe database, security master, or live symbol lookup service.
-
-## Local Data Cache
-
-```python
-from el_psy_quant.data import read_daily_prices_cache, write_daily_prices_cache
-
-path = write_daily_prices_cache(prices, "data/cache", "AAPL")
-cached_prices = read_daily_prices_cache("data/cache", "AAPL")
-```
-
-## Download Yahoo Prices to the Local Cache
-
-Calling this workflow performs a live download before writing the CSV cache. Live providers can fail or be rate-limited. Failed or empty downloads are not written to the local cache.
-
-```python
-from el_psy_quant.data import download_daily_prices_to_cache, read_daily_prices_cache
-
-path = download_daily_prices_to_cache("AAPL", "data/cache", period="5y")
-prices = read_daily_prices_cache("data/cache", "AAPL")
-```
+This is not an investable universe database, security master, or symbol lookup service.
 
 ## Multi-Symbol Research
 
-Multi-symbol loading, execution, and summaries are local-only. Each symbol runs independently on its own dates. This does not align dates, allocate capital, rebalance positions, or build a portfolio.
-
-```python
-from el_psy_quant.data import load_daily_prices_csvs, read_daily_prices_caches
-
-prices_by_symbol = load_daily_prices_csvs(
-    {
-        "AAPL": "data/cache/AAPL.csv",
-        "MSFT": "data/cache/MSFT.csv",
-    }
-)
-cached_prices_by_symbol = read_daily_prices_caches(
-    "data/cache",
-    ["AAPL", "MSFT"],
-)
-```
+Multi-symbol loading, execution, and summaries are local-only. Each symbol runs independently on its own dates.
 
 ```python
 from el_psy_quant.backtesting import moving_average_crossover_multi_symbol
@@ -257,7 +214,7 @@ results_by_symbol = moving_average_crossover_multi_symbol(
 )
 ```
 
-Cross-symbol summaries compare independent per-symbol results. They do not align dates, allocate capital, or build a portfolio.
+Cross-symbol summaries compare independent per-symbol results. They do not allocate capital or build a portfolio.
 
 ```python
 from el_psy_quant.backtesting import summarize_multi_symbol_results
@@ -269,17 +226,42 @@ summary = summarize_multi_symbol_results(
 )
 ```
 
-## Portfolio Construction Direction
+## Portfolio Construction
 
-Milestone 13 will start by planning portfolio construction before implementing allocation behavior.
+Portfolio construction starts after per-symbol strategy returns already exist.
 
-The intended chain is:
+```python
+from el_psy_quant.portfolio import (
+    align_strategy_returns,
+    equal_weight_portfolio_return,
+    weighted_portfolio_return,
+    build_portfolio_summary_artifact,
+)
 
-```text
-aligned portfolio inputs -> equal-weight portfolio returns -> configurable weights -> portfolio summary artifact
+aligned_returns = align_strategy_returns(results_by_symbol)
+equal_weight_return = equal_weight_portfolio_return(aligned_returns)
+weighted_return = weighted_portfolio_return(
+    aligned_returns,
+    {"AAPL": 0.6, "MSFT": 0.4},
+)
+artifact = build_portfolio_summary_artifact(
+    weighted_return,
+    construction_method="static_weight",
+    symbols=aligned_returns.columns,
+    weights={"AAPL": 0.6, "MSFT": 0.4},
+    periods_per_year=252,
+)
 ```
 
-Portfolio construction is different from the current independent multi-symbol summary because it must define date alignment, capital allocation, return aggregation, and weight assumptions.
+Portfolio construction is different from independent multi-symbol summaries because it must define date alignment, aggregation, weights, and recorded assumptions.
+
+The current portfolio foundation is intentionally conservative:
+
+- return streams are aligned before aggregation
+- equal weight is a baseline
+- configured weights are static and validated
+- portfolio summary artifacts are standalone
+- configured-run integration is not wired yet
 
 ## Local Experiment Configuration
 
@@ -333,7 +315,7 @@ Configured experiments resolve that name through `resolve_strategy(...)` and exe
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The command validates configured symbol and price inputs, resolves the configured strategy, runs the current moving-average crossover workflow from local CSV or cache data, and writes only:
+The command validates configured symbol and price inputs, resolves the configured strategy, runs the current moving-average crossover workflow from local CSV or cache data, and writes:
 
 ```text
 config.yaml
@@ -348,7 +330,7 @@ logs/
 
 `results/metrics.json` contains the metrics already present in `summary.csv` in a machine-readable form and records that source artifact with a relative path.
 
-It does not download live data or add dashboards, reports, databases, portfolio construction, or interactive prompts.
+This configured workflow does not yet integrate portfolio construction.
 
 ## Compare Saved Experiment Runs
 
@@ -415,10 +397,10 @@ AGENTS.md
 - Keep tests deterministic and network-free where possible.
 - Make timing assumptions explicit to avoid look-ahead bias.
 - Validate data at the boundary.
-- Keep live downloads explicit and local research reproducible.
+- Keep local research reproducible.
 - Treat parameter search as comparison, not alpha discovery.
 - Separate gross returns, frictions, net returns, and equity.
-- Treat trade records as inspection data, not broker-grade accounting truth.
+- Treat trade records as inspection data, not accounting truth.
 - Keep annualization and risk-free-rate assumptions explicit.
 - Compare against benchmarks before making strategy-quality claims.
 - Treat multi-symbol research as breadth, not portfolio construction.
@@ -430,10 +412,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 63 — Milestone 13 Documentation Refresh**
+**Sprint 64 — Milestone 14 Planning**
 
-Sprint 63 should refresh Milestone 13 documentation and close the milestone
-without expanding configured-run, optimization, or execution scope.
+Sprint 64 should plan Milestone 14 — Portfolio Risk & Attribution Foundation.
 
 ## Disclaimer
 
