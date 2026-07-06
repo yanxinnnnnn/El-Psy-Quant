@@ -419,7 +419,7 @@ el_psy_quant/
   comparison.py  # Compare existing metrics from saved local experiment runs
   config.py      # Load and validate local YAML experiment settings; no execution or CLI
   outputs.py     # Create deterministic local experiment directories and reserved paths
-  strategies/    # Strategy contract, result validation, and behavior-preserving adapters
+  strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
