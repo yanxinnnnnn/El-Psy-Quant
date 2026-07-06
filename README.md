@@ -10,114 +10,48 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 13 — Portfolio Construction Foundation** is complete.
+**Milestone 14 — Portfolio Risk & Attribution Foundation** is planned.
 
-Milestone 13 closed the portfolio construction chain:
+Milestone 13 completed portfolio construction:
 
 ```text
 strategy return streams -> aligned portfolio inputs -> portfolio return aggregation -> portfolio summary artifact
 ```
 
-The next step is **Sprint 64 — Milestone 14 Planning**, which should plan **Milestone 14 — Portfolio Risk & Attribution Foundation**.
+Milestone 14 should now explain portfolio-level risk and contribution before the project moves toward execution realism.
 
-See the milestone summaries:
+See the milestone summaries in:
 
 ```text
-docs/milestones/milestone-001-research-pipeline-foundation.md
-docs/milestones/milestone-002-performance-and-local-data.md
-docs/milestones/milestone-003-data-reproducibility-and-research-workflow.md
-docs/milestones/milestone-004-research-experimentation-foundation.md
-docs/milestones/milestone-005-strategy-realism-foundation.md
-docs/milestones/milestone-006-risk-and-benchmark-foundation.md
-docs/milestones/milestone-007-multi-asset-research-foundation.md
-docs/milestones/milestone-008-research-operations-foundation.md
-docs/milestones/milestone-009-project-quality-foundation.md
-docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
-docs/milestones/milestone-011-strategy-interface-foundation.md
-docs/milestones/milestone-012-data-integrity-and-universe-foundation.md
+docs/milestones/
+```
+
+The latest milestone docs are:
+
+```text
 docs/milestones/milestone-013-portfolio-construction-foundation.md
+docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
 ```
 
 ## Current Capabilities
 
-- Market data provider abstraction.
-- Yahoo Finance daily price provider.
-- Local CSV daily price loader.
-- Local CSV data cache:
-  - deterministic cache file paths
-  - cache writing
-  - cache reading
-- Local daily price validation:
-  - required OHLCV columns
-  - `DatetimeIndex`
-  - missing and duplicate date rejection
-  - numeric and non-missing `Close`
-- Symbol universe discipline:
-  - symbol normalization
-  - blank symbol rejection
-  - duplicate rejection after normalization
-  - immutable configured order
-- Multi-symbol local input:
-  - load multiple local CSV files by symbol
-  - read multiple cached price files by symbol
-  - normalize and validate symbols consistently
-- Local YAML experiment config loading and validation for configured local research workflows.
-- Configured-run input validation before strategy execution.
-- Deterministic local experiment output directories and reserved artifact paths.
-- Minimal `argparse` CLI for local configured experiments.
-- Stable configured-run artifacts:
-  - copied `config.yaml`
-  - `metadata.json`
-  - `manifest.json`
-  - `results/summary.csv`
-  - `results/metrics.json`
-  - `logs/`
-- Saved-run comparison helper that combines existing metrics from local run artifacts without ranking or recomputing metrics.
-- Strategy interface foundation:
-  - minimal `Strategy` protocol
-  - strategy result validation helper
-  - `MovingAverageCrossoverStrategy` adapter
-  - deterministic exact-name strategy resolver
-  - configured experiment execution through the strategy boundary
+- Local market data loading, caching, and validation.
+- Symbol universe normalization and duplicate protection.
+- Configured local research workflows through YAML and a thin CLI.
+- Stable local run artifacts including manifest, metadata, summary, and metrics files.
+- Saved-run comparison from existing local artifacts.
+- Strategy interface, moving-average strategy adapter, and exact-name resolver.
+- Moving-average crossover research pipeline with returns, costs, slippage, equity, and trade records.
+- Independent multi-symbol research execution and cross-symbol summaries.
 - Portfolio construction foundation:
-  - deterministic alignment of per-symbol strategy return streams
-  - equal-weight portfolio return calculation from aligned inputs
+  - aligned per-symbol strategy return streams
+  - equal-weight portfolio returns
   - validated static portfolio weights
-  - weighted portfolio return calculation from aligned inputs
+  - weighted portfolio returns
   - standalone portfolio summary artifacts
-- GitHub Actions CI for pull requests and pushes to `main`.
-- Local quality gate in `scripts/check.py`, used by CI as the quality command source of truth.
-- Repository hygiene guardrails through `.gitattributes` and a concise pull request template.
-- Explicit Yahoo-to-CSV cache workflow with clearer failure handling.
-- CSV-to-pipeline convenience workflow.
-- Deterministic moving-average parameter sweep from local CSV input.
-- Descriptive parameter-sweep overview summary.
-- Basic indicators:
-  - simple moving average
-  - exponential moving average
-  - daily return
-- Moving-average crossover signal events.
-- Long-only position state conversion.
-- Daily gross strategy return calculation using previous-day positions.
-- Transaction cost drag when positions change.
-- Slippage drag when positions change.
-- Net strategy return calculation after transaction costs and slippage.
-- Equity curve calculation using compounded net returns.
-- Basic trade record extraction from long-only position changes.
-- Minimal moving-average crossover research pipeline.
-- Independent multi-symbol moving-average crossover execution.
-- Cross-symbol summary table for independent per-symbol results.
-- Basic performance metrics:
-  - total return
-  - max drawdown
-- Annualized performance metrics:
-  - CAGR
-  - annualized volatility
-- Sharpe-style risk-adjusted evaluation with explicit frequency and risk-free-rate assumptions.
-- Local CSV buy-and-hold benchmark comparison over shared dates.
-- Compact backtest summary with optional annualized and risk-adjusted metrics.
-- Deterministic in-memory research example.
-- Deterministic local CSV research example.
+- Basic and annualized performance metrics.
+- Buy-and-hold benchmark comparison.
+- GitHub Actions CI and local quality gate in `scripts/check.py`.
 
 ## Quick Start
 
@@ -131,14 +65,6 @@ Run the complete quality gate used by GitHub Actions:
 
 ```bash
 uv run python scripts/check.py
-```
-
-Or run the checks individually:
-
-```bash
-uv run pytest
-uv run ruff check .
-uv run python -c "import el_psy_quant"
 ```
 
 ## Minimal Research Pipeline Example
@@ -158,71 +84,6 @@ result = moving_average_crossover_pipeline(
     fast_window=2,
     slow_window=3,
     initial_capital=1_000.0,
-)
-
-print(result.tail())
-```
-
-The result includes intermediate research outputs such as signals, positions, returns, costs, slippage, net returns, and equity.
-
-## Data Validation
-
-Daily price validation is intentionally structural and local. It checks that a loaded DataFrame is usable by the research system, but it does not prove that prices are correct market truth.
-
-```python
-from el_psy_quant.data import validate_daily_prices
-
-validate_daily_prices(prices)
-```
-
-Configured price maps can be validated with symbol context:
-
-```python
-from el_psy_quant.data import validate_daily_prices_by_symbol
-
-validate_daily_prices_by_symbol({"AAPL": prices})
-```
-
-## Symbol Universe
-
-A local research symbol universe defines which symbols are included in a run and how they are normalized.
-
-```python
-from el_psy_quant.data import build_symbol_universe, normalize_symbol
-
-normalize_symbol(" aapl ")
-# "AAPL"
-
-build_symbol_universe(["msft", " AAPL "])
-# ("MSFT", "AAPL")
-```
-
-This is not an investable universe database, security master, or symbol lookup service.
-
-## Multi-Symbol Research
-
-Multi-symbol loading, execution, and summaries are local-only. Each symbol runs independently on its own dates.
-
-```python
-from el_psy_quant.backtesting import moving_average_crossover_multi_symbol
-
-results_by_symbol = moving_average_crossover_multi_symbol(
-    cached_prices_by_symbol,
-    fast_window=20,
-    slow_window=50,
-    initial_capital=1_000.0,
-)
-```
-
-Cross-symbol summaries compare independent per-symbol results. They do not allocate capital or build a portfolio.
-
-```python
-from el_psy_quant.backtesting import summarize_multi_symbol_results
-
-summary = summarize_multi_symbol_results(
-    results_by_symbol,
-    periods_per_year=252,
-    annual_risk_free_rate=0.02,
 )
 ```
 
@@ -255,94 +116,27 @@ artifact = build_portfolio_summary_artifact(
 
 Portfolio construction is different from independent multi-symbol summaries because it must define date alignment, aggregation, weights, and recorded assumptions.
 
-The current portfolio foundation is intentionally conservative:
+## Portfolio Risk Direction
 
-- return streams are aligned before aggregation
-- equal weight is a baseline
-- configured weights are static and validated
-- portfolio summary artifacts are standalone
-- configured-run integration is not wired yet
+Milestone 14 should add the first layer of portfolio risk and attribution on top of the portfolio construction foundation.
+
+The intended chain is:
+
+```text
+portfolio return risk -> drawdown inspection -> symbol contribution returns -> attribution summary artifact
+```
+
+This milestone should explain portfolio behavior before introducing optimization, dynamic rebalancing, or execution realism.
 
 ## Local Experiment Configuration
 
-Experiments can be described by a small local YAML file:
-
-```yaml
-experiment:
-  name: ma-crossover-local
-  strategy: moving_average_crossover
-data:
-  source: csv
-  paths:
-    AAPL: data/cache/AAPL.csv
-    MSFT: data/cache/MSFT.csv
-parameters:
-  fast_window: 20
-  slow_window: 50
-  initial_capital: 1000.0
-evaluation:
-  periods_per_year: 252
-  annual_risk_free_rate: 0.02
-```
-
-```python
-from el_psy_quant.config import load_experiment_config
-
-config = load_experiment_config("experiment.yaml")
-```
-
-The config loader validates local experiment settings. The current configured workflow supports the existing moving-average crossover strategy only.
-
-## Strategy Interface
-
-Strategies use a small structural contract:
-
-```python
-from el_psy_quant.strategies import Strategy, resolve_strategy, supported_strategy_names
-```
-
-The current supported strategy name is:
-
-```text
-moving_average_crossover
-```
-
-Configured experiments resolve that name through `resolve_strategy(...)` and execute the returned strategy through `Strategy.run(...)` for each symbol.
-
-## Run a Local Configured Experiment
+Experiments can be described by a small local YAML file and run with the existing CLI.
 
 ```bash
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The command validates configured symbol and price inputs, resolves the configured strategy, runs the current moving-average crossover workflow from local CSV or cache data, and writes:
-
-```text
-config.yaml
-metadata.json
-manifest.json
-results/summary.csv
-results/metrics.json
-logs/
-```
-
-`manifest.json` records the experiment identity, data source, parameters, evaluation assumptions, and run-relative artifact paths.
-
-`results/metrics.json` contains the metrics already present in `summary.csv` in a machine-readable form and records that source artifact with a relative path.
-
-This configured workflow does not yet integrate portfolio construction.
-
-## Compare Saved Experiment Runs
-
-```python
-from el_psy_quant.comparison import compare_experiment_runs
-
-comparison = compare_experiment_runs(
-    ["outputs/experiment/run-1", "outputs/experiment/run-2"]
-)
-```
-
-The helper reads each run's manifest and metrics artifact, preserving run and symbol order without calculating new metrics or ranking performance.
+The configured workflow currently supports the existing moving-average crossover strategy and does not yet integrate portfolio construction.
 
 ## Module Overview
 
@@ -350,40 +144,23 @@ The helper reads each run's manifest and metrics artifact, preserving run and sy
 el_psy_quant/
   cli.py         # Thin argparse entrypoint for local configured experiments
   comparison.py  # Compare existing metrics from saved local experiment runs
-  config.py      # Load and validate local YAML experiment settings; no execution or CLI
+  config.py      # Load and validate local YAML experiment settings
   outputs.py     # Create deterministic local experiment directories and reserved paths
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries
-  backtesting/   # Research pipelines, local-file workflows, experiments, trade helpers, benchmarks, and multi-symbol research helpers
-  performance/   # Metrics, annualized evaluation, Sharpe-style ratio, and backtest summaries
+  backtesting/   # Research pipelines, experiments, benchmarks, and multi-symbol helpers
+  performance/   # Metrics, annualized evaluation, and backtest summaries
 ```
 
 ## Documentation
 
-The project roadmap lives in:
-
 ```text
 docs/roadmap.md
-```
-
-Sprint specifications live in:
-
-```text
 docs/sprints/
-```
-
-Milestone summaries live in:
-
-```text
 docs/milestones/
-```
-
-Important project context for AI agents lives in:
-
-```text
 AGENTS.md
 ```
 
@@ -399,23 +176,16 @@ AGENTS.md
 - Validate data at the boundary.
 - Keep local research reproducible.
 - Treat parameter search as comparison, not alpha discovery.
-- Separate gross returns, frictions, net returns, and equity.
-- Treat trade records as inspection data, not accounting truth.
-- Keep annualization and risk-free-rate assumptions explicit.
-- Compare against benchmarks before making strategy-quality claims.
-- Treat multi-symbol research as breadth, not portfolio construction.
-- Keep operational wrappers thin; CLI should wrap stable functions, not become the architecture.
-- Let automated quality gates verify basic claims before deeper human review.
 - Keep experiment artifacts inspectable and portable before adding platform complexity.
-- Define strategy interfaces before strategy proliferation.
 - Define portfolio assumptions before portfolio construction.
+- Explain portfolio risk before execution realism.
 
 ## Next Step
 
-**Sprint 64 — Milestone 14 Planning**
+**Sprint 65 — Portfolio Risk Metrics Foundation**
 
-Sprint 64 should plan Milestone 14 — Portfolio Risk & Attribution Foundation.
+Sprint 65 should add the smallest useful portfolio risk metrics from an existing portfolio return series.
 
 ## Disclaimer
 
-This project is for education, research, and software engineering practice. Nothing in this repository is financial advice.
+This project is for education, research, and software engineering practice.
