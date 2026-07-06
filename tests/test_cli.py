@@ -73,6 +73,38 @@ def test_main_runs_csv_config_and_writes_minimal_artifacts(
         "run_id": "20260630T141500Z",
         "summary_path": "results/summary.csv",
     }
+    manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest == {
+        "schema_version": 1,
+        "experiment_name": "CLI Local Test",
+        "strategy": "moving_average_crossover",
+        "run_id": "20260630T141500Z",
+        "data": {
+            "source": "csv",
+            "symbols": ["AAPL", "MSFT"],
+        },
+        "parameters": {
+            "fast_window": 2,
+            "slow_window": 3,
+            "initial_capital": 1_000.0,
+            "transaction_cost_rate": 0.0,
+            "slippage_rate": 0.0,
+        },
+        "evaluation": {
+            "periods_per_year": 252.0,
+            "annual_risk_free_rate": 0.02,
+        },
+        "artifacts": {
+            "config": "config.yaml",
+            "metadata": "metadata.json",
+            "summary": "results/summary.csv",
+            "logs_dir": "logs",
+        },
+    }
+    assert all(
+        not Path(path).is_absolute() and ".." not in Path(path).parts
+        for path in manifest["artifacts"].values()
+    )
     summary = pd.read_csv(run_dir / "results" / "summary.csv")
     assert summary["symbol"].tolist() == ["AAPL", "MSFT"]
     assert set(run_dir.rglob("*")) == {
@@ -80,6 +112,7 @@ def test_main_runs_csv_config_and_writes_minimal_artifacts(
         run_dir / "logs",
         run_dir / "config.yaml",
         run_dir / "metadata.json",
+        run_dir / "manifest.json",
         run_dir / "results" / "summary.csv",
     }
 

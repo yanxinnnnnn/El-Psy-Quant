@@ -69,6 +69,39 @@ def run_configured_experiment(
         encoding="utf-8",
     )
     summary.to_csv(summary_path, index=False)
+    manifest = {
+        "schema_version": 1,
+        "experiment_name": config.name,
+        "strategy": config.strategy,
+        "run_id": layout.run_dir.name,
+        "data": {
+            "source": config.data.source,
+            "symbols": list(prices_by_symbol),
+        },
+        "parameters": {
+            "fast_window": parameters.fast_window,
+            "slow_window": parameters.slow_window,
+            "initial_capital": parameters.initial_capital,
+            "transaction_cost_rate": parameters.transaction_cost_rate,
+            "slippage_rate": parameters.slippage_rate,
+        },
+        "evaluation": {
+            "periods_per_year": config.evaluation.periods_per_year,
+            "annual_risk_free_rate": config.evaluation.annual_risk_free_rate,
+        },
+        "artifacts": {
+            "config": layout.config_path.relative_to(layout.run_dir).as_posix(),
+            "metadata": layout.metadata_path.relative_to(
+                layout.run_dir
+            ).as_posix(),
+            "summary": summary_path.relative_to(layout.run_dir).as_posix(),
+            "logs_dir": layout.logs_dir.relative_to(layout.run_dir).as_posix(),
+        },
+    }
+    layout.manifest_path.write_text(
+        json.dumps(manifest, indent=2) + "\n",
+        encoding="utf-8",
+    )
     return layout.run_dir
 
 

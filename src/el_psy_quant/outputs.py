@@ -15,6 +15,7 @@ class ExperimentOutputLayout:
     run_dir: Path
     config_path: Path
     metadata_path: Path
+    manifest_path: Path
     results_dir: Path
     logs_dir: Path
 
@@ -64,6 +65,7 @@ def create_experiment_output_layout(
         run_dir=run_dir,
         config_path=run_dir / "config.yaml",
         metadata_path=run_dir / "metadata.json",
+        manifest_path=run_dir / "manifest.json",
         results_dir=results_dir,
         logs_dir=logs_dir,
     )
