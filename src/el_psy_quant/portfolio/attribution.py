@@ -25,6 +25,13 @@ def build_attribution_summary_artifact(
         raise ValueError("construction_method must be a non-empty string")
 
     normalized_symbols = build_symbol_universe(symbols)
+    contribution_summary = summarize_symbol_contributions(contribution_returns)
+    normalized_contribution_symbols = build_symbol_universe(
+        contribution_returns.columns
+    )
+    if normalized_contribution_symbols != normalized_symbols:
+        raise ValueError("contribution_returns columns must match symbols")
+
     serialized_weights: dict[str, float] | None = None
     if weights is not None:
         validated_weights = validate_static_weights(normalized_symbols, weights)
@@ -41,9 +48,7 @@ def build_attribution_summary_artifact(
         },
         "risk": portfolio_risk_summary(portfolio_return, periods_per_year),
         "drawdown": inspect_portfolio_drawdown(equity),
-        "contribution": summarize_symbol_contributions(
-            contribution_returns
-        ).to_dict("records"),
+        "contribution": contribution_summary.to_dict("records"),
         "evaluation": {
             "periods_per_year": (
                 None if periods_per_year is None else float(periods_per_year)

@@ -66,6 +66,7 @@ def test_artifact_contains_expected_top_level_sections() -> None:
 
 def test_records_method_and_normalized_ordered_symbols() -> None:
     portfolio_return, equity, contribution_returns = make_inputs()
+    contribution_returns = contribution_returns[["MSFT", "AAPL"]]
 
     artifact = build_attribution_summary_artifact(
         portfolio_return,
@@ -80,6 +81,61 @@ def test_records_method_and_normalized_ordered_symbols() -> None:
         "symbols": ["MSFT", "AAPL"],
         "weights": None,
     }
+
+
+def test_rejects_mismatched_contribution_symbols() -> None:
+    portfolio_return, equity, contribution_returns = make_inputs()
+    contribution_returns.columns = ["TSLA", "NVDA"]
+
+    with pytest.raises(
+        ValueError,
+        match="contribution_returns columns must match symbols",
+    ):
+        build_attribution_summary_artifact(
+            portfolio_return,
+            equity,
+            contribution_returns,
+            construction_method="static_weight",
+            symbols=["AAPL", "MSFT"],
+        )
+
+
+def test_rejects_contribution_symbols_in_different_order() -> None:
+    portfolio_return, equity, contribution_returns = make_inputs()
+    contribution_returns = contribution_returns[["MSFT", "AAPL"]]
+
+    with pytest.raises(
+        ValueError,
+        match="contribution_returns columns must match symbols",
+    ):
+        build_attribution_summary_artifact(
+            portfolio_return,
+            equity,
+            contribution_returns,
+            construction_method="static_weight",
+            symbols=["AAPL", "MSFT"],
+        )
+
+
+def test_normalized_contribution_columns_match_without_mutation() -> None:
+    portfolio_return, equity, contribution_returns = make_inputs()
+    contribution_returns.columns = [" aapl ", "msft"]
+    columns_before = contribution_returns.columns.copy()
+
+    artifact = build_attribution_summary_artifact(
+        portfolio_return,
+        equity,
+        contribution_returns,
+        construction_method="static_weight",
+        symbols=["AAPL", "MSFT"],
+    )
+
+    assert artifact["construction"]["symbols"] == [  # type: ignore[index]
+        "AAPL",
+        "MSFT",
+    ]
+    assert len(artifact["contribution"]) == 2  # type: ignore[arg-type]
+    assert contribution_returns.columns.equals(columns_before)
 
 
 def test_normalizes_and_records_weights_in_symbol_order() -> None:
