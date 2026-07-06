@@ -54,7 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 12 — Data Integrity & Universe Foundation is in progress.
+Milestone 12 — Data Integrity & Universe Foundation is complete.
 
-The next focus is Sprint 57 — Milestone 12 Documentation Refresh. Close the
-milestone without expanding data, strategy, or execution scope.
+The next focus is Sprint 58 — Milestone 13 Planning. Plan Portfolio Construction Foundation before adding portfolio allocation behavior.

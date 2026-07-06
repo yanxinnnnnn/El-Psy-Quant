@@ -10,15 +10,15 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 12 — Data Integrity & Universe Foundation** is planned.
+**Milestone 12 — Data Integrity & Universe Foundation** is complete.
 
-Milestone 11 established the strategy boundary for configured experiments:
+Milestone 12 closed the configured input-boundary chain:
 
 ```text
-Strategy protocol -> MovingAverageCrossoverStrategy -> resolve_strategy -> configured experiment execution
+configured symbols -> local price data -> configured input validation -> strategy execution
 ```
 
-Milestone 12 should now make research inputs harder to misuse before the project adds more strategies. The initial focus is local price data validation, symbol universe discipline, and explicit input assumptions.
+The next milestone is **Milestone 13 — Portfolio Construction Foundation**, starting with Sprint 58 planning.
 
 See the milestone summaries:
 
@@ -46,11 +46,22 @@ docs/milestones/milestone-012-data-integrity-and-universe-foundation.md
   - deterministic cache file paths
   - cache writing
   - cache reading
+- Local daily price validation:
+  - required OHLCV columns
+  - `DatetimeIndex`
+  - missing and duplicate date rejection
+  - numeric and non-missing `Close`
+- Symbol universe discipline:
+  - symbol normalization
+  - blank symbol rejection
+  - duplicate rejection after normalization
+  - immutable configured order
 - Multi-symbol local input:
   - load multiple local CSV files by symbol
   - read multiple cached price files by symbol
   - normalize and validate symbols consistently
 - Local YAML experiment config loading and validation for configured local research workflows.
+- Configured-run input validation before strategy execution.
 - Deterministic local experiment output directories and reserved artifact paths.
 - Minimal `argparse` CLI for local configured experiments.
 - Stable configured-run artifacts:
@@ -161,49 +172,39 @@ net_strategy_return
 equity
 ```
 
-## Basic Performance Metrics
+## Data Validation
+
+Daily price validation is intentionally structural and local. It checks that a loaded DataFrame is usable by the research system, but it does not prove that prices are correct market truth.
 
 ```python
-from el_psy_quant.performance import max_drawdown, total_return
+from el_psy_quant.data import validate_daily_prices
 
-return_over_period = total_return(result["equity"])
-worst_drawdown = max_drawdown(result["equity"])
+validate_daily_prices(prices)
 ```
 
-## Backtest Summary
+Configured price maps can be validated with symbol context:
 
 ```python
-from el_psy_quant.performance import backtest_summary
+from el_psy_quant.data import validate_daily_prices_by_symbol
 
-summary = backtest_summary(
-    result,
-    periods_per_year=252,
-    annual_risk_free_rate=0.02,
-)
+validate_daily_prices_by_symbol({"AAPL": prices})
 ```
 
-Annualized metrics require explicit assumptions. A higher Sharpe-style value is not proof of strategy quality.
+## Symbol Universe
 
-## Run the Local Research Example
-
-```bash
-uv run python examples/minimal_research_example.py
-```
-
-## Load Local CSV Prices
+A local research symbol universe defines which symbols are included in a run and how they are normalized.
 
 ```python
-from el_psy_quant.data import load_daily_prices_csv
+from el_psy_quant.data import build_symbol_universe, normalize_symbol
 
-prices = load_daily_prices_csv("data/sample_prices.csv")
-close = prices["Close"]
+normalize_symbol(" aapl ")
+# "AAPL"
+
+build_symbol_universe(["msft", " AAPL "])
+# ("MSFT", "AAPL")
 ```
 
-## Run the CSV Research Example
-
-```bash
-uv run python examples/csv_research_example.py
-```
+This is not an investable universe database, security master, or live symbol lookup service.
 
 ## Local Data Cache
 
@@ -224,75 +225,6 @@ from el_psy_quant.data import download_daily_prices_to_cache, read_daily_prices_
 path = download_daily_prices_to_cache("AAPL", "data/cache", period="5y")
 prices = read_daily_prices_cache("data/cache", "AAPL")
 ```
-
-## Run the Research Pipeline from CSV
-
-Transaction costs and slippage are charged when the position changes. `strategy_return` is gross, `net_strategy_return` is after both drags, and `equity` uses net returns.
-
-```python
-result = moving_average_crossover_pipeline(
-    close,
-    fast_window=20,
-    slow_window=50,
-    initial_capital=1_000.0,
-    transaction_cost_rate=0.001,
-    slippage_rate=0.0005,
-)
-```
-
-Trade records are extracted from position changes for inspection, not broker-grade accounting.
-
-```python
-from el_psy_quant.backtesting import moving_average_crossover_trade_records
-
-trades = moving_average_crossover_trade_records(result)
-```
-
-Benchmark comparison uses a local CSV and simple buy-and-hold performance over shared dates. Outperformance claims should be made carefully.
-
-```python
-from el_psy_quant.backtesting import compare_to_buy_and_hold_benchmark
-
-comparison = compare_to_buy_and_hold_benchmark(
-    result,
-    "data/cache/SPY.csv",
-    initial_capital=1_000.0,
-    periods_per_year=252,
-    annual_risk_free_rate=0.02,
-)
-```
-
-```python
-from el_psy_quant.backtesting import moving_average_crossover_from_csv
-
-result, summary = moving_average_crossover_from_csv(
-    "data/cache/AAPL.csv",
-    fast_window=20,
-    slow_window=50,
-    initial_capital=1_000.0,
-)
-```
-
-## Sweep Moving-Average Parameters
-
-```python
-from el_psy_quant.backtesting import moving_average_crossover_parameter_sweep
-
-summary = moving_average_crossover_parameter_sweep(
-    "data/cache/AAPL.csv",
-    fast_windows=[5, 10, 20],
-    slow_windows=[20, 50, 100],
-    initial_capital=1_000.0,
-)
-```
-
-```python
-from el_psy_quant.backtesting import summarize_parameter_sweep_results
-
-overview = summarize_parameter_sweep_results(summary)
-```
-
-Parameter search is comparison, not alpha discovery.
 
 ## Multi-Symbol Research
 
@@ -382,29 +314,13 @@ moving_average_crossover
 
 Configured experiments resolve that name through `resolve_strategy(...)` and execute the returned strategy through `Strategy.run(...)` for each symbol.
 
-## Local Experiment Output Layout
-
-Create deterministic local directories for future experiment artifacts:
-
-```python
-from el_psy_quant.outputs import create_experiment_output_layout
-
-layout = create_experiment_output_layout(
-    "outputs",
-    "ma-crossover-local",
-    run_id="20260630T141500Z",
-)
-```
-
-The layout helper creates the experiment, run, results, and logs directories. It does not itself run experiments, write result files, or add a database.
-
 ## Run a Local Configured Experiment
 
 ```bash
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The command resolves the configured strategy, runs the current moving-average crossover workflow from local CSV or cache data, and writes only:
+The command validates configured symbol and price inputs, resolves the configured strategy, runs the current moving-average crossover workflow from local CSV or cache data, and writes only:
 
 ```text
 config.yaml
@@ -497,13 +413,13 @@ AGENTS.md
 - Let automated quality gates verify basic claims before deeper human review.
 - Keep experiment artifacts inspectable and portable before adding platform complexity.
 - Define strategy interfaces before strategy proliferation.
+- Define portfolio assumptions before portfolio construction.
 
 ## Next Step
 
-**Sprint 57 — Milestone 12 Documentation Refresh**
+**Sprint 58 — Milestone 13 Planning**
 
-Sprint 57 should refresh Milestone 12 documentation and close the milestone
-without expanding data, strategy, or execution scope.
+Sprint 58 should plan Portfolio Construction Foundation before adding portfolio allocation behavior.
 
 ## Disclaimer
 
