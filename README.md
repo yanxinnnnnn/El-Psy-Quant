@@ -10,7 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 12 — Data Integrity & Universe Foundation** is complete.
+**Milestone 13 — Portfolio Construction Foundation** is planned.
 
 Milestone 12 closed the configured input-boundary chain:
 
@@ -18,7 +18,7 @@ Milestone 12 closed the configured input-boundary chain:
 configured symbols -> local price data -> configured input validation -> strategy execution
 ```
 
-The next milestone is **Milestone 13 — Portfolio Construction Foundation**, starting with Sprint 58 planning.
+Milestone 13 should now define how independent per-symbol research results become portfolio-level returns under explicit assumptions about alignment, capital, weights, and aggregation.
 
 See the milestone summaries:
 
@@ -35,6 +35,7 @@ docs/milestones/milestone-009-project-quality-foundation.md
 docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
 docs/milestones/milestone-011-strategy-interface-foundation.md
 docs/milestones/milestone-012-data-integrity-and-universe-foundation.md
+docs/milestones/milestone-013-portfolio-construction-foundation.md
 ```
 
 ## Current Capabilities
@@ -268,6 +269,18 @@ summary = summarize_multi_symbol_results(
 )
 ```
 
+## Portfolio Construction Direction
+
+Milestone 13 will start by planning portfolio construction before implementing allocation behavior.
+
+The intended chain is:
+
+```text
+aligned portfolio inputs -> equal-weight portfolio returns -> configurable weights -> portfolio summary artifact
+```
+
+Portfolio construction is different from the current independent multi-symbol summary because it must define date alignment, capital allocation, return aggregation, and weight assumptions.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file:
@@ -417,9 +430,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 58 — Milestone 13 Planning**
+**Sprint 59 — Portfolio Input Alignment Foundation**
 
-Sprint 58 should plan Portfolio Construction Foundation before adding portfolio allocation behavior.
+Sprint 59 should align symbol return streams deterministically before adding equal-weight returns, configurable weights, or portfolio artifacts.
 
 ## Disclaimer
 
