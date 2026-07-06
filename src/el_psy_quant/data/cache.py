@@ -6,8 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from el_psy_quant.data.csv import load_daily_prices_csv
-
-REQUIRED_PRICE_COLUMNS = ("Open", "High", "Low", "Close", "Volume")
+from el_psy_quant.data.validation import validate_daily_prices
 
 
 def cache_path(cache_dir: str | Path, symbol: str) -> Path:
@@ -25,22 +24,7 @@ def write_daily_prices_cache(
     symbol: str,
 ) -> Path:
     """Validate and write daily prices to a local CSV cache."""
-    if prices.empty:
-        raise ValueError("prices must not be empty")
-
-    missing = [
-        column for column in REQUIRED_PRICE_COLUMNS if column not in prices.columns
-    ]
-    if missing:
-        raise ValueError(f"missing required columns: {', '.join(missing)}")
-    if not isinstance(prices.index, pd.DatetimeIndex):
-        raise ValueError("prices must have a DatetimeIndex")
-    if prices.index.isna().any():
-        raise ValueError("prices index must not contain missing dates")
-    if prices.index.has_duplicates:
-        raise ValueError("prices index must not contain duplicate dates")
-    if prices["Close"].isna().any():
-        raise ValueError("Close must not contain NaN values")
+    validate_daily_prices(prices)
 
     path = cache_path(cache_dir, symbol)
     path.parent.mkdir(parents=True, exist_ok=True)
