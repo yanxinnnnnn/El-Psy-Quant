@@ -10,7 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 11 — Strategy Interface Foundation** is complete.
+**Milestone 12 — Data Integrity & Universe Foundation** is planned.
 
 Milestone 11 established the strategy boundary for configured experiments:
 
@@ -18,9 +18,7 @@ Milestone 11 established the strategy boundary for configured experiments:
 Strategy protocol -> MovingAverageCrossoverStrategy -> resolve_strategy -> configured experiment execution
 ```
 
-The existing moving-average crossover behavior is preserved, but configured experiments now execute through the strategy resolver and `Strategy.run(...)` instead of directly depending on moving-average implementation details.
-
-The next milestone should be **Milestone 12 — Data Integrity & Universe Foundation**. The project should make data inputs and symbol universes harder to misuse before adding more strategies.
+Milestone 12 should now make research inputs harder to misuse before the project adds more strategies. The initial focus is local price data validation, symbol universe discipline, and explicit input assumptions.
 
 See the milestone summaries:
 
@@ -36,6 +34,7 @@ docs/milestones/milestone-008-research-operations-foundation.md
 docs/milestones/milestone-009-project-quality-foundation.md
 docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
 docs/milestones/milestone-011-strategy-interface-foundation.md
+docs/milestones/milestone-012-data-integrity-and-universe-foundation.md
 ```
 
 ## Current Capabilities
@@ -501,10 +500,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 53 — Milestone 12 Planning**
+**Sprint 54 — Price Data Validation Foundation**
 
-Sprint 53 should plan Milestone 12 — Data Integrity & Universe Foundation, so
-future research inputs are safer before the project adds more strategies.
+Sprint 54 should add a small local price DataFrame validation layer before strategy execution. Start there before expanding the strategy count or adding portfolio logic.
 
 ## Disclaimer
 
