@@ -50,6 +50,7 @@ docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
   - weighted portfolio returns
   - standalone portfolio summary artifacts
   - portfolio return risk metrics
+  - single worst portfolio drawdown inspection
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -183,10 +184,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 66 — Portfolio Drawdown Inspection Foundation**
+**Sprint 67 — Symbol Contribution Foundation**
 
-Sprint 66 should add focused portfolio drawdown inspection without expanding
-into stress testing, attribution, optimization, or execution scope.
+Sprint 67 should add deterministic per-symbol portfolio return contribution
+without introducing dynamic rebalancing or broader attribution scope.
 
 ## Disclaimer
 
