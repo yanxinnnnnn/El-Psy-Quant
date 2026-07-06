@@ -426,11 +426,25 @@ a machine-readable form and records that source artifact with a relative path.
 It does not download live data or add dashboards, reports, databases, portfolio
 construction, or interactive prompts.
 
+## Compare Saved Experiment Runs
+
+```python
+from el_psy_quant.comparison import compare_experiment_runs
+
+comparison = compare_experiment_runs(
+    ["outputs/experiment/run-1", "outputs/experiment/run-2"]
+)
+```
+
+The helper reads each run's manifest and metrics artifact, preserving run and
+symbol order without calculating new metrics or ranking performance.
+
 ## Module Overview
 
 ```text
 el_psy_quant/
   cli.py         # Thin argparse entrypoint for local configured experiments
+  comparison.py  # Compare existing metrics from saved local experiment runs
   config.py      # Load and validate local YAML experiment settings; no execution or CLI
   outputs.py     # Create deterministic local experiment directories and reserved paths
   data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
