@@ -10,13 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 14 — Portfolio Risk & Attribution Foundation** is complete.
-
-Milestone 13 completed portfolio construction:
-
-```text
-strategy return streams -> aligned portfolio inputs -> portfolio return aggregation -> portfolio summary artifact
-```
+**Milestone 15 — Backtest Execution Realism Foundation** is planned.
 
 Milestone 14 completed the first portfolio risk and attribution layer:
 
@@ -27,7 +21,13 @@ aligned_returns + static_weights -> symbol contribution
 risk + drawdown + contribution -> attribution summary artifact
 ```
 
-The next milestone is **Milestone 15 — Backtest Execution Realism Foundation**. It should be planned before implementation starts.
+Milestone 15 should now make backtest execution assumptions explicit before the project moves toward paper trading.
+
+The planned Milestone 15 chain is:
+
+```text
+execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
+```
 
 See the milestone summaries in:
 
@@ -38,8 +38,8 @@ docs/milestones/
 The latest milestone docs are:
 
 ```text
-docs/milestones/milestone-013-portfolio-construction-foundation.md
 docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
+docs/milestones/milestone-015-backtest-execution-realism-foundation.md
 ```
 
 ## Current Capabilities
@@ -132,7 +132,7 @@ Portfolio construction is different from independent multi-symbol summaries beca
 
 ## Portfolio Risk And Attribution
 
-Milestone 14 adds the first standalone portfolio risk and attribution layer on top of the portfolio construction foundation.
+Milestone 14 added the first standalone portfolio risk and attribution layer on top of the portfolio construction foundation.
 
 The completed chain is:
 
@@ -143,7 +143,19 @@ aligned_returns + static_weights -> symbol contribution
 risk + drawdown + contribution -> attribution summary artifact
 ```
 
-This layer explains portfolio behavior before adding optimization, dynamic rebalancing, or execution realism.
+This layer explains portfolio behavior before adding execution realism.
+
+## Backtest Execution Realism Direction
+
+Milestone 15 should make execution assumptions explicit and reviewable.
+
+The planned chain is:
+
+```text
+execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
+```
+
+This milestone should remain local and deterministic. It should not introduce broker integration, exchange APIs, paper trading, or live trading behavior.
 
 ## Local Experiment Configuration
 
@@ -196,12 +208,13 @@ AGENTS.md
 - Keep experiment artifacts inspectable and portable before adding platform complexity.
 - Define portfolio assumptions before portfolio construction.
 - Explain portfolio risk before execution realism.
+- Make execution assumptions explicit before paper trading.
 
 ## Next Step
 
-**Sprint 70 — Milestone 15 Planning**
+**Sprint 71 — Execution Assumptions Foundation**
 
-Sprint 70 should plan Milestone 15 — Backtest Execution Realism Foundation before implementation starts.
+Sprint 71 should define the execution-assumption boundary before adding order intent or fill models.
 
 ## Disclaimer
 

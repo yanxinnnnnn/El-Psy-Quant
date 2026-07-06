@@ -33,6 +33,7 @@ flowchart LR
     M11 --> M12["Milestone 12<br/>Data Integrity & Universe Foundation<br/>Sprints 53-57 ✅"]
     M12 --> M13["Milestone 13<br/>Portfolio Construction Foundation<br/>Sprints 58-63 ✅"]
     M13 --> M14["Milestone 14<br/>Portfolio Risk & Attribution Foundation<br/>Sprints 64-69 ✅"]
+    M14 --> M15["Milestone 15<br/>Backtest Execution Realism Foundation<br/>Sprints 70-76 planned"]
 ```
 
 ## Milestone Table
@@ -53,6 +54,7 @@ flowchart LR
 | Milestone 12 — Data Integrity & Universe Foundation | Sprints 53-57 | Complete | Improve data validation, symbol universe discipline, and input assumptions. | Configured runs validate symbol and price inputs before strategy execution. |
 | Milestone 13 — Portfolio Construction Foundation | Sprints 58-63 | Complete | Define portfolio-level construction before attribution and execution realism. | Portfolio inputs, equal-weight returns, configurable static weights, and summary artifacts are introduced under explicit assumptions. |
 | Milestone 14 — Portfolio Risk & Attribution Foundation | Sprints 64-69 | Complete | Explain portfolio-level behavior after construction is explicit. | Portfolio risk, drawdown, contribution, and attribution summary artifacts are available under conservative assumptions. |
+| Milestone 15 — Backtest Execution Realism Foundation | Sprints 70-76 | Planned | Make backtest execution assumptions explicit, deterministic, and reviewable. | Execution assumptions, order intent, fill behavior, execution summaries, and artifacts are planned under local research assumptions. |
 
 ## Completed Milestone 13 — Portfolio Construction Foundation
 
@@ -94,6 +96,30 @@ See:
 docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
 ```
 
+## Planned Milestone 15 — Backtest Execution Realism Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S70 | Complete | Plan Milestone 15. | Execution realism scope and sprint sequence. | No implementation during planning. |
+| S71 | Planned | Define execution assumptions. | Small documented execution assumption boundary. | No broker integration. |
+| S72 | Planned | Add order intent boundary. | Deterministic order-intent representation from existing research outputs. | No live orders. |
+| S73 | Planned | Add fill price model. | Local deterministic fill model under explicit timing assumptions. | No market microstructure simulation. |
+| S74 | Planned | Add execution-adjusted trade summary. | Reviewable summary of fills and execution assumptions. | No portfolio rebalancing engine. |
+| S75 | Planned | Add execution realism artifact. | Standalone artifact tying assumptions to results. | No broad configured-run expansion. |
+| S76 | Planned | Close milestone. | Milestone 15 documentation refresh. | No scope expansion. |
+
+Milestone 15 should follow this conservative chain:
+
+```text
+execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
+```
+
+See:
+
+```text
+docs/milestones/milestone-015-backtest-execution-realism-foundation.md
+```
+
 ## Future Platform Direction
 
 The recommended sequence now is:
@@ -120,15 +146,16 @@ The guiding idea is to build a research system that is hard to fool before addin
 11. Data validation should protect the strategy boundary before more strategies are added.
 12. Portfolio construction should define capital, alignment, and allocation assumptions before portfolio risk attribution.
 13. Portfolio risk should be explainable before execution realism.
+14. Execution assumptions should be explicit before paper trading.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 70 — Milestone 15 Planning
+Sprint 71 — Execution Assumptions Foundation
 ```
 
 Reason:
 
-Milestone 14 made portfolio risk, drawdown, contribution, and attribution outputs inspectable under explicit local research assumptions. Sprint 70 should plan Milestone 15 before adding execution realism behavior.
+Milestone 15 should start by defining the execution-assumption boundary before adding order intent, fill models, or execution artifacts.
