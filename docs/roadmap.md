@@ -30,7 +30,8 @@ flowchart LR
     M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41 ✅"]
     M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Sprints 42-46 ✅"]
     M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Sprints 47-52 ✅"]
-    M11 --> M12["Milestone 12<br/>Data Integrity & Universe Foundation<br/>Sprints 53-57 planned"]
+    M11 --> M12["Milestone 12<br/>Data Integrity & Universe Foundation<br/>Sprints 53-57 ✅"]
+    M12 --> M13["Milestone 13<br/>Portfolio Construction Foundation<br/>planned"]
 ```
 
 ## Milestone Table
@@ -48,7 +49,8 @@ flowchart LR
 | Milestone 9 — Project Quality Foundation | Sprints 37-41 | Complete | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently without relying only on local claims. |
 | Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Complete | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
 | Milestone 11 — Strategy Interface Foundation | Sprints 47-52 | Complete | Define cleaner strategy boundaries before adding more strategies. | Strategies plug into configured research workflows through a stable interface without breaking artifact discipline. |
-| Milestone 12 — Data Integrity & Universe Foundation | Sprints 53-57 | Planned | Improve data validation, symbol universe discipline, and input assumptions. | Research inputs are harder to misuse before the project adds more strategies. |
+| Milestone 12 — Data Integrity & Universe Foundation | Sprints 53-57 | Complete | Improve data validation, symbol universe discipline, and input assumptions. | Configured runs validate symbol and price inputs before strategy execution. |
+| Milestone 13 — Portfolio Construction Foundation | TBD | Planned | Define portfolio-level construction before risk attribution and execution realism. | Portfolio assumptions, allocation boundaries, and alignment rules are documented before implementation. |
 
 ## Detailed Sprint Timeline
 
@@ -68,11 +70,6 @@ docs/milestones/milestone-008-research-operations-foundation.md
 docs/milestones/milestone-009-project-quality-foundation.md
 docs/milestones/milestone-010-experiment-artifact-and-comparison-foundation.md
 docs/milestones/milestone-011-strategy-interface-foundation.md
-```
-
-Current and planned milestone notes live in:
-
-```text
 docs/milestones/milestone-012-data-integrity-and-universe-foundation.md
 ```
 
@@ -157,7 +154,7 @@ Milestone 11 closed the strategy interface chain:
 Strategy protocol -> MovingAverageCrossoverStrategy -> resolve_strategy -> configured experiment execution
 ```
 
-### Planned Milestone 12 — Data Integrity & Universe Foundation
+### Completed Milestone 12 — Data Integrity & Universe Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
@@ -165,9 +162,25 @@ Strategy protocol -> MovingAverageCrossoverStrategy -> resolve_strategy -> confi
 | S54 | Complete | Validate local price data. | Small price DataFrame validation layer. | No live data or external validation. |
 | S55 | Complete | Define symbol universe discipline. | Explicit configured symbol universe helper or representation. | No investable universe database. |
 | S56 | Complete | Wire configured input validation. | Configured experiments validate inputs before strategy execution. | Preserve artifact schemas and CLI shape. |
-| S57 | Planned | Close milestone. | Milestone 12 documentation refresh. | No scope expansion. |
+| S57 | Complete | Close milestone. | Milestone 12 documentation refresh. | No scope expansion. |
 
-Milestone 12 should make research inputs harder to misuse before adding more strategies.
+Milestone 12 closed the configured input-boundary chain:
+
+```text
+configured symbols -> local price data -> configured input validation -> strategy execution
+```
+
+### Planned Milestone 13 — Portfolio Construction Foundation
+
+Milestone 13 should define portfolio construction carefully before implementing allocation behavior.
+
+The first sprint should be:
+
+```text
+Sprint 58 — Milestone 13 Planning
+```
+
+Planning should define portfolio boundaries, capital assumptions, date-alignment rules, allocation semantics, and out-of-scope constraints before code is added.
 
 ## Future Platform Direction
 
@@ -203,17 +216,16 @@ The guiding idea is to build a research system that is hard to fool before addin
 9. Experiments that cannot be inspected later are not research assets.
 10. Strategy interfaces should come before strategy proliferation.
 11. Data validation should protect the strategy boundary before more strategies are added.
+12. Portfolio construction should define capital, alignment, and allocation assumptions before portfolio metrics or execution realism.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 57 — Milestone 12 Documentation Refresh
+Sprint 58 — Milestone 13 Planning
 ```
 
 Reason:
 
-Sprint 56 applied the price and symbol-universe boundaries before configured
-strategy execution while preserving current results and artifacts. Sprint 57
-should refresh Milestone 12 documentation and close the milestone.
+Milestone 12 completed the local input-validation boundary. The next step is to plan portfolio construction before combining independent per-symbol results into portfolio-level behavior.
