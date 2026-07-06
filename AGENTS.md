@@ -54,6 +54,7 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 13 — Portfolio Construction Foundation is planned.
+Milestone 13 — Portfolio Construction Foundation is in progress.
 
-The next focus is Sprint 59 — Portfolio Input Alignment Foundation. Align symbol return streams before adding portfolio allocation behavior.
+The next focus is Sprint 60 — Equal-Weight Portfolio Return Foundation. Compute
+portfolio returns from aligned inputs without adding configurable weights.

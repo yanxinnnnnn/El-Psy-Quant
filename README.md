@@ -374,7 +374,7 @@ el_psy_quant/
   data/          # Price validation, symbol universes, providers, and local input helpers
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
-  portfolio/     # Positions, returns, equity, costs, slippage, and trade records
+  portfolio/     # Return alignment, positions, returns, equity, costs, and trades
   backtesting/   # Research pipelines, local-file workflows, experiments, trade helpers, benchmarks, and multi-symbol research helpers
   performance/   # Metrics, annualized evaluation, Sharpe-style ratio, and backtest summaries
 ```
@@ -430,9 +430,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 59 — Portfolio Input Alignment Foundation**
+**Sprint 60 — Equal-Weight Portfolio Return Foundation**
 
-Sprint 59 should align symbol return streams deterministically before adding equal-weight returns, configurable weights, or portfolio artifacts.
+Sprint 60 should compute equal-weight portfolio returns from aligned inputs
+without adding configurable weights, rebalancing, or portfolio artifacts.
 
 ## Disclaimer
 
