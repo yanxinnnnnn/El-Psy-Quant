@@ -29,7 +29,7 @@ flowchart LR
     M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36 ✅"]
     M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41 ✅"]
     M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Sprints 42-46 ✅"]
-    M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Planned"]
+    M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Sprints 47-52"]
 ```
 
 ## Milestone Table
@@ -46,7 +46,7 @@ flowchart LR
 | Milestone 8 — Research Operations Foundation | Sprints 33-36 | Complete | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
 | Milestone 9 — Project Quality Foundation | Sprints 37-41 | Complete | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently without relying only on local claims. |
 | Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Complete | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts without rushing into strategy proliferation. |
-| Milestone 11 — Strategy Interface Foundation | TBD | Planned | Define cleaner strategy boundaries before adding more strategies. | Strategies can plug into research workflows through a stable interface without breaking artifact discipline. |
+| Milestone 11 — Strategy Interface Foundation | Sprints 47-52 | Planned | Define cleaner strategy boundaries before adding more strategies. | Strategies can plug into research workflows through a stable interface without breaking artifact discipline. |
 
 ## Detailed Sprint Timeline
 
@@ -131,6 +131,19 @@ Milestone 10 closed the local artifact chain:
 manifest.json -> results/metrics.json -> comparison DataFrame
 ```
 
+### Planned Milestone 11 — Strategy Interface Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S47 | Complete | Plan Milestone 11. | Strategy interface milestone scope and sprint sequence. | No implementation during planning. |
+| S48 | Planned | Define strategy contract. | Minimal strategy interface / protocol and tests. | No new strategy. |
+| S49 | Planned | Wrap existing crossover logic. | Moving-average crossover strategy implementation behind the interface. | Preserve current behavior. |
+| S50 | Planned | Add strategy resolver. | Small resolver for supported strategy names. | No plugin framework. |
+| S51 | Planned | Wire configured experiments through strategy boundary. | Configured run path uses resolver/interface while preserving artifacts. | No broad CLI redesign. |
+| S52 | Planned | Close milestone. | Milestone 11 documentation refresh. | No scope expansion. |
+
+Milestone 11 should define the strategy seam before adding more strategies.
+
 ## Future Platform Direction
 
 The long-term CTO roadmap is documented in:
@@ -170,9 +183,9 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 47 — Milestone 11 Planning
+Sprint 48 — Strategy Interface Contract Foundation
 ```
 
 Reason:
 
-Milestone 10 made saved experiment runs inspectable and comparable through local artifacts. The next step is to plan Milestone 11 — Strategy Interface Foundation, so future strategies can plug into the research system without weakening artifact discipline or rushing into strategy proliferation.
+Milestone 11 should first define the smallest useful strategy boundary. The current workflow is still hard-wired to moving-average crossover. Sprint 48 should create the contract before the existing strategy is migrated behind it.
