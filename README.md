@@ -374,7 +374,7 @@ el_psy_quant/
   data/          # Price validation, symbol universes, providers, and local input helpers
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
-  portfolio/     # Alignment, static weights, return aggregation, equity, and costs
+  portfolio/     # Alignment, weights, return aggregation, and standalone summaries
   backtesting/   # Research pipelines, local-file workflows, experiments, trade helpers, benchmarks, and multi-symbol research helpers
   performance/   # Metrics, annualized evaluation, Sharpe-style ratio, and backtest summaries
 ```
@@ -430,10 +430,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 62 — Portfolio Summary Artifact Foundation**
+**Sprint 63 — Milestone 13 Documentation Refresh**
 
-Sprint 62 should persist a small portfolio summary artifact without expanding
-configured-run, optimization, or execution scope.
+Sprint 63 should refresh Milestone 13 documentation and close the milestone
+without expanding configured-run, optimization, or execution scope.
 
 ## Disclaimer
 
