@@ -9,7 +9,11 @@ from el_psy_quant.data.csv import load_daily_prices_csv
 from el_psy_quant.data.multi import load_daily_prices_csvs, read_daily_prices_caches
 from el_psy_quant.data.providers import MarketDataProvider, YahooFinanceProvider
 from el_psy_quant.data.universe import build_symbol_universe, normalize_symbol
-from el_psy_quant.data.validation import REQUIRED_PRICE_COLUMNS, validate_daily_prices
+from el_psy_quant.data.validation import (
+    REQUIRED_PRICE_COLUMNS,
+    validate_daily_prices,
+    validate_daily_prices_by_symbol,
+)
 from el_psy_quant.data.workflows import download_daily_prices_to_cache
 
 __all__ = [
@@ -25,6 +29,7 @@ __all__ = [
     "read_daily_prices_cache",
     "read_daily_prices_caches",
     "validate_daily_prices",
+    "validate_daily_prices_by_symbol",
     "write_daily_prices_cache",
 ]
 

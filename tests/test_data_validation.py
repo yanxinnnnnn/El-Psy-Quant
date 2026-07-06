@@ -1,7 +1,11 @@
 import pandas as pd
 import pytest
 
-from el_psy_quant.data import REQUIRED_PRICE_COLUMNS, validate_daily_prices
+from el_psy_quant.data import (
+    REQUIRED_PRICE_COLUMNS,
+    validate_daily_prices,
+    validate_daily_prices_by_symbol,
+)
 
 
 def make_prices() -> pd.DataFrame:
@@ -88,3 +92,20 @@ def test_validation_does_not_mutate_input() -> None:
     validate_daily_prices(prices)
 
     pd.testing.assert_frame_equal(prices, before)
+
+
+def test_validates_prices_by_symbol_and_preserves_order() -> None:
+    prices_by_symbol = {"MSFT": make_prices(), "AAPL": make_prices()}
+
+    assert validate_daily_prices_by_symbol(prices_by_symbol) == ("MSFT", "AAPL")
+
+
+def test_prices_by_symbol_error_includes_symbol_context() -> None:
+    prices = make_prices()
+    prices["Close"] = ["105", "110"]
+
+    with pytest.raises(
+        ValueError,
+        match="AAPL price data invalid: Close must contain numeric values",
+    ):
+        validate_daily_prices_by_symbol({"AAPL": prices})

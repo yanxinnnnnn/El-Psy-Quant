@@ -9,7 +9,11 @@ from pathlib import Path
 
 from el_psy_quant.backtesting import summarize_multi_symbol_results
 from el_psy_quant.config import load_experiment_config
-from el_psy_quant.data import load_daily_prices_csvs, read_daily_prices_caches
+from el_psy_quant.data import (
+    load_daily_prices_csvs,
+    read_daily_prices_caches,
+    validate_daily_prices_by_symbol,
+)
 from el_psy_quant.outputs import create_experiment_output_layout
 from el_psy_quant.strategies import resolve_strategy
 
@@ -38,6 +42,7 @@ def run_configured_experiment(
             config.data.symbols,
         )
 
+    validate_daily_prices_by_symbol(prices_by_symbol)
     parameters = config.parameters
     parameter_mapping = {
         "fast_window": parameters.fast_window,
