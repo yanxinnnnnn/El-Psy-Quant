@@ -442,7 +442,7 @@ el_psy_quant/
   config.py      # Load and validate local YAML experiment settings; no execution or CLI
   outputs.py     # Create deterministic local experiment directories and reserved paths
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
-  data/          # Price validation, providers, CSV/cache helpers, workflows, and multi-symbol input
+  data/          # Price validation, symbol universes, providers, and local input helpers
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Positions, returns, equity, costs, slippage, and trade records
@@ -500,10 +500,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 55 — Symbol Universe Definition Foundation**
+**Sprint 56 — Configured Run Input Validation Wiring**
 
-Sprint 55 should define an explicit symbol universe boundary without adding an
-investable-universe database or portfolio construction.
+Sprint 56 should apply the price and symbol-universe validation boundaries to
+configured runs while preserving current results and artifacts.
 
 ## Disclaimer
 
