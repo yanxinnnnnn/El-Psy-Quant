@@ -2,137 +2,116 @@
 
 ## Status
 
-Planned.
+Complete.
 
 ## Product Goal
 
-Introduce portfolio construction carefully after the project has established data, universe, artifact, and strategy boundaries.
+Introduce portfolio construction carefully after the project established data, universe, artifact, and strategy boundaries.
 
-Milestone 12 made local inputs harder to misuse. Milestone 13 should define how independent symbol-level results become portfolio-level returns under explicit assumptions.
+Milestone 13 defines how independent symbol-level strategy results become portfolio-level returns under explicit assumptions about date alignment, return aggregation, static weights, and artifact discipline.
 
-## Why This Comes Now
+## Final Portfolio Construction Chain
 
-The project already supports independent multi-symbol research:
+```text
+strategy return streams -> aligned portfolio inputs -> portfolio return aggregation -> portfolio summary artifact
+```
+
+This is the first point where the project can treat multiple symbols as one portfolio-level research object instead of only summarizing independent per-symbol backtests.
+
+## Why This Milestone Mattered
+
+Before this milestone, the project supported independent multi-symbol research:
 
 ```text
 prices_by_symbol -> per-symbol Strategy.run(...) -> summarize_multi_symbol_results(...)
 ```
 
-That is not yet a portfolio.
+That is useful, but it is not yet a portfolio. A portfolio also needs explicit rules for shared dates, symbol coverage, weights, aggregation, and recorded assumptions.
 
-A portfolio requires explicit answers to different questions:
-
-- Which return streams are combined?
-- Which dates are included across symbols?
-- How are missing symbol dates handled?
-- How much capital is assigned to each symbol?
-- Are weights equal, configured, static, or rebalanced?
-- How are symbol returns aggregated into portfolio returns?
-- Which assumptions are recorded for later inspection?
-
-Milestone 13 should answer those questions before adding risk attribution or execution realism.
-
-## Planned Sprint Sequence
+## Sprint History
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S58 | Complete | Plan Milestone 13. | Portfolio construction scope and sprint sequence. | No implementation during planning. |
-| S59 | Planned | Align portfolio inputs. | Deterministic alignment of symbol return streams. | No allocation logic yet. |
-| S60 | Planned | Add equal-weight portfolio returns. | Simple portfolio return aggregation with explicit assumptions. | No optimization engine. |
-| S61 | Planned | Add configurable weights. | Validate and apply user-supplied static weights. | No dynamic rebalancing model unless explicitly scoped. |
-| S62 | Planned | Add portfolio summary artifact. | Persist portfolio-level summary from local runs. | Preserve artifact discipline. |
-| S63 | Planned | Close milestone. | Milestone 13 documentation refresh. | No scope expansion. |
+| S59 | Complete | Align portfolio inputs. | Deterministic alignment of symbol return streams. | No allocation logic yet. |
+| S60 | Complete | Add equal-weight portfolio returns. | Simple portfolio return aggregation with explicit assumptions. | No optimizer. |
+| S61 | Complete | Add configurable portfolio weights. | Validate and apply user-supplied static weights. | No dynamic rebalancing model. |
+| S62 | Complete | Add portfolio summary artifact. | Standalone machine-readable portfolio summary artifact. | No configured-run integration. |
+| S63 | Complete | Close milestone. | Milestone 13 documentation refresh. | No scope expansion. |
 
-## Planned Work
+## Delivered Capabilities
 
 ### Portfolio Input Alignment
 
-The project should define how portfolio inputs are aligned before returns are combined.
-
-Planning questions:
-
-- Are inputs aligned by inner join on shared dates?
-- Are missing dates rejected or dropped?
-- What index assumptions are required?
-- Is symbol order preserved from the validated universe?
-- What error messages should users see when alignment is impossible?
-
-The first implementation sprint should focus here before allocation logic.
+Portfolio construction now starts from deterministic aligned return inputs. The alignment boundary makes date handling explicit before any portfolio return is computed.
 
 ### Equal-Weight Portfolio Returns
 
-After alignment, the project should add a simple equal-weight portfolio return foundation.
+The project can compute a baseline equal-weight portfolio return from an already-aligned return table. Equal weight is treated as a simple baseline rule, not as an optimal allocation claim.
 
-This should be boring on purpose:
+### Configurable Static Weights
 
-- no optimization
-- no risk model
-- no dynamic sizing
-- no cash model
-- no broker assumptions
+The project can validate user-supplied static weights and apply them to aligned symbol returns.
 
-Equal weight is a baseline construction rule, not a claim of optimality.
+The weight boundary is intentionally strict:
 
-### Configurable Portfolio Weights
-
-After equal-weight behavior is stable, the project can accept configured static weights.
-
-Weight handling should be explicit:
-
-- symbols must match the portfolio input universe
+- symbols are normalized consistently
+- weight keys must match the aligned symbols exactly
 - weights must be numeric
-- weights should be non-negative unless short exposure is explicitly introduced later
-- weight sum rules should be documented and validated
-- configured order should remain deterministic
+- boolean weights are rejected
+- missing weights are rejected
+- negative weights are rejected
+- weights must sum to 1.0
+- no automatic scaling is performed
 
-### Portfolio Summary Artifact
+### Portfolio Summary Artifacts
 
-Portfolio output should become inspectable without turning the project into a dashboard or database.
+Portfolio return series can now be summarized into a standalone machine-readable artifact.
 
-A later sprint in this milestone should define a small portfolio summary artifact that fits the existing local artifact discipline.
+The artifact records schema version, construction method, ordered symbols, optional validated static weights, evaluation assumptions, and portfolio-level metrics from existing performance helpers.
 
-## Guardrails
+## Explicit Assumptions
 
-Milestone 13 should avoid:
+Milestone 13 made these assumptions visible:
+
+- portfolio return inputs must be aligned before aggregation
+- equal weight is a baseline
+- configurable weights are static and non-negative
+- weight sums are validated rather than silently rescaled
+- standalone portfolio artifacts are separate from configured experiment artifacts for now
+- independent multi-symbol summaries remain different from portfolio-level construction
+
+## Guardrails Preserved
+
+Milestone 13 deliberately avoided:
 
 - portfolio risk attribution
 - factor attribution
 - volatility targeting
 - optimization engines
 - parameter search
-- live or paper trading
-- broker execution assumptions
-- tax, borrow, margin, or financing models
-- dashboards or databases
-- strategy changes
-- resolver changes
-- plugin frameworks
-- dynamic imports
+- dynamic rebalancing
+- cash or financing models
+- configured-run portfolio wiring
+- YAML portfolio configuration
 - broad CLI redesign
+- strategy or resolver changes
+- plugin frameworks or dynamic imports
 
-## Exit Criteria
+## Exit Criteria Result
 
-Milestone 13 is complete when:
-
-- portfolio inputs can be aligned deterministically
-- equal-weight portfolio returns can be computed under explicit assumptions
-- configured static weights can be validated and applied
-- portfolio-level outputs can be summarized or persisted consistently
-- independent multi-symbol summaries are clearly distinguished from portfolio construction
-- documentation explains assumptions, limits, and what remains out of scope
+Milestone 13 is complete because portfolio inputs can be aligned, equal-weight returns can be computed, configured static weights can be validated and applied, portfolio outputs can be summarized, and assumptions are documented.
 
 ## Relationship To Future Milestones
 
 Milestone 13 prepares the project for Milestone 14 — Portfolio Risk & Attribution Foundation.
 
-Risk attribution should wait until portfolio construction assumptions are explicit. Otherwise, risk metrics can look precise while resting on unclear alignment, weighting, and aggregation rules.
+Risk and attribution work should wait until portfolio construction assumptions are explicit. Otherwise, risk numbers can look precise while resting on unclear alignment, weighting, and aggregation rules.
 
 ## Current Next Step
 
-The next sprint should be:
-
 ```text
-Sprint 59 — Portfolio Input Alignment Foundation
+Sprint 64 — Milestone 14 Planning
 ```
 
-Start by aligning symbol return streams deterministically. Do that before adding equal-weight returns or configurable weights.
+Sprint 64 should plan Milestone 14 — Portfolio Risk & Attribution Foundation.

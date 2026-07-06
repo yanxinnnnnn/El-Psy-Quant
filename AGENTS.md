@@ -54,7 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 13 — Portfolio Construction Foundation is near closeout.
+Milestone 13 — Portfolio Construction Foundation is complete.
 
-The next focus is Sprint 63 — Milestone 13 Documentation Refresh. Close the
-milestone without expanding configured-run, optimization, or execution scope.
+The next focus is Sprint 64 — Milestone 14 Planning. Plan portfolio risk and attribution without adding implementation before the milestone scope is agreed.
