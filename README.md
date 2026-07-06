@@ -419,6 +419,7 @@ el_psy_quant/
   comparison.py  # Compare existing metrics from saved local experiment runs
   config.py      # Load and validate local YAML experiment settings; no execution or CLI
   outputs.py     # Create deterministic local experiment directories and reserved paths
+  strategies/    # Minimal structural strategy contract and result validation
   data/          # Market data providers, CSV loading, cache helpers, data workflows, and multi-symbol input
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
@@ -477,9 +478,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 48 — Strategy Interface Contract Foundation**
+**Sprint 49 — Moving-Average Strategy Adapter**
 
-The next sprint should define the smallest useful strategy boundary before moving the existing moving-average crossover implementation behind it.
+Sprint 49 should adapt the existing moving-average crossover logic to the new
+Strategy contract without changing its behavior.
 
 ## Disclaimer
 
