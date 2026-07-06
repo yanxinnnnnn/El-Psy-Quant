@@ -119,7 +119,7 @@ docs/milestones/milestone-009-project-quality-foundation.md
 | S42 | Complete | Plan Milestone 10. | Milestone 10 scope and sprint sequence. | No implementation during planning. |
 | S43 | Complete | Add experiment run manifest. | Stable `manifest.json` describing a run. | No database or dashboard. |
 | S44 | Complete | Add metrics artifact. | Stable machine-readable metrics output. | No new metrics unless already available. |
-| S45 | Planned | Add experiment comparison. | Compare saved experiment runs from local artifacts. | No strategy optimization engine. |
+| S45 | Complete | Add experiment comparison. | Compare saved experiment runs from local artifacts. | No strategy optimization engine. |
 | S46 | Planned | Close milestone. | Milestone 10 documentation refresh. | Keep artifact rules simple. |
 
 ## Future Platform Direction
@@ -161,11 +161,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 45 — Experiment Comparison Foundation
+Sprint 46 — Milestone 10 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 44 added a machine-readable artifact containing the metrics already
-produced for each configured run. Sprint 45 should compare saved experiments
-from local artifacts without introducing optimization or trading decisions.
+Sprint 45 added a deterministic comparison helper for existing saved metrics.
+Sprint 46 should refresh Milestone 10 documentation and close the milestone
+without expanding the artifact or comparison scope.
