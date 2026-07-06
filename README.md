@@ -478,10 +478,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 50 — Strategy Resolver Foundation**
+**Sprint 51 — Configured Experiment Strategy Wiring**
 
-Sprint 50 should add a small resolver for supported strategy names without
-introducing a plugin framework.
+Sprint 51 should route configured experiments through the strategy
+resolver/interface while preserving current results and artifacts.
 
 ## Disclaimer
 
