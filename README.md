@@ -52,6 +52,7 @@ docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
   - portfolio return risk metrics
   - single worst portfolio drawdown inspection
   - static-weight per-symbol contribution returns and summaries
+  - standalone portfolio attribution summary artifacts
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -185,10 +186,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 68 — Attribution Summary Artifact Foundation**
+**Sprint 69 — Milestone 14 Documentation Refresh**
 
-Sprint 68 should persist a small attribution summary artifact without changing
-portfolio construction, configured-run schemas, or runtime behavior.
+Sprint 69 should close Milestone 14 with a focused documentation refresh and no
+new product behavior.
 
 ## Disclaimer
 

@@ -76,7 +76,7 @@ docs/milestones/milestone-013-portfolio-construction-foundation.md
 | S65 | Complete | Add portfolio risk metrics. | Small risk summary for portfolio return series. | No optimizer or factor model. |
 | S66 | Complete | Add drawdown inspection. | Inspect portfolio drawdown periods and depth. | No stress-testing engine. |
 | S67 | Complete | Add symbol contribution. | Attribute portfolio return contribution from aligned symbol returns and static weights. | No dynamic rebalancing. |
-| S68 | Planned | Add attribution summary artifact. | Persist portfolio risk and contribution summary. | Preserve artifact discipline. |
+| S68 | Complete | Add attribution summary artifact. | Persist portfolio risk and contribution summary. | Preserve artifact discipline. |
 | S69 | Planned | Close milestone. | Milestone 14 documentation refresh. | No scope expansion. |
 
 Milestone 14 should follow this conservative chain:
@@ -124,11 +124,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 68 — Attribution Summary Artifact Foundation
+Sprint 69 — Milestone 14 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 67 added deterministic per-symbol contribution from aligned returns and
-static weights. Sprint 68 should persist a small attribution summary artifact
-without changing configured-run schemas or broader runtime behavior.
+Sprint 68 added a standalone attribution summary artifact composed from existing
+risk, drawdown, and contribution helpers. Sprint 69 should close Milestone 14
+with a focused documentation refresh and no new product behavior.

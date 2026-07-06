@@ -1,6 +1,7 @@
 """Pure portfolio calculation functions."""
 
 from el_psy_quant.portfolio.alignment import align_strategy_returns
+from el_psy_quant.portfolio.attribution import build_attribution_summary_artifact
 from el_psy_quant.portfolio.costs import transaction_cost
 from el_psy_quant.portfolio.contribution import (
     summarize_symbol_contributions,
@@ -26,6 +27,7 @@ from el_psy_quant.portfolio.weights import validate_static_weights
 
 __all__ = [
     "align_strategy_returns",
+    "build_attribution_summary_artifact",
     "build_portfolio_summary_artifact",
     "equal_weight_portfolio_return",
     "equity_curve",

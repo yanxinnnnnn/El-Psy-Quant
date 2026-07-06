@@ -54,7 +54,7 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 14 — Portfolio Risk & Attribution Foundation is in progress.
+Milestone 14 — Portfolio Risk & Attribution Foundation is near closeout.
 
-The next focus is Sprint 68 — Attribution Summary Artifact Foundation. Persist
-a small attribution summary without configured-run or broader runtime changes.
+The next focus is Sprint 69 — Milestone 14 Documentation Refresh. Close the
+milestone with documentation only and no new product behavior.
