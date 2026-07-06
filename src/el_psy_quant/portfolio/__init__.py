@@ -4,6 +4,7 @@ from el_psy_quant.portfolio.alignment import align_strategy_returns
 from el_psy_quant.portfolio.costs import transaction_cost
 from el_psy_quant.portfolio.equity import equity_curve
 from el_psy_quant.portfolio.positions import long_only_position
+from el_psy_quant.portfolio.risk import portfolio_risk_summary
 from el_psy_quant.portfolio.returns import (
     equal_weight_portfolio_return,
     strategy_return,
@@ -25,6 +26,7 @@ __all__ = [
     "equity_curve",
     "long_only_trade_records",
     "long_only_position",
+    "portfolio_risk_summary",
     "slippage_cost",
     "strategy_return",
     "summarize_portfolio_return",

@@ -73,7 +73,7 @@ docs/milestones/milestone-013-portfolio-construction-foundation.md
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S64 | Complete | Plan Milestone 14. | Portfolio risk and attribution scope and sprint sequence. | No implementation during planning. |
-| S65 | Planned | Add portfolio risk metrics. | Small risk summary for portfolio return series. | No optimizer or factor model. |
+| S65 | Complete | Add portfolio risk metrics. | Small risk summary for portfolio return series. | No optimizer or factor model. |
 | S66 | Planned | Add drawdown inspection. | Inspect portfolio drawdown periods and depth. | No stress-testing engine. |
 | S67 | Planned | Add symbol contribution. | Attribute portfolio return contribution from aligned symbol returns and static weights. | No dynamic rebalancing. |
 | S68 | Planned | Add attribution summary artifact. | Persist portfolio risk and contribution summary. | Preserve artifact discipline. |
@@ -124,9 +124,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 65 — Portfolio Risk Metrics Foundation
+Sprint 66 — Portfolio Drawdown Inspection Foundation
 ```
 
 Reason:
 
-Sprint 64 planned Milestone 14. Sprint 65 should add the smallest useful portfolio risk metrics from an existing portfolio return series before moving into drawdown inspection or contribution attribution.
+Sprint 65 added small distribution and loss-frequency metrics for portfolio
+returns. Sprint 66 should add focused drawdown inspection without expanding
+into stress testing or attribution.

@@ -49,6 +49,7 @@ docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
   - validated static portfolio weights
   - weighted portfolio returns
   - standalone portfolio summary artifacts
+  - portfolio return risk metrics
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -182,9 +183,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 65 — Portfolio Risk Metrics Foundation**
+**Sprint 66 — Portfolio Drawdown Inspection Foundation**
 
-Sprint 65 should add the smallest useful portfolio risk metrics from an existing portfolio return series.
+Sprint 66 should add focused portfolio drawdown inspection without expanding
+into stress testing, attribution, optimization, or execution scope.
 
 ## Disclaimer
 
