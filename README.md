@@ -478,10 +478,10 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 49 — Moving-Average Strategy Adapter**
+**Sprint 50 — Strategy Resolver Foundation**
 
-Sprint 49 should adapt the existing moving-average crossover logic to the new
-Strategy contract without changing its behavior.
+Sprint 50 should add a small resolver for supported strategy names without
+introducing a plugin framework.
 
 ## Disclaimer
 
