@@ -10,19 +10,27 @@ from el_psy_quant.portfolio.returns import (
     weighted_portfolio_return,
 )
 from el_psy_quant.portfolio.slippage import slippage_cost
+from el_psy_quant.portfolio.summary import (
+    build_portfolio_summary_artifact,
+    summarize_portfolio_return,
+    write_portfolio_summary_artifact,
+)
 from el_psy_quant.portfolio.trades import long_only_trade_records
 from el_psy_quant.portfolio.weights import validate_static_weights
 
 __all__ = [
     "align_strategy_returns",
+    "build_portfolio_summary_artifact",
     "equal_weight_portfolio_return",
     "equity_curve",
     "long_only_trade_records",
     "long_only_position",
     "slippage_cost",
     "strategy_return",
+    "summarize_portfolio_return",
     "transaction_cost",
     "validate_static_weights",
     "weighted_portfolio_return",
+    "write_portfolio_summary_artifact",
 ]
 

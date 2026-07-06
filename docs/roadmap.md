@@ -184,7 +184,7 @@ configured symbols -> local price data -> configured input validation -> strateg
 | S59 | Complete | Align portfolio inputs. | Deterministic alignment of symbol return streams. | No allocation logic yet. |
 | S60 | Complete | Add equal-weight portfolio returns. | Simple portfolio return aggregation with explicit assumptions. | No optimization engine. |
 | S61 | Complete | Add configurable portfolio weights. | Validate and apply user-supplied static weights. | No dynamic rebalancing model unless explicitly scoped. |
-| S62 | Planned | Add portfolio summary artifact. | Persist portfolio-level summary from local runs. | Preserve artifact discipline. |
+| S62 | Complete | Add portfolio summary artifact. | Persist portfolio-level summary from local runs. | Preserve artifact discipline. |
 | S63 | Planned | Close milestone. | Milestone 13 documentation refresh. | No scope expansion. |
 
 Milestone 13 should introduce portfolio construction through this conservative chain:
@@ -234,11 +234,11 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 62 — Portfolio Summary Artifact Foundation
+Sprint 63 — Milestone 13 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 61 added validated user-supplied static weights and weighted returns.
-Sprint 62 should persist a small portfolio summary artifact without expanding
-configured-run, optimization, or execution scope.
+Sprint 62 added standalone machine-readable portfolio summary artifacts.
+Sprint 63 should refresh Milestone 13 documentation and close the milestone
+without expanding configured-run, optimization, or execution scope.
