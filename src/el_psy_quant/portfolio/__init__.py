@@ -2,6 +2,7 @@
 
 from el_psy_quant.portfolio.alignment import align_strategy_returns
 from el_psy_quant.portfolio.costs import transaction_cost
+from el_psy_quant.portfolio.drawdown import inspect_portfolio_drawdown
 from el_psy_quant.portfolio.equity import equity_curve
 from el_psy_quant.portfolio.positions import long_only_position
 from el_psy_quant.portfolio.risk import portfolio_risk_summary
@@ -24,6 +25,7 @@ __all__ = [
     "build_portfolio_summary_artifact",
     "equal_weight_portfolio_return",
     "equity_curve",
+    "inspect_portfolio_drawdown",
     "long_only_trade_records",
     "long_only_position",
     "portfolio_risk_summary",
