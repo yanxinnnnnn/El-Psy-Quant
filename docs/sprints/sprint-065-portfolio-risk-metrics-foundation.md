@@ -13,7 +13,9 @@ frequency before the project adds drawdown inspection or attribution.
 
 - Validate non-empty numeric portfolio return Series with a DatetimeIndex.
 - Report periods, arithmetic mean, min/max, and loss-frequency counts.
-- Report sample volatility using pandas `Series.std(ddof=1)`.
+- Report sample volatility using pandas `Series.std(ddof=1)` for two or more
+  observations; define one-observation volatility as `0.0` so every non-empty
+  summary remains JSON-compatible.
 - Optionally report existing annualized volatility with an explicit frequency.
 - Return deterministic plain Python numbers without mutating input.
 

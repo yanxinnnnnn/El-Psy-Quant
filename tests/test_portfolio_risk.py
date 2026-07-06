@@ -69,6 +69,42 @@ def test_annualized_volatility_is_optional() -> None:
     )
 
 
+def test_one_observation_summary_is_json_compatible() -> None:
+    portfolio_return = pd.Series(
+        [-0.02],
+        index=pd.to_datetime(["2024-01-01"]),
+        name="portfolio_return",
+    )
+
+    result = portfolio_risk_summary(portfolio_return)
+
+    assert result == {
+        "periods": 1.0,
+        "mean_return": -0.02,
+        "volatility": 0.0,
+        "min_return": -0.02,
+        "max_return": -0.02,
+        "positive_periods": 0.0,
+        "negative_periods": 1.0,
+        "zero_periods": 0.0,
+        "loss_rate": 1.0,
+    }
+    json.dumps(result, allow_nan=False)
+
+
+def test_one_observation_annualized_volatility_is_zero() -> None:
+    portfolio_return = pd.Series(
+        [0.01],
+        index=pd.to_datetime(["2024-01-01"]),
+        name="portfolio_return",
+    )
+
+    result = portfolio_risk_summary(portfolio_return, periods_per_year=252)
+
+    assert result["annualized_volatility"] == 0.0
+    json.dumps(result, allow_nan=False)
+
+
 def test_values_are_plain_json_compatible_numbers() -> None:
     result = portfolio_risk_summary(make_portfolio_return(), periods_per_year=252)
 

@@ -25,10 +25,15 @@ def portfolio_risk_summary(
     positive_periods = int((portfolio_return > 0).sum())
     negative_periods = int((portfolio_return < 0).sum())
     zero_periods = int((portfolio_return == 0).sum())
+    volatility = (
+        0.0
+        if periods == 1
+        else float(portfolio_return.std(ddof=1))
+    )
     summary = {
         "periods": float(periods),
         "mean_return": float(portfolio_return.mean()),
-        "volatility": float(portfolio_return.std(ddof=1)),
+        "volatility": volatility,
         "min_return": float(portfolio_return.min()),
         "max_return": float(portfolio_return.max()),
         "positive_periods": float(positive_periods),
@@ -37,8 +42,9 @@ def portfolio_risk_summary(
         "loss_rate": float(negative_periods / periods),
     }
     if periods_per_year is not None:
-        summary["annualized_volatility"] = annualized_volatility(
-            portfolio_return,
-            periods_per_year,
+        summary["annualized_volatility"] = (
+            0.0
+            if periods == 1
+            else annualized_volatility(portfolio_return, periods_per_year)
         )
     return summary
