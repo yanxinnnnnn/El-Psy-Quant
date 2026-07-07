@@ -155,7 +155,7 @@ docs/sprints/sprint-083-milestone-16-closeout.md
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S84 | Complete | Plan Milestone 17. | Paper trading persistence and audit scope and sprint sequence. | No implementation during planning. |
-| S85 | Planned | Define paper artifact file contract. | Deterministic local file contract for saved paper trading artifacts. | No writer side effects yet. |
+| S85 | Complete | Define paper artifact file contract. | Deterministic local file contract for saved paper trading artifacts. | No writer side effects yet. |
 | S86 | Planned | Add local paper artifact writer. | Save a paper trading artifact to an explicit local path. | No CLI or configured-run integration. |
 | S87 | Planned | Add paper artifact reader and validation. | Load saved paper artifacts and validate schema/version expectations. | No database or artifact service. |
 | S88 | Planned | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
@@ -179,7 +179,7 @@ docs/sprints/sprint-084-milestone-17-planning.md
 The recommended sequence now is:
 
 ```text
-Sprint 85 — Paper Artifact File Contract Foundation
+Sprint 86 — Local Paper Artifact Writer Foundation
 ```
 
 The guiding idea is to make paper-trading artifacts durable and audit-friendly before adding broker integration, live execution, configured runs, databases, dashboards, reports, or broader runtime workflow behavior.
@@ -208,9 +208,9 @@ The guiding idea is to make paper-trading artifacts durable and audit-friendly b
 The next sprint is:
 
 ```text
-Sprint 85 — Paper Artifact File Contract Foundation
+Sprint 86 — Local Paper Artifact Writer Foundation
 ```
 
 Reason:
 
-Sprint 85 should define the smallest useful local file contract for saved paper-trading artifacts before adding writer behavior, reader behavior, configured-run integration, broker connectivity, or live execution.
+Sprint 86 should add a local paper artifact writer for explicit file paths using the Sprint 85 file contract, without adding CLI, configured-run integration, broker connectivity, or live execution.

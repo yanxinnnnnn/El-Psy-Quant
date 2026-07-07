@@ -25,7 +25,7 @@ paper artifact file contract
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S84 | Complete | Plan Milestone 17. | Paper trading persistence and audit scope and sprint sequence. | No implementation during planning. |
-| S85 | Planned | Define paper artifact file contract. | Deterministic local file contract for saved paper trading artifacts. | No writer side effects yet. |
+| S85 | Complete | Define paper artifact file contract. | Deterministic local file contract for saved paper trading artifacts. | No writer side effects yet. |
 | S86 | Planned | Add local paper artifact writer. | Save a paper trading artifact to an explicit local path. | No CLI or configured-run integration. |
 | S87 | Planned | Add paper artifact reader and validation. | Load saved paper artifacts and validate schema/version expectations. | No database or artifact service. |
 | S88 | Planned | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
@@ -87,7 +87,7 @@ Milestone 17 will be complete when:
 ## Current Next Step
 
 ```text
-Sprint 85 — Paper Artifact File Contract Foundation
+Sprint 86 — Local Paper Artifact Writer Foundation
 ```
 
-The next sprint should define the smallest useful file contract before adding local writer behavior.
+The next sprint should add a local paper artifact writer for explicit file paths using the Sprint 85 file contract, without adding CLI, configured-run integration, broker connectivity, or live execution.
