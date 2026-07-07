@@ -31,7 +31,7 @@ The broader platform direction is to build an AI-native quant research operating
 The next sprint is:
 
 ```text
-Sprint 94 — Paper Run Result Summary Foundation
+Sprint 95 — Milestone 18 Documentation Refresh
 ```
 
 See the milestone summaries in:
@@ -97,6 +97,7 @@ docs/strategy/future-platform-roadmap.md
   - immutable local paper run request contract
   - local in-memory paper run execution boundary
   - explicit local paper run artifact persistence
+  - immutable local paper run result summaries
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -248,7 +249,7 @@ el_psy_quant/
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, assumed fills, summaries, and artifacts
-  paper/         # Local paper account state, order ledger, fill application, session summary, artifact, persistence/audit, run request, run execution, and run persistence boundaries
+  paper/         # Local paper account state, order ledger, fill application, session summary, artifact, persistence/audit, run request, run execution, run persistence, and run result boundaries
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries

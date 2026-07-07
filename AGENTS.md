@@ -68,4 +68,4 @@ Milestone 17 — Paper Trading Persistence & Audit Foundation is complete.
 
 Milestone 18 — Paper Trading Workflow Integration Foundation is in progress.
 
-The next focus is Sprint 94 — Paper Run Result Summary Foundation. Add a compact result summary tying the request, artifact identity, saved path, and audit facts together before adding dashboards, reports, configured-run integration, broker readiness, or live execution.
+The next focus is Sprint 95 — Milestone 18 Documentation Refresh. Close Milestone 18 with documentation only before adding configured-run integration, broker readiness, dashboards, reports, databases, or live execution.
