@@ -69,6 +69,7 @@ docs/milestones/milestone-016-paper-trading-foundation.md
 - Paper trading foundation:
   - deterministic local paper account state
   - optional equity snapshots from explicitly supplied prices only
+  - deterministic local paper order records and ledgers
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -196,7 +197,7 @@ el_psy_quant/
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, assumed fills, summaries, and artifacts
-  paper/         # Local paper account state boundaries
+  paper/         # Local paper account state and order ledger boundaries
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries
@@ -232,9 +233,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 79 — Paper Order Ledger Foundation**
+**Sprint 80 — Paper Fill Application Foundation**
 
-Sprint 79 should define local paper order records and ledger behavior before adding fill application, session summaries, or artifacts.
+Sprint 80 should apply explicit assumed fills to local paper account state without live market data, broker integration, or order routing.
 
 ## Disclaimer
 
