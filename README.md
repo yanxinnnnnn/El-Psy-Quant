@@ -10,17 +10,9 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 17 — Paper Trading Persistence & Audit Foundation** is complete.
+**Milestone 18 — Paper Trading Workflow Integration Foundation** is complete.
 
-Milestone 17 completed the local paper-trading persistence and audit chain:
-
-```text
-paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
-```
-
-**Milestone 18 — Paper Trading Workflow Integration Foundation** is in progress.
-
-Milestone 18 should turn the local paper-trading building blocks from Milestones 16 and 17 into one explicit workflow boundary:
+Milestone 18 completed the local paper-trading workflow chain:
 
 ```text
 paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
@@ -28,11 +20,13 @@ paper run request contract -> paper run execution boundary -> paper run artifact
 
 The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 
-The next sprint is:
+The next focus is:
 
 ```text
-Sprint 95 — Milestone 18 Documentation Refresh
+Sprint 96 — Milestone 19 Planning
 ```
+
+Sprint 96 should plan the next conservative milestone before configured paper workflow wiring or broader operational integration is implemented.
 
 See the milestone summaries in:
 
@@ -64,23 +58,8 @@ docs/strategy/future-platform-roadmap.md
 - Strategy interface, moving-average strategy adapter, and exact-name resolver.
 - Moving-average crossover research pipeline with returns, costs, slippage, equity, and trade records.
 - Independent multi-symbol research execution and cross-symbol summaries.
-- Portfolio construction foundation:
-  - aligned per-symbol strategy return streams
-  - equal-weight portfolio returns
-  - validated static portfolio weights
-  - weighted portfolio returns
-  - standalone portfolio summary artifacts
-- Portfolio risk and attribution foundation:
-  - portfolio return risk metrics
-  - single worst portfolio drawdown inspection
-  - static-weight per-symbol contribution returns and summaries
-  - standalone portfolio attribution summary artifacts
-- Backtest execution realism foundation:
-  - explicit execution assumptions
-  - order-intent boundaries
-  - deterministic assumed fills
-  - execution-adjusted trade summaries
-  - in-memory execution realism artifacts for local backtests
+- Portfolio construction, risk, and attribution foundations.
+- Backtest execution realism foundation.
 - Paper trading foundation:
   - deterministic local paper account state
   - optional equity snapshots from explicitly supplied prices only
@@ -165,21 +144,6 @@ artifact = build_portfolio_summary_artifact(
 
 Portfolio construction is different from independent multi-symbol summaries because it must define date alignment, aggregation, weights, and recorded assumptions.
 
-## Portfolio Risk And Attribution
-
-Milestone 14 added the first standalone portfolio risk and attribution layer on top of the portfolio construction foundation.
-
-The completed chain is:
-
-```text
-portfolio_return -> risk metrics
-portfolio_equity -> drawdown inspection
-aligned_returns + static_weights -> symbol contribution
-risk + drawdown + contribution -> attribution summary artifact
-```
-
-This layer explains portfolio behavior before adding execution realism.
-
 ## Backtest Execution Realism Foundation
 
 Milestone 15 made execution assumptions explicit and reviewable.
@@ -189,8 +153,6 @@ The completed chain is:
 ```text
 execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
 ```
-
-This milestone remains local and deterministic. It does not introduce broker integration, exchange APIs, paper trading, or live trading behavior.
 
 ## Paper Trading Foundation
 
@@ -202,8 +164,6 @@ The completed chain is:
 paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
 ```
 
-The paper-trading foundation is local, deterministic, and inspectable. It does not currently support broker execution, live trading, order routing, market data streaming, real account synchronization, configured-run integration, artifact persistence, or report generation.
-
 ## Paper Trading Persistence & Audit Foundation
 
 Milestone 17 made paper-trading artifacts durable and audit-friendly.
@@ -214,19 +174,17 @@ The completed chain is:
 paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
 ```
 
-This milestone remains local and deterministic. It does not add broker integration, live execution, order routing, configured-run expansion, databases, dashboards, broad report generation, deep object reconstruction, or schema migration behavior.
-
 ## Paper Trading Workflow Integration Foundation
 
-Milestone 18 is turning the paper-trading state, artifact, persistence, and audit boundaries into an explicit local paper run workflow.
+Milestone 18 made the paper-trading state, artifact, persistence, and audit boundaries into an explicit local paper run workflow foundation.
 
-The planned chain is:
+The completed chain is:
 
 ```text
 paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
 ```
 
-This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, configured-run expansion, CLI workflow expansion, databases, dashboards, or broad report generation.
+This milestone remains local, deterministic, and explicit-input driven. It does not add broader configured workflow or operational integrations.
 
 ## Local Experiment Configuration
 
