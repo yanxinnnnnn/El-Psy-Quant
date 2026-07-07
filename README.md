@@ -71,6 +71,7 @@ docs/milestones/milestone-016-paper-trading-foundation.md
   - optional equity snapshots from explicitly supplied prices only
   - deterministic local paper order records and ledgers
   - explicit paper fill application to local account state
+  - deterministic local paper trading session summaries
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -198,7 +199,7 @@ el_psy_quant/
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, assumed fills, summaries, and artifacts
-  paper/         # Local paper account state, order ledger, and fill application boundaries
+  paper/         # Local paper account state, order ledger, fill application, and session summary boundaries
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries
@@ -234,9 +235,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 81 — Paper Trading Session Summary Foundation**
+**Sprint 82 — Paper Trading Artifact Foundation**
 
-Sprint 81 should summarize local paper trading sessions from account states, paper orders, and explicit fills without adding artifacts, broker integration, or live execution behavior.
+Sprint 82 should add a standalone paper trading artifact from explicit paper trading session inputs without adding configured-run integration, broker integration, or live execution behavior.
 
 ## Disclaimer
 
