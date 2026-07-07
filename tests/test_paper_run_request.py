@@ -7,6 +7,7 @@ import json
 import pytest
 
 from el_psy_quant.paper import (
+    PAPER_RUN_REQUEST_SCHEMA_VERSION,
     PaperRunRequest,
     create_paper_account_state,
     create_paper_fill,
@@ -103,6 +104,11 @@ def test_valid_paper_run_request_creation() -> None:
     assert request.created_timestamp.isoformat() == "2026-01-04T12:00:00+00:00"
 
 
+def test_paper_run_request_schema_version_exists() -> None:
+    assert PAPER_RUN_REQUEST_SCHEMA_VERSION == 1
+    json.dumps({"schema_version": PAPER_RUN_REQUEST_SCHEMA_VERSION}, allow_nan=False)
+
+
 def test_request_export_is_deterministic_and_json_compatible() -> None:
     request = make_request()
 
@@ -110,6 +116,7 @@ def test_request_export_is_deterministic_and_json_compatible() -> None:
 
     assert payload == request.to_dict()
     assert payload == {
+        "schema_version": PAPER_RUN_REQUEST_SCHEMA_VERSION,
         "run_id": "run-1",
         "created_timestamp": "2026-01-04T12:00:00+00:00",
         "starting_account_state": make_starting_state().to_dict(),
@@ -274,6 +281,7 @@ def test_package_exports_work() -> None:
         fills=make_fills(),
     )
 
+    assert paper.PAPER_RUN_REQUEST_SCHEMA_VERSION == PAPER_RUN_REQUEST_SCHEMA_VERSION
     assert paper.PaperRunRequest is PaperRunRequest
     assert paper.create_paper_run_request is create_paper_run_request
     assert isinstance(request, PaperRunRequest)

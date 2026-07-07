@@ -13,6 +13,8 @@ from el_psy_quant.paper.orders import (
     create_paper_order_ledger,
 )
 
+PAPER_RUN_REQUEST_SCHEMA_VERSION = 1
+
 
 def _normalize_run_id(run_id: str) -> str:
     if not isinstance(run_id, str) or not run_id.strip():
@@ -115,6 +117,7 @@ class PaperRunRequest:
     def to_dict(self) -> dict[str, object]:
         """Return a deterministic JSON-compatible paper run request export."""
         return {
+            "schema_version": PAPER_RUN_REQUEST_SCHEMA_VERSION,
             "run_id": self.run_id,
             "created_timestamp": self.created_timestamp.isoformat(),
             "starting_account_state": self.starting_account_state.to_dict(),

@@ -35,6 +35,7 @@ from el_psy_quant.paper.reader import (
     validate_paper_trading_artifact_file_payload,
 )
 from el_psy_quant.paper.run_request import (
+    PAPER_RUN_REQUEST_SCHEMA_VERSION,
     PaperRunRequest,
     create_paper_run_request,
 )
@@ -49,6 +50,7 @@ __all__ = [
     "PAPER_TRADING_ARTIFACT_FILE_NAME",
     "PAPER_TRADING_ARTIFACT_FILE_TOP_LEVEL_KEYS",
     "PAPER_TRADING_ARTIFACT_SCHEMA_VERSION",
+    "PAPER_RUN_REQUEST_SCHEMA_VERSION",
     "PaperAccountState",
     "PaperFill",
     "PaperOrderLedger",

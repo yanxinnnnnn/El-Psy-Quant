@@ -14,13 +14,14 @@ Sprint 91 starts Milestone 18 implementation by introducing an explicit request 
 
 - Added `PaperRunRequest` under the existing `paper` package.
 - Added `create_paper_run_request(...)` as the small public factory.
+- Added `PAPER_RUN_REQUEST_SCHEMA_VERSION` as the request schema/version boundary.
 - Validated explicit run inputs:
   - non-empty `run_id`
   - valid `created_timestamp`
   - explicit starting and ending `PaperAccountState`
   - explicit `PaperOrderLedger` or sequence of `PaperOrderRecord`
   - explicit sequence of `PaperFill`
-- Exported deterministic JSON-compatible request data with `to_dict()`.
+- Exported deterministic JSON-compatible request data with `to_dict()`, including `schema_version`.
 - Reused existing paper account, order, ledger, and fill boundaries instead of duplicating paper-trading behavior.
 - Added focused tests for validation, immutability, JSON compatibility, input non-mutation, exports, and guardrails.
 
@@ -28,6 +29,7 @@ Sprint 91 starts Milestone 18 implementation by introducing an explicit request 
 
 The request contains:
 
+- `schema_version`
 - `run_id`
 - `created_timestamp`
 - `starting_account_state`
