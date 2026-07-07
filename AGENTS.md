@@ -56,4 +56,4 @@ A task is done only when:
 
 Milestone 16 — Paper Trading Foundation is in progress.
 
-The next focus is Sprint 79 — Paper Order Ledger Foundation. Define local paper order records and ledger behavior before adding fill application, session summaries, artifacts, or broker integration.
+The next focus is Sprint 80 — Paper Fill Application Foundation. Apply explicit assumed fills to local paper account state without live market data, broker integration, or order routing.
