@@ -10,7 +10,7 @@ It is a rolling plan, not a contract. The order can change if the project learns
 Build a reproducible research platform before chasing strategy complexity.
 ```
 
-For the longer-term CTO platform plan beyond the current milestone, see:
+For the longer-term founder-level CTO platform plan beyond the current milestone, see:
 
 ```text
 docs/strategy/future-platform-roadmap.md
@@ -36,6 +36,7 @@ flowchart LR
     M14 --> M15["Milestone 15<br/>Backtest Execution Realism Foundation<br/>Sprints 70-76 ✅"]
     M15 --> M16["Milestone 16<br/>Paper Trading Foundation<br/>Sprints 77-83 ✅"]
     M16 --> M17["Milestone 17<br/>Paper Trading Persistence & Audit Foundation<br/>Sprints 84-89 ✅"]
+    M17 --> M18["Milestone 18<br/>Paper Trading Workflow Integration Foundation<br/>Sprints 90-95 Planned"]
 ```
 
 ## Milestone Table
@@ -59,83 +60,9 @@ flowchart LR
 | Milestone 15 — Backtest Execution Realism Foundation | Sprints 70-76 | Complete | Make backtest execution assumptions explicit, deterministic, and reviewable. | Execution assumptions, order intent, fill behavior, execution summaries, and execution realism artifacts are available under local research assumptions. |
 | Milestone 16 — Paper Trading Foundation | Sprints 77-83 | Complete | Define local paper-trading state and records before broker integration. | Paper account state, paper orders, fill application, session summaries, and artifacts are available under conservative local assumptions. |
 | Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper-trading outputs durable and audit-friendly before runtime workflows. | Paper-trading artifacts can be saved, loaded, validated, and summarized locally without broker, live, database, dashboard, report, or configured-run behavior. |
-
-## Completed Milestone 13 — Portfolio Construction Foundation
-
-Milestone 13 closed this chain:
-
-```text
-strategy return streams -> aligned portfolio inputs -> portfolio return aggregation -> portfolio summary artifact
-```
-
-See:
-
-```text
-docs/milestones/milestone-013-portfolio-construction-foundation.md
-```
-
-## Completed Milestone 14 — Portfolio Risk & Attribution Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S64 | Complete | Plan Milestone 14. | Portfolio risk and attribution scope and sprint sequence. | No implementation during planning. |
-| S65 | Complete | Add portfolio risk metrics. | Small risk summary for portfolio return series. | No optimizer or factor model. |
-| S66 | Complete | Add drawdown inspection. | Inspect the single worst portfolio drawdown event. | No stress-testing engine. |
-| S67 | Complete | Add symbol contribution. | Static-weight contribution returns and summaries from aligned symbol returns. | No dynamic rebalancing. |
-| S68 | Complete | Add attribution summary artifact. | Standalone artifact composed from risk, drawdown, and contribution summaries. | Preserve artifact discipline. |
-| S69 | Complete | Close milestone. | Milestone 14 documentation refresh. | No scope expansion. |
-
-Milestone 14 closed this conservative chain:
-
-```text
-portfolio_return -> risk metrics
-portfolio_equity -> drawdown inspection
-aligned_returns + static_weights -> symbol contribution
-risk + drawdown + contribution -> attribution summary artifact
-```
-
-See:
-
-```text
-docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
-```
-
-## Completed Milestone 15 — Backtest Execution Realism Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S70 | Complete | Plan Milestone 15. | Execution realism scope and sprint sequence. | No implementation during planning. |
-| S71 | Complete | Define execution assumptions. | Small documented execution assumption boundary. | No broker integration. |
-| S72 | Complete | Add order intent boundary. | Deterministic order-intent representation from existing research outputs. | No live orders. |
-| S73 | Complete | Add fill price model. | Local deterministic fill model under explicit timing assumptions. | No market microstructure simulation. |
-| S74 | Complete | Add execution-adjusted trade summary. | Reviewable summary of fills and execution assumptions. | No portfolio rebalancing engine. |
-| S75 | Complete | Add execution realism artifact. | Standalone artifact tying assumptions to results. | No broad configured-run expansion. |
-| S76 | Complete | Close milestone. | Milestone 15 documentation refresh. | No scope expansion. |
-
-Milestone 15 closed this conservative chain:
-
-```text
-execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
-```
-
-See:
-
-```text
-docs/milestones/milestone-015-backtest-execution-realism-foundation.md
-docs/sprints/sprint-076-milestone-15-closeout.md
-```
+| Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Planned | Turn local paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper trading artifact without broker, live, CLI, configured-run, database, dashboard, or report behavior. |
 
 ## Completed Milestone 16 — Paper Trading Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S77 | Complete | Plan Milestone 16. | Paper trading scope and sprint sequence. | No implementation during planning. |
-| S78 | Complete | Add paper account state. | Deterministic cash, positions, and equity snapshot boundary. | No broker account sync. |
-| S79 | Complete | Add paper order ledger. | Local paper order records and status boundary. | No exchange routing. |
-| S80 | Complete | Add paper fill application. | Apply assumed fills to paper account state. | No live market data. |
-| S81 | Complete | Add paper trading session summary. | Reviewable paper session summary from orders, fills, and account snapshots. | No PnL analytics expansion. |
-| S82 | Complete | Add paper trading artifact. | Standalone artifact for paper trading session state and assumptions. | No configured-run expansion. |
-| S83 | Complete | Close milestone. | Milestone 16 documentation refresh. | No scope expansion. |
 
 Milestone 16 closed this conservative chain:
 
@@ -175,15 +102,50 @@ docs/sprints/sprint-084-milestone-17-planning.md
 docs/sprints/sprint-089-milestone-17-closeout.md
 ```
 
+## Planned Milestone 18 — Paper Trading Workflow Integration Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S90 | Complete | Plan Milestone 18. | Workflow integration scope, sequence, and long-term platform context. | No implementation during planning. |
+| S91 | Planned | Define paper run request contract. | Small immutable request boundary for one local paper run. | No execution or file writing yet. |
+| S92 | Planned | Add paper run execution boundary. | Build a paper trading artifact from an explicit request. | No CLI, broker, or configured-run integration. |
+| S93 | Planned | Add paper run artifact persistence. | Persist a paper run artifact to an explicit local path using the M17 writer. | No default output-root workflow. |
+| S94 | Planned | Add paper run result summary. | Compact summary tying request, artifact identity, saved path, and audit facts. | No dashboard or report generation. |
+| S95 | Planned | Close milestone. | Milestone 18 documentation refresh. | No scope expansion. |
+
+Milestone 18 should follow this conservative chain:
+
+```text
+paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
+```
+
+See:
+
+```text
+docs/milestones/milestone-018-paper-trading-workflow-integration-foundation.md
+docs/sprints/sprint-090-milestone-18-planning.md
+docs/strategy/future-platform-roadmap.md
+```
+
 ## Future Platform Direction
 
 The recommended sequence now is:
 
 ```text
-Sprint 90 — Milestone 18 Planning
+Sprint 91 — Paper Run Request Contract Foundation
 ```
 
-Sprint 90 should decide the next milestone direction before implementation begins. Reasonable candidates include configured-run integration, paper-trading workflow integration, reporting, broker-readiness groundwork, or another conservative platform layer, but the roadmap does not choose that scope yet.
+The guiding idea is to move from isolated paper-trading capabilities to an explicit local workflow boundary before configured-run integration, broker readiness, reporting, dashboards, databases, or live execution.
+
+Longer-term, the platform should move through:
+
+```text
+Phase 1 — Research & Artifact Foundation
+Phase 2 — Workflow Integration Foundation
+Phase 3 — Decision Intelligence Foundation
+Phase 4 — Broker Readiness & Execution Governance
+Phase 5 — Controlled Live Pilot & Production Operations
+```
 
 ## Roadmap Principles
 
@@ -203,15 +165,17 @@ Sprint 90 should decide the next milestone direction before implementation begin
 14. Execution assumptions should be explicit before paper trading.
 15. Paper trading state should be explicit before broker integration.
 16. Paper trading artifacts should be durable and audit-friendly before runtime workflows or broker integration.
+17. Paper trading workflows should be explicit before configured-run integration or broker readiness.
+18. Decision records should exist before live-readiness claims.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 90 — Milestone 18 Planning
+Sprint 91 — Paper Run Request Contract Foundation
 ```
 
 Reason:
 
-Sprint 90 should plan Milestone 18 without assuming the next implementation direction in advance.
+Sprint 91 should define the smallest useful request object for one local paper run before any workflow execution, file persistence, CLI behavior, configured-run integration, broker readiness, or live execution is added.
