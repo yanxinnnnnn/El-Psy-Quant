@@ -54,6 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 16 — Paper Trading Foundation planning is next.
+Milestone 16 — Paper Trading Foundation is planned.
 
-Milestone 15 is complete. The next planning step should define a conservative paper-trading boundary after local execution assumptions, order intents, deterministic assumed fills, execution summaries, and execution realism artifacts have been made explicit.
+The next focus is Sprint 78 — Paper Account State Foundation. Define the smallest useful local paper account state boundary before adding paper order ledgers, fill application, session summaries, artifacts, or broker integration.
