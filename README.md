@@ -10,7 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 15 — Backtest Execution Realism Foundation** is planned.
+**Milestone 15 — Backtest Execution Realism Foundation** is complete.
 
 Milestone 14 completed the first portfolio risk and attribution layer:
 
@@ -21,13 +21,13 @@ aligned_returns + static_weights -> symbol contribution
 risk + drawdown + contribution -> attribution summary artifact
 ```
 
-Milestone 15 should now make backtest execution assumptions explicit before the project moves toward paper trading.
-
-The planned Milestone 15 chain is:
+Milestone 15 then made local backtest execution assumptions explicit:
 
 ```text
 execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
 ```
+
+The next direction is **Milestone 16 — Paper Trading Foundation planning**.
 
 See the milestone summaries in:
 
@@ -63,7 +63,12 @@ docs/milestones/milestone-015-backtest-execution-realism-foundation.md
   - single worst portfolio drawdown inspection
   - static-weight per-symbol contribution returns and summaries
   - standalone portfolio attribution summary artifacts
-- Execution assumptions, order-intent boundaries, deterministic assumed fills, execution-adjusted trade summaries, and in-memory execution realism artifacts for local backtests.
+- Backtest execution realism foundation:
+  - explicit execution assumptions
+  - order-intent boundaries
+  - deterministic assumed fills
+  - execution-adjusted trade summaries
+  - in-memory execution realism artifacts for local backtests
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -146,17 +151,17 @@ risk + drawdown + contribution -> attribution summary artifact
 
 This layer explains portfolio behavior before adding execution realism.
 
-## Backtest Execution Realism Direction
+## Backtest Execution Realism Foundation
 
-Milestone 15 should make execution assumptions explicit and reviewable.
+Milestone 15 made execution assumptions explicit and reviewable.
 
-The planned chain is:
+The completed chain is:
 
 ```text
 execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
 ```
 
-This milestone should remain local and deterministic. It should not introduce broker integration, exchange APIs, paper trading, or live trading behavior.
+This milestone remains local and deterministic. It does not introduce broker integration, exchange APIs, paper trading, or live trading behavior.
 
 ## Local Experiment Configuration
 
@@ -214,9 +219,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 76 — Milestone 15 Closeout**
+**Milestone 16 — Paper Trading Foundation planning**
 
-Sprint 76 should close Milestone 15 with documentation refresh only and no new execution behavior.
+Milestone 16 should plan a conservative paper-trading boundary after local backtest execution assumptions are explicit and reviewable.
 
 ## Disclaimer
 
