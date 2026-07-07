@@ -54,6 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 15 — Backtest Execution Realism Foundation is planned.
+Milestone 15 — Backtest Execution Realism Foundation is in progress.
 
-The next focus is Sprint 71 — Execution Assumptions Foundation. Define the execution-assumption boundary before adding order intent or fill models.
+The next focus is Sprint 72 — Order Intent Boundary Foundation. Add a deterministic order-intent boundary on top of explicit execution assumptions without adding live orders or broker behavior.

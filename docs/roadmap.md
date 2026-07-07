@@ -101,7 +101,7 @@ docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S70 | Complete | Plan Milestone 15. | Execution realism scope and sprint sequence. | No implementation during planning. |
-| S71 | Planned | Define execution assumptions. | Small documented execution assumption boundary. | No broker integration. |
+| S71 | Complete | Define execution assumptions. | Small documented execution assumption boundary. | No broker integration. |
 | S72 | Planned | Add order intent boundary. | Deterministic order-intent representation from existing research outputs. | No live orders. |
 | S73 | Planned | Add fill price model. | Local deterministic fill model under explicit timing assumptions. | No market microstructure simulation. |
 | S74 | Planned | Add execution-adjusted trade summary. | Reviewable summary of fills and execution assumptions. | No portfolio rebalancing engine. |
@@ -153,9 +153,9 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 71 — Execution Assumptions Foundation
+Sprint 72 — Order Intent Boundary Foundation
 ```
 
 Reason:
 
-Milestone 15 should start by defining the execution-assumption boundary before adding order intent, fill models, or execution artifacts.
+Sprint 72 should add a deterministic order-intent boundary on top of explicit execution assumptions without adding live orders or broker behavior.
