@@ -26,6 +26,10 @@ from el_psy_quant.paper.orders import (
     create_paper_order_ledger,
     create_paper_order_record,
 )
+from el_psy_quant.paper.reader import (
+    read_paper_trading_artifact_file,
+    validate_paper_trading_artifact_file_payload,
+)
 from el_psy_quant.paper.session import (
     PaperTradingSessionSummary,
     create_paper_trading_session_summary,
@@ -51,5 +55,7 @@ __all__ = [
     "create_paper_trading_artifact",
     "create_paper_trading_artifact_file_payload",
     "create_paper_trading_session_summary",
+    "read_paper_trading_artifact_file",
+    "validate_paper_trading_artifact_file_payload",
     "write_paper_trading_artifact_file",
 ]
