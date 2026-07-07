@@ -156,7 +156,7 @@ docs/sprints/sprint-083-milestone-16-closeout.md
 |---:|---|---|---|---|
 | S84 | Complete | Plan Milestone 17. | Paper trading persistence and audit scope and sprint sequence. | No implementation during planning. |
 | S85 | Complete | Define paper artifact file contract. | Deterministic local file contract for saved paper trading artifacts. | No writer side effects yet. |
-| S86 | Planned | Add local paper artifact writer. | Save a paper trading artifact to an explicit local path. | No CLI or configured-run integration. |
+| S86 | Complete | Add local paper artifact writer. | Save a paper trading artifact to an explicit local path. | No CLI or configured-run integration. |
 | S87 | Planned | Add paper artifact reader and validation. | Load saved paper artifacts and validate schema/version expectations. | No database or artifact service. |
 | S88 | Planned | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
 | S89 | Planned | Close milestone. | Milestone 17 documentation refresh. | No scope expansion. |
@@ -179,7 +179,7 @@ docs/sprints/sprint-084-milestone-17-planning.md
 The recommended sequence now is:
 
 ```text
-Sprint 86 — Local Paper Artifact Writer Foundation
+Sprint 87 — Paper Artifact Reader & Validation Foundation
 ```
 
 The guiding idea is to make paper-trading artifacts durable and audit-friendly before adding broker integration, live execution, configured runs, databases, dashboards, reports, or broader runtime workflow behavior.
@@ -208,9 +208,9 @@ The guiding idea is to make paper-trading artifacts durable and audit-friendly b
 The next sprint is:
 
 ```text
-Sprint 86 — Local Paper Artifact Writer Foundation
+Sprint 87 — Paper Artifact Reader & Validation Foundation
 ```
 
 Reason:
 
-Sprint 86 should add a local paper artifact writer for explicit file paths using the Sprint 85 file contract, without adding CLI, configured-run integration, broker connectivity, or live execution.
+Sprint 87 should add local paper artifact reading and validation against the Sprint 85 file contract, without adding databases, dashboards, configured-run integration, broker connectivity, or live execution.

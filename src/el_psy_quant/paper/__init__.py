@@ -30,6 +30,7 @@ from el_psy_quant.paper.session import (
     PaperTradingSessionSummary,
     create_paper_trading_session_summary,
 )
+from el_psy_quant.paper.writer import write_paper_trading_artifact_file
 
 __all__ = [
     "PAPER_TRADING_ARTIFACT_FILE_ENCODING",
@@ -50,4 +51,5 @@ __all__ = [
     "create_paper_trading_artifact",
     "create_paper_trading_artifact_file_payload",
     "create_paper_trading_session_summary",
+    "write_paper_trading_artifact_file",
 ]
