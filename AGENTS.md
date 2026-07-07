@@ -66,6 +66,6 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 17 — Paper Trading Persistence & Audit Foundation is complete.
 
-Milestone 18 — Paper Trading Workflow Integration Foundation is planned.
+Milestone 18 — Paper Trading Workflow Integration Foundation is in progress.
 
-The next focus is Sprint 91 — Paper Run Request Contract Foundation. Define the smallest useful request object for one local paper run before adding workflow execution, file persistence, CLI behavior, configured-run integration, broker readiness, or live execution.
+The next focus is Sprint 92 — Paper Run Execution Boundary Foundation. Consume the explicit paper run request and build the in-memory paper trading artifact path before adding file persistence, CLI behavior, configured-run integration, broker readiness, or live execution.

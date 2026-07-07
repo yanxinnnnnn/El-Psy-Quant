@@ -36,7 +36,7 @@ flowchart LR
     M14 --> M15["Milestone 15<br/>Backtest Execution Realism Foundation<br/>Sprints 70-76 ✅"]
     M15 --> M16["Milestone 16<br/>Paper Trading Foundation<br/>Sprints 77-83 ✅"]
     M16 --> M17["Milestone 17<br/>Paper Trading Persistence & Audit Foundation<br/>Sprints 84-89 ✅"]
-    M17 --> M18["Milestone 18<br/>Paper Trading Workflow Integration Foundation<br/>Sprints 90-95 Planned"]
+    M17 --> M18["Milestone 18<br/>Paper Trading Workflow Integration Foundation<br/>Sprints 90-95 In Progress"]
 ```
 
 ## Milestone Table
@@ -60,7 +60,7 @@ flowchart LR
 | Milestone 15 — Backtest Execution Realism Foundation | Sprints 70-76 | Complete | Make backtest execution assumptions explicit, deterministic, and reviewable. | Execution assumptions, order intent, fill behavior, execution summaries, and execution realism artifacts are available under local research assumptions. |
 | Milestone 16 — Paper Trading Foundation | Sprints 77-83 | Complete | Define local paper-trading state and records before broker integration. | Paper account state, paper orders, fill application, session summaries, and artifacts are available under conservative local assumptions. |
 | Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper-trading outputs durable and audit-friendly before runtime workflows. | Paper-trading artifacts can be saved, loaded, validated, and summarized locally without broker, live, database, dashboard, report, or configured-run behavior. |
-| Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Planned | Turn local paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper trading artifact without broker, live, CLI, configured-run, database, dashboard, or report behavior. |
+| Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | In Progress | Turn local paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper trading artifact without broker, live, CLI, configured-run, database, dashboard, or report behavior. |
 
 ## Completed Milestone 16 — Paper Trading Foundation
 
@@ -102,12 +102,12 @@ docs/sprints/sprint-084-milestone-17-planning.md
 docs/sprints/sprint-089-milestone-17-closeout.md
 ```
 
-## Planned Milestone 18 — Paper Trading Workflow Integration Foundation
+## Milestone 18 — Paper Trading Workflow Integration Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S90 | Complete | Plan Milestone 18. | Workflow integration scope, sequence, and long-term platform context. | No implementation during planning. |
-| S91 | Planned | Define paper run request contract. | Small immutable request boundary for one local paper run. | No execution or file writing yet. |
+| S91 | Complete | Define paper run request contract. | Small immutable request boundary for one local paper run. | No execution or file writing yet. |
 | S92 | Planned | Add paper run execution boundary. | Build a paper trading artifact from an explicit request. | No CLI, broker, or configured-run integration. |
 | S93 | Planned | Add paper run artifact persistence. | Persist a paper run artifact to an explicit local path using the M17 writer. | No default output-root workflow. |
 | S94 | Planned | Add paper run result summary. | Compact summary tying request, artifact identity, saved path, and audit facts. | No dashboard or report generation. |
@@ -132,7 +132,7 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 91 — Paper Run Request Contract Foundation
+Sprint 92 — Paper Run Execution Boundary Foundation
 ```
 
 The guiding idea is to move from isolated paper-trading capabilities to an explicit local workflow boundary before configured-run integration, broker readiness, reporting, dashboards, databases, or live execution.
@@ -173,9 +173,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 91 — Paper Run Request Contract Foundation
+Sprint 92 — Paper Run Execution Boundary Foundation
 ```
 
 Reason:
 
-Sprint 91 should define the smallest useful request object for one local paper run before any workflow execution, file persistence, CLI behavior, configured-run integration, broker readiness, or live execution is added.
+Sprint 92 should consume the explicit paper run request and build the in-memory paper trading artifact path before any file persistence, CLI behavior, configured-run integration, broker readiness, or live execution is added.

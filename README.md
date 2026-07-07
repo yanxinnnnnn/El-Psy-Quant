@@ -18,7 +18,7 @@ Milestone 17 completed the local paper-trading persistence and audit chain:
 paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
 ```
 
-**Milestone 18 — Paper Trading Workflow Integration Foundation** is planned.
+**Milestone 18 — Paper Trading Workflow Integration Foundation** is in progress.
 
 Milestone 18 should turn the local paper-trading building blocks from Milestones 16 and 17 into one explicit workflow boundary:
 
@@ -31,7 +31,7 @@ The broader platform direction is to build an AI-native quant research operating
 The next sprint is:
 
 ```text
-Sprint 91 — Paper Run Request Contract Foundation
+Sprint 92 — Paper Run Execution Boundary Foundation
 ```
 
 See the milestone summaries in:
@@ -93,6 +93,8 @@ docs/strategy/future-platform-roadmap.md
   - local paper artifact writer for explicit destination paths
   - local paper artifact reader with top-level file-contract validation
   - compact paper session audit summaries from validated artifact payloads
+- Paper trading workflow integration foundation:
+  - immutable local paper run request contract
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -213,7 +215,7 @@ This milestone remains local and deterministic. It does not add broker integrati
 
 ## Paper Trading Workflow Integration Foundation
 
-Milestone 18 is planned to turn the paper-trading state, artifact, persistence, and audit boundaries into an explicit local paper run workflow.
+Milestone 18 is turning the paper-trading state, artifact, persistence, and audit boundaries into an explicit local paper run workflow.
 
 The planned chain is:
 
@@ -244,7 +246,7 @@ el_psy_quant/
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, assumed fills, summaries, and artifacts
-  paper/         # Local paper account state, order ledger, fill application, session summary, artifact, file-contract, writer, reader, and audit boundaries
+  paper/         # Local paper account state, order ledger, fill application, session summary, artifact, persistence/audit, and run request boundaries
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries

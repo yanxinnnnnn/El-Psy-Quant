@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned.
+In progress.
 
 ## Product Goal
 
@@ -55,7 +55,7 @@ paper run request contract
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S90 | Complete | Plan Milestone 18. | Workflow integration scope, sequence, and long-term platform context. | No implementation during planning. |
-| S91 | Planned | Define paper run request contract. | Small immutable request boundary for one local paper run. | No execution or file writing yet. |
+| S91 | Complete | Define paper run request contract. | Small immutable request boundary for one local paper run. | No execution or file writing yet. |
 | S92 | Planned | Add paper run execution boundary. | Build a paper trading artifact from an explicit request. | No CLI, broker, or configured-run integration. |
 | S93 | Planned | Add paper run artifact persistence. | Persist a paper run artifact to an explicit local path using the M17 writer. | No default output-root workflow. |
 | S94 | Planned | Add paper run result summary. | Compact summary tying request, artifact identity, saved path, and audit facts. | No dashboard or report generation. |
@@ -112,7 +112,7 @@ Milestone 18 will be complete when:
 ## Current Next Step
 
 ```text
-Sprint 91 — Paper Run Request Contract Foundation
+Sprint 92 — Paper Run Execution Boundary Foundation
 ```
 
-Sprint 91 should define the smallest useful request object for one local paper run. It should not execute a run, write files, add CLI behavior, or connect to configured runs.
+Sprint 92 should consume the explicit paper run request and build the in-memory paper trading artifact path. It should not write files, add CLI behavior, connect to configured runs, or introduce broker/live behavior.
