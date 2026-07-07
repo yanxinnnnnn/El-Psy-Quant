@@ -58,4 +58,4 @@ Milestone 16 — Paper Trading Foundation is complete.
 
 Milestone 17 — Paper Trading Persistence & Audit Foundation is planned.
 
-The next focus is Sprint 88 — Paper Session Audit Summary Foundation. Add a compact paper session audit summary from validated saved paper artifact payloads, without adding dashboards, reports, configured-run integration, broker connectivity, or live execution.
+The next focus is Sprint 89 — Milestone 17 Documentation Refresh. Close Milestone 17 with documentation that explains the local paper trading persistence and audit foundation without adding runtime workflow, broker, live execution, database, dashboard, or report behavior.

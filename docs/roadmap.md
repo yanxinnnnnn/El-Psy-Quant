@@ -158,7 +158,7 @@ docs/sprints/sprint-083-milestone-16-closeout.md
 | S85 | Complete | Define paper artifact file contract. | Deterministic local file contract for saved paper trading artifacts. | No writer side effects yet. |
 | S86 | Complete | Add local paper artifact writer. | Save a paper trading artifact to an explicit local path. | No CLI or configured-run integration. |
 | S87 | Complete | Add paper artifact reader and validation. | Load saved paper artifacts and validate schema/version expectations. | No database or artifact service. |
-| S88 | Planned | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
+| S88 | Complete | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
 | S89 | Planned | Close milestone. | Milestone 17 documentation refresh. | No scope expansion. |
 
 Milestone 17 should follow this conservative chain:
@@ -179,7 +179,7 @@ docs/sprints/sprint-084-milestone-17-planning.md
 The recommended sequence now is:
 
 ```text
-Sprint 88 — Paper Session Audit Summary Foundation
+Sprint 89 — Milestone 17 Documentation Refresh
 ```
 
 The guiding idea is to make paper-trading artifacts durable and audit-friendly before adding broker integration, live execution, configured runs, databases, dashboards, reports, or broader runtime workflow behavior.
@@ -208,9 +208,9 @@ The guiding idea is to make paper-trading artifacts durable and audit-friendly b
 The next sprint is:
 
 ```text
-Sprint 88 — Paper Session Audit Summary Foundation
+Sprint 89 — Milestone 17 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 88 should add a compact paper session audit summary from validated saved paper artifact payloads, without adding dashboards, reports, configured-run integration, broker connectivity, or live execution.
+Sprint 89 should close Milestone 17 with documentation that explains the local paper trading persistence and audit foundation without adding runtime workflow, broker, live execution, database, dashboard, or report behavior.

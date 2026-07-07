@@ -28,7 +28,7 @@ paper artifact file contract
 | S85 | Complete | Define paper artifact file contract. | Deterministic local file contract for saved paper trading artifacts. | No writer side effects yet. |
 | S86 | Complete | Add local paper artifact writer. | Save a paper trading artifact to an explicit local path. | No CLI or configured-run integration. |
 | S87 | Complete | Add paper artifact reader and validation. | Load saved paper artifacts and validate schema/version expectations. | No database or artifact service. |
-| S88 | Planned | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
+| S88 | Complete | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
 | S89 | Planned | Close milestone. | Milestone 17 documentation refresh. | No scope expansion. |
 
 ## Why This Comes After Milestone 16
@@ -87,7 +87,7 @@ Milestone 17 will be complete when:
 ## Current Next Step
 
 ```text
-Sprint 88 — Paper Session Audit Summary Foundation
+Sprint 89 — Milestone 17 Documentation Refresh
 ```
 
-The next sprint should add a compact paper session audit summary from validated saved paper artifact payloads, without adding dashboards, reports, configured-run integration, broker connectivity, or live execution.
+The next sprint should close Milestone 17 with documentation that explains the local paper trading persistence and audit foundation without adding runtime workflow, broker, live execution, database, dashboard, or report behavior.
