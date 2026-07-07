@@ -56,6 +56,6 @@ A task is done only when:
 
 Milestone 16 — Paper Trading Foundation is complete.
 
-Milestone 17 — Paper Trading Persistence & Audit Foundation is planned.
+Milestone 17 — Paper Trading Persistence & Audit Foundation is complete.
 
-The next focus is Sprint 89 — Milestone 17 Documentation Refresh. Close Milestone 17 with documentation that explains the local paper trading persistence and audit foundation without adding runtime workflow, broker, live execution, database, dashboard, or report behavior.
+The next focus is Sprint 90 — Milestone 18 Planning. Plan the next milestone direction before adding runtime workflow integration, broker readiness, live execution, database behavior, dashboard behavior, or report generation.
