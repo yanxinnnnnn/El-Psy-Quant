@@ -63,7 +63,7 @@ docs/milestones/milestone-015-backtest-execution-realism-foundation.md
   - single worst portfolio drawdown inspection
   - static-weight per-symbol contribution returns and summaries
   - standalone portfolio attribution summary artifacts
-- Execution assumptions and order-intent boundaries for deterministic local backtests.
+- Execution assumptions, order-intent boundaries, and deterministic assumed fills for local backtests.
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -178,7 +178,7 @@ el_psy_quant/
   outputs.py     # Create deterministic local experiment directories and reserved paths
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
-  execution/     # Execution assumptions and order-intent boundaries
+  execution/     # Execution assumptions, order intents, and assumed fills
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries
@@ -214,9 +214,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 73 — Fill Price Model Foundation**
+**Sprint 74 — Execution-Adjusted Trade Summary Foundation**
 
-Sprint 73 should add a local deterministic fill price model under explicit execution assumptions without adding broker, paper-trading, or live-trading behavior.
+Sprint 74 should summarize execution-adjusted trades from explicit order intents and assumed fills without adding broker, paper-trading, or live-trading behavior.
 
 ## Disclaimer
 

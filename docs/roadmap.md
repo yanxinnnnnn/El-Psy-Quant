@@ -103,7 +103,7 @@ docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
 | S70 | Complete | Plan Milestone 15. | Execution realism scope and sprint sequence. | No implementation during planning. |
 | S71 | Complete | Define execution assumptions. | Small documented execution assumption boundary. | No broker integration. |
 | S72 | Complete | Add order intent boundary. | Deterministic order-intent representation from existing research outputs. | No live orders. |
-| S73 | Planned | Add fill price model. | Local deterministic fill model under explicit timing assumptions. | No market microstructure simulation. |
+| S73 | Complete | Add fill price model. | Local deterministic fill model under explicit timing assumptions. | No market microstructure simulation. |
 | S74 | Planned | Add execution-adjusted trade summary. | Reviewable summary of fills and execution assumptions. | No portfolio rebalancing engine. |
 | S75 | Planned | Add execution realism artifact. | Standalone artifact tying assumptions to results. | No broad configured-run expansion. |
 | S76 | Planned | Close milestone. | Milestone 15 documentation refresh. | No scope expansion. |
@@ -153,9 +153,9 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 73 — Fill Price Model Foundation
+Sprint 74 — Execution-Adjusted Trade Summary Foundation
 ```
 
 Reason:
 
-Sprint 73 should add a local deterministic fill price model under explicit execution assumptions without adding broker, paper-trading, or live-trading behavior.
+Sprint 74 should summarize execution-adjusted trades from explicit order intents and assumed fills without adding broker, paper-trading, or live-trading behavior.
