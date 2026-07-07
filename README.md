@@ -58,8 +58,23 @@ docs/strategy/future-platform-roadmap.md
 - Strategy interface, moving-average strategy adapter, and exact-name resolver.
 - Moving-average crossover research pipeline with returns, costs, slippage, equity, and trade records.
 - Independent multi-symbol research execution and cross-symbol summaries.
-- Portfolio construction, risk, and attribution foundations.
-- Backtest execution realism foundation.
+- Portfolio construction foundation:
+  - aligned per-symbol strategy return streams
+  - equal-weight portfolio returns
+  - validated static portfolio weights
+  - weighted portfolio returns
+  - standalone portfolio summary artifacts
+- Portfolio risk and attribution foundation:
+  - portfolio return risk metrics
+  - single worst portfolio drawdown inspection
+  - static-weight per-symbol contribution returns and summaries
+  - standalone portfolio attribution summary artifacts
+- Backtest execution realism foundation:
+  - explicit execution assumptions
+  - order-intent boundaries
+  - deterministic assumed fills
+  - execution-adjusted trade summaries
+  - in-memory execution realism artifacts for local backtests
 - Paper trading foundation:
   - deterministic local paper account state
   - optional equity snapshots from explicitly supplied prices only
@@ -144,6 +159,21 @@ artifact = build_portfolio_summary_artifact(
 
 Portfolio construction is different from independent multi-symbol summaries because it must define date alignment, aggregation, weights, and recorded assumptions.
 
+## Portfolio Risk And Attribution
+
+Milestone 14 added the first standalone portfolio risk and attribution layer on top of the portfolio construction foundation.
+
+The completed chain is:
+
+```text
+portfolio_return -> risk metrics
+portfolio_equity -> drawdown inspection
+aligned_returns + static_weights -> symbol contribution
+risk + drawdown + contribution -> attribution summary artifact
+```
+
+This layer explains portfolio behavior before adding execution realism.
+
 ## Backtest Execution Realism Foundation
 
 Milestone 15 made execution assumptions explicit and reviewable.
@@ -153,6 +183,8 @@ The completed chain is:
 ```text
 execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
 ```
+
+This milestone remains local and deterministic. It does not introduce external execution connectivity, paper trading, or operational runtime behavior.
 
 ## Paper Trading Foundation
 
@@ -164,6 +196,8 @@ The completed chain is:
 paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
 ```
 
+The paper-trading foundation is local, deterministic, and inspectable. It does not currently support external execution connectivity, configured-run integration, artifact persistence, or report generation.
+
 ## Paper Trading Persistence & Audit Foundation
 
 Milestone 17 made paper-trading artifacts durable and audit-friendly.
@@ -173,6 +207,8 @@ The completed chain is:
 ```text
 paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
 ```
+
+This milestone remains local and deterministic. It does not add configured-run expansion, databases, dashboards, broad report generation, deep object reconstruction, or schema migration behavior.
 
 ## Paper Trading Workflow Integration Foundation
 
