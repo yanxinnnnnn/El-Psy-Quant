@@ -54,6 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 15 — Backtest Execution Realism Foundation is in progress.
+Milestone 16 — Paper Trading Foundation planning is next.
 
-The next focus is Sprint 76 — Milestone 15 Closeout. Refresh documentation only and add no new execution behavior.
+Milestone 15 is complete. The next planning step should define a conservative paper-trading boundary after local execution assumptions, order intents, deterministic assumed fills, execution summaries, and execution realism artifacts have been made explicit.
