@@ -56,4 +56,4 @@ A task is done only when:
 
 Milestone 16 — Paper Trading Foundation is in progress.
 
-The next focus is Sprint 81 — Paper Trading Session Summary Foundation. Summarize local paper trading sessions from account states, paper orders, and explicit fills without adding artifacts, broker integration, or live execution behavior.
+The next focus is Sprint 82 — Paper Trading Artifact Foundation. Add a standalone paper trading artifact from explicit paper trading session inputs without adding configured-run integration, broker integration, or live execution behavior.

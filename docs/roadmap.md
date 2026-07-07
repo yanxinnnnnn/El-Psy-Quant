@@ -131,7 +131,7 @@ docs/sprints/sprint-076-milestone-15-closeout.md
 | S78 | Complete | Add paper account state. | Deterministic cash, positions, and equity snapshot boundary. | No broker account sync. |
 | S79 | Complete | Add paper order ledger. | Local paper order records and status boundary. | No exchange routing. |
 | S80 | Complete | Add paper fill application. | Apply assumed fills to paper account state. | No live market data. |
-| S81 | Planned | Add paper trading session summary. | Reviewable paper session summary from orders, fills, and account snapshots. | No PnL analytics expansion. |
+| S81 | Complete | Add paper trading session summary. | Reviewable paper session summary from orders, fills, and account snapshots. | No PnL analytics expansion. |
 | S82 | Planned | Add paper trading artifact. | Standalone artifact for paper trading session state and assumptions. | No configured-run expansion. |
 | S83 | Planned | Close milestone. | Milestone 16 documentation refresh. | No scope expansion. |
 
@@ -181,9 +181,9 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 81 — Paper Trading Session Summary Foundation
+Sprint 82 — Paper Trading Artifact Foundation
 ```
 
 Reason:
 
-Sprint 81 should summarize local paper trading sessions from account states, paper orders, and explicit fills without adding artifacts, broker integration, or live execution behavior.
+Sprint 82 should add a standalone paper trading artifact from explicit paper trading session inputs without adding configured-run integration, broker integration, or live execution behavior.

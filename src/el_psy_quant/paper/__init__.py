@@ -15,15 +15,21 @@ from el_psy_quant.paper.orders import (
     create_paper_order_ledger,
     create_paper_order_record,
 )
+from el_psy_quant.paper.session import (
+    PaperTradingSessionSummary,
+    create_paper_trading_session_summary,
+)
 
 __all__ = [
     "PaperAccountState",
     "PaperFill",
     "PaperOrderLedger",
     "PaperOrderRecord",
+    "PaperTradingSessionSummary",
     "apply_paper_fills",
     "create_paper_account_state",
     "create_paper_fill",
     "create_paper_order_ledger",
     "create_paper_order_record",
+    "create_paper_trading_session_summary",
 ]
