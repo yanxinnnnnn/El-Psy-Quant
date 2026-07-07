@@ -35,7 +35,7 @@ flowchart LR
     M13 --> M14["Milestone 14<br/>Portfolio Risk & Attribution Foundation<br/>Sprints 64-69 ✅"]
     M14 --> M15["Milestone 15<br/>Backtest Execution Realism Foundation<br/>Sprints 70-76 ✅"]
     M15 --> M16["Milestone 16<br/>Paper Trading Foundation<br/>Sprints 77-83 ✅"]
-    M16 --> M17["Milestone 17<br/>Paper Trading Persistence & Audit Foundation<br/>Sprints 84-89 Planned"]
+    M16 --> M17["Milestone 17<br/>Paper Trading Persistence & Audit Foundation<br/>Sprints 84-89 ✅"]
 ```
 
 ## Milestone Table
@@ -58,7 +58,7 @@ flowchart LR
 | Milestone 14 — Portfolio Risk & Attribution Foundation | Sprints 64-69 | Complete | Explain portfolio-level behavior after construction is explicit. | Portfolio risk, drawdown, contribution, and attribution summary artifacts are available under conservative assumptions. |
 | Milestone 15 — Backtest Execution Realism Foundation | Sprints 70-76 | Complete | Make backtest execution assumptions explicit, deterministic, and reviewable. | Execution assumptions, order intent, fill behavior, execution summaries, and execution realism artifacts are available under local research assumptions. |
 | Milestone 16 — Paper Trading Foundation | Sprints 77-83 | Complete | Define local paper-trading state and records before broker integration. | Paper account state, paper orders, fill application, session summaries, and artifacts are available under conservative local assumptions. |
-| Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Planned | Make local paper-trading outputs durable and audit-friendly before runtime workflows. | Paper-trading artifacts can be saved, loaded, validated, and summarized locally without broker, live, database, dashboard, or configured-run behavior. |
+| Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper-trading outputs durable and audit-friendly before runtime workflows. | Paper-trading artifacts can be saved, loaded, validated, and summarized locally without broker, live, database, dashboard, report, or configured-run behavior. |
 
 ## Completed Milestone 13 — Portfolio Construction Foundation
 
@@ -150,7 +150,7 @@ docs/milestones/milestone-016-paper-trading-foundation.md
 docs/sprints/sprint-083-milestone-16-closeout.md
 ```
 
-## Planned Milestone 17 — Paper Trading Persistence & Audit Foundation
+## Completed Milestone 17 — Paper Trading Persistence & Audit Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
@@ -159,9 +159,9 @@ docs/sprints/sprint-083-milestone-16-closeout.md
 | S86 | Complete | Add local paper artifact writer. | Save a paper trading artifact to an explicit local path. | No CLI or configured-run integration. |
 | S87 | Complete | Add paper artifact reader and validation. | Load saved paper artifacts and validate schema/version expectations. | No database or artifact service. |
 | S88 | Complete | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
-| S89 | Planned | Close milestone. | Milestone 17 documentation refresh. | No scope expansion. |
+| S89 | Complete | Close milestone. | Milestone 17 documentation refresh. | No scope expansion. |
 
-Milestone 17 should follow this conservative chain:
+Milestone 17 closed this conservative chain:
 
 ```text
 paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
@@ -172,6 +172,7 @@ See:
 ```text
 docs/milestones/milestone-017-paper-trading-persistence-audit-foundation.md
 docs/sprints/sprint-084-milestone-17-planning.md
+docs/sprints/sprint-089-milestone-17-closeout.md
 ```
 
 ## Future Platform Direction
@@ -179,10 +180,10 @@ docs/sprints/sprint-084-milestone-17-planning.md
 The recommended sequence now is:
 
 ```text
-Sprint 89 — Milestone 17 Documentation Refresh
+Sprint 90 — Milestone 18 Planning
 ```
 
-The guiding idea is to make paper-trading artifacts durable and audit-friendly before adding broker integration, live execution, configured runs, databases, dashboards, reports, or broader runtime workflow behavior.
+Sprint 90 should decide the next milestone direction before implementation begins. Reasonable candidates include configured-run integration, paper-trading workflow integration, reporting, broker-readiness groundwork, or another conservative platform layer, but the roadmap does not choose that scope yet.
 
 ## Roadmap Principles
 
@@ -208,9 +209,9 @@ The guiding idea is to make paper-trading artifacts durable and audit-friendly b
 The next sprint is:
 
 ```text
-Sprint 89 — Milestone 17 Documentation Refresh
+Sprint 90 — Milestone 18 Planning
 ```
 
 Reason:
 
-Sprint 89 should close Milestone 17 with documentation that explains the local paper trading persistence and audit foundation without adding runtime workflow, broker, live execution, database, dashboard, or report behavior.
+Sprint 90 should plan Milestone 18 without assuming the next implementation direction in advance.

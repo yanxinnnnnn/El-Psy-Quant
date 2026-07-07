@@ -12,27 +12,27 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 **Milestone 16 — Paper Trading Foundation** is complete.
 
-Milestone 15 completed the local backtest execution realism chain:
-
-```text
-execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
-```
-
-Milestone 16 then completed the conservative local paper-trading foundation:
+Milestone 16 completed the conservative local paper-trading foundation:
 
 ```text
 paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
 ```
 
-Milestone 17 is planned as **Paper Trading Persistence & Audit Foundation**.
+**Milestone 17 — Paper Trading Persistence & Audit Foundation** is complete.
 
-The planned next chain is:
+Milestone 17 completed the local paper-trading persistence and audit chain:
 
 ```text
 paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
 ```
 
-This milestone should make paper-trading artifacts durable and audit-friendly before broker integration, live execution, configured-run expansion, databases, dashboards, reports, or broader runtime workflow behavior are considered.
+This milestone makes paper-trading artifacts durable and audit-friendly before broker integration, live execution, configured-run expansion, databases, dashboards, reports, or broader runtime workflow behavior are considered.
+
+The next sprint is:
+
+```text
+Sprint 90 — Milestone 18 Planning
+```
 
 See the milestone summaries in:
 
@@ -195,15 +195,15 @@ The paper-trading foundation is local, deterministic, and inspectable. It does n
 
 ## Paper Trading Persistence & Audit Foundation
 
-Milestone 17 is planned to make paper-trading artifacts durable and audit-friendly.
+Milestone 17 made paper-trading artifacts durable and audit-friendly.
 
-The planned chain is:
+The completed chain is:
 
 ```text
 paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
 ```
 
-This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, configured-run expansion, databases, dashboards, or broad report generation.
+This milestone remains local and deterministic. It does not add broker integration, live execution, order routing, configured-run expansion, databases, dashboards, broad report generation, deep object reconstruction, or schema migration behavior.
 
 ## Local Experiment Configuration
 
