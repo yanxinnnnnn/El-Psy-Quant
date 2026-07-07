@@ -72,6 +72,7 @@ docs/milestones/milestone-016-paper-trading-foundation.md
   - deterministic local paper order records and ledgers
   - explicit paper fill application to local account state
   - deterministic local paper trading session summaries
+  - standalone in-memory paper trading artifacts
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -199,7 +200,7 @@ el_psy_quant/
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, assumed fills, summaries, and artifacts
-  paper/         # Local paper account state, order ledger, fill application, and session summary boundaries
+  paper/         # Local paper account state, order ledger, fill application, session summary, and artifact boundaries
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries
@@ -235,9 +236,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 82 — Paper Trading Artifact Foundation**
+**Sprint 83 — Milestone 16 Documentation Refresh**
 
-Sprint 82 should add a standalone paper trading artifact from explicit paper trading session inputs without adding configured-run integration, broker integration, or live execution behavior.
+Sprint 83 should close Milestone 16 with documentation that explains the local paper trading foundation without adding broker integration, live execution, or runtime workflow changes.
 
 ## Disclaimer
 

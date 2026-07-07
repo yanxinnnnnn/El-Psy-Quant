@@ -56,4 +56,4 @@ A task is done only when:
 
 Milestone 16 — Paper Trading Foundation is in progress.
 
-The next focus is Sprint 82 — Paper Trading Artifact Foundation. Add a standalone paper trading artifact from explicit paper trading session inputs without adding configured-run integration, broker integration, or live execution behavior.
+The next focus is Sprint 83 — Milestone 16 Documentation Refresh. Close Milestone 16 with documentation that explains the local paper trading foundation without adding broker integration, live execution, or runtime workflow changes.
