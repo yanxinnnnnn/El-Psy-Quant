@@ -9,6 +9,10 @@ from el_psy_quant.paper.artifact import (
     PaperTradingArtifact,
     create_paper_trading_artifact,
 )
+from el_psy_quant.paper.audit import (
+    PaperTradingArtifactAuditSummary,
+    create_paper_trading_artifact_audit_summary,
+)
 from el_psy_quant.paper.fills import (
     PaperFill,
     apply_paper_fills,
@@ -46,6 +50,7 @@ __all__ = [
     "PaperOrderLedger",
     "PaperOrderRecord",
     "PaperTradingArtifact",
+    "PaperTradingArtifactAuditSummary",
     "PaperTradingSessionSummary",
     "apply_paper_fills",
     "create_paper_account_state",
@@ -53,6 +58,7 @@ __all__ = [
     "create_paper_order_ledger",
     "create_paper_order_record",
     "create_paper_trading_artifact",
+    "create_paper_trading_artifact_audit_summary",
     "create_paper_trading_artifact_file_payload",
     "create_paper_trading_session_summary",
     "read_paper_trading_artifact_file",
