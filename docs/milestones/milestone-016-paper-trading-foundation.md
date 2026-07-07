@@ -25,7 +25,7 @@ That chain made the research-side execution boundary explicit. Milestone 16 shou
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S77 | Complete | Plan Milestone 16. | Paper trading scope and sprint sequence. | No implementation during planning. |
-| S78 | Planned | Add paper account state. | Deterministic cash, positions, and equity snapshot boundary. | No broker account sync. |
+| S78 | Complete | Add paper account state. | Deterministic cash, positions, and equity snapshot boundary. | No broker account sync. |
 | S79 | Planned | Add paper order ledger. | Local paper order records and status boundary. | No exchange routing. |
 | S80 | Planned | Add paper fill application. | Apply assumed fills to paper account state. | No live market data. |
 | S81 | Planned | Add paper trading session summary. | Reviewable paper session summary from orders, fills, and account snapshots. | No PnL analytics expansion. |
@@ -142,7 +142,7 @@ Broker integration should wait until paper trading state, order records, fill ap
 ## Current Next Step
 
 ```text
-Sprint 78 — Paper Account State Foundation
+Sprint 79 — Paper Order Ledger Foundation
 ```
 
-Start by defining the paper account state boundary before adding order ledgers or fill application.
+Continue by defining local paper order records and ledger behavior before adding fill application, session summaries, or artifacts.

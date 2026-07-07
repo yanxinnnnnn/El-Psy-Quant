@@ -66,6 +66,9 @@ docs/milestones/milestone-016-paper-trading-foundation.md
   - deterministic assumed fills
   - execution-adjusted trade summaries
   - in-memory execution realism artifacts for local backtests
+- Paper trading foundation:
+  - deterministic local paper account state
+  - optional equity snapshots from explicitly supplied prices only
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -193,6 +196,7 @@ el_psy_quant/
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, assumed fills, summaries, and artifacts
+  paper/         # Local paper account state boundaries
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries
@@ -228,9 +232,9 @@ AGENTS.md
 
 ## Next Step
 
-**Sprint 78 — Paper Account State Foundation**
+**Sprint 79 — Paper Order Ledger Foundation**
 
-Sprint 78 should define the paper account state boundary before adding paper order ledgers, fill application, session summaries, or artifacts.
+Sprint 79 should define local paper order records and ledger behavior before adding fill application, session summaries, or artifacts.
 
 ## Disclaimer
 
