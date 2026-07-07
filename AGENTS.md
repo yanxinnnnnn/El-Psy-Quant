@@ -68,4 +68,4 @@ Milestone 17 — Paper Trading Persistence & Audit Foundation is complete.
 
 Milestone 18 — Paper Trading Workflow Integration Foundation is in progress.
 
-The next focus is Sprint 92 — Paper Run Execution Boundary Foundation. Consume the explicit paper run request and build the in-memory paper trading artifact path before adding file persistence, CLI behavior, configured-run integration, broker readiness, or live execution.
+The next focus is Sprint 93 — Paper Run Artifact Persistence Foundation. Persist a paper run artifact to an explicit local path using the existing Milestone 17 writer before adding default output-root workflow behavior, CLI behavior, configured-run integration, broker readiness, or live execution.
