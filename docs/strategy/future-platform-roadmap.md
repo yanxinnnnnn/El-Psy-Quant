@@ -1,457 +1,452 @@
-# Future Platform Roadmap — CTO Plan
+# Future Platform Roadmap — Founder-Level CTO Plan
 
 ## Purpose
 
-This document captures the long-term technical direction for El-Psy-Quant after Milestone 9 planning.
+This document captures the long-term company-level direction for El-Psy-Quant.
 
-The project should not rush into live trading or a zoo of strategies. A professional quantitative research platform becomes valuable when it can support this chain reliably:
+El-Psy-Quant should not become a loose collection of strategy scripts or a thin trading bot. The product direction is to build an AI-native quantitative research operating system that can turn trading ideas into reproducible, auditable, risk-aware decisions before real capital is deployed.
 
-```text
-data can be trusted
-  -> experiments can be reproduced
-  -> results can be compared
-  -> strategies can be extended
-  -> portfolios can be constructed
-  -> risk can be explained
-  -> execution assumptions can be controlled
-```
-
-The near-term goal is not to find a magic strategy. The goal is to build a system that is hard to fool.
-
-## Planning Principles
-
-1. Quality gates before more surface area.
-2. Experiment comparison before strategy proliferation.
-3. Strategy interfaces before strategy quantity.
-4. Data integrity before portfolio construction.
-5. Portfolio construction before portfolio risk attribution.
-6. Execution timing discipline before paper trading.
-7. Paper trading before any real-money trading.
-
-## Recommended Milestone Sequence
+## Strategic North Star
 
 ```text
-Milestone 9  — Project Quality Foundation
-Milestone 10 — Experiment Artifact & Comparison Foundation
-Milestone 11 — Strategy Interface Foundation
-Milestone 12 — Data Integrity & Universe Foundation
-Milestone 13 — Portfolio Construction Foundation
-Milestone 14 — Portfolio Risk & Attribution Foundation
-Milestone 15 — Backtest Execution Realism Foundation
-Milestone 16 — Paper Trading Foundation
+Build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 ```
 
-## Milestone 9 — Project Quality Foundation
-
-### Goal
-
-Add automated quality gates and repository hygiene before the project adds more research behavior.
-
-### Why This Comes Next
-
-The project now has enough code and documentation that local claims are not enough. PR review should not rely only on someone saying:
+The platform should support this decision chain reliably:
 
 ```text
-tests passed locally
+idea
+  -> data
+  -> research
+  -> backtest
+  -> portfolio
+  -> execution assumptions
+  -> paper trading
+  -> persistence
+  -> audit
+  -> decision review
+  -> controlled live readiness
 ```
 
-GitHub should verify the basic checks automatically.
+The target is not a magic profitable strategy. The target is a trusted decision pipeline.
 
-### Planned Sprints
+## Company-Level Capability Curve
+
+The platform should move through these phases:
 
 ```text
-S37 — Milestone 9 Planning
-S38 — GitHub Actions CI Foundation
-S39 — Repository Hygiene Guardrails
-S40 — Local Quality Check Entrypoint
-S41 — Milestone 9 Documentation Refresh
+Phase 1 — Research & Artifact Foundation
+Phase 2 — Workflow Integration Foundation
+Phase 3 — Decision Intelligence Foundation
+Phase 4 — Broker Readiness & Execution Governance
+Phase 5 — Controlled Live Pilot & Production Operations
 ```
 
-### Exit Criteria
-
-Pull requests can be checked consistently with automated CI signals.
-
-### Guardrails
-
-- No deployment automation.
-- No release automation.
-- No package publishing.
-- No large CI matrix.
-- No coverage threshold yet.
-
-## Milestone 10 — Experiment Artifact & Comparison Foundation
-
-### Goal
-
-Make experiment results easier to inspect, compare, and revisit.
-
-Milestone 8 created:
+The priority order is:
 
 ```text
-config -> CLI -> output folder
+workflow > decision record > reporting artifact > risk controls > broker sandbox > live
 ```
 
-Milestone 10 should make the output folder more useful without jumping to a database.
-
-### Planned Direction
+The wrong order would be:
 
 ```text
-S42 — Standard Experiment Artifact Schema
-S43 — Run Metadata Enhancement
-S44 — Run Comparison Helper
-S45 — Milestone 10 Documentation Refresh
+broker > dashboard > live > strategy zoo
 ```
 
-### Expected Capabilities
+That path would create complexity before the platform earns it.
 
-A run directory should become more informative:
+## Phase 1 — Research & Artifact Foundation
+
+Status: Mostly complete through Milestone 17.
+
+This phase establishes the platform foundation:
+
+- local data loading and validation
+- reproducible research pipelines
+- experiment artifacts
+- strategy interface
+- portfolio construction
+- portfolio risk and attribution
+- execution realism
+- paper trading state
+- paper trading artifacts
+- paper artifact persistence
+- paper artifact validation and audit summaries
+
+Completed milestone chain:
 
 ```text
-outputs/<experiment>/<run-id>/
-  config.yaml
-  metadata.json
-  results/
-    summary.csv
-    metrics.json
-  logs/
+M1-M8   basic research workflow and operations
+M9      project quality foundation
+M10     experiment artifact and comparison foundation
+M11     strategy interface foundation
+M12     data integrity and universe foundation
+M13     portfolio construction foundation
+M14     portfolio risk and attribution foundation
+M15     backtest execution realism foundation
+M16     paper trading foundation
+M17     paper trading persistence and audit foundation
 ```
 
-The project should be able to answer:
+Phase 1 turns the project from a demo into a disciplined local research platform.
+
+## Phase 2 — Workflow Integration Foundation
+
+Recommended focus: Milestones 18-21.
+
+This phase turns isolated capabilities into operating workflows.
+
+### Milestone 18 — Paper Trading Workflow Integration Foundation
+
+Goal:
 
 ```text
-What changed between these two runs?
-Which parameters changed?
-How did the main metrics change?
+paper run request
+  -> paper run execution
+  -> paper artifact persistence
+  -> paper run result summary
 ```
 
-### Guardrails
+Purpose:
 
-- No database.
-- No MLflow.
-- No W&B.
-- No cloud artifact tracking.
-- No heavy experiment tracking server.
+Make paper trading a complete local workflow using the existing M16 and M17 boundaries.
 
-### CTO Judgment
+Guardrails:
 
-Use the file system well before adding a database. Databases added too early turn simple research workflows into migration work.
+- no broker integration
+- no live execution
+- no configured-run integration yet
+- no dashboard or report generation
 
-## Milestone 11 — Strategy Interface Foundation
+### Milestone 19 — Configured Paper Run Foundation
 
-### Goal
-
-Turn moving-average crossover from the only strategy into the first strategy.
-
-### Why This Matters
-
-Adding many strategies without a stable interface will break config, CLI, artifacts, and tests. The project needs a small strategy contract before strategy count grows.
-
-### Planned Direction
+Goal:
 
 ```text
-S46 — Strategy Protocol / Interface
-S47 — Strategy Registry
-S48 — Configurable Strategy Dispatch
-S49 — First Additional Baseline Strategy
-S50 — Milestone 11 Documentation Refresh
+local config
+  -> validated paper run request
+  -> paper workflow execution
+  -> saved paper outputs
 ```
 
-### Expected Capabilities
+Purpose:
 
-A new strategy should be added without rewriting the CLI or output workflow.
+Allow paper runs to be driven by a local configuration layer after the local workflow boundary is stable.
 
-A future config could look like:
+Guardrails:
 
-```yaml
-experiment:
-  name: momentum-test
-  strategy: momentum
+- no broker integration
+- no live execution
+- no database
+- no strategy expansion
 
-parameters:
-  lookback_window: 60
-```
+### Milestone 20 — Research-to-Paper Promotion Foundation
 
-### Guardrails
-
-- No strategy zoo.
-- No complex plugin framework.
-- No machine learning strategy layer yet.
-- No production trading claims.
-
-### CTO Judgment
-
-A professional platform should make strategies easy to add, but hard to add sloppily.
-
-## Milestone 12 — Data Integrity & Universe Foundation
-
-### Goal
-
-Move from loading CSV files to understanding whether the data is fit for research.
-
-### Why This Matters
-
-Bad data can create fake alpha. Before portfolio construction, the project needs better data quality visibility.
-
-Common problems include:
+Goal:
 
 ```text
-missing dates
-duplicate dates
-short histories
-symbol coverage gaps
-uneven calendars
-invalid price columns
+research artifact / execution artifact
+  -> paper run candidate
+  -> explicit promotion record
 ```
 
-### Planned Direction
+Purpose:
+
+Define what qualifies a research or backtest output to be promoted into paper trading.
+
+This is the start of decision governance.
+
+Guardrails:
+
+- no automatic promotion
+- no autonomous strategy approval
+- no live readiness claims
+
+### Milestone 21 — Paper Run Comparison & Review Foundation
+
+Goal:
 
 ```text
-S51 — Data Quality Report
-S52 — Multi-Symbol Date Alignment
-S53 — Symbol Universe Config
-S54 — Calendar / Missing Data Policy
-S55 — Milestone 12 Documentation Refresh
+multiple paper runs
+  -> comparison summary
+  -> review decision record
 ```
 
-### Expected Capabilities
+Purpose:
 
-The project should produce a quality report like:
+Move beyond one-off paper runs and make paper performance comparable and reviewable.
+
+Guardrails:
+
+- no dashboard
+- no broad report engine
+- no capital deployment decision automation
+
+## Phase 3 — Decision Intelligence Foundation
+
+Recommended focus: Milestones 22-25.
+
+This phase makes strategy decisions explicit and reviewable.
+
+### Milestone 22 — Decision Record Foundation
+
+Goal:
 
 ```text
-symbol | start_date | end_date | rows | missing_dates | duplicate_dates | status
+research artifact
+  -> paper artifact
+  -> audit summary
+  -> decision record
 ```
 
-A future universe config could look like:
+Purpose:
 
-```yaml
-universe:
-  name: us-large-cap-test
-  symbols:
-    - AAPL
-    - MSFT
-    - NVDA
-```
+Record why a strategy is continued, paused, rejected, promoted, or watched.
 
-### Guardrails
+### Milestone 23 — Report Artifact Foundation
 
-- No enterprise data platform.
-- No real-time data pipeline.
-- No market data database yet.
-- No vendor integration expansion.
-
-### CTO Judgment
-
-Data quality should come before portfolio complexity. Otherwise the system will confidently backtest noise.
-
-## Milestone 13 — Portfolio Construction Foundation
-
-### Goal
-
-Move from independent multi-symbol results to actual portfolio-level research.
-
-### Why This Matters
-
-Milestone 7 intentionally avoided portfolio construction. That was correct. Multi-symbol research is not automatically portfolio research.
-
-Milestone 13 is where the project should finally build a simple portfolio layer.
-
-### Planned Direction
+Goal:
 
 ```text
-S56 — Portfolio Input Contract
-S57 — Static Weight Portfolio
-S58 — Rebalanced Equal-Weight Portfolio
-S59 — Portfolio Equity Curve
-S60 — Milestone 13 Documentation Refresh
+run artifacts
+  -> deterministic report artifact
 ```
 
-### Expected Capabilities
+Purpose:
 
-The project should produce:
+Create structured report artifacts before dashboards.
+
+Reports should summarize evidence, assumptions, risk warnings, and decision status. They should not become a visual dashboard layer yet.
+
+### Milestone 24 — Strategy Review Workflow Foundation
+
+Goal:
 
 ```text
-portfolio daily return
-portfolio equity curve
-portfolio drawdown
-portfolio turnover
-portfolio weights
+candidate strategy
+  -> research review
+  -> paper review
+  -> decision gate
 ```
 
-A future config could look like:
+Purpose:
 
-```yaml
-portfolio:
-  weighting: equal_weight
-  rebalance: monthly
-  initial_capital: 100000
-```
-
-### Guardrails
-
-- No portfolio optimization yet.
-- No Markowitz optimizer.
-- No Black-Litterman.
-- No risk parity.
-- No production allocation engine.
-
-### CTO Judgment
-
-Start with static weights and equal weights. Get the accounting right before optimization enters the room wearing a lab coat.
-
-## Milestone 14 — Portfolio Risk & Attribution Foundation
-
-### Goal
-
-Explain portfolio behavior instead of only reporting portfolio performance.
-
-### Why This Matters
-
-A portfolio equity curve is not enough. A research platform should help answer:
+Define strategy lifecycle states such as:
 
 ```text
-Which symbols contributed to return?
-Which symbols contributed to drawdown?
-Where is exposure concentrated?
-How much turnover did the strategy create?
-How did the portfolio compare with a benchmark?
+draft
+  -> research_candidate
+  -> paper_candidate
+  -> watchlist
+  -> rejected
+  -> live_candidate
 ```
 
-### Planned Direction
+### Milestone 25 — Portfolio-Level Decision Review Foundation
+
+Goal:
 
 ```text
-S61 — Portfolio Risk Metrics
-S62 — Symbol Contribution Attribution
-S63 — Portfolio Benchmark Comparison
-S64 — Turnover & Exposure Summary
-S65 — Milestone 14 Documentation Refresh
+strategy candidates
+  -> portfolio impact
+  -> risk concentration
+  -> decision recommendation
 ```
 
-### Expected Capabilities
+Purpose:
 
-The project should expose:
+Evaluate strategies at portfolio level instead of only strategy level.
+
+A strategy can be attractive alone and still be bad for the portfolio if it adds concentrated risk or duplicate exposure.
+
+## Phase 4 — Broker Readiness & Execution Governance
+
+Recommended focus: Milestones 26-30.
+
+This phase approaches broker integration without rushing into real-money execution.
+
+### Milestone 26 — Broker Abstraction Planning
+
+Goal:
+
+Define broker-facing concepts without connecting to a broker.
+
+Questions to answer:
+
+- order model
+- account snapshot model
+- fill event model
+- broker error model
+- retry and idempotency rules
+- manual approval boundaries
+
+### Milestone 27 — Simulated Broker Adapter Foundation
+
+Goal:
 
 ```text
-portfolio_total_return
-portfolio_max_drawdown
-portfolio_volatility
-portfolio_sharpe
-symbol_return_contribution
-symbol_drawdown_contribution
-turnover
-exposure
+paper order
+  -> simulated broker adapter
+  -> simulated ack / fill / reject
 ```
 
-### Guardrails
+Purpose:
 
-- No production risk system.
-- No real-time dashboard.
-- No VaR mega-project.
-- No factor model unless the simpler attribution layer is stable.
+Exercise broker-like behavior locally without external dependencies.
 
-### CTO Judgment
+### Milestone 28 — Execution Risk Control Foundation
 
-Risk explanation should come before complex risk modeling.
+Goal:
 
-## Milestone 15 — Backtest Execution Realism Foundation
+Add pre-trade guardrails:
 
-### Goal
+- max order size
+- max position size
+- max daily turnover
+- max loss threshold
+- symbol allowlist
+- trading window
+- manual approval requirement
 
-Make backtests more explicit about signal time, fill time, and fill price assumptions.
+Purpose:
 
-### Why This Matters
+Risk controls should exist before any real broker integration.
 
-A strategy can look excellent if it accidentally trades with information it would not have had in reality. Execution timing discipline is one of the biggest differences between toy backtests and serious backtests.
+### Milestone 29 — Live Readiness Checklist Foundation
 
-### Planned Direction
+Goal:
 
 ```text
-S66 — Signal Timestamp Discipline
-S67 — Next-Bar Execution Model
-S68 — Order Fill Assumption Layer
-S69 — Execution Cost Model Extension
-S70 — Milestone 15 Documentation Refresh
+strategy evidence
+  + paper performance
+  + risk controls
+  + operational checks
+  + manual approval
+  -> live readiness status
 ```
 
-### Expected Capabilities
+Purpose:
 
-A future config could look like:
+Define whether a strategy is eligible for live testing without executing live trades yet.
 
-```yaml
-execution:
-  signal_price: close
-  fill_price: next_open
-  delay_bars: 1
-```
+### Milestone 30 — Broker Sandbox Integration
 
-The project should clearly distinguish:
+Goal:
+
+Connect to a broker sandbox or paper broker API.
+
+Purpose:
+
+Test external integration after local workflow, decision, and risk boundaries exist.
+
+Guardrails:
+
+- no real-money trading
+- no unattended execution
+- no auto-scaling of strategies
+
+## Phase 5 — Controlled Live Pilot & Production Operations
+
+Recommended focus: Milestones 31+.
+
+This phase should only start after Phase 4 creates strong operational guardrails.
+
+### Milestone 31 — Small-Capital Live Pilot Foundation
+
+Goal:
+
+Support extremely small, tightly controlled live execution.
+
+Requirements:
+
+- allowlisted strategy
+- allowlisted symbols
+- strict max exposure
+- manual kill switch
+- full audit trail
+- no autonomous scaling
+
+### Milestone 32 — Live Monitoring Foundation
+
+Goal:
 
 ```text
-when the signal is known
-when the order is placed
-when the fill happens
-which price is used for the fill
+live orders
+  -> fills
+  -> account state
+  -> risk status
+  -> alerts
 ```
 
-### Guardrails
+Purpose:
 
-- No broker integration.
-- No real orders.
-- No intraday execution engine.
-- No high-frequency assumptions.
+Produce structured operational status artifacts before complex dashboards.
 
-### CTO Judgment
+### Milestone 33 — Incident & Kill Switch Foundation
 
-Without execution timing discipline, backtests can lie beautifully.
+Goal:
 
-## Milestone 16 — Paper Trading Foundation
+Define how the system stops, records incidents, and recovers safely.
 
-### Goal
+Questions:
 
-Add a simulated trading workflow only after research, portfolio, risk, and execution assumptions are stable.
+- when should the system stop?
+- who can stop it?
+- how is the stop recorded?
+- how does recovery work?
+- how are repeated incidents prevented?
 
-### Why This Comes Later
+### Milestone 34 — Production Operations Foundation
 
-Paper trading is not a shortcut. It should be a rehearsal environment for a system that already has solid research discipline.
+Goal:
 
-### Planned Direction
+Document and support production operating discipline:
 
-```text
-S71 — Paper Account Model
-S72 — Paper Order Lifecycle
-S73 — Paper Broker Adapter Interface
-S74 — Daily Paper Run Workflow
-S75 — Milestone 16 Documentation Refresh
-```
+- runbooks
+- status checks
+- deployment records
+- version records
+- rollback rules
+- operational review process
 
-### Expected Capabilities
+### Milestone 35+ — Productization Foundation
 
-The project should support a local simulated loop:
+Possible future direction:
 
-```text
-generate signal
-create paper order
-simulate fill
-update paper position
-record paper portfolio state
-```
+- multi-user workspace
+- permissions
+- hosted dashboard
+- cloud deployment
+- team collaboration
+- SaaS productization
 
-### Guardrails
+This should come after the core decision pipeline is proven.
 
-- No live trading.
-- No real broker orders.
-- No real money.
-- No unattended trading.
+## Core Assets To Build
 
-### CTO Judgment
+### Research Memory
 
-Paper trading is a training ground, not a license to trade real capital.
+Every experiment, strategy, parameter set, data assumption, and result should be traceable.
+
+### Decision Ledger
+
+Every continue, pause, reject, promote-to-paper, and promote-to-live decision should be recorded with evidence.
+
+### Risk Discipline
+
+The platform should slow down bad decisions and speed up good reviews.
+
+### Execution Readiness
+
+Live trading should be the outcome of trusted workflow and governance, not the starting point.
 
 ## Explicit Non-Priorities
 
 The project should not prioritize these too early:
 
 ```text
-many strategies for the sake of count
+strategy count for its own sake
 live broker integration
 real-money trading
 deep learning alpha
@@ -459,12 +454,11 @@ high-frequency trading
 complex web dashboards
 large databases
 portfolio optimization before basic portfolio accounting
+SaaS before the decision pipeline is proven
 ```
-
-These can be useful later, but early versions would create complexity before the platform has earned it.
 
 ## One-Line Strategy
 
 ```text
-Do not rush to find a magic strategy. Build a research system that is hard to fool.
+Do not rush to find a magic strategy. Build a research and decision system that is hard to fool.
 ```

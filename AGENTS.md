@@ -52,10 +52,20 @@ A task is done only when:
 - Assumptions and limitations are documented.
 - The implementation is simple enough for a human reviewer to understand.
 
-## Current Focus
+## Long-Term Platform Direction
 
-Milestone 16 — Paper Trading Foundation is complete.
+Build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
+
+The long-term phase roadmap is maintained in:
+
+```text
+docs/strategy/future-platform-roadmap.md
+```
+
+## Current Focus
 
 Milestone 17 — Paper Trading Persistence & Audit Foundation is complete.
 
-The next focus is Sprint 90 — Milestone 18 Planning. Plan the next milestone direction before adding runtime workflow integration, broker readiness, live execution, database behavior, dashboard behavior, or report generation.
+Milestone 18 — Paper Trading Workflow Integration Foundation is planned.
+
+The next focus is Sprint 91 — Paper Run Request Contract Foundation. Define the smallest useful request object for one local paper run before adding workflow execution, file persistence, CLI behavior, configured-run integration, broker readiness, or live execution.

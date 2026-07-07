@@ -10,14 +10,6 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 16 — Paper Trading Foundation** is complete.
-
-Milestone 16 completed the conservative local paper-trading foundation:
-
-```text
-paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
-```
-
 **Milestone 17 — Paper Trading Persistence & Audit Foundation** is complete.
 
 Milestone 17 completed the local paper-trading persistence and audit chain:
@@ -26,12 +18,20 @@ Milestone 17 completed the local paper-trading persistence and audit chain:
 paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
 ```
 
-This milestone makes paper-trading artifacts durable and audit-friendly before broker integration, live execution, configured-run expansion, databases, dashboards, reports, or broader runtime workflow behavior are considered.
+**Milestone 18 — Paper Trading Workflow Integration Foundation** is planned.
+
+Milestone 18 should turn the local paper-trading building blocks from Milestones 16 and 17 into one explicit workflow boundary:
+
+```text
+paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
+```
+
+The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 
 The next sprint is:
 
 ```text
-Sprint 90 — Milestone 18 Planning
+Sprint 91 — Paper Run Request Contract Foundation
 ```
 
 See the milestone summaries in:
@@ -43,9 +43,15 @@ docs/milestones/
 The latest milestone docs are:
 
 ```text
-docs/milestones/milestone-015-backtest-execution-realism-foundation.md
 docs/milestones/milestone-016-paper-trading-foundation.md
 docs/milestones/milestone-017-paper-trading-persistence-audit-foundation.md
+docs/milestones/milestone-018-paper-trading-workflow-integration-foundation.md
+```
+
+The long-term platform roadmap is:
+
+```text
+docs/strategy/future-platform-roadmap.md
 ```
 
 ## Current Capabilities
@@ -205,6 +211,18 @@ paper artifact file contract -> local paper artifact writer -> local paper artif
 
 This milestone remains local and deterministic. It does not add broker integration, live execution, order routing, configured-run expansion, databases, dashboards, broad report generation, deep object reconstruction, or schema migration behavior.
 
+## Paper Trading Workflow Integration Foundation
+
+Milestone 18 is planned to turn the paper-trading state, artifact, persistence, and audit boundaries into an explicit local paper run workflow.
+
+The planned chain is:
+
+```text
+paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
+```
+
+This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, configured-run expansion, CLI workflow expansion, databases, dashboards, or broad report generation.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -213,7 +231,7 @@ Experiments can be described by a small local YAML file and run with the existin
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The configured workflow currently supports the existing moving-average crossover strategy and does not yet integrate portfolio construction.
+The configured workflow currently supports the existing moving-average crossover strategy and does not yet integrate portfolio construction or paper trading workflows.
 
 ## Module Overview
 
@@ -240,6 +258,7 @@ el_psy_quant/
 docs/roadmap.md
 docs/sprints/
 docs/milestones/
+docs/strategy/future-platform-roadmap.md
 AGENTS.md
 ```
 
