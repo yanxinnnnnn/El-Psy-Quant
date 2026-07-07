@@ -54,6 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 16 — Paper Trading Foundation is in progress.
+Milestone 16 — Paper Trading Foundation is complete.
 
-The next focus is Sprint 83 — Milestone 16 Documentation Refresh. Close Milestone 16 with documentation that explains the local paper trading foundation without adding broker integration, live execution, or runtime workflow changes.
+The next focus is Sprint 84 — Milestone 17 Planning. Plan the next milestone before runtime workflow expansion.
