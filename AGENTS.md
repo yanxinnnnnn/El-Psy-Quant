@@ -56,4 +56,4 @@ A task is done only when:
 
 Milestone 15 — Backtest Execution Realism Foundation is in progress.
 
-The next focus is Sprint 72 — Order Intent Boundary Foundation. Add a deterministic order-intent boundary on top of explicit execution assumptions without adding live orders or broker behavior.
+The next focus is Sprint 73 — Fill Price Model Foundation. Add a local deterministic fill price model under explicit execution assumptions without adding broker, paper-trading, or live-trading behavior.
