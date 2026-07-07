@@ -66,6 +66,6 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 17 — Paper Trading Persistence & Audit Foundation is complete.
 
-Milestone 18 — Paper Trading Workflow Integration Foundation is in progress.
+Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
 
-The next focus is Sprint 95 — Milestone 18 Documentation Refresh. Close Milestone 18 with documentation only before adding configured-run integration, broker readiness, dashboards, reports, databases, or live execution.
+The next focus is Sprint 96 — Milestone 19 Planning. Plan the next conservative milestone before adding configured paper workflow wiring or broader operational integrations.
