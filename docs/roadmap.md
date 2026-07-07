@@ -34,7 +34,7 @@ flowchart LR
     M12 --> M13["Milestone 13<br/>Portfolio Construction Foundation<br/>Sprints 58-63 ✅"]
     M13 --> M14["Milestone 14<br/>Portfolio Risk & Attribution Foundation<br/>Sprints 64-69 ✅"]
     M14 --> M15["Milestone 15<br/>Backtest Execution Realism Foundation<br/>Sprints 70-76 ✅"]
-    M15 --> M16["Milestone 16<br/>Paper Trading Foundation<br/>planning next"]
+    M15 --> M16["Milestone 16<br/>Paper Trading Foundation<br/>Sprints 77-83 planned"]
 ```
 
 ## Milestone Table
@@ -56,6 +56,7 @@ flowchart LR
 | Milestone 13 — Portfolio Construction Foundation | Sprints 58-63 | Complete | Define portfolio-level construction before attribution and execution realism. | Portfolio inputs, equal-weight returns, configurable static weights, and summary artifacts are introduced under explicit assumptions. |
 | Milestone 14 — Portfolio Risk & Attribution Foundation | Sprints 64-69 | Complete | Explain portfolio-level behavior after construction is explicit. | Portfolio risk, drawdown, contribution, and attribution summary artifacts are available under conservative assumptions. |
 | Milestone 15 — Backtest Execution Realism Foundation | Sprints 70-76 | Complete | Make backtest execution assumptions explicit, deterministic, and reviewable. | Execution assumptions, order intent, fill behavior, execution summaries, and execution realism artifacts are available under local research assumptions. |
+| Milestone 16 — Paper Trading Foundation | Sprints 77-83 | Planned | Define local paper-trading state and records before broker integration. | Paper account state, paper orders, fill application, session summaries, and artifacts are planned under conservative local assumptions. |
 
 ## Completed Milestone 13 — Portfolio Construction Foundation
 
@@ -122,12 +123,37 @@ docs/milestones/milestone-015-backtest-execution-realism-foundation.md
 docs/sprints/sprint-076-milestone-15-closeout.md
 ```
 
+## Planned Milestone 16 — Paper Trading Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S77 | Complete | Plan Milestone 16. | Paper trading scope and sprint sequence. | No implementation during planning. |
+| S78 | Planned | Add paper account state. | Deterministic cash, positions, and equity snapshot boundary. | No broker account sync. |
+| S79 | Planned | Add paper order ledger. | Local paper order records and status boundary. | No exchange routing. |
+| S80 | Planned | Add paper fill application. | Apply assumed fills to paper account state. | No live market data. |
+| S81 | Planned | Add paper trading session summary. | Reviewable paper session summary from orders, fills, and account snapshots. | No PnL analytics expansion. |
+| S82 | Planned | Add paper trading artifact. | Standalone artifact for paper trading session state and assumptions. | No configured-run expansion. |
+| S83 | Planned | Close milestone. | Milestone 16 documentation refresh. | No scope expansion. |
+
+Milestone 16 should follow this conservative chain:
+
+```text
+paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
+```
+
+See:
+
+```text
+docs/milestones/milestone-016-paper-trading-foundation.md
+docs/sprints/sprint-077-milestone-16-planning.md
+```
+
 ## Future Platform Direction
 
 The recommended sequence now is:
 
 ```text
-Milestone 16 — Paper Trading Foundation planning
+Milestone 16 — Paper Trading Foundation
 ```
 
 The guiding idea is to build a research system that is hard to fool before adding more complexity.
@@ -148,15 +174,16 @@ The guiding idea is to build a research system that is hard to fool before addin
 12. Portfolio construction should define capital, alignment, and allocation assumptions before portfolio risk attribution.
 13. Portfolio risk should be explainable before execution realism.
 14. Execution assumptions should be explicit before paper trading.
+15. Paper trading state should be explicit before broker integration.
 
 ## Current Next Step
 
-The next milestone direction is:
+The next sprint is:
 
 ```text
-Milestone 16 — Paper Trading Foundation planning
+Sprint 78 — Paper Account State Foundation
 ```
 
 Reason:
 
-Milestone 16 should plan a paper-trading boundary only after backtest execution assumptions, order intents, assumed fills, execution summaries, and execution realism artifacts are explicit and reviewable.
+Sprint 78 should define the paper account state boundary before adding paper order ledgers, fill application, session summaries, or artifacts.
