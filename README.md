@@ -10,24 +10,21 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 15 — Backtest Execution Realism Foundation** is complete.
+**Milestone 16 — Paper Trading Foundation** is planned.
 
-Milestone 14 completed the first portfolio risk and attribution layer:
-
-```text
-portfolio_return -> risk metrics
-portfolio_equity -> drawdown inspection
-aligned_returns + static_weights -> symbol contribution
-risk + drawdown + contribution -> attribution summary artifact
-```
-
-Milestone 15 then made local backtest execution assumptions explicit:
+Milestone 15 completed the local backtest execution realism chain:
 
 ```text
 execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
 ```
 
-The next direction is **Milestone 16 — Paper Trading Foundation planning**.
+Milestone 16 should now define conservative paper-trading boundaries before any broker integration or live execution behavior is considered.
+
+The planned Milestone 16 chain is:
+
+```text
+paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
+```
 
 See the milestone summaries in:
 
@@ -38,8 +35,8 @@ docs/milestones/
 The latest milestone docs are:
 
 ```text
-docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
 docs/milestones/milestone-015-backtest-execution-realism-foundation.md
+docs/milestones/milestone-016-paper-trading-foundation.md
 ```
 
 ## Current Capabilities
@@ -163,6 +160,18 @@ execution assumptions -> order intent boundary -> deterministic fill model -> ex
 
 This milestone remains local and deterministic. It does not introduce broker integration, exchange APIs, paper trading, or live trading behavior.
 
+## Paper Trading Foundation Direction
+
+Milestone 16 should define paper-trading state and records before broker integration.
+
+The planned chain is:
+
+```text
+paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
+```
+
+This milestone should remain local and inspectable first. The project does not currently support paper trading, broker execution, or live trading.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -219,9 +228,9 @@ AGENTS.md
 
 ## Next Step
 
-**Milestone 16 — Paper Trading Foundation planning**
+**Sprint 78 — Paper Account State Foundation**
 
-Milestone 16 should plan a conservative paper-trading boundary after local backtest execution assumptions are explicit and reviewable.
+Sprint 78 should define the paper account state boundary before adding paper order ledgers, fill application, session summaries, or artifacts.
 
 ## Disclaimer
 
