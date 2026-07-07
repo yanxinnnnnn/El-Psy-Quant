@@ -54,6 +54,6 @@ A task is done only when:
 
 ## Current Focus
 
-Milestone 16 — Paper Trading Foundation is planned.
+Milestone 16 — Paper Trading Foundation is in progress.
 
-The next focus is Sprint 78 — Paper Account State Foundation. Define the smallest useful local paper account state boundary before adding paper order ledgers, fill application, session summaries, artifacts, or broker integration.
+The next focus is Sprint 79 — Paper Order Ledger Foundation. Define local paper order records and ledger behavior before adding fill application, session summaries, artifacts, or broker integration.
