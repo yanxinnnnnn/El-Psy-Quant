@@ -85,6 +85,7 @@ docs/milestones/milestone-017-paper-trading-persistence-audit-foundation.md
 - Paper trading persistence and audit foundation:
   - explicit local paper artifact file contract
   - local paper artifact writer for explicit destination paths
+  - local paper artifact reader with top-level file-contract validation
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -224,7 +225,7 @@ el_psy_quant/
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, assumed fills, summaries, and artifacts
-  paper/         # Local paper account state, order ledger, fill application, session summary, artifact, file-contract, and writer boundaries
+  paper/         # Local paper account state, order ledger, fill application, session summary, artifact, file-contract, writer, and reader boundaries
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, return aggregation, and standalone summaries

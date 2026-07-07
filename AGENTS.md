@@ -58,4 +58,4 @@ Milestone 16 — Paper Trading Foundation is complete.
 
 Milestone 17 — Paper Trading Persistence & Audit Foundation is planned.
 
-The next focus is Sprint 87 — Paper Artifact Reader & Validation Foundation. Add local paper artifact reading and validation against the Sprint 85 file contract, without adding databases, dashboards, configured-run integration, broker connectivity, or live execution.
+The next focus is Sprint 88 — Paper Session Audit Summary Foundation. Add a compact paper session audit summary from validated saved paper artifact payloads, without adding dashboards, reports, configured-run integration, broker connectivity, or live execution.

@@ -187,10 +187,10 @@ def test_writer_does_not_mutate_artifact_or_nested_inputs(tmp_path) -> None:
 
 
 def test_writer_does_not_add_reader_behavior() -> None:
-    import el_psy_quant.paper as paper  # noqa: PLC0415
+    import el_psy_quant.paper.writer as writer  # noqa: PLC0415
 
-    assert not hasattr(paper, "read_paper_trading_artifact_file")
-    assert not hasattr(paper, "load_paper_trading_artifact_file")
+    assert not hasattr(writer, "read_paper_trading_artifact_file")
+    assert not hasattr(writer, "load_paper_trading_artifact_file")
 
 
 def test_writer_does_not_add_artifact_methods() -> None:
