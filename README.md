@@ -10,7 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 16 — Paper Trading Foundation** is planned.
+**Milestone 16 — Paper Trading Foundation** is complete.
 
 Milestone 15 completed the local backtest execution realism chain:
 
@@ -18,13 +18,13 @@ Milestone 15 completed the local backtest execution realism chain:
 execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
 ```
 
-Milestone 16 should now define conservative paper-trading boundaries before any broker integration or live execution behavior is considered.
-
-The planned Milestone 16 chain is:
+Milestone 16 then completed the conservative local paper-trading foundation:
 
 ```text
 paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
 ```
+
+This milestone made paper-trading state inspectable before any broker integration, exchange API, order routing, or live execution behavior is considered.
 
 See the milestone summaries in:
 
@@ -167,17 +167,17 @@ execution assumptions -> order intent boundary -> deterministic fill model -> ex
 
 This milestone remains local and deterministic. It does not introduce broker integration, exchange APIs, paper trading, or live trading behavior.
 
-## Paper Trading Foundation Direction
+## Paper Trading Foundation
 
-Milestone 16 should define paper-trading state and records before broker integration.
+Milestone 16 made local paper-trading state explicit and reviewable.
 
-The planned chain is:
+The completed chain is:
 
 ```text
 paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
 ```
 
-This milestone should remain local and inspectable first. The project does not currently support paper trading, broker execution, or live trading.
+The paper-trading foundation is local, deterministic, and inspectable. It does not currently support broker execution, live trading, order routing, market data streaming, real account synchronization, configured-run integration, artifact persistence, or report generation.
 
 ## Local Experiment Configuration
 
@@ -233,12 +233,13 @@ AGENTS.md
 - Define portfolio assumptions before portfolio construction.
 - Explain portfolio risk before execution realism.
 - Make execution assumptions explicit before paper trading.
+- Make paper trading state explicit before broker integration.
 
 ## Next Step
 
-**Sprint 83 — Milestone 16 Documentation Refresh**
+**Sprint 84 — Milestone 17 Planning**
 
-Sprint 83 should close Milestone 16 with documentation that explains the local paper trading foundation without adding broker integration, live execution, or runtime workflow changes.
+Sprint 84 should plan the next milestone before adding broker integration, live execution, or runtime workflow expansion.
 
 ## Disclaimer
 
