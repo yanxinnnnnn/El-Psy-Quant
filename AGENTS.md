@@ -56,4 +56,4 @@ A task is done only when:
 
 Milestone 15 — Backtest Execution Realism Foundation is in progress.
 
-The next focus is Sprint 74 — Execution-Adjusted Trade Summary Foundation. Summarize execution-adjusted trades from explicit order intents and assumed fills without adding broker, paper-trading, or live-trading behavior.
+The next focus is Sprint 75 — Execution Realism Artifact Foundation. Add a standalone execution realism artifact that records assumptions, intents, fills, and summary data without configured-run integration or live execution behavior.

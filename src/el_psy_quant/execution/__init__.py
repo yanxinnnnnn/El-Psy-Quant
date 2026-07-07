@@ -7,6 +7,7 @@ from el_psy_quant.execution.assumptions import (
 )
 from el_psy_quant.execution.fills import AssumedFill, fill_order_intent
 from el_psy_quant.execution.orders import OrderIntent, validate_order_intent
+from el_psy_quant.execution.summary import summarize_assumed_fills
 
 __all__ = [
     "AssumedFill",
@@ -14,6 +15,7 @@ __all__ = [
     "OrderIntent",
     "default_execution_assumptions",
     "fill_order_intent",
+    "summarize_assumed_fills",
     "validate_execution_assumptions",
     "validate_order_intent",
 ]
