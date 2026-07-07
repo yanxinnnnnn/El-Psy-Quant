@@ -105,7 +105,7 @@ docs/milestones/milestone-014-portfolio-risk-and-attribution-foundation.md
 | S72 | Complete | Add order intent boundary. | Deterministic order-intent representation from existing research outputs. | No live orders. |
 | S73 | Complete | Add fill price model. | Local deterministic fill model under explicit timing assumptions. | No market microstructure simulation. |
 | S74 | Complete | Add execution-adjusted trade summary. | Reviewable summary of fills and execution assumptions. | No portfolio rebalancing engine. |
-| S75 | Planned | Add execution realism artifact. | Standalone artifact tying assumptions to results. | No broad configured-run expansion. |
+| S75 | Complete | Add execution realism artifact. | Standalone artifact tying assumptions to results. | No broad configured-run expansion. |
 | S76 | Planned | Close milestone. | Milestone 15 documentation refresh. | No scope expansion. |
 
 Milestone 15 should follow this conservative chain:
@@ -153,9 +153,9 @@ The guiding idea is to build a research system that is hard to fool before addin
 The next sprint is:
 
 ```text
-Sprint 75 — Execution Realism Artifact Foundation
+Sprint 76 — Milestone 15 Closeout
 ```
 
 Reason:
 
-Sprint 75 should add a standalone execution realism artifact that records assumptions, intents, fills, and summary data without configured-run integration or live execution behavior.
+Sprint 76 should close Milestone 15 with documentation refresh only and no new execution behavior.

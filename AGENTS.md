@@ -56,4 +56,4 @@ A task is done only when:
 
 Milestone 15 — Backtest Execution Realism Foundation is in progress.
 
-The next focus is Sprint 75 — Execution Realism Artifact Foundation. Add a standalone execution realism artifact that records assumptions, intents, fills, and summary data without configured-run integration or live execution behavior.
+The next focus is Sprint 76 — Milestone 15 Closeout. Refresh documentation only and add no new execution behavior.
