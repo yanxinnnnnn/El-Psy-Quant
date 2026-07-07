@@ -56,4 +56,6 @@ A task is done only when:
 
 Milestone 16 — Paper Trading Foundation is complete.
 
-The next focus is Sprint 84 — Milestone 17 Planning. Plan the next milestone before runtime workflow expansion.
+Milestone 17 — Paper Trading Persistence & Audit Foundation is planned.
+
+The next focus is Sprint 85 — Paper Artifact File Contract Foundation. Keep the next sprint local and deterministic before adding writer behavior, reader behavior, configured-run integration, broker connectivity, or live execution.
