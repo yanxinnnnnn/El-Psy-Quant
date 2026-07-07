@@ -2,13 +2,13 @@
 
 ## Status
 
-In progress.
+Complete.
 
 ## Product Goal
 
 Turn the paper-trading building blocks from Milestones 16 and 17 into one explicit, deterministic, local workflow boundary.
 
-Milestone 18 should make a local paper run request executable and reviewable without introducing broker integration, live execution, database behavior, dashboards, or broad report generation.
+Milestone 18 makes a local paper run request executable, persistent, and reviewable without adding broader runtime orchestration or external execution integrations.
 
 ## Strategic Context
 
@@ -31,7 +31,7 @@ paper artifact file contract
   -> paper session audit summary
 ```
 
-Milestone 18 should integrate these capabilities into one local workflow:
+Milestone 18 integrates these capabilities into one local workflow foundation:
 
 ```text
 paper run request
@@ -40,7 +40,7 @@ paper run request
   -> paper run result summary
 ```
 
-## Planned Chain
+## Completed Chain
 
 ```text
 paper run request contract
@@ -50,7 +50,7 @@ paper run request contract
   -> paper workflow closeout
 ```
 
-## Planned Sprint Sequence
+## Sprint Sequence
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
@@ -59,11 +59,11 @@ paper run request contract
 | S92 | Complete | Add paper run execution boundary. | Build a paper trading artifact from an explicit request. | No CLI, broker, or configured-run integration. |
 | S93 | Complete | Add paper run artifact persistence. | Persist a paper run artifact to an explicit local path using the M17 writer. | No default output-root workflow. |
 | S94 | Complete | Add paper run result summary. | Compact summary tying request, artifact identity, saved path, and audit facts. | No dashboard or report generation. |
-| S95 | Planned | Close milestone. | Milestone 18 documentation refresh. | No scope expansion. |
+| S95 | Complete | Close milestone. | Milestone 18 documentation refresh. | No scope expansion. |
 
-## Expected Capabilities
+## Delivered Capabilities
 
-By the end of Milestone 18, the project should support a conservative local paper workflow path:
+Milestone 18 supports a conservative local paper workflow path:
 
 1. define a paper run request contract
 2. create a paper trading artifact from an explicit request
@@ -71,48 +71,53 @@ By the end of Milestone 18, the project should support a conservative local pape
 4. return a compact paper run result summary
 5. document workflow assumptions, limits, and future integration boundaries
 
-## Public Boundary Direction
+## Public Boundaries
 
-Milestone 18 should likely introduce boundaries such as:
+Milestone 18 introduced these public boundaries:
 
+- `PAPER_RUN_REQUEST_SCHEMA_VERSION`
 - `PaperRunRequest`
 - `create_paper_run_request(...)`
 - `run_paper_trading_request(...)`
 - `persist_paper_run_artifact(...)`
+- `PAPER_RUN_RESULT_SUMMARY_SCHEMA_VERSION`
 - `PaperRunResultSummary`
 - `create_paper_run_result_summary(...)`
-
-The exact names can change during implementation sprints, but the scope should stay small and local.
 
 ## Assumptions And Limits
 
 - workflow behavior is local and deterministic
-- all inputs should be explicit
-- file persistence should use explicit paths only
-- existing M16 and M17 boundaries should be reused instead of duplicated
+- all inputs are explicit
+- file persistence uses explicit paths only
+- existing M16 and M17 boundaries are reused instead of duplicated
 - configured-run integration remains outside this milestone
 - CLI expansion remains outside this milestone
-- broker integration remains outside this milestone
-- live execution remains outside this milestone
+- external execution integrations remain outside this milestone
 - database, dashboard, and broad report generation remain outside this milestone
 - strategy expansion remains outside this milestone
 - portfolio optimizer behavior remains outside this milestone
 
 ## Exit Criteria
 
-Milestone 18 will be complete when:
+Milestone 18 is complete because:
 
 - a paper run request contract exists
 - a local paper run can produce a paper trading artifact from explicit inputs
 - a paper run artifact can be persisted through the existing M17 writer path
 - a compact run-level result summary exists
 - documentation explains assumptions, limits, and future workflow boundaries
-- no broker, live trading, database, dashboard, report, configured-run, or CLI workflow behavior has been introduced
+- broader configured workflow and operational integrations have not been introduced
 
 ## Current Next Step
 
 ```text
-Sprint 95 — Milestone 18 Documentation Refresh
+Sprint 96 — Milestone 19 Planning
 ```
 
-Sprint 95 should close Milestone 18 with documentation only. It should not add configured-run integration, dashboards, reports, databases, or broker/live behavior.
+Sprint 96 should plan the next conservative milestone before configured paper workflow wiring is implemented.
+
+A reasonable next milestone direction is:
+
+```text
+Milestone 19 — Configured Paper Workflow Wiring Foundation
+```
