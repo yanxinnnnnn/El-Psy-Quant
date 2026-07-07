@@ -24,7 +24,15 @@ Milestone 16 then completed the conservative local paper-trading foundation:
 paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
 ```
 
-This milestone made paper-trading state inspectable before any broker integration, exchange API, order routing, or live execution behavior is considered.
+Milestone 17 is planned as **Paper Trading Persistence & Audit Foundation**.
+
+The planned next chain is:
+
+```text
+paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
+```
+
+This milestone should make paper-trading artifacts durable and audit-friendly before broker integration, live execution, configured-run expansion, databases, dashboards, reports, or broader runtime workflow behavior are considered.
 
 See the milestone summaries in:
 
@@ -37,6 +45,7 @@ The latest milestone docs are:
 ```text
 docs/milestones/milestone-015-backtest-execution-realism-foundation.md
 docs/milestones/milestone-016-paper-trading-foundation.md
+docs/milestones/milestone-017-paper-trading-persistence-audit-foundation.md
 ```
 
 ## Current Capabilities
@@ -179,6 +188,18 @@ paper account state -> paper order ledger -> paper fill application -> paper tra
 
 The paper-trading foundation is local, deterministic, and inspectable. It does not currently support broker execution, live trading, order routing, market data streaming, real account synchronization, configured-run integration, artifact persistence, or report generation.
 
+## Paper Trading Persistence & Audit Foundation
+
+Milestone 17 is planned to make paper-trading artifacts durable and audit-friendly.
+
+The planned chain is:
+
+```text
+paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
+```
+
+This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, configured-run expansion, databases, dashboards, or broad report generation.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -218,29 +239,3 @@ AGENTS.md
 ```
 
 ## Engineering Principles
-
-- AI writes, humans decide.
-- Ship every sprint.
-- Build capabilities, not random scripts.
-- Keep the repository as the single source of truth.
-- Prefer simple, reviewable code over clever code.
-- Keep tests deterministic and network-free where possible.
-- Make timing assumptions explicit to avoid look-ahead bias.
-- Validate data at the boundary.
-- Keep local research reproducible.
-- Treat parameter search as comparison, not alpha discovery.
-- Keep experiment artifacts inspectable and portable before adding platform complexity.
-- Define portfolio assumptions before portfolio construction.
-- Explain portfolio risk before execution realism.
-- Make execution assumptions explicit before paper trading.
-- Make paper trading state explicit before broker integration.
-
-## Next Step
-
-**Sprint 84 — Milestone 17 Planning**
-
-Sprint 84 should plan the next milestone before adding broker integration, live execution, or runtime workflow expansion.
-
-## Disclaimer
-
-This project is for education, research, and software engineering practice.
