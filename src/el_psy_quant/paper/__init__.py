@@ -39,6 +39,7 @@ from el_psy_quant.paper.run_request import (
     PaperRunRequest,
     create_paper_run_request,
 )
+from el_psy_quant.paper.run_execution import run_paper_trading_request
 from el_psy_quant.paper.session import (
     PaperTradingSessionSummary,
     create_paper_trading_session_summary,
@@ -70,6 +71,7 @@ __all__ = [
     "create_paper_trading_artifact_file_payload",
     "create_paper_trading_session_summary",
     "read_paper_trading_artifact_file",
+    "run_paper_trading_request",
     "validate_paper_trading_artifact_file_payload",
     "write_paper_trading_artifact_file",
 ]
