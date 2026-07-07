@@ -110,7 +110,7 @@ docs/sprints/sprint-089-milestone-17-closeout.md
 | S91 | Complete | Define paper run request contract. | Small immutable request boundary for one local paper run. | No execution or file writing yet. |
 | S92 | Complete | Add paper run execution boundary. | Build a paper trading artifact from an explicit request. | No CLI, broker, or configured-run integration. |
 | S93 | Complete | Add paper run artifact persistence. | Persist a paper run artifact to an explicit local path using the M17 writer. | No default output-root workflow. |
-| S94 | Planned | Add paper run result summary. | Compact summary tying request, artifact identity, saved path, and audit facts. | No dashboard or report generation. |
+| S94 | Complete | Add paper run result summary. | Compact summary tying request, artifact identity, saved path, and audit facts. | No dashboard or report generation. |
 | S95 | Planned | Close milestone. | Milestone 18 documentation refresh. | No scope expansion. |
 
 Milestone 18 should follow this conservative chain:
@@ -132,7 +132,7 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 94 — Paper Run Result Summary Foundation
+Sprint 95 — Milestone 18 Documentation Refresh
 ```
 
 The guiding idea is to move from isolated paper-trading capabilities to an explicit local workflow boundary before configured-run integration, broker readiness, reporting, dashboards, databases, or live execution.
@@ -173,9 +173,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 94 — Paper Run Result Summary Foundation
+Sprint 95 — Milestone 18 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 94 should add a compact result summary tying the request, artifact identity, saved path, and audit facts together before any dashboards, reports, configured-run integration, broker readiness, or live execution is added.
+Sprint 95 should close Milestone 18 with documentation only before any configured-run integration, broker readiness, dashboards, reports, databases, or live execution is added.
