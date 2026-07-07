@@ -34,6 +34,11 @@ from el_psy_quant.paper.reader import (
     read_paper_trading_artifact_file,
     validate_paper_trading_artifact_file_payload,
 )
+from el_psy_quant.paper.run_request import (
+    PAPER_RUN_REQUEST_SCHEMA_VERSION,
+    PaperRunRequest,
+    create_paper_run_request,
+)
 from el_psy_quant.paper.session import (
     PaperTradingSessionSummary,
     create_paper_trading_session_summary,
@@ -45,10 +50,12 @@ __all__ = [
     "PAPER_TRADING_ARTIFACT_FILE_NAME",
     "PAPER_TRADING_ARTIFACT_FILE_TOP_LEVEL_KEYS",
     "PAPER_TRADING_ARTIFACT_SCHEMA_VERSION",
+    "PAPER_RUN_REQUEST_SCHEMA_VERSION",
     "PaperAccountState",
     "PaperFill",
     "PaperOrderLedger",
     "PaperOrderRecord",
+    "PaperRunRequest",
     "PaperTradingArtifact",
     "PaperTradingArtifactAuditSummary",
     "PaperTradingSessionSummary",
@@ -57,6 +64,7 @@ __all__ = [
     "create_paper_fill",
     "create_paper_order_ledger",
     "create_paper_order_record",
+    "create_paper_run_request",
     "create_paper_trading_artifact",
     "create_paper_trading_artifact_audit_summary",
     "create_paper_trading_artifact_file_payload",
