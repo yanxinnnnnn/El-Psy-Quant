@@ -56,4 +56,4 @@ A task is done only when:
 
 Milestone 15 — Backtest Execution Realism Foundation is in progress.
 
-The next focus is Sprint 73 — Fill Price Model Foundation. Add a local deterministic fill price model under explicit execution assumptions without adding broker, paper-trading, or live-trading behavior.
+The next focus is Sprint 74 — Execution-Adjusted Trade Summary Foundation. Summarize execution-adjusted trades from explicit order intents and assumed fills without adding broker, paper-trading, or live-trading behavior.
