@@ -38,7 +38,8 @@ flowchart LR
     M16 --> M17["Milestone 17<br/>Paper Trading Persistence & Audit Foundation<br/>Sprints 84-89 ✅"]
     M17 --> M18["Milestone 18<br/>Paper Trading Workflow Integration Foundation<br/>Sprints 90-95 ✅"]
     M18 --> M19["Milestone 19<br/>Configured Paper Workflow Wiring Foundation<br/>Sprints 96-102 ✅"]
-    M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 🟡"]
+    M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 ✅"]
+    M20 --> M21["Milestone 21<br/>Paper Run Comparison and Review Foundation<br/>Sprints 110-116 🟡"]
 ```
 
 ## Milestone Table
@@ -64,7 +65,8 @@ flowchart LR
 | Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper-trading outputs durable and audit-friendly before runtime workflows. | Paper-trading artifacts can be saved, loaded, validated, and summarized locally without broad operational behavior. |
 | Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Complete | Turn local paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper trading artifact without broader configured workflow behavior. |
 | Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs conservatively. | Configured local paper inputs can produce, persist, and reference paper workflow outputs without broker, live, database, dashboard, or automatic-promotion behavior. |
-| Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | In Progress | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
+| Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
+| Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Planned | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, compared, and reviewed through human-controlled records without dashboards, broad reporting, broker behavior, runtime execution expansion, or live-readiness claims. |
 
 ## Completed Milestone 16 — Paper Trading Foundation
 
@@ -83,15 +85,6 @@ docs/sprints/sprint-083-milestone-16-closeout.md
 
 ## Completed Milestone 17 — Paper Trading Persistence & Audit Foundation
 
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S84 | Complete | Plan Milestone 17. | Paper trading persistence and audit scope and sprint sequence. | No implementation during planning. |
-| S85 | Complete | Define paper artifact file contract. | Deterministic local file contract for saved paper trading artifacts. | No writer side effects yet. |
-| S86 | Complete | Add local paper artifact writer. | Save a paper trading artifact to an explicit local path. | No CLI or configured-run integration. |
-| S87 | Complete | Add paper artifact reader and validation. | Load saved paper artifacts and validate schema/version expectations. | No database or artifact service. |
-| S88 | Complete | Add paper session audit summary. | Compact deterministic audit summary from saved paper artifacts. | No dashboard or report generation. |
-| S89 | Complete | Close milestone. | Milestone 17 documentation refresh. | No scope expansion. |
-
 Milestone 17 closed this conservative chain:
 
 ```text
@@ -107,15 +100,6 @@ docs/sprints/sprint-089-milestone-17-closeout.md
 ```
 
 ## Completed Milestone 18 — Paper Trading Workflow Integration Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S90 | Complete | Plan Milestone 18. | Workflow integration scope, sequence, and long-term platform context. | No implementation during planning. |
-| S91 | Complete | Define paper run request contract. | Small immutable request boundary for one local paper run. | No execution or file writing yet. |
-| S92 | Complete | Add paper run execution boundary. | Build a paper trading artifact from an explicit request. | No CLI, broker, or configured-run integration. |
-| S93 | Complete | Add paper run artifact persistence. | Persist a paper run artifact to an explicit local path using M17 writer. | No default output-root workflow. |
-| S94 | Complete | Add paper run result summary. | Compact summary tying request, artifact identity, saved path, and audit facts. | No dashboard or report generation. |
-| S95 | Complete | Close milestone. | Milestone 18 documentation refresh. | No scope expansion. |
 
 Milestone 18 closed this conservative chain:
 
@@ -159,19 +143,19 @@ docs/sprints/sprint-102-milestone-19-documentation-refresh-closeout.md
 docs/strategy/future-platform-roadmap.md
 ```
 
-## Milestone 20 — Research-to-Paper Promotion Foundation
+## Completed Milestone 20 — Research-to-Paper Promotion Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S103 | Complete | Plan Milestone 20. | Research-to-paper promotion scope, sequence, and guardrails. | No implementation during planning. |
-| S104 | Complete | Define promotion source references. | Small typed references to research, backtest, execution, portfolio, or configured-run artifacts used as promotion evidence. | No artifact loading, scoring, or promotion decision yet. |
+| S104 | Complete | Define promotion source references. | Small typed references to research, backtest, execution, portfolio, configured-run, paper artifact, or paper-result evidence. | No artifact loading, scoring, or promotion decision yet. |
 | S105 | Complete | Define paper promotion candidate contract. | Explicit paper-trading candidate boundary linked to source references and manual review context. | No `PaperRunRequest` construction or paper workflow execution. |
-| S106 | Complete | Add promotion evidence summary. | Compact deterministic evidence summary for a candidate, including assumptions, warnings, and source facts. | No automatic pass/fail approval engine. |
-| S107 | Complete | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, and status together. | No autonomous strategy approval or live-readiness claim. |
-| S108 | Complete | Add promotion manifest and candidate references. | Local artifact/reference wiring for promotion records and paper candidates. | No database, dashboard, or broad report generation. |
-| S109 | Planned | Close milestone. | Milestone 20 documentation refresh. | No scope expansion. |
+| S106 | Complete | Add promotion evidence summary. | Compact deterministic evidence summary for a candidate, including assumptions, warnings, missing evidence, and source facts. | No automatic pass/fail approval engine. |
+| S107 | Complete | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, reviewer context, status, and timestamp together. | No autonomous strategy approval or live-readiness claim. |
+| S108 | Complete | Add promotion manifest and candidate references. | Local manifest/reference contracts for promotion records and paper candidates. | No filesystem I/O, database, dashboard, or broad report generation. |
+| S109 | Complete | Close milestone. | Milestone 20 documentation refresh. | No scope expansion. |
 
-Milestone 20 plans this conservative governance chain:
+Milestone 20 closed this conservative governance chain:
 
 ```text
 promotion source reference contract -> paper promotion candidate contract -> promotion evidence summary -> explicit promotion record -> promotion manifest and candidate references
@@ -182,6 +166,33 @@ See:
 ```text
 docs/milestones/milestone-020-research-to-paper-promotion-foundation.md
 docs/sprints/sprint-103-milestone-20-planning.md
+docs/sprints/sprint-109-milestone-20-documentation-refresh.md
+docs/strategy/future-platform-roadmap.md
+```
+
+## Planned Milestone 21 — Paper Run Comparison and Review Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S110 | Complete | Plan Milestone 21. | Paper run comparison and review scope, sequence, and guardrails. | No implementation during planning. |
+| S111 | Planned | Define paper run references. | Small typed references to existing paper run artifacts or result summaries. | No artifact loading or automatic discovery. |
+| S112 | Planned | Define paper run comparison input contract. | Explicit comparison set containing paper run references, comparison purpose, and context. | No scoring engine or report generation. |
+| S113 | Planned | Add paper run comparison summary. | Deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields. | No dashboard, plotting, or broad report behavior. |
+| S114 | Planned | Add paper run review decision record. | Human-controlled review status, rationale, reviewer context, and timestamp tied to a comparison summary. | No automatic capital deployment or live-readiness claim. |
+| S115 | Planned | Add review manifest and comparison references. | Local manifest/reference contracts for comparison summaries and review decisions. | No database, hosted service, or workflow execution. |
+| S116 | Planned | Close milestone. | Milestone 21 documentation refresh. | No scope expansion. |
+
+Milestone 21 plans this conservative review chain:
+
+```text
+paper run reference contract -> paper run comparison input contract -> paper run comparison summary -> paper run review decision record -> review manifest and comparison references
+```
+
+See:
+
+```text
+docs/milestones/milestone-021-paper-run-comparison-review-foundation.md
+docs/sprints/sprint-110-milestone-21-planning.md
 docs/strategy/future-platform-roadmap.md
 ```
 
@@ -190,10 +201,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 109 — Milestone 20 Documentation Refresh
+Sprint 111 — Paper Run Reference Contract Foundation
 ```
 
-The guiding idea is to move from configured local paper workflow wiring toward explicit research-to-paper promotion governance before paper comparison, decision records, reports, broker readiness, or live-readiness claims.
+The guiding idea is to move from promotion governance toward explicit paper run comparison and human-controlled review decision records before dashboards, broad reports, broker readiness, or live-readiness claims.
 
 Longer-term, the platform should move through:
 
@@ -227,15 +238,16 @@ Phase 5 — Controlled Live Pilot & Production Operations
 18. Configured paper workflows should stay local and explicit before decision records, broker readiness, or live-readiness claims.
 19. Decision governance should exist before paper comparison, broad reports, broker readiness, or live-readiness claims.
 20. Promotion records should be explicit and human-controlled; they are not automatic approval engines.
+21. Paper run comparison should stay explicit, local, and review-driven before dashboards, report engines, broker readiness, or capital deployment decisions.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 109 — Milestone 20 Documentation Refresh
+Sprint 111 — Paper Run Reference Contract Foundation
 ```
 
 Reason:
 
-Sprint 109 should refresh Milestone 20 documentation and close out the research-to-paper promotion foundation without expanding runtime behavior.
+Sprint 111 should define the smallest useful paper run reference contract for existing paper artifacts and paper result summaries. It should not load artifacts deeply, discover runs automatically, compare metrics, generate reports, execute paper workflows, add broker behavior, or claim readiness for live or real-money trading.
