@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 105 — Paper Promotion Candidate Contract Foundation
+Sprint 106 — Promotion Evidence Summary Foundation
 ```
 
-Sprint 105 should define an explicit paper promotion candidate boundary linked to source references and manual review context. It should not construct `PaperRunRequest` objects, execute paper workflows, add broker behavior, or approve promotion automatically.
+Sprint 106 should add a compact deterministic evidence summary for a promotion candidate, including assumptions, warnings, and source facts. It should not create an automatic pass/fail approval engine.
 
 See the milestone summaries in:
 
@@ -108,6 +108,7 @@ docs/strategy/future-platform-roadmap.md
   - configured-run metadata and manifest references to paper artifact and result-summary files
 - Research-to-paper promotion foundation:
   - typed promotion source references for existing local or logical evidence
+  - explicit paper promotion candidates for manual review
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -280,6 +281,8 @@ A promotion candidate is not an approval. A promotion record is not a live-readi
 
 Sprint 104 added typed promotion source references only. Source references identify existing evidence without loading artifacts, scoring strategies, creating candidates, or executing paper workflows.
 
+Sprint 105 added explicit paper promotion candidates. Candidates group one or more source references with a title and optional manual-review context, but they do not approve strategies, construct paper run requests, create paper orders or fills, or execute paper workflows.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -290,7 +293,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to define paper promotion candidates linked to source references, not to automate strategy approval or paper execution.
+The next step is to summarize promotion evidence for candidates, not to automate strategy approval or paper execution.
 
 ## Module Overview
 

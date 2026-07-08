@@ -70,7 +70,7 @@ Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
 Milestone 20 — Research-to-Paper Promotion Foundation is in progress.
 
-The next focus is Sprint 105 — Paper Promotion Candidate Contract Foundation. Define an explicit paper promotion candidate boundary linked to source references and manual review context without constructing `PaperRunRequest` objects, executing paper workflows, adding broker behavior, or approving promotion automatically.
+The next focus is Sprint 106 — Promotion Evidence Summary Foundation. Add a compact deterministic evidence summary for a promotion candidate, including assumptions, warnings, and source facts, without creating an automatic approval engine or runtime integration.
 
 ## Implementation Sprint Issue Requirements
 
