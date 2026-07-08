@@ -72,7 +72,7 @@ Milestone 20 — Research-to-Paper Promotion Foundation is complete.
 
 Milestone 21 — Paper Run Comparison and Review Foundation is in progress.
 
-The next focus is Sprint 113 — Paper Run Comparison Summary Foundation. Add deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields without dashboards, plotting, broad reports, scoring, artifact loading, workflow execution, broker behavior, or readiness claims.
+The next focus is Sprint 114 — Paper Run Review Decision Record Foundation. Add human-controlled paper run review decision records tied to comparison summaries without automatic approval, ranking, capital deployment, broker behavior, workflow execution, or readiness claims.
 
 ## Implementation Sprint Issue Requirements
 
