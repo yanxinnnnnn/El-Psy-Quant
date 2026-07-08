@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned.
+In progress.
 
 ## Product Goal
 
@@ -69,7 +69,7 @@ paper run reference contract
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S110 | Complete | Plan Milestone 21. | Paper run comparison and review scope, sequence, and guardrails. | No implementation during planning. |
-| S111 | Planned | Define paper run references. | Small typed references to existing paper run artifacts or result summaries. | No artifact loading or automatic discovery. |
+| S111 | Complete | Define paper run references. | Small typed references to existing paper run artifacts or result summaries. | No artifact loading or automatic discovery. |
 | S112 | Planned | Define paper run comparison input contract. | Explicit comparison set containing paper run references, comparison purpose, and context. | No scoring engine or report generation. |
 | S113 | Planned | Add paper run comparison summary. | Deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields. | No dashboard, plotting, or broad report behavior. |
 | S114 | Planned | Add paper run review decision record. | Human-controlled review status, rationale, reviewer context, and timestamp tied to a comparison summary. | No automatic capital deployment or live-readiness claim. |
@@ -155,7 +155,7 @@ Milestone 21 will be complete when:
 ## Next Step
 
 ```text
-Sprint 111 — Paper Run Reference Contract Foundation
+Sprint 112 — Paper Run Comparison Input Contract Foundation
 ```
 
-Sprint 111 should define the smallest useful reference contract for existing paper run artifacts and result summaries without artifact loading, automatic discovery, metric comparison, report generation, workflow execution, broker behavior, live-readiness claims, or real-money readiness claims.
+Sprint 112 should define an explicit comparison set containing paper run references, comparison purpose, and context without discovering runs automatically, scoring metrics, or generating reports.

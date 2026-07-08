@@ -66,7 +66,7 @@ flowchart LR
 | Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Complete | Turn local paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper trading artifact without broader configured workflow behavior. |
 | Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs conservatively. | Configured local paper inputs can produce, persist, and reference paper workflow outputs without broker, live, database, dashboard, or automatic-promotion behavior. |
 | Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
-| Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Planned | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, compared, and reviewed through human-controlled records without dashboards, broad reporting, broker behavior, runtime execution expansion, or live-readiness claims. |
+| Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | In Progress | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, compared, and reviewed through human-controlled records without dashboards, broad reporting, broker behavior, runtime execution expansion, or live-readiness claims. |
 
 ## Completed Milestone 16 — Paper Trading Foundation
 
@@ -170,12 +170,12 @@ docs/sprints/sprint-109-milestone-20-documentation-refresh.md
 docs/strategy/future-platform-roadmap.md
 ```
 
-## Planned Milestone 21 — Paper Run Comparison and Review Foundation
+## Milestone 21 — Paper Run Comparison and Review Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S110 | Complete | Plan Milestone 21. | Paper run comparison and review scope, sequence, and guardrails. | No implementation during planning. |
-| S111 | Planned | Define paper run references. | Small typed references to existing paper run artifacts or result summaries. | No artifact loading or automatic discovery. |
+| S111 | Complete | Define paper run references. | Small typed references to existing paper run artifacts or result summaries. | No artifact loading or automatic discovery. |
 | S112 | Planned | Define paper run comparison input contract. | Explicit comparison set containing paper run references, comparison purpose, and context. | No scoring engine or report generation. |
 | S113 | Planned | Add paper run comparison summary. | Deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields. | No dashboard, plotting, or broad report behavior. |
 | S114 | Planned | Add paper run review decision record. | Human-controlled review status, rationale, reviewer context, and timestamp tied to a comparison summary. | No automatic capital deployment or live-readiness claim. |
@@ -201,7 +201,7 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 111 — Paper Run Reference Contract Foundation
+Sprint 112 — Paper Run Comparison Input Contract Foundation
 ```
 
 The guiding idea is to move from promotion governance toward explicit paper run comparison and human-controlled review decision records before dashboards, broad reports, broker readiness, or live-readiness claims.
@@ -245,9 +245,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 111 — Paper Run Reference Contract Foundation
+Sprint 112 — Paper Run Comparison Input Contract Foundation
 ```
 
 Reason:
 
-Sprint 111 should define the smallest useful paper run reference contract for existing paper artifacts and paper result summaries. It should not load artifacts deeply, discover runs automatically, compare metrics, generate reports, execute paper workflows, add broker behavior, or claim readiness for live or real-money trading.
+Sprint 112 should define an explicit comparison set containing paper run references, comparison purpose, and context without discovering runs automatically, scoring metrics, or generating reports.

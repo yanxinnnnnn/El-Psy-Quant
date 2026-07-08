@@ -18,7 +18,7 @@ Milestone 20 completed the promotion governance chain:
 promotion source reference contract -> paper promotion candidate contract -> promotion evidence summary -> explicit promotion record -> promotion manifest and candidate references
 ```
 
-**Milestone 21 — Paper Run Comparison and Review Foundation** is planned.
+**Milestone 21 — Paper Run Comparison and Review Foundation** is in progress.
 
 Milestone 21 will define the first comparison and review layer after promotion governance:
 
@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 111 — Paper Run Reference Contract Foundation
+Sprint 112 — Paper Run Comparison Input Contract Foundation
 ```
 
-Sprint 111 should define the smallest useful reference contract for existing paper run artifacts and result summaries without artifact loading, automatic discovery, dashboard behavior, broad reporting, broker readiness, live-readiness claims, or runtime execution expansion.
+Sprint 112 should define an explicit comparison set containing paper run references, comparison purpose, and context without discovering runs automatically, scoring metrics, or generating reports.
 
 See the milestone summaries in:
 
@@ -112,6 +112,8 @@ docs/strategy/future-platform-roadmap.md
   - descriptive promotion evidence summaries with source facts, assumptions, warnings, and missing-evidence fields
   - explicit human-controlled promotion records with validated statuses and rationale
   - local promotion manifests and compact candidate references for manual inspection
+- Paper run comparison and review foundation:
+  - typed paper run references for existing paper artifacts or paper result summaries
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -296,7 +298,7 @@ Sprint 109 closed Milestone 20 with a documentation refresh and preserved the re
 
 ## Paper Run Comparison and Review Foundation
 
-Milestone 21 is planned to define the first comparison and review layer on top of completed paper workflow and promotion-governance foundations.
+Milestone 21 is defining the first comparison and review layer on top of completed paper workflow and promotion-governance foundations.
 
 The planned chain is:
 
@@ -305,6 +307,8 @@ paper run reference contract -> paper run comparison input contract -> paper run
 ```
 
 A paper run reference is not artifact loading. A comparison summary is not a scoring engine. A review decision record is not a capital deployment decision or live-readiness claim.
+
+Sprint 111 added typed paper run references only. Paper run references identify existing paper artifacts or paper result summaries without loading artifacts, discovering runs automatically, comparing metrics, generating reports, executing paper workflows, or claiming live or real-money readiness.
 
 Sprint 110 planned the M21 scope, sprint sequence, and guardrails.
 
@@ -318,7 +322,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to define paper run references, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
+The next step is to define explicit paper run comparison inputs, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
 
 ## Module Overview
 
@@ -330,6 +334,7 @@ el_psy_quant/
   configured_paper_references.py # Configured paper metadata and manifest references
   config.py      # Load and validate local YAML experiment settings, including optional explicit paper-run inputs
   promotion/     # Research-to-paper promotion references and governance contracts
+  paper_review/  # Paper run comparison and review reference contracts
   outputs.py     # Create deterministic local experiment directories and reserved paths
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
