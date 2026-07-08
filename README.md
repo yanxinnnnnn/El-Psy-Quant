@@ -10,7 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 19 — Configured Paper Workflow Wiring Foundation** is planned.
+**Milestone 19 — Configured Paper Workflow Wiring Foundation** is in progress.
 
 Milestone 18 completed the local paper-trading workflow chain:
 
@@ -29,10 +29,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 97 — Paper Workflow Config Contract Foundation
+Sprint 98 — Configured Paper Request Boundary Foundation
 ```
 
-Sprint 97 should define the smallest useful local configuration contract for explicit paper-run inputs before execution, persistence, or manifest wiring is implemented.
+Sprint 98 should convert the validated optional `paper_run` config boundary into a `PaperRunRequest` without adding strategy-signal-to-order automation, file writing, CLI expansion, or broker behavior.
 
 See the milestone summaries in:
 
@@ -98,6 +98,8 @@ docs/strategy/future-platform-roadmap.md
   - local in-memory paper run execution boundary
   - explicit local paper run artifact persistence
   - immutable local paper run result summaries
+- Configured paper workflow wiring foundation:
+  - optional local YAML `paper_run` config contract for explicit paper-run inputs
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -230,13 +232,15 @@ This milestone remains local, deterministic, and explicit-input driven. It does 
 
 ## Configured Paper Workflow Wiring Foundation
 
-Milestone 19 is planned to connect the completed paper run workflow to local configuration and configured-run output discipline.
+Milestone 19 is connecting the completed paper run workflow to local configuration and configured-run output discipline.
 
 The planned chain is:
 
 ```text
 paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
 ```
+
+The first implementation step adds an optional local YAML `paper_run` section that validates explicit account states, orders, and fills while keeping research-only configs backward compatible.
 
 This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, market data streaming, automatic research-to-paper promotion, dashboards, databases, or broad reporting.
 
@@ -248,7 +252,7 @@ Experiments can be described by a small local YAML file and run with the existin
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The configured workflow currently supports the existing moving-average crossover strategy and does not yet integrate portfolio construction or paper trading workflows.
+The configured workflow currently supports the existing moving-average crossover strategy and now validates optional explicit paper-run inputs. It does not yet execute paper workflows or integrate portfolio construction.
 
 Milestone 19 plans the next conservative step: configured local paper workflow wiring from explicit paper-run inputs, not automatic strategy-signal promotion or broker behavior.
 
@@ -258,7 +262,7 @@ Milestone 19 plans the next conservative step: configured local paper workflow w
 el_psy_quant/
   cli.py         # Thin argparse entrypoint for local configured experiments
   comparison.py  # Compare existing metrics from saved local experiment runs
-  config.py      # Load and validate local YAML experiment settings
+  config.py      # Load and validate local YAML experiment settings, including optional explicit paper-run inputs
   outputs.py     # Create deterministic local experiment directories and reserved paths
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
