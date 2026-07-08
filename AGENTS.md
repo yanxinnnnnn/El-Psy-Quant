@@ -70,9 +70,9 @@ Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
 Milestone 20 — Research-to-Paper Promotion Foundation is complete.
 
-Milestone 21 — Paper Run Comparison and Review Foundation is planned.
+Milestone 21 — Paper Run Comparison and Review Foundation is in progress.
 
-The next focus is Sprint 111 — Paper Run Reference Contract Foundation. Define the smallest useful reference contract for existing paper run artifacts and result summaries without artifact loading, automatic discovery, dashboard behavior, broad reporting, broker readiness, live-readiness claims, or runtime execution expansion.
+The next focus is Sprint 112 — Paper Run Comparison Input Contract Foundation. Define an explicit comparison set containing paper run references, comparison purpose, and context without discovering runs automatically, scoring metrics, generating reports, executing paper workflows, adding broker behavior, or claiming live or real-money readiness.
 
 ## Implementation Sprint Issue Requirements
 
