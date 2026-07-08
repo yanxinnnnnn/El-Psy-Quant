@@ -70,7 +70,7 @@ paper workflow config contract
 | S98 | Complete | Build configured paper request boundary. | Convert validated config inputs into `PaperRunRequest`. | No strategy-signal-to-order automation. |
 | S99 | Complete | Define configured paper output layout. | Stable local paths for paper artifacts and result summaries under configured runs. | No database or artifact service. |
 | S100 | Complete | Add configured paper workflow runner. | Execute and persist a configured paper run by reusing Milestone 18 boundaries. | No broker, live, scheduler, or streaming behavior. |
-| S101 | Planned | Add configured paper manifest and result references. | Record paper artifact/result paths in configured-run metadata or manifest outputs. | No dashboard or broad report generation. |
+| S101 | Complete | Add configured paper manifest and result references. | Record paper artifact/result paths in configured-run metadata or manifest outputs. | No dashboard or broad report generation. |
 | S102 | Planned | Close milestone. | Milestone 19 documentation refresh. | No scope expansion. |
 
 ## Planned Capabilities
@@ -126,7 +126,7 @@ Milestone 19 will be complete when:
 ## Current Next Step
 
 ```text
-Sprint 101 — Configured Paper Manifest and Result References
+Sprint 102 — Milestone 19 Documentation Refresh / Closeout
 ```
 
-Sprint 101 should record configured paper artifact and result-summary references in configured-run metadata or manifest outputs without adding broker, live, scheduler, database, dashboard, reporting, or automatic strategy-promotion behavior.
+Sprint 102 should document and close Milestone 19 without expanding configured paper workflow runtime behavior.
