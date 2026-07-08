@@ -72,7 +72,7 @@ paper run reference contract
 | S111 | Complete | Define paper run references. | Small typed references to existing paper run artifacts or result summaries. | No artifact loading or automatic discovery. |
 | S112 | Complete | Define paper run comparison input contract. | Explicit comparison set containing paper run references, comparison purpose, and context. | No scoring engine or report generation. |
 | S113 | Complete | Add paper run comparison summary. | Deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields. | No dashboard, plotting, broad report, scoring, ranking, or artifact-loading behavior. |
-| S114 | Planned | Add paper run review decision record. | Human-controlled review status, rationale, reviewer context, and timestamp tied to a comparison summary. | No automatic capital deployment or live-readiness claim. |
+| S114 | Complete | Add paper run review decision record. | Human-controlled review status, rationale, reviewer context, and timestamp tied to a comparison summary. | No automatic approval, promotion, capital deployment, broker behavior, or readiness claim. |
 | S115 | Planned | Add review manifest and comparison references. | Local manifest/reference contracts for comparison summaries and review decisions. | No database, hosted service, or workflow execution. |
 | S116 | Planned | Close milestone. | Milestone 21 documentation refresh. | No scope expansion. |
 
@@ -155,7 +155,7 @@ Milestone 21 will be complete when:
 ## Next Step
 
 ```text
-Sprint 114 — Paper Run Review Decision Record Foundation
+Sprint 115 — Review Manifest and Comparison References Foundation
 ```
 
-Sprint 114 should add human-controlled paper run review decision records tied to comparison summaries without automatic approval, ranking, capital deployment, broker behavior, or readiness claims.
+Sprint 115 should add local review manifest and comparison reference contracts without filesystem I/O, databases, dashboards, workflow execution, broker behavior, or readiness claims.
