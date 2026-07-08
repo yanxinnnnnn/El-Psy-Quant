@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 108 — Promotion Manifest and Candidate References Foundation
+Sprint 109 — Milestone 20 Documentation Refresh
 ```
 
-Sprint 108 should add local artifact/reference wiring for promotion records and paper candidates. It should not add databases, dashboards, broad reporting, artifact scoring, or runtime execution.
+Sprint 109 should refresh Milestone 20 documentation and close out the research-to-paper promotion foundation without expanding runtime behavior.
 
 See the milestone summaries in:
 
@@ -111,6 +111,7 @@ docs/strategy/future-platform-roadmap.md
   - explicit paper promotion candidates for manual review
   - descriptive promotion evidence summaries with source facts, assumptions, warnings, and missing-evidence fields
   - explicit human-controlled promotion records with validated statuses and rationale
+  - local promotion manifests and compact candidate references for manual inspection
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -289,6 +290,8 @@ Sprint 106 added descriptive promotion evidence summaries. Evidence summaries at
 
 Sprint 107 added explicit promotion records. Promotion records tie evidence summaries to human-controlled status, rationale, reviewer context, and timestamps without inferring approval, claiming live readiness, or claiming real-money readiness.
 
+Sprint 108 added local promotion manifests and compact candidate references. These contracts group existing promotion records and references for manual inspection without filesystem I/O, artifact loading, scoring, reporting, approval automation, or paper workflow execution.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -299,7 +302,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to add promotion manifest and candidate references, not to automate strategy approval or paper execution.
+The next step is to refresh Milestone 20 documentation, not to automate strategy approval or paper execution.
 
 ## Module Overview
 
