@@ -10,17 +10,9 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 17 — Paper Trading Persistence & Audit Foundation** is complete.
+**Milestone 18 — Paper Trading Workflow Integration Foundation** is complete.
 
-Milestone 17 completed the local paper-trading persistence and audit chain:
-
-```text
-paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
-```
-
-**Milestone 18 — Paper Trading Workflow Integration Foundation** is in progress.
-
-Milestone 18 should turn the local paper-trading building blocks from Milestones 16 and 17 into one explicit workflow boundary:
+Milestone 18 completed the local paper-trading workflow chain:
 
 ```text
 paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
@@ -28,11 +20,13 @@ paper run request contract -> paper run execution boundary -> paper run artifact
 
 The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 
-The next sprint is:
+The next focus is:
 
 ```text
-Sprint 95 — Milestone 18 Documentation Refresh
+Sprint 96 — Milestone 19 Planning
 ```
+
+Sprint 96 should plan the next conservative milestone before configured paper workflow wiring or broader operational integration is implemented.
 
 See the milestone summaries in:
 
@@ -190,7 +184,7 @@ The completed chain is:
 execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
 ```
 
-This milestone remains local and deterministic. It does not introduce broker integration, exchange APIs, paper trading, or live trading behavior.
+This milestone remains local and deterministic. It does not introduce external execution connectivity, paper trading, or operational runtime behavior.
 
 ## Paper Trading Foundation
 
@@ -202,7 +196,7 @@ The completed chain is:
 paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
 ```
 
-The paper-trading foundation is local, deterministic, and inspectable. It does not currently support broker execution, live trading, order routing, market data streaming, real account synchronization, configured-run integration, artifact persistence, or report generation.
+The paper-trading foundation is local, deterministic, and inspectable. It does not currently support external execution connectivity, configured-run integration, artifact persistence, or report generation.
 
 ## Paper Trading Persistence & Audit Foundation
 
@@ -214,19 +208,19 @@ The completed chain is:
 paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
 ```
 
-This milestone remains local and deterministic. It does not add broker integration, live execution, order routing, configured-run expansion, databases, dashboards, broad report generation, deep object reconstruction, or schema migration behavior.
+This milestone remains local and deterministic. It does not add configured-run expansion, databases, dashboards, broad report generation, deep object reconstruction, or schema migration behavior.
 
 ## Paper Trading Workflow Integration Foundation
 
-Milestone 18 is turning the paper-trading state, artifact, persistence, and audit boundaries into an explicit local paper run workflow.
+Milestone 18 made the paper-trading state, artifact, persistence, and audit boundaries into an explicit local paper run workflow foundation.
 
-The planned chain is:
+The completed chain is:
 
 ```text
 paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
 ```
 
-This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, configured-run expansion, CLI workflow expansion, databases, dashboards, or broad report generation.
+This milestone remains local, deterministic, and explicit-input driven. It does not add broader configured workflow or operational integrations.
 
 ## Local Experiment Configuration
 
