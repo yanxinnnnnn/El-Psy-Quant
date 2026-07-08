@@ -29,10 +29,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 98 — Configured Paper Request Boundary Foundation
+Sprint 99 — Configured Paper Output Layout Foundation
 ```
 
-Sprint 98 should convert the validated optional `paper_run` config boundary into a `PaperRunRequest` without adding strategy-signal-to-order automation, file writing, CLI expansion, or broker behavior.
+Sprint 99 should define stable local output paths for configured paper artifacts and result summaries without writing files, executing the workflow, or adding broker behavior.
 
 See the milestone summaries in:
 
@@ -100,6 +100,7 @@ docs/strategy/future-platform-roadmap.md
   - immutable local paper run result summaries
 - Configured paper workflow wiring foundation:
   - optional local YAML `paper_run` config contract for explicit paper-run inputs
+  - side-effect-free conversion from validated paper-run config to `PaperRunRequest`
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -240,7 +241,7 @@ The planned chain is:
 paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
 ```
 
-The first implementation step adds an optional local YAML `paper_run` section that validates explicit account states, orders, and fills while keeping research-only configs backward compatible.
+The first implementation steps add an optional local YAML `paper_run` section that validates explicit account states, orders, and fills while keeping research-only configs backward compatible, then convert that validated config into `PaperRunRequest` without executing the workflow.
 
 This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, market data streaming, automatic research-to-paper promotion, dashboards, databases, or broad reporting.
 
@@ -252,7 +253,7 @@ Experiments can be described by a small local YAML file and run with the existin
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The configured workflow currently supports the existing moving-average crossover strategy and now validates optional explicit paper-run inputs. It does not yet execute paper workflows or integrate portfolio construction.
+The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, and can convert them into `PaperRunRequest`. It does not yet execute paper workflows or integrate portfolio construction.
 
 Milestone 19 plans the next conservative step: configured local paper workflow wiring from explicit paper-run inputs, not automatic strategy-signal promotion or broker behavior.
 

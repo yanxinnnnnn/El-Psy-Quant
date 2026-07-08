@@ -16,6 +16,7 @@ from el_psy_quant.paper.orders import (
     create_paper_order_ledger,
     create_paper_order_record,
 )
+from el_psy_quant.paper.run_request import PaperRunRequest, create_paper_run_request
 
 
 @dataclass(frozen=True)
@@ -266,6 +267,22 @@ def _parse_paper_run(raw: object) -> PaperRunConfig:
         ending_account_state=ending_account_state,
         orders=orders,
         fills=fills,
+    )
+
+
+def create_paper_run_request_from_config(
+    paper_run: PaperRunConfig,
+) -> PaperRunRequest:
+    """Convert validated paper-run config into a paper run request."""
+    if not isinstance(paper_run, PaperRunConfig):
+        raise ValueError("paper_run must be a PaperRunConfig")
+    return create_paper_run_request(
+        run_id=paper_run.run_id,
+        created_timestamp=paper_run.created_timestamp,
+        starting_account_state=paper_run.starting_account_state,
+        ending_account_state=paper_run.ending_account_state,
+        orders=paper_run.orders,
+        fills=paper_run.fills,
     )
 
 
