@@ -10,7 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 18 — Paper Trading Workflow Integration Foundation** is complete.
+**Milestone 19 — Configured Paper Workflow Wiring Foundation** is planned.
 
 Milestone 18 completed the local paper-trading workflow chain:
 
@@ -18,15 +18,21 @@ Milestone 18 completed the local paper-trading workflow chain:
 paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
 ```
 
+Milestone 19 should wire that completed local paper workflow into configured local runs conservatively:
+
+```text
+paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
+```
+
 The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 
 The next focus is:
 
 ```text
-Sprint 96 — Milestone 19 Planning
+Sprint 97 — Paper Workflow Config Contract Foundation
 ```
 
-Sprint 96 should plan the next conservative milestone before configured paper workflow wiring or broader operational integration is implemented.
+Sprint 97 should define the smallest useful local configuration contract for explicit paper-run inputs before execution, persistence, or manifest wiring is implemented.
 
 See the milestone summaries in:
 
@@ -37,9 +43,9 @@ docs/milestones/
 The latest milestone docs are:
 
 ```text
-docs/milestones/milestone-016-paper-trading-foundation.md
 docs/milestones/milestone-017-paper-trading-persistence-audit-foundation.md
 docs/milestones/milestone-018-paper-trading-workflow-integration-foundation.md
+docs/milestones/milestone-019-configured-paper-workflow-wiring-foundation.md
 ```
 
 The long-term platform roadmap is:
@@ -222,6 +228,18 @@ paper run request contract -> paper run execution boundary -> paper run artifact
 
 This milestone remains local, deterministic, and explicit-input driven. It does not add broader configured workflow or operational integrations.
 
+## Configured Paper Workflow Wiring Foundation
+
+Milestone 19 is planned to connect the completed paper run workflow to local configuration and configured-run output discipline.
+
+The planned chain is:
+
+```text
+paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
+```
+
+This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, market data streaming, automatic research-to-paper promotion, dashboards, databases, or broad reporting.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -231,6 +249,8 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
 The configured workflow currently supports the existing moving-average crossover strategy and does not yet integrate portfolio construction or paper trading workflows.
+
+Milestone 19 plans the next conservative step: configured local paper workflow wiring from explicit paper-run inputs, not automatic strategy-signal promotion or broker behavior.
 
 ## Module Overview
 
