@@ -68,4 +68,4 @@ Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
 
 Milestone 19 — Configured Paper Workflow Wiring Foundation is in progress.
 
-The next focus is Sprint 101 — Configured Paper Manifest and Result References. Record configured paper artifact and result-summary references in configured-run metadata or manifest outputs before adding broker behavior, automatic strategy promotion, or broader reporting.
+The next focus is Sprint 102 — Milestone 19 Documentation Refresh / Closeout. Document and close the configured paper workflow wiring milestone without adding broker behavior, automatic strategy promotion, or broader reporting.
