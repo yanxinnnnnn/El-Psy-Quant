@@ -68,9 +68,9 @@ Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
 
 Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
-Milestone 20 — Research-to-Paper Promotion Foundation is planned.
+Milestone 20 — Research-to-Paper Promotion Foundation is in progress.
 
-The next focus is Sprint 104 — Promotion Source Reference Contract Foundation. Define the smallest useful source reference boundary for promotion evidence without loading artifacts deeply, scoring strategies, creating paper requests, executing paper workflows, adding broker behavior, or approving promotion automatically.
+The next focus is Sprint 105 — Paper Promotion Candidate Contract Foundation. Define an explicit paper promotion candidate boundary linked to source references and manual review context without constructing `PaperRunRequest` objects, executing paper workflows, adding broker behavior, or approving promotion automatically.
 
 ## Implementation Sprint Issue Requirements
 

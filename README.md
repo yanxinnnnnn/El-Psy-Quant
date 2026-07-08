@@ -18,7 +18,7 @@ Milestone 19 completed the configured local paper workflow wiring chain:
 paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
 ```
 
-**Milestone 20 — Research-to-Paper Promotion Foundation** is planned.
+**Milestone 20 — Research-to-Paper Promotion Foundation** is in progress.
 
 Milestone 20 will define the first explicit governance boundary between research evidence and paper-trading candidates:
 
@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 104 — Promotion Source Reference Contract Foundation
+Sprint 105 — Paper Promotion Candidate Contract Foundation
 ```
 
-Sprint 104 should define the smallest useful source reference boundary for promotion evidence. It should not load artifacts deeply, score strategies, create paper requests, execute paper workflows, add broker behavior, or approve promotion automatically.
+Sprint 105 should define an explicit paper promotion candidate boundary linked to source references and manual review context. It should not construct `PaperRunRequest` objects, execute paper workflows, add broker behavior, or approve promotion automatically.
 
 See the milestone summaries in:
 
@@ -106,6 +106,8 @@ docs/strategy/future-platform-roadmap.md
   - side-effect-free configured paper output paths for paper artifacts and result summaries
   - local configured paper workflow runner that writes only configured paper artifact and result-summary JSON files
   - configured-run metadata and manifest references to paper artifact and result-summary files
+- Research-to-paper promotion foundation:
+  - typed promotion source references for existing local or logical evidence
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -266,7 +268,7 @@ This milestone remains local and deterministic. It does not add broker integrati
 
 ## Research-to-Paper Promotion Foundation
 
-Milestone 20 is planned to define explicit promotion governance before paper comparison, decision records, reports, broker readiness, or live-readiness claims.
+Milestone 20 is defining explicit promotion governance before paper comparison, decision records, reports, broker readiness, or live-readiness claims.
 
 The planned chain is:
 
@@ -275,6 +277,8 @@ promotion source reference contract -> paper promotion candidate contract -> pro
 ```
 
 A promotion candidate is not an approval. A promotion record is not a live-readiness claim. The milestone should keep paper workflow execution separate from research-to-paper promotion records.
+
+Sprint 104 added typed promotion source references only. Source references identify existing evidence without loading artifacts, scoring strategies, creating candidates, or executing paper workflows.
 
 ## Local Experiment Configuration
 
@@ -286,7 +290,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to define promotion source references for Milestone 20, not to expand paper workflow runtime behavior.
+The next step is to define paper promotion candidates linked to source references, not to automate strategy approval or paper execution.
 
 ## Module Overview
 
@@ -297,6 +301,7 @@ el_psy_quant/
   configured_paper.py # Configured local paper workflow runner
   configured_paper_references.py # Configured paper metadata and manifest references
   config.py      # Load and validate local YAML experiment settings, including optional explicit paper-run inputs
+  promotion/     # Research-to-paper promotion references and governance contracts
   outputs.py     # Create deterministic local experiment directories and reserved paths
   strategies/    # Strategy contract, adapters, validation, and exact-name resolution
   data/          # Price validation, symbol universes, providers, and local input helpers

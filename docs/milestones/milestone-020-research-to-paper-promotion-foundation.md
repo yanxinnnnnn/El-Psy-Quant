@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned.
+In progress.
 
 ## Product Goal
 
@@ -77,7 +77,7 @@ promotion source reference contract
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S103 | Complete | Plan Milestone 20. | Research-to-paper promotion scope, sequence, and guardrails. | No implementation during planning. |
-| S104 | Planned | Define promotion source references. | Small typed references to research, backtest, execution, portfolio, or configured-run artifacts used as promotion evidence. | No artifact loading, scoring, or promotion decision yet. |
+| S104 | Complete | Define promotion source references. | Small typed references to research, backtest, execution, portfolio, or configured-run artifacts used as promotion evidence. | No artifact loading, scoring, or promotion decision yet. |
 | S105 | Planned | Define paper promotion candidate contract. | Explicit paper-trading candidate boundary linked to source references and manual review context. | No `PaperRunRequest` construction or paper workflow execution. |
 | S106 | Planned | Add promotion evidence summary. | Compact deterministic evidence summary for a candidate, including assumptions, warnings, and source facts. | No automatic pass/fail approval engine. |
 | S107 | Planned | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, and status together. | No autonomous strategy approval or live-readiness claim. |
@@ -158,7 +158,7 @@ Milestone 20 will be complete when:
 ## Current Next Step
 
 ```text
-Sprint 104 — Promotion Source Reference Contract Foundation
+Sprint 105 — Paper Promotion Candidate Contract Foundation
 ```
 
-Sprint 104 should define the smallest useful source reference boundary for promotion evidence without loading artifacts deeply, scoring strategies, creating paper requests, executing paper workflows, or approving promotion automatically.
+Sprint 105 should define an explicit paper promotion candidate boundary linked to source references and manual review context without constructing `PaperRunRequest` objects or executing paper workflows.
