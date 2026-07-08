@@ -5,9 +5,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
+import pandas as pd
 import yaml
 
 from el_psy_quant.data.universe import build_symbol_universe
+from el_psy_quant.paper.account import PaperAccountState, create_paper_account_state
+from el_psy_quant.paper.fills import PaperFill, create_paper_fill
+from el_psy_quant.paper.orders import (
+    PaperOrderRecord,
+    create_paper_order_ledger,
+    create_paper_order_record,
+)
 
 
 @dataclass(frozen=True)
@@ -40,6 +48,18 @@ class ExperimentEvaluationConfig:
 
 
 @dataclass(frozen=True)
+class PaperRunConfig:
+    """Explicit local paper-run input settings."""
+
+    run_id: str
+    created_timestamp: object
+    starting_account_state: PaperAccountState
+    ending_account_state: PaperAccountState
+    orders: tuple[PaperOrderRecord, ...]
+    fills: tuple[PaperFill, ...]
+
+
+@dataclass(frozen=True)
 class ExperimentConfig:
     """Validated configuration for one local research experiment."""
 
@@ -48,6 +68,7 @@ class ExperimentConfig:
     data: ExperimentDataConfig
     parameters: MovingAverageCrossoverParameters
     evaluation: ExperimentEvaluationConfig
+    paper_run: PaperRunConfig | None = None
 
 
 def _require_mapping(value: object, section: str) -> Mapping[str, Any]:
@@ -72,6 +93,22 @@ def _number(value: object, field: str) -> float:
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         raise ValueError(f"{field} must be a number")
     return float(value)
+
+
+def _timestamp(value: object, field: str) -> object:
+    try:
+        normalized = pd.Timestamp(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field} must be convertible to a pandas Timestamp") from exc
+    if pd.isna(normalized):
+        raise ValueError(f"{field} must be valid")
+    return value
+
+
+def _require_field(mapping: Mapping[str, Any], key: str, section: str) -> object:
+    if key not in mapping:
+        raise ValueError(f"{section}.{key} is required")
+    return mapping[key]
 
 
 def _parse_data(raw: object) -> ExperimentDataConfig:
@@ -146,6 +183,92 @@ def _parse_evaluation(raw: object) -> ExperimentEvaluationConfig:
     )
 
 
+def _parse_paper_account_state(raw: object, section: str) -> PaperAccountState:
+    account_state = _require_mapping(raw, section)
+    return create_paper_account_state(
+        timestamp=_require_field(account_state, "timestamp", section),
+        starting_cash=_require_field(account_state, "starting_cash", section),
+        current_cash=_require_field(account_state, "current_cash", section),
+        positions=_require_mapping(
+            _require_field(account_state, "positions", section),
+            f"{section}.positions",
+        ),
+    )
+
+
+def _parse_paper_order(raw: object, section: str) -> PaperOrderRecord:
+    order = _require_mapping(raw, section)
+    return create_paper_order_record(
+        order_id=_require_field(order, "order_id", section),
+        timestamp=_require_field(order, "timestamp", section),
+        symbol=_require_field(order, "symbol", section),
+        side=_require_field(order, "side", section),
+        quantity=_require_field(order, "quantity", section),
+        status=_require_field(order, "status", section),
+    )
+
+
+def _parse_paper_fill(raw: object, section: str) -> PaperFill:
+    fill = _require_mapping(raw, section)
+    kwargs: dict[str, object] = {
+        "timestamp": _require_field(fill, "timestamp", section),
+        "symbol": _require_field(fill, "symbol", section),
+        "side": _require_field(fill, "side", section),
+        "quantity": _require_field(fill, "quantity", section),
+        "price": _require_field(fill, "price", section),
+    }
+    if "order_id" in fill:
+        kwargs["order_id"] = fill["order_id"]
+    return create_paper_fill(**kwargs)
+
+
+def _parse_paper_run(raw: object) -> PaperRunConfig:
+    paper_run = _require_mapping(raw, "paper_run")
+
+    run_id = _non_empty_string(
+        _require_field(paper_run, "run_id", "paper_run"),
+        "paper_run.run_id",
+    )
+    created_timestamp = _timestamp(
+        _require_field(paper_run, "created_timestamp", "paper_run"),
+        "paper_run.created_timestamp",
+    )
+    starting_account_state = _parse_paper_account_state(
+        _require_field(paper_run, "starting_account_state", "paper_run"),
+        "paper_run.starting_account_state",
+    )
+    ending_account_state = _parse_paper_account_state(
+        _require_field(paper_run, "ending_account_state", "paper_run"),
+        "paper_run.ending_account_state",
+    )
+
+    raw_orders = _require_field(paper_run, "orders", "paper_run")
+    if not isinstance(raw_orders, list):
+        raise ValueError("paper_run.orders must be a list")
+    orders = tuple(
+        _parse_paper_order(order, f"paper_run.orders[{index}]")
+        for index, order in enumerate(raw_orders)
+    )
+    create_paper_order_ledger(orders)
+
+    raw_fills = _require_field(paper_run, "fills", "paper_run")
+    if not isinstance(raw_fills, list):
+        raise ValueError("paper_run.fills must be a list")
+    fills = tuple(
+        _parse_paper_fill(fill, f"paper_run.fills[{index}]")
+        for index, fill in enumerate(raw_fills)
+    )
+
+    return PaperRunConfig(
+        run_id=run_id,
+        created_timestamp=created_timestamp,
+        starting_account_state=starting_account_state,
+        ending_account_state=ending_account_state,
+        orders=orders,
+        fills=fills,
+    )
+
+
 def parse_experiment_config(raw: Mapping[str, Any]) -> ExperimentConfig:
     """Validate a parsed experiment configuration mapping."""
     experiment = _require_mapping(raw.get("experiment"), "experiment")
@@ -167,6 +290,11 @@ def parse_experiment_config(raw: Mapping[str, Any]) -> ExperimentConfig:
         data=_parse_data(raw["data"]),
         parameters=_parse_parameters(raw["parameters"]),
         evaluation=_parse_evaluation(raw.get("evaluation", {})),
+        paper_run=(
+            _parse_paper_run(raw["paper_run"])
+            if "paper_run" in raw
+            else None
+        ),
     )
 
 

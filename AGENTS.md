@@ -66,6 +66,6 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
 
-Milestone 19 — Configured Paper Workflow Wiring Foundation is planned.
+Milestone 19 — Configured Paper Workflow Wiring Foundation is in progress.
 
-The next focus is Sprint 97 — Paper Workflow Config Contract Foundation. Define the smallest useful local configuration contract for explicit paper-run inputs before adding execution, persistence, manifest wiring, broker behavior, or automatic strategy promotion.
+The next focus is Sprint 98 — Configured Paper Request Boundary Foundation. Convert the validated optional `paper_run` config boundary into a `PaperRunRequest` before adding output layout, workflow execution, manifest wiring, broker behavior, or automatic strategy promotion.
