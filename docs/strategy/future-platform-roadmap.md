@@ -24,6 +24,7 @@ idea
   -> paper trading
   -> persistence
   -> audit
+  -> configured workflow
   -> decision review
   -> controlled live readiness
 ```
@@ -58,7 +59,7 @@ That path would create complexity before the platform earns it.
 
 ## Phase 1 — Research & Artifact Foundation
 
-Status: Mostly complete through Milestone 17.
+Status: Complete through the core local paper workflow foundation.
 
 This phase establishes the platform foundation:
 
@@ -73,6 +74,7 @@ This phase establishes the platform foundation:
 - paper trading artifacts
 - paper artifact persistence
 - paper artifact validation and audit summaries
+- explicit local paper workflow boundaries
 
 Completed milestone chain:
 
@@ -87,17 +89,20 @@ M14     portfolio risk and attribution foundation
 M15     backtest execution realism foundation
 M16     paper trading foundation
 M17     paper trading persistence and audit foundation
+M18     paper trading workflow integration foundation
 ```
 
-Phase 1 turns the project from a demo into a disciplined local research platform.
+Phase 1 turns the project from a demo into a disciplined local research platform with explicit paper workflow boundaries.
 
 ## Phase 2 — Workflow Integration Foundation
 
-Recommended focus: Milestones 18-21.
+Recommended focus: Milestones 19-21.
 
 This phase turns isolated capabilities into operating workflows.
 
 ### Milestone 18 — Paper Trading Workflow Integration Foundation
+
+Status: Complete.
 
 Goal:
 
@@ -119,27 +124,49 @@ Guardrails:
 - no configured-run integration yet
 - no dashboard or report generation
 
-### Milestone 19 — Configured Paper Run Foundation
+### Milestone 19 — Configured Paper Workflow Wiring Foundation
+
+Status: Planned.
 
 Goal:
 
 ```text
 local config
   -> validated paper run request
+  -> configured output layout
   -> paper workflow execution
-  -> saved paper outputs
+  -> saved paper outputs and result references
 ```
 
 Purpose:
 
-Allow paper runs to be driven by a local configuration layer after the local workflow boundary is stable.
+Allow local configured runs to drive the completed paper workflow after the explicit paper workflow boundary is stable.
+
+This should make configured paper runs reproducible and inspectable without turning the platform into an automated trading system.
 
 Guardrails:
 
 - no broker integration
 - no live execution
+- no market data streaming
+- no scheduler behavior
+- no automatic research-to-paper promotion
+- no automatic strategy-signal-to-order conversion
 - no database
+- no dashboard or broad report generation
 - no strategy expansion
+
+Planned sprint chain:
+
+```text
+S96   Milestone 19 planning
+S97   paper workflow config contract
+S98   configured paper request builder
+S99   configured paper output layout
+S100  configured paper workflow runner
+S101  configured paper manifest and result references
+S102  milestone closeout
+```
 
 ### Milestone 20 — Research-to-Paper Promotion Foundation
 
