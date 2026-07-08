@@ -68,4 +68,4 @@ Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
 
 Milestone 19 — Configured Paper Workflow Wiring Foundation is in progress.
 
-The next focus is Sprint 99 — Configured Paper Output Layout Foundation. Define stable local output paths for configured paper artifacts and result summaries before adding workflow execution, manifest wiring, broker behavior, or automatic strategy promotion.
+The next focus is Sprint 100 — Configured Paper Workflow Runner Foundation. Run and persist a configured paper workflow by reusing existing validated paper config, request conversion, output layout, execution, and persistence boundaries before adding manifest wiring, broker behavior, or automatic strategy promotion.
