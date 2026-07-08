@@ -81,7 +81,7 @@ promotion source reference contract
 | S105 | Complete | Define paper promotion candidate contract. | Explicit paper-trading candidate boundary linked to source references and manual review context. | No `PaperRunRequest` construction or paper workflow execution. |
 | S106 | Complete | Add promotion evidence summary. | Compact deterministic evidence summary for a candidate, including assumptions, warnings, and source facts. | No automatic pass/fail approval engine. |
 | S107 | Complete | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, and status together. | No autonomous strategy approval or live-readiness claim. |
-| S108 | Planned | Add promotion manifest and candidate references. | Local artifact/reference wiring for promotion records and paper candidates. | No database, dashboard, or broad report generation. |
+| S108 | Complete | Add promotion manifest and candidate references. | Local artifact/reference wiring for promotion records and paper candidates. | No database, dashboard, or broad report generation. |
 | S109 | Planned | Close milestone. | Milestone 20 documentation refresh. | No scope expansion. |
 
 ## Planned Capabilities
@@ -158,7 +158,7 @@ Milestone 20 will be complete when:
 ## Current Next Step
 
 ```text
-Sprint 108 — Promotion Manifest and Candidate References Foundation
+Sprint 109 — Milestone 20 Documentation Refresh
 ```
 
-Sprint 108 should add local artifact/reference wiring for promotion records and paper candidates without introducing databases, dashboards, broad reporting, artifact scoring, or runtime execution.
+Sprint 109 should refresh Milestone 20 documentation and close out the research-to-paper promotion foundation without expanding runtime behavior.
