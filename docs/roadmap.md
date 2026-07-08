@@ -37,7 +37,7 @@ flowchart LR
     M15 --> M16["Milestone 16<br/>Paper Trading Foundation<br/>Sprints 77-83 ✅"]
     M16 --> M17["Milestone 17<br/>Paper Trading Persistence & Audit Foundation<br/>Sprints 84-89 ✅"]
     M17 --> M18["Milestone 18<br/>Paper Trading Workflow Integration Foundation<br/>Sprints 90-95 ✅"]
-    M18 --> M19["Milestone 19<br/>Configured Paper Workflow Wiring Foundation<br/>Planning Next"]
+    M18 --> M19["Milestone 19<br/>Configured Paper Workflow Wiring Foundation<br/>Sprints 96-102 Planned"]
 ```
 
 ## Milestone Table
@@ -62,7 +62,7 @@ flowchart LR
 | Milestone 16 — Paper Trading Foundation | Sprints 77-83 | Complete | Define local paper-trading state and records before external execution. | Paper account state, paper orders, fill application, session summaries, and artifacts are available under conservative local assumptions. |
 | Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper-trading outputs durable and audit-friendly before runtime workflows. | Paper-trading artifacts can be saved, loaded, validated, and summarized locally without broad operational behavior. |
 | Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Complete | Turn local paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper trading artifact without broader configured workflow behavior. |
-| Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96+ | Planned | Plan and then wire the completed local paper workflow into configured runs conservatively. | To be defined during Sprint 96 planning. |
+| Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Planned | Wire the explicit paper workflow into configured local runs conservatively. | Configured local paper inputs can produce, persist, and reference paper workflow outputs without broker, live, database, dashboard, or automatic-promotion behavior. |
 
 ## Completed Milestone 16 — Paper Trading Foundation
 
@@ -111,7 +111,7 @@ docs/sprints/sprint-089-milestone-17-closeout.md
 | S90 | Complete | Plan Milestone 18. | Workflow integration scope, sequence, and long-term platform context. | No implementation during planning. |
 | S91 | Complete | Define paper run request contract. | Small immutable request boundary for one local paper run. | No execution or file writing yet. |
 | S92 | Complete | Add paper run execution boundary. | Build a paper trading artifact from an explicit request. | No CLI, broker, or configured-run integration. |
-| S93 | Complete | Add paper run artifact persistence. | Persist a paper run artifact to an explicit local path using the M17 writer. | No default output-root workflow. |
+| S93 | Complete | Add paper run artifact persistence. | Persist a paper run artifact to an explicit local path using M17 writer. | No default output-root workflow. |
 | S94 | Complete | Add paper run result summary. | Compact summary tying request, artifact identity, saved path, and audit facts. | No dashboard or report generation. |
 | S95 | Complete | Close milestone. | Milestone 18 documentation refresh. | No scope expansion. |
 
@@ -130,15 +130,41 @@ docs/sprints/sprint-095-milestone-18-closeout.md
 docs/strategy/future-platform-roadmap.md
 ```
 
+## Planned Milestone 19 — Configured Paper Workflow Wiring Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S96 | Complete | Plan Milestone 19. | Configured paper workflow wiring scope, sequence, and guardrails. | No implementation during planning. |
+| S97 | Planned | Define paper workflow config contract. | Minimal local config section for explicit paper-run inputs. | No execution or file writing yet. |
+| S98 | Planned | Build configured paper request boundary. | Convert validated config inputs into `PaperRunRequest`. | No strategy-signal-to-order automation. |
+| S99 | Planned | Define configured paper output layout. | Stable local paths for paper artifacts and result summaries under configured runs. | No database or artifact service. |
+| S100 | Planned | Add configured paper workflow runner. | Execute and persist a configured paper run by reusing Milestone 18 boundaries. | No broker, live, scheduler, or streaming behavior. |
+| S101 | Planned | Add configured paper manifest and result references. | Record paper artifact/result paths in configured-run metadata or manifest outputs. | No dashboard or broad report generation. |
+| S102 | Planned | Close milestone. | Milestone 19 documentation refresh. | No scope expansion. |
+
+Milestone 19 plans this conservative chain:
+
+```text
+paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
+```
+
+See:
+
+```text
+docs/milestones/milestone-019-configured-paper-workflow-wiring-foundation.md
+docs/sprints/sprint-096-milestone-19-planning.md
+docs/strategy/future-platform-roadmap.md
+```
+
 ## Future Platform Direction
 
 The recommended sequence now is:
 
 ```text
-Sprint 96 — Milestone 19 Planning
+Sprint 97 — Paper Workflow Config Contract Foundation
 ```
 
-The guiding idea is to move from isolated paper-trading workflow boundaries to configured workflow wiring only after the next milestone is planned explicitly.
+The guiding idea is to move from explicit paper workflow boundaries to configured local paper workflow wiring before decision records, reports, broker readiness, or live-readiness claims.
 
 Longer-term, the platform should move through:
 
@@ -169,16 +195,17 @@ Phase 5 — Controlled Live Pilot & Production Operations
 15. Paper trading state should be explicit before broker integration.
 16. Paper trading artifacts should be durable and audit-friendly before runtime workflows or broker integration.
 17. Paper trading workflows should be explicit before configured-run integration or broker readiness.
-18. Decision records should exist before live-readiness claims.
+18. Configured paper workflows should stay local and explicit before decision records, broker readiness, or live-readiness claims.
+19. Decision records should exist before live-readiness claims.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 96 — Milestone 19 Planning
+Sprint 97 — Paper Workflow Config Contract Foundation
 ```
 
 Reason:
 
-Sprint 96 should define the next milestone before configured paper workflow wiring is implemented.
+Sprint 97 should define the local configuration contract for explicit paper-run inputs before execution, persistence, manifest wiring, or operational integration is implemented.
