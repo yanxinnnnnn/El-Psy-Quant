@@ -66,6 +66,6 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
 
-Milestone 19 — Configured Paper Workflow Wiring Foundation is in progress.
+Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
-The next focus is Sprint 102 — Milestone 19 Documentation Refresh / Closeout. Document and close the configured paper workflow wiring milestone without adding broker behavior, automatic strategy promotion, or broader reporting.
+The next focus is Sprint 103 — Plan Milestone 20. Plan the next milestone after configured local paper workflow wiring without adding runtime behavior, broker behavior, automatic strategy promotion, or broader reporting during planning.
