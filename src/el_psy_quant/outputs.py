@@ -21,6 +21,14 @@ class ExperimentOutputLayout:
     logs_dir: Path
 
 
+@dataclass(frozen=True)
+class ConfiguredPaperRunOutputPaths:
+    """Paths reserved for configured paper workflow outputs."""
+
+    paper_run_artifact_path: Path
+    paper_run_result_summary_path: Path
+
+
 def _slugify_experiment_name(experiment_name: str) -> str:
     if not isinstance(experiment_name, str) or not experiment_name.strip():
         raise ValueError("experiment_name must be a non-empty string")
@@ -38,6 +46,27 @@ def _validate_run_id(run_id: str) -> str:
             "run_id may contain only ASCII letters, digits, underscores, and hyphens"
         )
     return run_id
+
+
+def _validate_run_dir(run_dir: str | Path) -> Path:
+    if isinstance(run_dir, str) and not run_dir.strip():
+        raise ValueError("run_dir must be a non-empty path")
+    if not isinstance(run_dir, (str, Path)):
+        raise ValueError("run_dir must be a string or Path")
+    return Path(run_dir)
+
+
+def create_configured_paper_run_output_paths(
+    *,
+    run_dir: str | Path,
+) -> ConfiguredPaperRunOutputPaths:
+    """Return reserved configured paper output paths without side effects."""
+    validated_run_dir = _validate_run_dir(run_dir)
+    paper_dir = validated_run_dir / "paper"
+    return ConfiguredPaperRunOutputPaths(
+        paper_run_artifact_path=paper_dir / "paper_run_artifact.json",
+        paper_run_result_summary_path=paper_dir / "paper_run_result_summary.json",
+    )
 
 
 def create_experiment_output_layout(

@@ -4,7 +4,9 @@ from pathlib import Path
 import pytest
 
 from el_psy_quant.outputs import (
+    ConfiguredPaperRunOutputPaths,
     ExperimentOutputLayout,
+    create_configured_paper_run_output_paths,
     create_experiment_output_layout,
 )
 
@@ -44,6 +46,57 @@ def test_does_not_write_reserved_files(tmp_path: Path) -> None:
     assert not layout.metrics_path.exists()
     assert list(layout.results_dir.iterdir()) == []
     assert list(layout.logs_dir.iterdir()) == []
+
+
+def test_creates_configured_paper_run_output_paths(tmp_path: Path) -> None:
+    run_dir = tmp_path / "ma-crossover-local" / "run-1"
+
+    paths = create_configured_paper_run_output_paths(run_dir=run_dir)
+
+    assert paths == ConfiguredPaperRunOutputPaths(
+        paper_run_artifact_path=run_dir / "paper" / "paper_run_artifact.json",
+        paper_run_result_summary_path=(
+            run_dir / "paper" / "paper_run_result_summary.json"
+        ),
+    )
+    assert isinstance(paths.paper_run_artifact_path, Path)
+    assert isinstance(paths.paper_run_result_summary_path, Path)
+
+
+def test_configured_paper_run_output_paths_accept_string_run_dir(
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "experiment" / "run-1"
+
+    paths = create_configured_paper_run_output_paths(run_dir=str(run_dir))
+
+    assert paths.paper_run_artifact_path == (
+        run_dir / "paper" / "paper_run_artifact.json"
+    )
+    assert paths.paper_run_result_summary_path == (
+        run_dir / "paper" / "paper_run_result_summary.json"
+    )
+
+
+def test_configured_paper_run_output_paths_do_not_create_files_or_directories(
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "experiment" / "run-1"
+
+    paths = create_configured_paper_run_output_paths(run_dir=run_dir)
+
+    assert not run_dir.exists()
+    assert not (run_dir / "paper").exists()
+    assert not paths.paper_run_artifact_path.exists()
+    assert not paths.paper_run_result_summary_path.exists()
+
+
+@pytest.mark.parametrize("run_dir", ["", "   ", None, 123])
+def test_rejects_invalid_configured_paper_run_output_run_dirs(
+    run_dir: object,
+) -> None:
+    with pytest.raises(ValueError, match="run_dir"):
+        create_configured_paper_run_output_paths(run_dir=run_dir)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -87,5 +140,10 @@ def test_generates_utc_timestamp_run_id(tmp_path: Path) -> None:
 def test_output_api_is_importable() -> None:
     from el_psy_quant import outputs
 
+    assert outputs.ConfiguredPaperRunOutputPaths is ConfiguredPaperRunOutputPaths
     assert outputs.ExperimentOutputLayout is ExperimentOutputLayout
+    assert (
+        outputs.create_configured_paper_run_output_paths
+        is create_configured_paper_run_output_paths
+    )
     assert outputs.create_experiment_output_layout is create_experiment_output_layout

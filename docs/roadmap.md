@@ -137,7 +137,7 @@ docs/strategy/future-platform-roadmap.md
 | S96 | Complete | Plan Milestone 19. | Configured paper workflow wiring scope, sequence, and guardrails. | No implementation during planning. |
 | S97 | Complete | Define paper workflow config contract. | Minimal local config section for explicit paper-run inputs. | No execution or file writing yet. |
 | S98 | Complete | Build configured paper request boundary. | Convert validated config inputs into `PaperRunRequest`. | No strategy-signal-to-order automation. |
-| S99 | Planned | Define configured paper output layout. | Stable local paths for paper artifacts and result summaries under configured runs. | No database or artifact service. |
+| S99 | Complete | Define configured paper output layout. | Stable local paths for paper artifacts and result summaries under configured runs. | No database or artifact service. |
 | S100 | Planned | Add configured paper workflow runner. | Execute and persist a configured paper run by reusing Milestone 18 boundaries. | No broker, live, scheduler, or streaming behavior. |
 | S101 | Planned | Add configured paper manifest and result references. | Record paper artifact/result paths in configured-run metadata or manifest outputs. | No dashboard or broad report generation. |
 | S102 | Planned | Close milestone. | Milestone 19 documentation refresh. | No scope expansion. |
@@ -161,7 +161,7 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 99 — Configured Paper Output Layout Foundation
+Sprint 100 — Configured Paper Workflow Runner Foundation
 ```
 
 The guiding idea is to move from explicit paper workflow boundaries to configured local paper workflow wiring before decision records, reports, broker readiness, or live-readiness claims.
@@ -203,9 +203,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 99 — Configured Paper Output Layout Foundation
+Sprint 100 — Configured Paper Workflow Runner Foundation
 ```
 
 Reason:
 
-Sprint 99 should define stable local output paths for configured paper artifacts and result summaries without writing files, executing the workflow, adding manifest wiring, or introducing broker behavior.
+Sprint 100 should run and persist a configured paper workflow by reusing existing validated paper config, request conversion, output layout, execution, and persistence boundaries without adding broker, live, scheduler, streaming, database, dashboard, or automatic strategy-promotion behavior.
