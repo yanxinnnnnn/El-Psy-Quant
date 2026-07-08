@@ -12,16 +12,18 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 **Milestone 19 — Configured Paper Workflow Wiring Foundation** is complete.
 
-Milestone 18 completed the local paper-trading workflow chain:
-
-```text
-paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
-```
-
 Milestone 19 completed the configured local paper workflow wiring chain:
 
 ```text
 paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
+```
+
+**Milestone 20 — Research-to-Paper Promotion Foundation** is planned.
+
+Milestone 20 will define the first explicit governance boundary between research evidence and paper-trading candidates:
+
+```text
+promotion source reference contract -> paper promotion candidate contract -> promotion evidence summary -> explicit promotion record -> promotion manifest and candidate references
 ```
 
 The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
@@ -29,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 103 — Plan Milestone 20
+Sprint 104 — Promotion Source Reference Contract Foundation
 ```
 
-Sprint 103 should plan the next milestone without expanding runtime behavior during planning.
+Sprint 104 should define the smallest useful source reference boundary for promotion evidence. It should not load artifacts deeply, score strategies, create paper requests, execute paper workflows, add broker behavior, or approve promotion automatically.
 
 See the milestone summaries in:
 
@@ -43,9 +45,9 @@ docs/milestones/
 The latest milestone docs are:
 
 ```text
-docs/milestones/milestone-017-paper-trading-persistence-audit-foundation.md
 docs/milestones/milestone-018-paper-trading-workflow-integration-foundation.md
 docs/milestones/milestone-019-configured-paper-workflow-wiring-foundation.md
+docs/milestones/milestone-020-research-to-paper-promotion-foundation.md
 ```
 
 The long-term platform roadmap is:
@@ -107,6 +109,20 @@ docs/strategy/future-platform-roadmap.md
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
+
+## Planned Next Platform Layer
+
+Milestone 20 plans a conservative research-to-paper promotion foundation.
+
+It should add promotion governance, not trading automation:
+
+- source references for research, backtest, execution, portfolio, or configured-run evidence
+- explicit paper promotion candidates
+- evidence summaries with assumptions, warnings, and missing-evidence fields
+- human-controlled promotion records
+- local candidate and promotion references
+
+It must not add automatic research-to-paper promotion, automatic strategy approval, automatic paper-order construction, paper workflow execution from promotion records, broker behavior, live execution, dashboards, databases, or broad reporting.
 
 ## Quick Start
 
@@ -248,6 +264,18 @@ Milestone 19 added an optional local YAML `paper_run` section that validates exp
 
 This milestone remains local and deterministic. It does not add broker integration, live execution, order routing, market data streaming, automatic research-to-paper promotion, dashboards, databases, or broad reporting.
 
+## Research-to-Paper Promotion Foundation
+
+Milestone 20 is planned to define explicit promotion governance before paper comparison, decision records, reports, broker readiness, or live-readiness claims.
+
+The planned chain is:
+
+```text
+promotion source reference contract -> paper promotion candidate contract -> promotion evidence summary -> explicit promotion record -> promotion manifest and candidate references
+```
+
+A promotion candidate is not an approval. A promotion record is not a live-readiness claim. The milestone should keep paper workflow execution separate from research-to-paper promotion records.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -258,7 +286,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to plan Milestone 20 carefully, not to expand runtime behavior inside Milestone 19.
+The next step is to define promotion source references for Milestone 20, not to expand paper workflow runtime behavior.
 
 ## Module Overview
 

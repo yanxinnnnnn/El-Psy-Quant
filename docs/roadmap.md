@@ -38,6 +38,7 @@ flowchart LR
     M16 --> M17["Milestone 17<br/>Paper Trading Persistence & Audit Foundation<br/>Sprints 84-89 ✅"]
     M17 --> M18["Milestone 18<br/>Paper Trading Workflow Integration Foundation<br/>Sprints 90-95 ✅"]
     M18 --> M19["Milestone 19<br/>Configured Paper Workflow Wiring Foundation<br/>Sprints 96-102 ✅"]
+    M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 🟡"]
 ```
 
 ## Milestone Table
@@ -63,6 +64,7 @@ flowchart LR
 | Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper-trading outputs durable and audit-friendly before runtime workflows. | Paper-trading artifacts can be saved, loaded, validated, and summarized locally without broad operational behavior. |
 | Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Complete | Turn local paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper trading artifact without broader configured workflow behavior. |
 | Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs conservatively. | Configured local paper inputs can produce, persist, and reference paper workflow outputs without broker, live, database, dashboard, or automatic-promotion behavior. |
+| Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Planned | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
 
 ## Completed Milestone 16 — Paper Trading Foundation
 
@@ -157,15 +159,41 @@ docs/sprints/sprint-102-milestone-19-documentation-refresh-closeout.md
 docs/strategy/future-platform-roadmap.md
 ```
 
+## Planned Milestone 20 — Research-to-Paper Promotion Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S103 | Complete | Plan Milestone 20. | Research-to-paper promotion scope, sequence, and guardrails. | No implementation during planning. |
+| S104 | Planned | Define promotion source references. | Small typed references to research, backtest, execution, portfolio, or configured-run artifacts used as promotion evidence. | No artifact loading, scoring, or promotion decision yet. |
+| S105 | Planned | Define paper promotion candidate contract. | Explicit paper-trading candidate boundary linked to source references and manual review context. | No `PaperRunRequest` construction or paper workflow execution. |
+| S106 | Planned | Add promotion evidence summary. | Compact deterministic evidence summary for a candidate, including assumptions, warnings, and source facts. | No automatic pass/fail approval engine. |
+| S107 | Planned | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, and status together. | No autonomous strategy approval or live-readiness claim. |
+| S108 | Planned | Add promotion manifest and candidate references. | Local artifact/reference wiring for promotion records and paper candidates. | No database, dashboard, or broad report generation. |
+| S109 | Planned | Close milestone. | Milestone 20 documentation refresh. | No scope expansion. |
+
+Milestone 20 plans this conservative governance chain:
+
+```text
+promotion source reference contract -> paper promotion candidate contract -> promotion evidence summary -> explicit promotion record -> promotion manifest and candidate references
+```
+
+See:
+
+```text
+docs/milestones/milestone-020-research-to-paper-promotion-foundation.md
+docs/sprints/sprint-103-milestone-20-planning.md
+docs/strategy/future-platform-roadmap.md
+```
+
 ## Future Platform Direction
 
 The recommended sequence now is:
 
 ```text
-Sprint 103 — Plan Milestone 20
+Sprint 104 — Promotion Source Reference Contract Foundation
 ```
 
-The guiding idea is to move from configured local paper workflow wiring toward the next carefully scoped platform layer before decision records, reports, broker readiness, or live-readiness claims.
+The guiding idea is to move from configured local paper workflow wiring toward explicit research-to-paper promotion governance before paper comparison, decision records, reports, broker readiness, or live-readiness claims.
 
 Longer-term, the platform should move through:
 
@@ -197,16 +225,17 @@ Phase 5 — Controlled Live Pilot & Production Operations
 16. Paper trading artifacts should be durable and audit-friendly before runtime workflows or broker integration.
 17. Paper trading workflows should be explicit before configured-run integration or broker readiness.
 18. Configured paper workflows should stay local and explicit before decision records, broker readiness, or live-readiness claims.
-19. Decision records should exist before live-readiness claims.
+19. Decision governance should exist before paper comparison, broad reports, broker readiness, or live-readiness claims.
+20. Promotion records should be explicit and human-controlled; they are not automatic approval engines.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 103 — Plan Milestone 20
+Sprint 104 — Promotion Source Reference Contract Foundation
 ```
 
 Reason:
 
-Sprint 103 should plan the next milestone without expanding runtime behavior during planning.
+Sprint 104 should define the smallest source reference boundary for promotion evidence before creating candidates, evidence summaries, promotion records, or any runtime integration.

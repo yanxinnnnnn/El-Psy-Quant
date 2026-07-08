@@ -68,4 +68,25 @@ Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
 
 Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
-The next focus is Sprint 103 — Plan Milestone 20. Plan the next milestone after configured local paper workflow wiring without adding runtime behavior, broker behavior, automatic strategy promotion, or broader reporting during planning.
+Milestone 20 — Research-to-Paper Promotion Foundation is planned.
+
+The next focus is Sprint 104 — Promotion Source Reference Contract Foundation. Define the smallest useful source reference boundary for promotion evidence without loading artifacts deeply, scoring strategies, creating paper requests, executing paper workflows, adding broker behavior, or approving promotion automatically.
+
+## Implementation Sprint Issue Requirements
+
+Future Codex implementation sprint issues must include the Windows proxy prelude:
+
+```powershell
+$env:HTTP_PROXY="http://127.0.0.1:7892"
+$env:HTTPS_PROXY="http://127.0.0.1:7892"
+$env:ALL_PROXY="http://127.0.0.1:7892"
+
+git config http.proxy http://127.0.0.1:7892
+git config https.proxy http://127.0.0.1:7892
+```
+
+They must also state:
+
+- Do not use `--global`
+- Do not commit proxy config
+- Do not modify project files for proxy setup
