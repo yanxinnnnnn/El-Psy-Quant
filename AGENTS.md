@@ -70,7 +70,9 @@ Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
 Milestone 20 — Research-to-Paper Promotion Foundation is complete.
 
-The next focus is Sprint 110 — Milestone 21 Planning. Plan the next conservative layer after promotion governance. Expected direction: Paper Run Comparison and Review Foundation, without dashboards, broad reporting, broker readiness, live-readiness claims, or runtime execution expansion.
+Milestone 21 — Paper Run Comparison and Review Foundation is planned.
+
+The next focus is Sprint 111 — Paper Run Reference Contract Foundation. Define the smallest useful reference contract for existing paper run artifacts and result summaries without artifact loading, automatic discovery, dashboard behavior, broad reporting, broker readiness, live-readiness claims, or runtime execution expansion.
 
 ## Implementation Sprint Issue Requirements
 

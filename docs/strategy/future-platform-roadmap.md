@@ -26,7 +26,8 @@ idea
   -> audit
   -> configured workflow
   -> promotion governance
-  -> decision review
+  -> paper comparison
+  -> review decision
   -> controlled live readiness
 ```
 
@@ -47,7 +48,7 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The priority order is:
 
 ```text
-workflow > promotion governance > decision record > reporting artifact > risk controls > broker sandbox > live
+workflow > promotion governance > paper comparison > review decision > reporting artifact > risk controls > broker sandbox > live
 ```
 
 The wrong order would be:
@@ -99,7 +100,7 @@ Phase 1 turns the project from a demo into a disciplined local research platform
 
 Recommended focus: Milestones 19-21.
 
-This phase turns isolated capabilities into operating workflows and reviewable promotion paths.
+This phase turns isolated capabilities into operating workflows and reviewable promotion/comparison paths.
 
 ### Milestone 18 — Paper Trading Workflow Integration Foundation
 
@@ -171,24 +172,26 @@ Guardrails preserved:
 
 ### Milestone 20 — Research-to-Paper Promotion Foundation
 
-Status: Planned.
+Status: Complete.
 
 Goal:
 
 ```text
-research artifact / execution artifact / configured-run artifact
+research artifact / execution artifact / configured-run artifact / paper output
   -> promotion source reference
   -> paper promotion candidate
+  -> promotion evidence summary
   -> explicit promotion record
+  -> promotion manifest and candidate references
 ```
 
 Purpose:
 
 Define what it means for research evidence to be nominated for paper-trading review.
 
-This is the start of promotion governance. It should make the research-to-paper path explicit without automating approval, paper execution, broker behavior, or live-readiness claims.
+Milestone 20 made the research-to-paper path explicit without automating approval, paper execution, broker behavior, or live-readiness claims.
 
-Planned sprint chain:
+Completed sprint chain:
 
 ```text
 S103  Milestone 20 planning
@@ -200,7 +203,7 @@ S108  promotion manifest and candidate references
 S109  milestone closeout
 ```
 
-Guardrails:
+Guardrails preserved:
 
 - no automatic promotion
 - no autonomous strategy approval
@@ -213,27 +216,50 @@ Guardrails:
 - no dashboard or broad report generation
 - no strategy expansion
 
-### Milestone 21 — Paper Run Comparison & Review Foundation
+### Milestone 21 — Paper Run Comparison and Review Foundation
 
-Status: Future.
+Status: Planned.
 
 Goal:
 
 ```text
 multiple paper runs
+  -> explicit comparison set
   -> comparison summary
   -> review decision record
+  -> review manifest and comparison references
 ```
 
 Purpose:
 
-Move beyond one-off paper runs and make paper performance comparable and reviewable.
+Move beyond one-off paper runs and make paper performance comparable and reviewable before dashboards, broad reporting, broker readiness, or live-readiness claims.
+
+Planned sprint chain:
+
+```text
+S110  Milestone 21 planning
+S111  paper run reference contract
+S112  paper run comparison input contract
+S113  paper run comparison summary
+S114  paper run review decision record
+S115  review manifest and comparison references
+S116  milestone closeout
+```
 
 Guardrails:
 
+- no automatic paper run discovery
+- no artifact loading/parsing/scoring beyond explicit contracts
 - no dashboard
 - no broad report engine
-- no capital deployment decision automation
+- no database
+- no hosted service or SaaS behavior
+- no broker integration
+- no live execution
+- no runtime execution expansion
+- no automatic capital deployment decision
+- no live-readiness or real-money readiness claims
+- no strategy expansion
 
 ## Phase 3 — Decision Intelligence Foundation
 
@@ -255,6 +281,8 @@ research artifact
 Purpose:
 
 Record why a strategy is continued, paused, rejected, promoted, or watched.
+
+Milestone 22 should build on M20 promotion records and M21 paper comparison/review records. It should not skip ahead to live readiness.
 
 ### Milestone 23 — Report Artifact Foundation
 
@@ -484,6 +512,10 @@ Every experiment, strategy, parameter set, data assumption, and result should be
 ### Promotion Governance
 
 Every research-to-paper nomination should be explicit, evidence-backed, and human-controlled.
+
+### Paper Comparison Memory
+
+Every paper run comparison should be explicit, reproducible, and tied to stable paper run references.
 
 ### Decision Ledger
 
