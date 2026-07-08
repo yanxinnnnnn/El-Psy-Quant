@@ -68,9 +68,9 @@ Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
 
 Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
-Milestone 20 — Research-to-Paper Promotion Foundation is in progress.
+Milestone 20 — Research-to-Paper Promotion Foundation is complete.
 
-The next focus is Sprint 109 — Milestone 20 Documentation Refresh. Refresh Milestone 20 documentation and close out the research-to-paper promotion foundation without expanding runtime behavior.
+The next focus is Sprint 110 — Milestone 21 Planning. Plan the next conservative layer after promotion governance. Expected direction: Paper Run Comparison and Review Foundation, without dashboards, broad reporting, broker readiness, live-readiness claims, or runtime execution expansion.
 
 ## Implementation Sprint Issue Requirements
 
