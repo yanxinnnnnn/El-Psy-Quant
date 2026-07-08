@@ -179,7 +179,7 @@ docs/strategy/future-platform-roadmap.md
 | S112 | Complete | Define paper run comparison input contract. | Explicit comparison set containing paper run references, comparison purpose, and context. | No scoring engine or report generation. |
 | S113 | Complete | Add paper run comparison summary. | Deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields. | No dashboard, plotting, broad report, scoring, ranking, or artifact-loading behavior. |
 | S114 | Complete | Add paper run review decision record. | Human-controlled review status, rationale, reviewer context, and timestamp tied to a comparison summary. | No automatic approval, promotion, capital deployment, broker behavior, or readiness claim. |
-| S115 | Planned | Add review manifest and comparison references. | Local manifest/reference contracts for comparison summaries and review decisions. | No database, hosted service, or workflow execution. |
+| S115 | Complete | Add review manifest and comparison references. | Local manifest/reference contracts for comparison summaries and review decisions. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
 | S116 | Planned | Close milestone. | Milestone 21 documentation refresh. | No scope expansion. |
 
 Milestone 21 plans this conservative review chain:
@@ -201,10 +201,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 115 — Review Manifest and Comparison References Foundation
+Sprint 116 — Milestone 21 Documentation Refresh / Closeout
 ```
 
-The guiding idea is to move from human-controlled review decisions toward local review manifests and comparison references before dashboards, broad reports, broker readiness, or live-readiness claims.
+The guiding idea is to close the paper run comparison and review milestone with documentation discipline before dashboards, broad reports, broker readiness, or live-readiness claims.
 
 Longer-term, the platform should move through:
 
@@ -245,9 +245,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 115 — Review Manifest and Comparison References Foundation
+Sprint 116 — Milestone 21 Documentation Refresh / Closeout
 ```
 
 Reason:
 
-Sprint 115 should add local review manifest and comparison reference contracts without filesystem I/O, databases, dashboards, workflow execution, broker behavior, or readiness claims.
+Sprint 116 should close Milestone 21 with documentation refresh only, preserving the paper run comparison and review guardrails.
