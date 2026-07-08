@@ -322,7 +322,6 @@ def test_paper_review_package_does_not_expose_forbidden_runtime_behavior() -> No
         "score_paper_runs",
         "rank_paper_runs",
         "choose_winning_run",
-        "create_paper_run_review_decision",
         "render_paper_run_report",
         "create_dashboard",
         "run_paper_workflow",
