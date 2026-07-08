@@ -80,7 +80,7 @@ promotion source reference contract
 | S104 | Complete | Define promotion source references. | Small typed references to research, backtest, execution, portfolio, or configured-run artifacts used as promotion evidence. | No artifact loading, scoring, or promotion decision yet. |
 | S105 | Complete | Define paper promotion candidate contract. | Explicit paper-trading candidate boundary linked to source references and manual review context. | No `PaperRunRequest` construction or paper workflow execution. |
 | S106 | Complete | Add promotion evidence summary. | Compact deterministic evidence summary for a candidate, including assumptions, warnings, and source facts. | No automatic pass/fail approval engine. |
-| S107 | Planned | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, and status together. | No autonomous strategy approval or live-readiness claim. |
+| S107 | Complete | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, and status together. | No autonomous strategy approval or live-readiness claim. |
 | S108 | Planned | Add promotion manifest and candidate references. | Local artifact/reference wiring for promotion records and paper candidates. | No database, dashboard, or broad report generation. |
 | S109 | Planned | Close milestone. | Milestone 20 documentation refresh. | No scope expansion. |
 
@@ -158,7 +158,7 @@ Milestone 20 will be complete when:
 ## Current Next Step
 
 ```text
-Sprint 107 — Explicit Promotion Record Foundation
+Sprint 108 — Promotion Manifest and Candidate References Foundation
 ```
 
-Sprint 107 should add a human-controlled promotion record tying candidate, evidence, rationale, status, reviewer or actor context, and source references together without claiming live readiness.
+Sprint 108 should add local artifact/reference wiring for promotion records and paper candidates without introducing databases, dashboards, broad reporting, artifact scoring, or runtime execution.

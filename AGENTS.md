@@ -70,7 +70,7 @@ Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
 Milestone 20 — Research-to-Paper Promotion Foundation is in progress.
 
-The next focus is Sprint 107 — Explicit Promotion Record Foundation. Add a human-controlled promotion record tying candidate, evidence, rationale, status, reviewer or actor context, and source references together without claiming live readiness or creating an autonomous approval engine.
+The next focus is Sprint 108 — Promotion Manifest and Candidate References Foundation. Add local artifact/reference wiring for promotion records and paper candidates without introducing databases, dashboards, broad reporting, artifact scoring, or runtime execution.
 
 ## Implementation Sprint Issue Requirements
 
