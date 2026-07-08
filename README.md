@@ -34,7 +34,7 @@ The next focus is:
 Sprint 106 — Promotion Evidence Summary Foundation
 ```
 
-Sprint 106 should add a compact deterministic evidence summary for a promotion candidate, including assumptions, warnings, and source facts. It should not create an automatic pass/fail approval engine.
+Sprint 107 should add an explicit human-controlled promotion record tying candidate, evidence, rationale, status, reviewer or actor context, and source references together. It should not claim live readiness or create an autonomous approval engine.
 
 See the milestone summaries in:
 
@@ -109,6 +109,7 @@ docs/strategy/future-platform-roadmap.md
 - Research-to-paper promotion foundation:
   - typed promotion source references for existing local or logical evidence
   - explicit paper promotion candidates for manual review
+  - descriptive promotion evidence summaries with source facts, assumptions, warnings, and missing-evidence fields
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -283,6 +284,8 @@ Sprint 104 added typed promotion source references only. Source references ident
 
 Sprint 105 added explicit paper promotion candidates. Candidates group one or more source references with a title and optional manual-review context, but they do not approve strategies, construct paper run requests, create paper orders or fills, or execute paper workflows.
 
+Sprint 106 added descriptive promotion evidence summaries. Evidence summaries attach explicit source facts, assumptions, warnings, and missing-evidence notes to a candidate without loading artifacts, extracting metrics, scoring evidence, or creating pass/fail approval logic.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -293,7 +296,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to summarize promotion evidence for candidates, not to automate strategy approval or paper execution.
+The next step is to add explicit promotion records, not to automate strategy approval or paper execution.
 
 ## Module Overview
 
