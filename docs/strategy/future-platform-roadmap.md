@@ -25,6 +25,7 @@ idea
   -> persistence
   -> audit
   -> configured workflow
+  -> promotion governance
   -> decision review
   -> controlled live readiness
 ```
@@ -46,7 +47,7 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The priority order is:
 
 ```text
-workflow > decision record > reporting artifact > risk controls > broker sandbox > live
+workflow > promotion governance > decision record > reporting artifact > risk controls > broker sandbox > live
 ```
 
 The wrong order would be:
@@ -98,7 +99,7 @@ Phase 1 turns the project from a demo into a disciplined local research platform
 
 Recommended focus: Milestones 19-21.
 
-This phase turns isolated capabilities into operating workflows.
+This phase turns isolated capabilities into operating workflows and reviewable promotion paths.
 
 ### Milestone 18 — Paper Trading Workflow Integration Foundation
 
@@ -126,7 +127,7 @@ Guardrails:
 
 ### Milestone 19 — Configured Paper Workflow Wiring Foundation
 
-Status: Planned.
+Status: Complete.
 
 Goal:
 
@@ -142,21 +143,9 @@ Purpose:
 
 Allow local configured runs to drive the completed paper workflow after the explicit paper workflow boundary is stable.
 
-This should make configured paper runs reproducible and inspectable without turning the platform into an automated trading system.
+Milestone 19 made configured paper runs reproducible and inspectable without turning the platform into an automated trading system.
 
-Guardrails:
-
-- no broker integration
-- no live execution
-- no market data streaming
-- no scheduler behavior
-- no automatic research-to-paper promotion
-- no automatic strategy-signal-to-order conversion
-- no database
-- no dashboard or broad report generation
-- no strategy expansion
-
-Planned sprint chain:
+Completed sprint chain:
 
 ```text
 S96   Milestone 19 planning
@@ -168,29 +157,65 @@ S101  configured paper manifest and result references
 S102  milestone closeout
 ```
 
+Guardrails preserved:
+
+- no broker integration
+- no live execution
+- no market data streaming
+- no scheduler behavior
+- no automatic research-to-paper promotion
+- no automatic strategy-signal-to-order conversion
+- no database
+- no dashboard or broad report generation
+- no strategy expansion
+
 ### Milestone 20 — Research-to-Paper Promotion Foundation
+
+Status: Planned.
 
 Goal:
 
 ```text
-research artifact / execution artifact
-  -> paper run candidate
+research artifact / execution artifact / configured-run artifact
+  -> promotion source reference
+  -> paper promotion candidate
   -> explicit promotion record
 ```
 
 Purpose:
 
-Define what qualifies a research or backtest output to be promoted into paper trading.
+Define what it means for research evidence to be nominated for paper-trading review.
 
-This is the start of decision governance.
+This is the start of promotion governance. It should make the research-to-paper path explicit without automating approval, paper execution, broker behavior, or live-readiness claims.
+
+Planned sprint chain:
+
+```text
+S103  Milestone 20 planning
+S104  promotion source reference contract
+S105  paper promotion candidate contract
+S106  promotion evidence summary
+S107  explicit promotion record
+S108  promotion manifest and candidate references
+S109  milestone closeout
+```
 
 Guardrails:
 
 - no automatic promotion
 - no autonomous strategy approval
+- no automatic strategy-signal-to-order conversion
+- no automatic construction of paper orders, fills, or PaperRunRequest from research outputs
+- no paper workflow execution from promotion records
+- no broker integration
 - no live readiness claims
+- no database
+- no dashboard or broad report generation
+- no strategy expansion
 
 ### Milestone 21 — Paper Run Comparison & Review Foundation
+
+Status: Future.
 
 Goal:
 
@@ -455,6 +480,10 @@ This should come after the core decision pipeline is proven.
 ### Research Memory
 
 Every experiment, strategy, parameter set, data assumption, and result should be traceable.
+
+### Promotion Governance
+
+Every research-to-paper nomination should be explicit, evidence-backed, and human-controlled.
 
 ### Decision Ledger
 
