@@ -165,7 +165,7 @@ docs/strategy/future-platform-roadmap.md
 |---:|---|---|---|---|
 | S103 | Complete | Plan Milestone 20. | Research-to-paper promotion scope, sequence, and guardrails. | No implementation during planning. |
 | S104 | Complete | Define promotion source references. | Small typed references to research, backtest, execution, portfolio, or configured-run artifacts used as promotion evidence. | No artifact loading, scoring, or promotion decision yet. |
-| S105 | Planned | Define paper promotion candidate contract. | Explicit paper-trading candidate boundary linked to source references and manual review context. | No `PaperRunRequest` construction or paper workflow execution. |
+| S105 | Complete | Define paper promotion candidate contract. | Explicit paper-trading candidate boundary linked to source references and manual review context. | No `PaperRunRequest` construction or paper workflow execution. |
 | S106 | Planned | Add promotion evidence summary. | Compact deterministic evidence summary for a candidate, including assumptions, warnings, and source facts. | No automatic pass/fail approval engine. |
 | S107 | Planned | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, and status together. | No autonomous strategy approval or live-readiness claim. |
 | S108 | Planned | Add promotion manifest and candidate references. | Local artifact/reference wiring for promotion records and paper candidates. | No database, dashboard, or broad report generation. |
@@ -190,7 +190,7 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 105 — Paper Promotion Candidate Contract Foundation
+Sprint 106 — Promotion Evidence Summary Foundation
 ```
 
 The guiding idea is to move from configured local paper workflow wiring toward explicit research-to-paper promotion governance before paper comparison, decision records, reports, broker readiness, or live-readiness claims.
@@ -233,9 +233,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 105 — Paper Promotion Candidate Contract Foundation
+Sprint 106 — Promotion Evidence Summary Foundation
 ```
 
 Reason:
 
-Sprint 105 should define an explicit paper promotion candidate boundary linked to source references and manual review context before adding evidence summaries, promotion records, or any runtime integration.
+Sprint 106 should add a compact deterministic evidence summary for a promotion candidate, including assumptions, warnings, and source facts, before adding promotion records or any runtime integration.
