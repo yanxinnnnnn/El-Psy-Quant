@@ -10,7 +10,7 @@ This project is intentionally built sprint by sprint. The goal is not to find a 
 
 ## Current Milestone
 
-**Milestone 19 — Configured Paper Workflow Wiring Foundation** is in progress.
+**Milestone 19 — Configured Paper Workflow Wiring Foundation** is complete.
 
 Milestone 18 completed the local paper-trading workflow chain:
 
@@ -18,7 +18,7 @@ Milestone 18 completed the local paper-trading workflow chain:
 paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
 ```
 
-Milestone 19 should wire that completed local paper workflow into configured local runs conservatively:
+Milestone 19 completed the configured local paper workflow wiring chain:
 
 ```text
 paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
@@ -29,10 +29,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 102 — Milestone 19 Documentation Refresh / Closeout
+Sprint 103 — Plan Milestone 20
 ```
 
-Sprint 102 should document and close Milestone 19 without expanding configured paper workflow runtime behavior.
+Sprint 103 should plan the next milestone without expanding runtime behavior during planning.
 
 See the milestone summaries in:
 
@@ -236,17 +236,17 @@ This milestone remains local, deterministic, and explicit-input driven. It does 
 
 ## Configured Paper Workflow Wiring Foundation
 
-Milestone 19 is connecting the completed paper run workflow to local configuration and configured-run output discipline.
+Milestone 19 connected the completed paper run workflow to local configuration and configured-run output discipline.
 
-The planned chain is:
+The completed chain is:
 
 ```text
 paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
 ```
 
-The first implementation steps add an optional local YAML `paper_run` section that validates explicit account states, orders, and fills while keeping research-only configs backward compatible, convert that validated config into `PaperRunRequest`, reserve configured paper output paths, run the local paper workflow while writing only the configured paper artifact and result-summary JSON files, and record references to those files in configured-run metadata and manifest outputs.
+Milestone 19 added an optional local YAML `paper_run` section that validates explicit account states, orders, and fills while keeping research-only configs backward compatible. It can convert that validated config into `PaperRunRequest`, reserve configured paper output paths, run the local paper workflow while writing only the configured paper artifact and result-summary JSON files, and record references to those files in configured-run metadata and manifest outputs.
 
-This milestone should remain local and deterministic. It should not add broker integration, live execution, order routing, market data streaming, automatic research-to-paper promotion, dashboards, databases, or broad reporting.
+This milestone remains local and deterministic. It does not add broker integration, live execution, order routing, market data streaming, automatic research-to-paper promotion, dashboards, databases, or broad reporting.
 
 ## Local Experiment Configuration
 
@@ -258,7 +258,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-Milestone 19 plans the next conservative step: configured local paper workflow wiring from explicit paper-run inputs, not automatic strategy-signal promotion or broker behavior.
+The next step is to plan Milestone 20 carefully, not to expand runtime behavior inside Milestone 19.
 
 ## Module Overview
 
@@ -292,3 +292,9 @@ AGENTS.md
 ```
 
 ## Engineering Principles
+
+- Build in small, reviewable milestones.
+- Keep everything local and deterministic until the architecture is ready for more operational complexity.
+- Treat documentation as part of the product, not an afterthought.
+- Prefer simple, explicit Python over clever abstractions.
+- Do not claim trading performance without evidence.
