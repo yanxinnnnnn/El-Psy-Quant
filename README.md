@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 106 — Promotion Evidence Summary Foundation
+Sprint 108 — Promotion Manifest and Candidate References Foundation
 ```
 
-Sprint 107 should add an explicit human-controlled promotion record tying candidate, evidence, rationale, status, reviewer or actor context, and source references together. It should not claim live readiness or create an autonomous approval engine.
+Sprint 108 should add local artifact/reference wiring for promotion records and paper candidates. It should not add databases, dashboards, broad reporting, artifact scoring, or runtime execution.
 
 See the milestone summaries in:
 
@@ -110,6 +110,7 @@ docs/strategy/future-platform-roadmap.md
   - typed promotion source references for existing local or logical evidence
   - explicit paper promotion candidates for manual review
   - descriptive promotion evidence summaries with source facts, assumptions, warnings, and missing-evidence fields
+  - explicit human-controlled promotion records with validated statuses and rationale
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -286,6 +287,8 @@ Sprint 105 added explicit paper promotion candidates. Candidates group one or mo
 
 Sprint 106 added descriptive promotion evidence summaries. Evidence summaries attach explicit source facts, assumptions, warnings, and missing-evidence notes to a candidate without loading artifacts, extracting metrics, scoring evidence, or creating pass/fail approval logic.
 
+Sprint 107 added explicit promotion records. Promotion records tie evidence summaries to human-controlled status, rationale, reviewer context, and timestamps without inferring approval, claiming live readiness, or claiming real-money readiness.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -296,7 +299,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to add explicit promotion records, not to automate strategy approval or paper execution.
+The next step is to add promotion manifest and candidate references, not to automate strategy approval or paper execution.
 
 ## Module Overview
 
