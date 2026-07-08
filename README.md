@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 112 — Paper Run Comparison Input Contract Foundation
+Sprint 113 — Paper Run Comparison Summary Foundation
 ```
 
-Sprint 112 should define an explicit comparison set containing paper run references, comparison purpose, and context without discovering runs automatically, scoring metrics, or generating reports.
+Sprint 113 should add deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields without dashboards, plotting, broad reports, scoring, or artifact loading.
 
 See the milestone summaries in:
 
@@ -114,6 +114,7 @@ docs/strategy/future-platform-roadmap.md
   - local promotion manifests and compact candidate references for manual inspection
 - Paper run comparison and review foundation:
   - typed paper run references for existing paper artifacts or paper result summaries
+  - explicit paper run comparison inputs with purpose and review context
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -310,6 +311,8 @@ A paper run reference is not artifact loading. A comparison summary is not a sco
 
 Sprint 111 added typed paper run references only. Paper run references identify existing paper artifacts or paper result summaries without loading artifacts, discovering runs automatically, comparing metrics, generating reports, executing paper workflows, or claiming live or real-money readiness.
 
+Sprint 112 added explicit paper run comparison inputs. Comparison inputs group paper run references with purpose and review context without discovering runs automatically, loading artifacts, comparing metrics, scoring runs, generating summaries, or executing paper workflows.
+
 Sprint 110 planned the M21 scope, sprint sequence, and guardrails.
 
 ## Local Experiment Configuration
@@ -322,7 +325,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to define explicit paper run comparison inputs, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
+The next step is to define paper run comparison summaries, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
 
 ## Module Overview
 
