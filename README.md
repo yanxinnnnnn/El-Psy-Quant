@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 113 — Paper Run Comparison Summary Foundation
+Sprint 114 — Paper Run Review Decision Record Foundation
 ```
 
-Sprint 113 should add deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields without dashboards, plotting, broad reports, scoring, or artifact loading.
+Sprint 114 should add human-controlled paper run review decision records tied to comparison summaries without automatic approval, ranking, capital deployment, broker behavior, or readiness claims.
 
 See the milestone summaries in:
 
@@ -115,6 +115,7 @@ docs/strategy/future-platform-roadmap.md
 - Paper run comparison and review foundation:
   - typed paper run references for existing paper artifacts or paper result summaries
   - explicit paper run comparison inputs with purpose and review context
+  - deterministic caller-supplied comparison summaries with facts, assumptions, warnings, and missing-evidence fields
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -313,6 +314,8 @@ Sprint 111 added typed paper run references only. Paper run references identify 
 
 Sprint 112 added explicit paper run comparison inputs. Comparison inputs group paper run references with purpose and review context without discovering runs automatically, loading artifacts, comparing metrics, scoring runs, generating summaries, or executing paper workflows.
 
+Sprint 113 added deterministic caller-supplied comparison summaries. These summaries record comparison facts, assumptions, warnings, missing-evidence notes, reviewer context, and timestamps without discovering runs automatically, loading artifacts, calculating or comparing metrics, scoring, ranking, choosing winners, making review decisions, generating reports, or executing workflows.
+
 Sprint 110 planned the M21 scope, sprint sequence, and guardrails.
 
 ## Local Experiment Configuration
@@ -325,7 +328,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to define paper run comparison summaries, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
+The next step is to define human-controlled paper run review decision records, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
 
 ## Module Overview
 
