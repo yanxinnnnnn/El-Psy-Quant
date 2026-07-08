@@ -9,12 +9,14 @@ from el_psy_quant.config import (
     ExperimentEvaluationConfig,
     MovingAverageCrossoverParameters,
     PaperRunConfig,
+    create_paper_run_request_from_config,
     load_experiment_config,
 )
 from el_psy_quant.paper import (
     PaperAccountState,
     PaperFill,
     PaperOrderRecord,
+    PaperRunRequest,
 )
 
 
@@ -160,6 +162,70 @@ paper_run:
     assert config.paper_run.fills[0].symbol == "AAPL"
     assert config.paper_run.fills[0].order_id == "order-001"
     assert isinstance(config.paper_run.fills[0], PaperFill)
+
+
+def test_converts_paper_run_config_to_paper_run_request(tmp_path: Path) -> None:
+    path = write_config(
+        tmp_path,
+        """
+experiment:
+  name: ma-crossover-with-paper
+  strategy: moving_average_crossover
+data:
+  source: cache
+  cache_dir: data/cache
+  symbols: [AAPL]
+parameters:
+  fast_window: 20
+  slow_window: 50
+paper_run:
+  run_id: " paper-run-001 "
+  created_timestamp: "2026-07-08T00:00:00Z"
+  starting_account_state:
+    timestamp: "2026-07-08T00:00:00Z"
+    starting_cash: 10000.0
+    current_cash: 10000.0
+    positions:
+      AAPL: 0.0
+  ending_account_state:
+    timestamp: "2026-07-08T00:01:00Z"
+    starting_cash: 10000.0
+    current_cash: 9900.0
+    positions:
+      AAPL: 1.0
+  orders:
+    - order_id: order-001
+      timestamp: "2026-07-08T00:00:30Z"
+      symbol: AAPL
+      side: buy
+      quantity: 1.0
+      status: filled
+  fills:
+    - timestamp: "2026-07-08T00:00:45Z"
+      symbol: AAPL
+      side: buy
+      quantity: 1.0
+      price: 100.0
+      order_id: order-001
+""",
+    )
+    config = load_experiment_config(path)
+    assert config.paper_run is not None
+
+    request = create_paper_run_request_from_config(config.paper_run)
+
+    assert isinstance(request, PaperRunRequest)
+    assert request.run_id == "paper-run-001"
+    assert request.created_timestamp.isoformat() == "2026-07-08T00:00:00+00:00"
+    assert request.starting_account_state is config.paper_run.starting_account_state
+    assert request.ending_account_state is config.paper_run.ending_account_state
+    assert request.orders == config.paper_run.orders
+    assert request.fills == config.paper_run.fills
+
+
+def test_rejects_invalid_paper_run_request_conversion_input() -> None:
+    with pytest.raises(ValueError, match="PaperRunConfig"):
+        create_paper_run_request_from_config(object())  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -489,4 +555,8 @@ def test_public_config_api_is_exported() -> None:
 
     assert config.ExperimentConfig is ExperimentConfig
     assert config.PaperRunConfig is PaperRunConfig
+    assert (
+        config.create_paper_run_request_from_config
+        is create_paper_run_request_from_config
+    )
     assert config.load_experiment_config is load_experiment_config

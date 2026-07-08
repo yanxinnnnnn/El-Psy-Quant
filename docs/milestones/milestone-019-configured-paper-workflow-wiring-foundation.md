@@ -67,7 +67,7 @@ paper workflow config contract
 |---:|---|---|---|---|
 | S96 | Complete | Plan Milestone 19. | Configured paper workflow wiring scope, sequence, and guardrails. | No implementation during planning. |
 | S97 | Complete | Define paper workflow config contract. | Minimal local config section for explicit paper-run inputs. | No execution or file writing yet. |
-| S98 | Planned | Build configured paper request boundary. | Convert validated config inputs into `PaperRunRequest`. | No strategy-signal-to-order automation. |
+| S98 | Complete | Build configured paper request boundary. | Convert validated config inputs into `PaperRunRequest`. | No strategy-signal-to-order automation. |
 | S99 | Planned | Define configured paper output layout. | Stable local paths for paper artifacts and result summaries under configured runs. | No database or artifact service. |
 | S100 | Planned | Add configured paper workflow runner. | Execute and persist a configured paper run by reusing Milestone 18 boundaries. | No broker, live, scheduler, or streaming behavior. |
 | S101 | Planned | Add configured paper manifest and result references. | Record paper artifact/result paths in configured-run metadata or manifest outputs. | No dashboard or broad report generation. |
@@ -126,7 +126,7 @@ Milestone 19 will be complete when:
 ## Current Next Step
 
 ```text
-Sprint 98 — Configured Paper Request Boundary Foundation
+Sprint 99 — Configured Paper Output Layout Foundation
 ```
 
-Sprint 98 should convert the validated optional `paper_run` config boundary into a `PaperRunRequest` without adding strategy-signal-to-order automation, file writing, CLI expansion, or broker behavior.
+Sprint 99 should define stable local output paths for configured paper artifacts and result summaries without writing files, executing the workflow, adding manifest wiring, or introducing broker behavior.
