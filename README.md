@@ -26,15 +26,23 @@ Milestone 21 completed the first comparison and review layer after promotion gov
 paper run reference contract -> paper run comparison input contract -> paper run comparison summary -> paper run review decision record -> review manifest and comparison references
 ```
 
+**Milestone 22 — Decision Governance Foundation** is planned.
+
+Milestone 22 should add the next conservative governance layer above promotion records and paper-review records:
+
+```text
+decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
+```
+
 The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 
 The next focus is:
 
 ```text
-Sprint 117 — Milestone 22 Planning
+Sprint 118 — Decision Evidence Reference Contract Foundation
 ```
 
-Sprint 117 should plan the next conservative decision-governance milestone after paper run comparison and review. It should not jump to dashboards, broad reports, broker behavior, capital deployment, or live-readiness claims.
+Sprint 118 should define the smallest useful evidence reference contract for existing promotion and paper-review evidence. It should not discover evidence automatically, load artifacts, calculate metrics, score strategies, generate reports, execute workflows, add broker behavior, or claim readiness for live or real-money trading.
 
 See the milestone summaries in:
 
@@ -45,9 +53,9 @@ docs/milestones/
 The latest milestone docs are:
 
 ```text
-docs/milestones/milestone-019-configured-paper-workflow-wiring-foundation.md
 docs/milestones/milestone-020-research-to-paper-promotion-foundation.md
 docs/milestones/milestone-021-paper-run-comparison-review-foundation.md
+docs/milestones/milestone-022-decision-governance-foundation.md
 ```
 
 The long-term platform roadmap is:
@@ -124,16 +132,17 @@ docs/strategy/future-platform-roadmap.md
 
 ## Planned Next Platform Layer
 
-Milestone 22 should be planned as a conservative decision-governance layer built on top of completed promotion records and paper run comparison/review records.
+Milestone 22 is planned as a conservative decision-governance layer built on top of completed promotion records and paper run comparison/review records.
 
 It should strengthen decision discipline, not add trading automation:
 
-- explicit decision records
-- evidence-backed review status
-- human-controlled rationale
-- clear separation between research, paper review, and live readiness
+- explicit evidence references
+- explicit decision inputs
+- caller-supplied decision summaries
+- human-controlled decision records
+- local decision manifests and references
 
-It must not add automatic approval, automatic promotion, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, or real-money readiness claims.
+It must not add automatic approval, automatic promotion, automatic decision making, automatic evidence discovery, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, or real-money readiness claims.
 
 ## Quick Start
 
@@ -221,6 +230,18 @@ Sprint 115 added local review manifests and compact comparison/review references
 
 Sprint 116 closed Milestone 21 with a documentation refresh and preserved the paper run comparison and review guardrails.
 
+### Decision Governance Foundation
+
+Milestone 22 is planned as the strategy-level decision governance layer above promotion and paper-review evidence:
+
+```text
+decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
+```
+
+A decision evidence reference is not artifact loading. A strategy decision input is not automatic evidence discovery. A strategy decision summary is not a recommendation engine. A strategy decision record is not automatic approval, capital deployment, broker approval, live readiness, or real-money readiness. A decision manifest is a local reference contract, not persistence, database behavior, report generation, or workflow execution.
+
+Sprint 117 planned Milestone 22 and preserved the decision-governance guardrails before implementation begins.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -231,7 +252,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to plan Milestone 22, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
+The next step is Sprint 118, not to automate evidence discovery, strategy approval, paper execution, broker behavior, or live readiness.
 
 ## Module Overview
 
