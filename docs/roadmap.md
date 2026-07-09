@@ -150,7 +150,7 @@ docs/strategy/future-platform-roadmap.md
 | S119 | Complete | Define strategy decision input contract. | Explicit input object grouping evidence references, decision purpose, review context, and reviewer metadata. | No automatic decision generation, scoring, recommendation, or lifecycle automation. |
 | S120 | Complete | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
 | S121 | Complete | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
-| S122 | Planned | Add decision manifest and references. | Local manifest/reference contracts for strategy decision summaries and records. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
+| S122 | Complete | Add decision manifest and references. | Local manifest/reference contracts for strategy decision summaries and records. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
 | S123 | Planned | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
 
 Milestone 22 should follow this conservative governance chain:
@@ -172,10 +172,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 122 — Decision Manifest and References Foundation
+Sprint 123 — Milestone 22 Documentation Refresh
 ```
 
-The guiding idea is to move from explicit human-controlled decision records toward local decision manifest and reference contracts before dashboards, broad reports, broker readiness, or live-readiness claims.
+The guiding idea is to close Milestone 22 with documentation updates only before moving beyond decision-governance contracts.
 
 Longer-term, the platform should move through:
 
@@ -216,9 +216,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 122 — Decision Manifest and References Foundation
+Sprint 123 — Milestone 22 Documentation Refresh
 ```
 
 Reason:
 
-Sprint 122 should add local decision manifest and reference contracts for strategy decision summaries and records without file I/O, database behavior, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 123 should close Milestone 22 with documentation updates only and preserve the decision-governance guardrails.

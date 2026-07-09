@@ -354,7 +354,6 @@ def test_decision_governance_package_does_not_expose_forbidden_behavior() -> Non
 
     forbidden_names = {
         "create_decision_manifest",
-        "create_strategy_decision_reference",
         "recommend_strategy_decision",
         "approve_strategy",
         "reject_strategy",
