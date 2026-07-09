@@ -84,7 +84,9 @@ Sprint 120 added caller-supplied strategy decision summaries with facts, assumpt
 
 Sprint 121 added explicit human-controlled strategy decision records with supported statuses, rationale, notes, warnings, and reviewer context without automatic approval, promotion, capital allocation, broker behavior, workflow execution, reports, or readiness claims.
 
-The next focus is Sprint 122 — Decision Manifest and References Foundation. It should add local decision manifest and reference contracts for strategy decision summaries and records without file I/O, database behavior, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 122 added local strategy decision manifests and compact summary/record references without file I/O, database behavior, persistence services, artifact loading, reports, workflow execution, broker behavior, or readiness claims.
+
+The next focus is Sprint 123 — Milestone 22 Documentation Refresh. It should close Milestone 22 with documentation updates only and preserve the decision-governance guardrails.
 
 ## Implementation Sprint Issue Requirements
 
