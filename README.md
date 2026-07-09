@@ -34,15 +34,23 @@ Milestone 22 completed the conservative strategy-level decision governance layer
 decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
 ```
 
+**Milestone 23 — Report Artifact Foundation** is planned.
+
+Milestone 23 should define deterministic report artifacts above completed governance records:
+
+```text
+report source reference contract -> report section contract -> report artifact summary -> report manifest and references -> report artifact closeout
+```
+
 The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 
 The next focus is:
 
 ```text
-Sprint 124 — Milestone 23 Planning
+Sprint 125 — Report Source Reference Contract Foundation
 ```
 
-Sprint 124 should plan the next conservative platform layer after decision governance without adding runtime behavior during planning.
+Sprint 125 should implement the first small report-artifact contract without adding automatic report generation, dashboards, broad report engines, broker behavior, live-readiness claims, or runtime execution changes.
 
 See the milestone summaries in:
 
@@ -56,6 +64,7 @@ The latest milestone docs are:
 docs/milestones/milestone-020-research-to-paper-promotion-foundation.md
 docs/milestones/milestone-021-paper-run-comparison-review-foundation.md
 docs/milestones/milestone-022-decision-governance-foundation.md
+docs/milestones/milestone-023-report-artifact-foundation.md
 ```
 
 The long-term platform roadmap is:
@@ -138,11 +147,11 @@ docs/strategy/future-platform-roadmap.md
 
 ## Planned Next Platform Layer
 
-Milestone 23 should be planned after the completed decision-governance layer.
+Milestone 23 is planned after the completed decision-governance layer.
 
-The next planning sprint should decide the next conservative platform layer without adding runtime behavior during planning. The likely direction is to turn completed governance records into structured report artifacts before dashboards, broker readiness, or live-readiness claims.
+The next implementation sprint should start the conservative report-artifact layer by defining explicit report source references to completed governance records.
 
-It must not add automatic approval, automatic promotion, automatic decision making, automatic evidence discovery, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, or real-money readiness claims during planning.
+Milestone 23 must not add automatic approval, automatic promotion, automatic decision making, automatic evidence discovery, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, report rendering pipelines, database behavior, hosted service behavior, SaaS behavior, or real-money readiness claims.
 
 ## Quick Start
 
@@ -244,6 +253,18 @@ Sprint 122 added local strategy decision manifests and compact summary/record re
 
 Sprint 123 closed Milestone 22 with a documentation refresh and preserved the decision-governance guardrails.
 
+### Planned Report Artifact Foundation
+
+Milestone 23 should define deterministic report artifacts above completed governance records:
+
+```text
+report source reference contract -> report section contract -> report artifact summary -> report manifest and references -> report artifact closeout
+```
+
+A report source reference should be only a pointer to completed governance records. A report section should not be a rendering pipeline. A report artifact summary should be descriptive and caller-supplied, not a recommendation engine. A report manifest should be a local reference contract, not persistence, database behavior, dashboard behavior, broad report generation, or workflow execution.
+
+Sprint 124 planned Milestone 23 and preserved the report-artifact guardrails.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -254,7 +275,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is Sprint 124, not to automate evidence discovery, strategy approval, paper execution, broker behavior, or live readiness.
+The next step is Sprint 125, not to automate evidence discovery, strategy approval, paper execution, report generation, broker behavior, or live readiness.
 
 ## Module Overview
 
