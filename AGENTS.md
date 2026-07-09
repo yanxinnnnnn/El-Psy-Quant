@@ -94,7 +94,9 @@ Milestone 23 should plan explicit report source references, report sections, rep
 
 Sprint 125 added typed report source references for completed governance records and manifests without evidence discovery, artifact loading, report generation, rendering, scoring, ranking, workflow execution, broker behavior, database behavior, or readiness claims.
 
-The next focus is Sprint 126 — Report Section Contract Foundation. It should add a small report section contract without rendering pipelines, dashboards, markdown/PDF generation, workflow execution, broker behavior, or readiness claims.
+Sprint 126 added caller-supplied report sections with explicit report source references without rendering pipelines, dashboards, markdown/PDF generation, workflow execution, broker behavior, or readiness claims.
+
+The next focus is Sprint 127 — Report Artifact Summary Foundation. It should add a deterministic caller-supplied report artifact summary without automatic metric calculation, recommendation, ranking, dashboards, reports, workflow execution, broker behavior, or readiness claims.
 
 ## Implementation Sprint Issue Requirements
 
