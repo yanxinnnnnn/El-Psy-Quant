@@ -26,7 +26,7 @@ Milestone 21 completed the first comparison and review layer after promotion gov
 paper run reference contract -> paper run comparison input contract -> paper run comparison summary -> paper run review decision record -> review manifest and comparison references
 ```
 
-**Milestone 22 — Decision Governance Foundation** is planned.
+**Milestone 22 — Decision Governance Foundation** is in progress.
 
 Milestone 22 should add the next conservative governance layer above promotion records and paper-review records:
 
@@ -39,10 +39,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 118 — Decision Evidence Reference Contract Foundation
+Sprint 119 — Strategy Decision Input Contract Foundation
 ```
 
-Sprint 118 should define the smallest useful evidence reference contract for existing promotion and paper-review evidence. It should not discover evidence automatically, load artifacts, calculate metrics, score strategies, generate reports, execute workflows, add broker behavior, or claim readiness for live or real-money trading.
+Sprint 119 should define an explicit strategy decision input contract that groups decision evidence references without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.
 
 See the milestone summaries in:
 
@@ -126,6 +126,8 @@ docs/strategy/future-platform-roadmap.md
   - deterministic caller-supplied comparison summaries with facts, assumptions, warnings, and missing-evidence fields
   - human-controlled review decision records with explicit status and rationale
   - local review manifests and compact comparison/review references for manual inspection
+- Decision governance foundation:
+  - typed decision evidence references for existing promotion and paper-review evidence
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -242,6 +244,8 @@ A decision evidence reference is not artifact loading. A strategy decision input
 
 Sprint 117 planned Milestone 22 and preserved the decision-governance guardrails before implementation begins.
 
+Sprint 118 added typed decision evidence references only. Decision evidence references point to existing promotion and paper-review evidence without discovering evidence automatically, loading artifacts, calculating metrics, scoring, ranking, making decisions, generating reports, executing workflows, adding broker behavior, or claiming live or real-money readiness.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -252,7 +256,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is Sprint 118, not to automate evidence discovery, strategy approval, paper execution, broker behavior, or live readiness.
+The next step is Sprint 119, not to automate evidence discovery, strategy approval, paper execution, broker behavior, or live readiness.
 
 ## Module Overview
 
@@ -263,6 +267,7 @@ el_psy_quant/
   configured_paper.py # Configured local paper workflow runner
   configured_paper_references.py # Configured paper metadata and manifest references
   config.py      # Load and validate local YAML experiment settings, including optional explicit paper-run inputs
+  decision_governance/ # Strategy-level decision evidence and governance contracts
   promotion/     # Research-to-paper promotion references and governance contracts
   paper_review/  # Paper run comparison and review reference contracts
   outputs.py     # Create deterministic local experiment directories and reserved paths
