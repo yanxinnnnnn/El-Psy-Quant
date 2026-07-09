@@ -55,7 +55,7 @@ decision evidence reference contract
 | S118 | Complete | Define decision evidence references. | Small typed references to existing promotion records, promotion manifests, paper comparison summaries, review decisions, and review manifests. | No evidence discovery, loading, parsing, scoring, ranking, or decision making. |
 | S119 | Complete | Define strategy decision input contract. | Explicit input object grouping evidence references, decision purpose, review context, and reviewer metadata. | No automatic decision generation, scoring, recommendation, or lifecycle automation. |
 | S120 | Complete | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
-| S121 | Planned | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
+| S121 | Complete | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
 | S122 | Planned | Add decision manifest and references. | Local manifest/reference contracts for strategy decision summaries and records. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
 | S123 | Planned | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
 
@@ -155,7 +155,7 @@ Milestone 22 should be considered complete only when:
 ## Next Step
 
 ```text
-Sprint 121 — Explicit Strategy Decision Record Foundation
+Sprint 122 — Decision Manifest and References Foundation
 ```
 
-Sprint 121 should add human-controlled strategy decision records tied to strategy decision summaries without automatic approval, promotion, capital allocation, broker behavior, or readiness claims.
+Sprint 122 should add local decision manifest and reference contracts for strategy decision summaries and records without file I/O, database behavior, reports, workflow execution, broker behavior, or readiness claims.
