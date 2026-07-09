@@ -2,13 +2,13 @@
 
 ## Status
 
-In progress.
+Complete.
 
 ## Product Goal
 
 Define a conservative, human-controlled decision-governance layer above promotion governance and paper run review.
 
-Milestone 22 should record higher-level strategy decisions using existing promotion and paper-review evidence without introducing dashboards, broad reporting, broker readiness, live-readiness claims, automatic approval, automatic promotion, capital deployment, or runtime execution expansion.
+Milestone 22 records higher-level strategy decisions using existing promotion and paper-review evidence without introducing dashboards, broad reporting, broker readiness, live-readiness claims, automatic approval, automatic promotion, capital deployment, or runtime execution expansion.
 
 ## Strategic Context
 
@@ -32,11 +32,11 @@ multiple paper runs
   -> reviewable comparison references
 ```
 
-Milestone 22 should sit above those records. It should not duplicate promotion records or paper review decisions. Its job is to make the next strategy-level decision explicit, evidence-backed, and auditable.
+Milestone 22 sits above those records. It does not duplicate promotion records or paper review decisions. Its job is to make the next strategy-level decision explicit, evidence-backed, and auditable.
 
 This is governance, not automation.
 
-## Planned Chain
+## Completed Chain
 
 ```text
 decision evidence reference contract
@@ -57,19 +57,20 @@ decision evidence reference contract
 | S120 | Complete | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
 | S121 | Complete | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
 | S122 | Complete | Add decision manifest and references. | Local manifest/reference contracts for strategy decision summaries and records. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
-| S123 | Planned | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
+| S123 | Complete | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
 
-## Included Capabilities
+## Delivered Capabilities
 
-Milestone 22 may include:
+Milestone 22 introduced small typed local boundaries for:
 
-- a minimal decision evidence reference contract for existing promotion and paper-review evidence
-- an explicit strategy decision input object
-- deterministic strategy decision summary data supplied by callers
-- assumptions, warnings, and missing-evidence fields for decision review
-- a human-controlled strategy decision record with explicit status and rationale
-- local manifest/reference contracts for decision summaries and decision records
-- documentation of decision assumptions, limits, and future readiness boundaries
+- `DecisionEvidenceReference`
+- `StrategyDecisionInput`
+- `StrategyDecisionSummary`
+- `StrategyDecisionRecord`
+- `StrategyDecisionReference`
+- `StrategyDecisionManifest`
+
+These contracts make strategy-level decision governance explicit and inspectable while keeping the project local, deterministic, and human-controlled.
 
 ## Decision Boundary Semantics
 
@@ -83,7 +84,7 @@ A strategy decision record is a human-controlled governance artifact. It records
 
 A decision manifest is a local reference contract for inspection. It does not read from disk, write to disk, create reports, persist data, use a database, or run workflows.
 
-## Questions The Milestone Should Answer
+## Questions The Milestone Answers
 
 - What evidence is being considered?
 - Which promotion records or paper-review decisions support this decision?
@@ -108,7 +109,7 @@ A decision manifest is a local reference contract for inspection. It does not re
 
 ## Explicitly Out Of Scope
 
-Milestone 22 must not introduce:
+Milestone 22 did not introduce:
 
 - runtime behavior
 - product code beyond the planned contract layer
@@ -142,7 +143,7 @@ Milestone 22 must not introduce:
 
 ## Exit Criteria
 
-Milestone 22 should be considered complete only when:
+Milestone 22 is complete because:
 
 - decision evidence references are explicit and typed
 - strategy decision inputs can group existing evidence without discovering or loading artifacts automatically
@@ -155,7 +156,7 @@ Milestone 22 should be considered complete only when:
 ## Next Step
 
 ```text
-Sprint 123 — Milestone 22 Documentation Refresh
+Sprint 124 — Milestone 23 Planning
 ```
 
-Sprint 123 should close Milestone 22 with documentation updates only and preserve the decision-governance guardrails.
+Sprint 124 should plan the next conservative platform layer after decision governance without adding runtime behavior during planning.
