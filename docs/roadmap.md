@@ -41,6 +41,7 @@ flowchart LR
     M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 ✅"]
     M20 --> M21["Milestone 21<br/>Paper Run Comparison and Review Foundation<br/>Sprints 110-116 ✅"]
     M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117-123 ✅"]
+    M22 --> M23["Milestone 23<br/>Report Artifact Foundation<br/>Sprints 124-129 planned"]
 ```
 
 ## Milestone Table
@@ -69,6 +70,7 @@ flowchart LR
 | Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
 | Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed through human-controlled local records without dashboards, broad reporting, broker behavior, runtime execution expansion, database behavior, or live-readiness claims. |
 | Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Complete | Define explicit strategy-level decision governance above promotion and paper review evidence. | Decision evidence can be referenced, summarized, reviewed, recorded, and listed through human-controlled local contracts without automatic decisions, dashboards, reports, broker behavior, capital deployment, or readiness claims. |
+| Milestone 23 — Report Artifact Foundation | Sprints 124-129 | Planned | Define deterministic report artifacts above completed governance records. | Governance records can be referenced and packaged into reviewable report artifacts without automatic report generation, dashboards, scoring, broker readiness, live-readiness claims, runtime changes, database behavior, or capital deployment. |
 
 ## Completed Milestone 20 — Research-to-Paper Promotion Foundation
 
@@ -131,15 +133,40 @@ docs/sprints/sprint-123-milestone-22-documentation-refresh-closeout.md
 docs/strategy/future-platform-roadmap.md
 ```
 
+## Planned Milestone 23 — Report Artifact Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S124 | Complete after planning PR merge | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No implementation during planning. |
+| S125 | Planned | Define report source references. | Small typed references to completed governance records and manifests. | No artifact discovery, loading, parsing, scoring, or report generation. |
+| S126 | Planned | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
+| S127 | Planned | Add report artifact summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and report context. | No recommendation engine, metric calculation, scoring, ranking, dashboards, or reports. |
+| S128 | Planned | Add report manifest and references. | Local manifest/reference contracts for report summaries and artifacts. | No file I/O, database, hosted service, dashboard, report engine, or workflow execution. |
+| S129 | Planned | Close milestone. | Milestone 23 documentation refresh. | No scope expansion. |
+
+Milestone 23 should plan this conservative report-artifact chain:
+
+```text
+report source reference contract -> report section contract -> report artifact summary -> report manifest and references -> report artifact closeout
+```
+
+See:
+
+```text
+docs/milestones/milestone-023-report-artifact-foundation.md
+docs/sprints/sprint-124-milestone-23-planning.md
+docs/strategy/future-platform-roadmap.md
+```
+
 ## Future Platform Direction
 
 The recommended sequence now is:
 
 ```text
-Sprint 124 — Milestone 23 Planning
+Sprint 125 — Report Source Reference Contract Foundation
 ```
 
-The guiding idea is to plan the next conservative layer after decision governance before dashboards, broad reports, broker readiness, or live-readiness claims.
+The guiding idea is to implement the first small contract in the report-artifact layer after planning, without adding automatic report generation, dashboards, broad report engines, broker readiness, live-readiness claims, or runtime behavior.
 
 Longer-term, the platform should move through:
 
@@ -174,15 +201,16 @@ Phase 5 — Controlled Live Pilot & Production Operations
 19. Promotion records should be explicit and human-controlled; they are not automatic approval engines.
 20. Paper run comparison should stay explicit, local, and review-driven before dashboards, report engines, broker readiness, or capital deployment decisions.
 21. Decision governance should sit above promotion and paper-review evidence before dashboards, broad reports, broker readiness, live-readiness claims, or capital deployment decisions.
+22. Report artifacts should package completed governance records for review before dashboards, broad report engines, hosted reporting, broker readiness, live-readiness claims, or capital deployment decisions.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 124 — Milestone 23 Planning
+Sprint 125 — Report Source Reference Contract Foundation
 ```
 
 Reason:
 
-Sprint 124 should plan the next conservative platform layer after decision governance without adding runtime behavior during planning.
+Sprint 125 should implement the smallest useful report source reference contract for completed governance records. It should not discover evidence automatically, load artifacts, calculate metrics, score strategies, render reports, execute workflows, add broker behavior, or claim readiness for live or real-money trading.
