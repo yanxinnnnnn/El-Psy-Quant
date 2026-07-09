@@ -72,9 +72,9 @@ Milestone 20 — Research-to-Paper Promotion Foundation is complete.
 
 Milestone 21 — Paper Run Comparison and Review Foundation is complete.
 
-Milestone 22 — Decision Governance Foundation is in progress.
+Milestone 22 — Decision Governance Foundation is complete.
 
-Sprint 117 planned the next conservative decision-governance layer after promotion governance and paper run comparison/review.
+Sprint 117 planned the conservative decision-governance layer after promotion governance and paper run comparison/review.
 
 Sprint 118 added typed decision evidence references for existing promotion and paper-review evidence without artifact loading, scoring, automatic discovery, workflow execution, broker behavior, or readiness claims.
 
@@ -86,7 +86,9 @@ Sprint 121 added explicit human-controlled strategy decision records with suppor
 
 Sprint 122 added local strategy decision manifests and compact summary/record references without file I/O, database behavior, persistence services, artifact loading, reports, workflow execution, broker behavior, or readiness claims.
 
-The next focus is Sprint 123 — Milestone 22 Documentation Refresh. It should close Milestone 22 with documentation updates only and preserve the decision-governance guardrails.
+Sprint 123 closed Milestone 22 with a documentation-only refresh and preserved the decision-governance guardrails.
+
+The next focus is Sprint 124 — Milestone 23 Planning. It should plan the next conservative platform layer after decision governance without adding runtime behavior during planning.
 
 ## Implementation Sprint Issue Requirements
 
