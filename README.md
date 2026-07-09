@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 115 — Review Manifest and Comparison References Foundation
+Sprint 116 — Milestone 21 Documentation Refresh / Closeout
 ```
 
-Sprint 115 should add local review manifest and comparison reference contracts without filesystem I/O, databases, dashboards, workflow execution, broker behavior, or readiness claims.
+Sprint 116 should close Milestone 21 with documentation refresh only, preserving the paper run comparison and review guardrails.
 
 See the milestone summaries in:
 
@@ -117,6 +117,7 @@ docs/strategy/future-platform-roadmap.md
   - explicit paper run comparison inputs with purpose and review context
   - deterministic caller-supplied comparison summaries with facts, assumptions, warnings, and missing-evidence fields
   - human-controlled review decision records with explicit status and rationale
+  - local review manifests and compact comparison/review references for manual inspection
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -319,6 +320,8 @@ Sprint 113 added deterministic caller-supplied comparison summaries. These summa
 
 Sprint 114 added human-controlled paper run review decision records. These records tie a supported explicit status and reviewer rationale to a comparison summary without automatic approval, automatic promotion, capital allocation, order routing, paper order or fill construction, broker behavior, workflow execution, dashboards, reports, or readiness claims.
 
+Sprint 115 added local review manifests and compact comparison/review references. These contracts group existing comparison summaries and review decisions for manual inspection without file writing, file reading, filesystem scanning, persistence, database behavior, reports, dashboards, workflow execution, broker behavior, approval automation, capital allocation, order routing, or readiness claims.
+
 Sprint 110 planned the M21 scope, sprint sequence, and guardrails.
 
 ## Local Experiment Configuration
@@ -331,7 +334,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to define local review manifest and comparison reference contracts, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
+The next step is to close Milestone 21 with documentation refresh, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
 
 ## Module Overview
 

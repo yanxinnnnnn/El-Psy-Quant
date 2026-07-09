@@ -72,7 +72,7 @@ Milestone 20 — Research-to-Paper Promotion Foundation is complete.
 
 Milestone 21 — Paper Run Comparison and Review Foundation is in progress.
 
-The next focus is Sprint 115 — Review Manifest and Comparison References Foundation. Add local review manifest and comparison reference contracts without filesystem I/O, databases, dashboards, workflow execution, broker behavior, or readiness claims.
+The next focus is Sprint 116 — Milestone 21 Documentation Refresh / Closeout. Close the paper run comparison and review milestone with documentation refresh only, preserving guardrails against dashboards, broad reports, broker behavior, workflow execution, capital deployment, and readiness claims.
 
 ## Implementation Sprint Issue Requirements
 
