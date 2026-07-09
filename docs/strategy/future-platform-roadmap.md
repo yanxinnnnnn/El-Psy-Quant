@@ -240,15 +240,9 @@ This phase makes strategy decisions explicit and reviewable.
 
 ### Milestone 22 — Decision Governance Foundation
 
-Status: Planned through Sprint 117.
+Status: Complete.
 
-Next implementation step:
-
-```text
-Sprint 118 — Decision Evidence Reference Contract Foundation
-```
-
-Planned chain:
+Completed chain:
 
 ```text
 decision evidence reference contract
@@ -259,24 +253,22 @@ decision evidence reference contract
   -> decision governance closeout
 ```
 
-Goal direction:
+Delivered contracts:
 
-```text
-promotion records
-  + promotion manifests / candidate references
-  + paper comparison summaries
-  + review decision records
-  + review manifests
-  -> explicit decision governance layer
-```
+- `DecisionEvidenceReference`
+- `StrategyDecisionInput`
+- `StrategyDecisionSummary`
+- `StrategyDecisionRecord`
+- `StrategyDecisionReference`
+- `StrategyDecisionManifest`
 
 Purpose:
 
-Record why a strategy should continue, pause, be rejected, need more evidence, or remain on a watchlist without jumping to dashboards, broad reports, broker behavior, live readiness, or capital deployment.
+Record why a strategy should continue, pause, be rejected, need more evidence, or remain under review without jumping to dashboards, broad reports, broker behavior, live readiness, or capital deployment.
 
-Milestone 22 should build on M20 promotion records and M21 paper comparison/review records. It should not duplicate those records and should not skip ahead to live readiness.
+Milestone 22 builds on M20 promotion records and M21 paper comparison/review records. It does not duplicate those records and does not skip ahead to live readiness.
 
-Guardrails to preserve:
+Guardrails preserved:
 
 - no automatic decision making
 - no automatic approval or promotion
@@ -291,10 +283,12 @@ Guardrails to preserve:
 
 ### Milestone 23 — Report Artifact Foundation
 
+Next planning focus.
+
 Goal:
 
 ```text
-run artifacts
+completed governance records
   -> deterministic report artifact
 ```
 

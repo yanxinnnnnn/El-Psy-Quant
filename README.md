@@ -26,9 +26,9 @@ Milestone 21 completed the first comparison and review layer after promotion gov
 paper run reference contract -> paper run comparison input contract -> paper run comparison summary -> paper run review decision record -> review manifest and comparison references
 ```
 
-**Milestone 22 — Decision Governance Foundation** is in progress.
+**Milestone 22 — Decision Governance Foundation** is complete.
 
-Milestone 22 should add the next conservative governance layer above promotion records and paper-review records:
+Milestone 22 completed the conservative strategy-level decision governance layer above promotion records and paper-review records:
 
 ```text
 decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
@@ -39,10 +39,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 123 — Milestone 22 Documentation Refresh
+Sprint 124 — Milestone 23 Planning
 ```
 
-Sprint 123 should close Milestone 22 with documentation updates only and preserve the decision-governance guardrails.
+Sprint 124 should plan the next conservative platform layer after decision governance without adding runtime behavior during planning.
 
 See the milestone summaries in:
 
@@ -138,17 +138,11 @@ docs/strategy/future-platform-roadmap.md
 
 ## Planned Next Platform Layer
 
-Milestone 22 is planned as a conservative decision-governance layer built on top of completed promotion records and paper run comparison/review records.
+Milestone 23 should be planned after the completed decision-governance layer.
 
-It should strengthen decision discipline, not add trading automation:
+The next planning sprint should decide the next conservative platform layer without adding runtime behavior during planning. The likely direction is to turn completed governance records into structured report artifacts before dashboards, broker readiness, or live-readiness claims.
 
-- explicit evidence references
-- explicit decision inputs
-- caller-supplied decision summaries
-- human-controlled decision records
-- local decision manifests and references
-
-It must not add automatic approval, automatic promotion, automatic decision making, automatic evidence discovery, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, or real-money readiness claims.
+It must not add automatic approval, automatic promotion, automatic decision making, automatic evidence discovery, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, or real-money readiness claims during planning.
 
 ## Quick Start
 
@@ -224,21 +218,11 @@ paper run reference contract -> paper run comparison input contract -> paper run
 
 A paper run reference is not artifact loading. A comparison summary is not a scoring engine. A review decision record is not a capital deployment decision or live-readiness claim. A review manifest is a local in-memory reference contract, not file persistence, database behavior, or a workflow runner.
 
-Sprint 111 added typed paper run references only. Paper run references identify existing paper artifacts or paper result summaries without loading artifacts, discovering runs automatically, comparing metrics, generating reports, executing paper workflows, or claiming live or real-money readiness.
-
-Sprint 112 added explicit paper run comparison inputs. Comparison inputs group paper run references with purpose and review context without discovering runs automatically, loading artifacts, comparing metrics, scoring runs, generating summaries, or executing paper workflows.
-
-Sprint 113 added deterministic caller-supplied comparison summaries. These summaries record comparison facts, assumptions, warnings, missing-evidence notes, reviewer context, and timestamps without discovering runs automatically, loading artifacts, calculating or comparing metrics, scoring, ranking, choosing winners, making review decisions, generating reports, or executing workflows.
-
-Sprint 114 added human-controlled paper run review decision records. These records tie a supported explicit status and reviewer rationale to a comparison summary without automatic approval, automatic promotion, capital allocation, order routing, paper order or fill construction, broker behavior, workflow execution, dashboards, reports, or readiness claims.
-
-Sprint 115 added local review manifests and compact comparison/review references. These contracts group existing comparison summaries and review decisions for manual inspection without file writing, file reading, filesystem scanning, persistence, database behavior, reports, dashboards, workflow execution, broker behavior, approval automation, capital allocation, order routing, or readiness claims.
-
 Sprint 116 closed Milestone 21 with a documentation refresh and preserved the paper run comparison and review guardrails.
 
 ### Decision Governance Foundation
 
-Milestone 22 is planned as the strategy-level decision governance layer above promotion and paper-review evidence:
+Milestone 22 defined the strategy-level decision governance layer above promotion and paper-review evidence:
 
 ```text
 decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
@@ -246,17 +230,19 @@ decision evidence reference contract -> strategy decision input contract -> stra
 
 A decision evidence reference is not artifact loading. A strategy decision input is not automatic evidence discovery. A strategy decision summary is not a recommendation engine. A strategy decision record is not automatic approval, capital deployment, broker approval, live readiness, or real-money readiness. A decision manifest is a local reference contract, not persistence, database behavior, report generation, or workflow execution.
 
-Sprint 117 planned Milestone 22 and preserved the decision-governance guardrails before implementation begins.
+Sprint 117 planned Milestone 22 and preserved the decision-governance guardrails.
 
-Sprint 118 added typed decision evidence references only. Decision evidence references point to existing promotion and paper-review evidence without discovering evidence automatically, loading artifacts, calculating metrics, scoring, ranking, making decisions, generating reports, executing workflows, adding broker behavior, or claiming live or real-money readiness.
+Sprint 118 added typed decision evidence references only.
 
-Sprint 119 added explicit strategy decision inputs. Decision inputs group caller-supplied evidence references with decision purpose and optional provenance without discovering evidence automatically, loading artifacts, scoring, ranking, making decisions, generating reports, executing workflows, adding broker behavior, or claiming readiness.
+Sprint 119 added explicit strategy decision inputs.
 
-Sprint 120 added caller-supplied strategy decision summaries. Decision summaries record facts, assumptions, warnings, missing-evidence notes, reviewer context, and timestamps without recommendation engines, metric calculation, scoring, approval or rejection logic, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 120 added caller-supplied strategy decision summaries.
 
-Sprint 121 added explicit human-controlled strategy decision records. Decision records tie supported status, reviewer rationale, notes, warnings, and reviewer context to a strategy decision summary without automatic approval, automatic promotion, capital allocation, broker behavior, workflow execution, reports, or readiness claims.
+Sprint 121 added explicit human-controlled strategy decision records.
 
-Sprint 122 added local strategy decision manifests and compact summary/record references. These contracts group existing strategy decision summaries and records for manual inspection without file I/O, database behavior, persistence services, artifact loading, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 122 added local strategy decision manifests and compact summary/record references.
+
+Sprint 123 closed Milestone 22 with a documentation refresh and preserved the decision-governance guardrails.
 
 ## Local Experiment Configuration
 
@@ -268,7 +254,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is Sprint 123, not to automate evidence discovery, strategy approval, paper execution, broker behavior, or live readiness.
+The next step is Sprint 124, not to automate evidence discovery, strategy approval, paper execution, broker behavior, or live readiness.
 
 ## Module Overview
 
