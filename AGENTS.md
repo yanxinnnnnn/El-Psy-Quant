@@ -96,7 +96,9 @@ Sprint 125 added typed report source references for completed governance records
 
 Sprint 126 added caller-supplied report sections with explicit report source references without rendering pipelines, dashboards, markdown/PDF generation, workflow execution, broker behavior, or readiness claims.
 
-The next focus is Sprint 127 — Report Artifact Summary Foundation. It should add a deterministic caller-supplied report artifact summary without automatic metric calculation, recommendation, ranking, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 127 added caller-supplied report artifact summaries that group explicit report sections without automatic metric calculation, recommendation, ranking, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+
+The next focus is Sprint 128 — Report Manifest and References Foundation. It should add local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
 
 ## Implementation Sprint Issue Requirements
 

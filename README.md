@@ -47,10 +47,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 127 — Report Artifact Summary Foundation
+Sprint 128 — Report Manifest and References Foundation
 ```
 
-Sprint 127 should add a deterministic caller-supplied report artifact summary without automatic metric calculation, recommendation, ranking, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 128 should add local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
 
 See the milestone summaries in:
 
@@ -144,6 +144,7 @@ docs/strategy/future-platform-roadmap.md
 - Report artifact foundation:
   - typed report source references for completed governance records and manifests
   - caller-supplied report sections with explicit source references
+  - caller-supplied report artifact summaries that group explicit report sections
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -152,7 +153,7 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 23 is in progress after the completed decision-governance layer.
 
-The next implementation sprint should add a deterministic caller-supplied report artifact summary on top of explicit report sections.
+The next implementation sprint should add local report manifest and reference contracts on top of report artifact summaries.
 
 Milestone 23 must not add automatic approval, automatic promotion, automatic decision making, automatic evidence discovery, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, report rendering pipelines, database behavior, hosted service behavior, SaaS behavior, or real-money readiness claims.
 
@@ -272,6 +273,8 @@ Sprint 125 added typed report source references for completed governance records
 
 Sprint 126 added caller-supplied report sections with explicit source references. Report sections are structure only: they do not render reports, generate markdown/PDF output, discover evidence, load artifacts, score or rank records, execute workflows, add broker behavior, or claim readiness.
 
+Sprint 127 added caller-supplied report artifact summaries that group explicit report sections. Report artifact summaries are descriptive structure only: they do not calculate metrics, score, rank, recommend, render reports, generate dashboards, execute workflows, add broker behavior, or claim readiness.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -282,7 +285,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is Sprint 127, not to automate evidence discovery, strategy approval, paper execution, report generation, broker behavior, or live readiness.
+The next step is Sprint 128, not to automate evidence discovery, strategy approval, paper execution, report generation, broker behavior, or live readiness.
 
 ## Module Overview
 
@@ -294,7 +297,7 @@ el_psy_quant/
   configured_paper_references.py # Configured paper metadata and manifest references
   config.py      # Load and validate local YAML experiment settings, including optional explicit paper-run inputs
   decision_governance/ # Strategy-level decision evidence and governance contracts
-  report_artifacts/ # Report artifact source-reference and section contracts
+  report_artifacts/ # Report artifact source-reference, section, and summary contracts
   promotion/     # Research-to-paper promotion references and governance contracts
   paper_review/  # Paper run comparison and review reference contracts
   outputs.py     # Create deterministic local experiment directories and reserved paths
