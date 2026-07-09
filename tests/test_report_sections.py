@@ -252,9 +252,7 @@ def test_report_artifacts_package_does_not_expose_forbidden_behavior() -> None:
     from el_psy_quant import report_artifacts
 
     forbidden_names = {
-        "ReportArtifactSummary",
         "ReportManifest",
-        "create_report_artifact_summary",
         "create_report_manifest",
         "render_report",
         "render_dashboard",

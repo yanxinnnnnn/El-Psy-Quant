@@ -107,7 +107,7 @@ The exact sprint names can change during execution, but the milestone should pre
 | S124 | Complete | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No runtime behavior during planning. |
 | S125 | Complete | Define report source references. | Small typed references to completed governance records and manifests. | No artifact loading, discovery, parsing, scoring, or report generation. |
 | S126 | Complete | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
-| S127 | Planned | Define report artifact summary. | Deterministic caller-supplied report summary with facts, assumptions, warnings, and missing-evidence notes. | No automatic metric calculation, recommendation, ranking, or decision making. |
+| S127 | Complete | Define report artifact summary. | Deterministic caller-supplied report summary with facts, assumptions, warnings, and missing-evidence notes. | No automatic metric calculation, recommendation, ranking, or decision making. |
 | S128 | Planned | Add report manifest and references. | Local manifest/reference contracts for report summaries and report artifacts. | No file I/O, database, hosted service, dashboard, or report engine. |
 | S129 | Planned | Close milestone. | Milestone 23 documentation refresh. | No scope expansion. |
 
@@ -233,7 +233,7 @@ Milestone 23 is ready to close when:
 ## Next Step
 
 ```text
-Sprint 127 — Report Artifact Summary Foundation
+Sprint 128 — Report Manifest and References Foundation
 ```
 
-Sprint 127 should add a deterministic caller-supplied report artifact summary without automatic metric calculation, recommendation, ranking, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 128 should add local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.

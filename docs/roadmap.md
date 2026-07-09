@@ -140,7 +140,7 @@ docs/strategy/future-platform-roadmap.md
 | S124 | Complete | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No implementation during planning. |
 | S125 | Complete | Define report source references. | Small typed references to completed governance records and manifests. | No artifact discovery, loading, parsing, scoring, or report generation. |
 | S126 | Complete | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
-| S127 | Planned | Add report artifact summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and report context. | No recommendation engine, metric calculation, scoring, ranking, dashboards, or reports. |
+| S127 | Complete | Add report artifact summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and report context. | No recommendation engine, metric calculation, scoring, ranking, dashboards, or reports. |
 | S128 | Planned | Add report manifest and references. | Local manifest/reference contracts for report summaries and artifacts. | No file I/O, database, hosted service, dashboard, report engine, or workflow execution. |
 | S129 | Planned | Close milestone. | Milestone 23 documentation refresh. | No scope expansion. |
 
@@ -163,10 +163,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 127 — Report Artifact Summary Foundation
+Sprint 128 — Report Manifest and References Foundation
 ```
 
-The guiding idea is to add deterministic caller-supplied report artifact summaries without adding automatic metric calculation, recommendation engines, ranking, dashboards, broad report engines, broker readiness, live-readiness claims, or runtime behavior.
+The guiding idea is to add local report manifest and reference contracts without adding file I/O, database behavior, dashboards, broad report engines, broker readiness, live-readiness claims, or runtime behavior.
 
 Longer-term, the platform should move through:
 
@@ -208,9 +208,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 127 — Report Artifact Summary Foundation
+Sprint 128 — Report Manifest and References Foundation
 ```
 
 Reason:
 
-Sprint 127 should add a deterministic caller-supplied report artifact summary without automatic metric calculation, recommendation, ranking, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 128 should add local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
