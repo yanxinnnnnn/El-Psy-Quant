@@ -18,9 +18,9 @@ Milestone 20 completed the promotion governance chain:
 promotion source reference contract -> paper promotion candidate contract -> promotion evidence summary -> explicit promotion record -> promotion manifest and candidate references
 ```
 
-**Milestone 21 — Paper Run Comparison and Review Foundation** is in progress.
+**Milestone 21 — Paper Run Comparison and Review Foundation** is complete.
 
-Milestone 21 will define the first comparison and review layer after promotion governance:
+Milestone 21 completed the first comparison and review layer after promotion governance:
 
 ```text
 paper run reference contract -> paper run comparison input contract -> paper run comparison summary -> paper run review decision record -> review manifest and comparison references
@@ -31,10 +31,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 116 — Milestone 21 Documentation Refresh / Closeout
+Sprint 117 — Milestone 22 Planning
 ```
 
-Sprint 116 should close Milestone 21 with documentation refresh only, preserving the paper run comparison and review guardrails.
+Sprint 117 should plan the next conservative decision-governance milestone after paper run comparison and review. It should not jump to dashboards, broad reports, broker behavior, capital deployment, or live-readiness claims.
 
 See the milestone summaries in:
 
@@ -124,17 +124,16 @@ docs/strategy/future-platform-roadmap.md
 
 ## Planned Next Platform Layer
 
-Milestone 21 plans a conservative paper run comparison and review foundation.
+Milestone 22 should be planned as a conservative decision-governance layer built on top of completed promotion records and paper run comparison/review records.
 
-It should add comparison governance, not trading automation:
+It should strengthen decision discipline, not add trading automation:
 
-- paper run references for existing paper artifacts or paper result summaries
-- explicit paper run comparison inputs
-- descriptive comparison summaries with source facts, assumptions, warnings, and missing-evidence fields
-- human-controlled paper run review decision records
-- local review manifests and comparison references
+- explicit decision records
+- evidence-backed review status
+- human-controlled rationale
+- clear separation between research, paper review, and live readiness
 
-It must not add automatic paper run discovery, artifact loading/parsing/scoring beyond explicit contracts, dashboards, broad report generation, database behavior, broker behavior, live execution, automatic capital deployment decisions, live-readiness claims, or real-money readiness claims.
+It must not add automatic approval, automatic promotion, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, or real-money readiness claims.
 
 ## Quick Start
 
@@ -170,117 +169,29 @@ result = moving_average_crossover_pipeline(
 )
 ```
 
-## Portfolio Construction
+## Milestone Closeouts
 
-Portfolio construction starts after per-symbol strategy returns already exist.
+### Paper Trading Workflow Integration Foundation
 
-```python
-from el_psy_quant.portfolio import (
-    align_strategy_returns,
-    equal_weight_portfolio_return,
-    weighted_portfolio_return,
-    build_portfolio_summary_artifact,
-)
-
-aligned_returns = align_strategy_returns(results_by_symbol)
-equal_weight_return = equal_weight_portfolio_return(aligned_returns)
-weighted_return = weighted_portfolio_return(
-    aligned_returns,
-    {"AAPL": 0.6, "MSFT": 0.4},
-)
-artifact = build_portfolio_summary_artifact(
-    weighted_return,
-    construction_method="static_weight",
-    symbols=aligned_returns.columns,
-    weights={"AAPL": 0.6, "MSFT": 0.4},
-    periods_per_year=252,
-)
-```
-
-Portfolio construction is different from independent multi-symbol summaries because it must define date alignment, aggregation, weights, and recorded assumptions.
-
-## Portfolio Risk And Attribution
-
-Milestone 14 added the first standalone portfolio risk and attribution layer on top of the portfolio construction foundation.
-
-The completed chain is:
-
-```text
-portfolio_return -> risk metrics
-portfolio_equity -> drawdown inspection
-aligned_returns + static_weights -> symbol contribution
-risk + drawdown + contribution -> attribution summary artifact
-```
-
-This layer explains portfolio behavior before adding execution realism.
-
-## Backtest Execution Realism Foundation
-
-Milestone 15 made execution assumptions explicit and reviewable.
-
-The completed chain is:
-
-```text
-execution assumptions -> order intent boundary -> deterministic fill model -> execution-adjusted trade summary -> execution realism artifact
-```
-
-This milestone remains local and deterministic. It does not introduce external execution connectivity, paper trading, or operational runtime behavior.
-
-## Paper Trading Foundation
-
-Milestone 16 made local paper-trading state explicit and reviewable.
-
-The completed chain is:
-
-```text
-paper account state -> paper order ledger -> paper fill application -> paper trading session summary -> paper trading artifact
-```
-
-The paper-trading foundation is local, deterministic, and inspectable. It does not currently support external execution connectivity, configured-run integration, artifact persistence, or report generation.
-
-## Paper Trading Persistence & Audit Foundation
-
-Milestone 17 made paper-trading artifacts durable and audit-friendly.
-
-The completed chain is:
-
-```text
-paper artifact file contract -> local paper artifact writer -> local paper artifact reader and validation -> paper session audit summary
-```
-
-This milestone remains local and deterministic. It does not add configured-run expansion, databases, dashboards, broad report generation, deep object reconstruction, or schema migration behavior.
-
-## Paper Trading Workflow Integration Foundation
-
-Milestone 18 made the paper-trading state, artifact, persistence, and audit boundaries into an explicit local paper run workflow foundation.
-
-The completed chain is:
+Milestone 18 closed this conservative chain:
 
 ```text
 paper run request contract -> paper run execution boundary -> paper run artifact persistence -> paper run result summary
 ```
 
-This milestone remains local, deterministic, and explicit-input driven. It does not add broader configured workflow or operational integrations.
+### Configured Paper Workflow Wiring Foundation
 
-## Configured Paper Workflow Wiring Foundation
-
-Milestone 19 connected the completed paper run workflow to local configuration and configured-run output discipline.
-
-The completed chain is:
+Milestone 19 connected the completed paper run workflow to local configuration and configured-run output discipline:
 
 ```text
 paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
 ```
 
-Milestone 19 added an optional local YAML `paper_run` section that validates explicit account states, orders, and fills while keeping research-only configs backward compatible. It can convert that validated config into `PaperRunRequest`, reserve configured paper output paths, run the local paper workflow while writing only the configured paper artifact and result-summary JSON files, and record references to those files in configured-run metadata and manifest outputs.
+Milestone 19 remains local and deterministic. It does not add broker integration, live execution, order routing, market data streaming, automatic research-to-paper promotion, dashboards, databases, or broad reporting.
 
-This milestone remains local and deterministic. It does not add broker integration, live execution, order routing, market data streaming, automatic research-to-paper promotion, dashboards, databases, or broad reporting.
+### Research-to-Paper Promotion Foundation
 
-## Research-to-Paper Promotion Foundation
-
-Milestone 20 defined explicit promotion governance before paper comparison, decision records, reports, broker readiness, or live-readiness claims.
-
-The completed chain is:
+Milestone 20 defined explicit promotion governance before paper comparison, decision records, reports, broker readiness, or live-readiness claims:
 
 ```text
 promotion source reference contract -> paper promotion candidate contract -> promotion evidence summary -> explicit promotion record -> promotion manifest and candidate references
@@ -288,29 +199,15 @@ promotion source reference contract -> paper promotion candidate contract -> pro
 
 A promotion candidate is not an approval. A promotion record is not a live-readiness claim. The milestone keeps paper workflow execution separate from research-to-paper promotion records.
 
-Sprint 104 added typed promotion source references only. Source references identify existing evidence without loading artifacts, scoring strategies, creating candidates, or executing paper workflows.
+### Paper Run Comparison and Review Foundation
 
-Sprint 105 added explicit paper promotion candidates. Candidates group one or more source references with a title and optional manual-review context, but they do not approve strategies, construct paper run requests, create paper orders or fills, or execute paper workflows.
-
-Sprint 106 added descriptive promotion evidence summaries. Evidence summaries attach explicit source facts, assumptions, warnings, and missing-evidence notes to a candidate without loading artifacts, extracting metrics, scoring evidence, or creating pass/fail approval logic.
-
-Sprint 107 added explicit promotion records. Promotion records tie evidence summaries to human-controlled status, rationale, reviewer context, and timestamps without inferring approval, claiming live readiness, or claiming real-money readiness.
-
-Sprint 108 added local promotion manifests and compact candidate references. These contracts group existing promotion records and references for manual inspection without filesystem I/O, artifact loading, scoring, reporting, approval automation, or paper workflow execution.
-
-Sprint 109 closed Milestone 20 with a documentation refresh and preserved the research-to-paper promotion guardrails.
-
-## Paper Run Comparison and Review Foundation
-
-Milestone 21 is defining the first comparison and review layer on top of completed paper workflow and promotion-governance foundations.
-
-The planned chain is:
+Milestone 21 defined the first comparison and review layer on top of completed paper workflow and promotion-governance foundations:
 
 ```text
 paper run reference contract -> paper run comparison input contract -> paper run comparison summary -> paper run review decision record -> review manifest and comparison references
 ```
 
-A paper run reference is not artifact loading. A comparison summary is not a scoring engine. A review decision record is not a capital deployment decision or live-readiness claim.
+A paper run reference is not artifact loading. A comparison summary is not a scoring engine. A review decision record is not a capital deployment decision or live-readiness claim. A review manifest is a local in-memory reference contract, not file persistence, database behavior, or a workflow runner.
 
 Sprint 111 added typed paper run references only. Paper run references identify existing paper artifacts or paper result summaries without loading artifacts, discovering runs automatically, comparing metrics, generating reports, executing paper workflows, or claiming live or real-money readiness.
 
@@ -322,7 +219,7 @@ Sprint 114 added human-controlled paper run review decision records. These recor
 
 Sprint 115 added local review manifests and compact comparison/review references. These contracts group existing comparison summaries and review decisions for manual inspection without file writing, file reading, filesystem scanning, persistence, database behavior, reports, dashboards, workflow execution, broker behavior, approval automation, capital allocation, order routing, or readiness claims.
 
-Sprint 110 planned the M21 scope, sprint sequence, and guardrails.
+Sprint 116 closed Milestone 21 with a documentation refresh and preserved the paper run comparison and review guardrails.
 
 ## Local Experiment Configuration
 
@@ -334,7 +231,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is to close Milestone 21 with documentation refresh, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
+The next step is to plan Milestone 22, not to automate paper run discovery, strategy approval, paper execution, or live readiness.
 
 ## Module Overview
 
