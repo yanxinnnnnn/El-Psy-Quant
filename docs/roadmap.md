@@ -40,7 +40,7 @@ flowchart LR
     M18 --> M19["Milestone 19<br/>Configured Paper Workflow Wiring Foundation<br/>Sprints 96-102 ✅"]
     M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 ✅"]
     M20 --> M21["Milestone 21<br/>Paper Run Comparison and Review Foundation<br/>Sprints 110-116 ✅"]
-    M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117+ 🟡"]
+    M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117-123 🟡"]
 ```
 
 ## Milestone Table
@@ -68,7 +68,7 @@ flowchart LR
 | Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs conservatively. | Configured local paper inputs can produce, persist, and reference paper workflow outputs without broker, live, database, dashboard, or automatic-promotion behavior. |
 | Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
 | Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed through human-controlled local records without dashboards, broad reporting, broker behavior, runtime execution expansion, database behavior, or live-readiness claims. |
-| Milestone 22 — Decision Governance Foundation | Sprints 117+ | Planned | Plan the next decision-governance layer after promotion and paper review. | The next milestone should be planned conservatively before implementation starts. |
+| Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Planned | Define explicit strategy-level decision governance above promotion and paper review evidence. | Decision evidence can be referenced, summarized, reviewed, recorded, and listed through human-controlled local contracts without automatic decisions, dashboards, reports, broker behavior, capital deployment, or readiness claims. |
 
 ## Completed Milestone 19 — Configured Paper Workflow Wiring Foundation
 
@@ -141,15 +141,41 @@ docs/sprints/sprint-116-milestone-21-documentation-refresh-closeout.md
 docs/strategy/future-platform-roadmap.md
 ```
 
+## Planned Milestone 22 — Decision Governance Foundation
+
+| Sprint | Status | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|---|
+| S117 | Complete | Plan Milestone 22. | Decision governance scope, sequence, and guardrails. | No implementation during planning. |
+| S118 | Planned | Define decision evidence references. | Small typed references to existing promotion records, promotion manifests, paper comparison summaries, review decisions, and review manifests. | No evidence discovery, loading, parsing, scoring, or ranking. |
+| S119 | Planned | Define strategy decision input contract. | Explicit input object grouping evidence references, decision purpose, review context, and reviewer metadata. | No automatic decision generation or lifecycle automation. |
+| S120 | Planned | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
+| S121 | Planned | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
+| S122 | Planned | Add decision manifest and references. | Local manifest/reference contracts for strategy decision summaries and records. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
+| S123 | Planned | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
+
+Milestone 22 should follow this conservative governance chain:
+
+```text
+decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
+```
+
+See:
+
+```text
+docs/milestones/milestone-022-decision-governance-foundation.md
+docs/sprints/sprint-117-milestone-22-planning.md
+docs/strategy/future-platform-roadmap.md
+```
+
 ## Future Platform Direction
 
 The recommended sequence now is:
 
 ```text
-Sprint 117 — Milestone 22 Planning
+Sprint 118 — Decision Evidence Reference Contract Foundation
 ```
 
-The guiding idea is to plan the next decision-governance layer after promotion governance and paper run comparison/review before dashboards, broad reports, broker readiness, or live-readiness claims.
+The guiding idea is to implement decision governance from the smallest reference contract first, before decision summaries, decision records, manifests, dashboards, broad reports, broker readiness, or live-readiness claims.
 
 Longer-term, the platform should move through:
 
@@ -181,18 +207,18 @@ Phase 5 — Controlled Live Pilot & Production Operations
 16. Paper trading artifacts should be durable and audit-friendly before runtime workflows or broker integration.
 17. Paper trading workflows should be explicit before configured-run integration or broker readiness.
 18. Configured paper workflows should stay local and explicit before decision records, broker readiness, or live-readiness claims.
-19. Decision governance should exist before paper comparison, broad reports, broker readiness, or live-readiness claims.
-20. Promotion records should be explicit and human-controlled; they are not automatic approval engines.
-21. Paper run comparison should stay explicit, local, and review-driven before dashboards, report engines, broker readiness, or capital deployment decisions.
+19. Promotion records should be explicit and human-controlled; they are not automatic approval engines.
+20. Paper run comparison should stay explicit, local, and review-driven before dashboards, report engines, broker readiness, or capital deployment decisions.
+21. Decision governance should sit above promotion and paper-review evidence before dashboards, broad reports, broker readiness, live-readiness claims, or capital deployment decisions.
 
 ## Current Next Step
 
 The next sprint is:
 
 ```text
-Sprint 117 — Milestone 22 Planning
+Sprint 118 — Decision Evidence Reference Contract Foundation
 ```
 
 Reason:
 
-Sprint 117 should plan the next conservative decision-governance milestone after paper run comparison and review without jumping to dashboards, broad reports, broker behavior, capital deployment, or live-readiness claims.
+Sprint 118 should define the smallest useful evidence reference contract for existing promotion and paper-review evidence without discovering evidence automatically, loading artifacts, calculating metrics, scoring strategies, generating reports, executing workflows, adding broker behavior, or claiming readiness for live or real-money trading.
