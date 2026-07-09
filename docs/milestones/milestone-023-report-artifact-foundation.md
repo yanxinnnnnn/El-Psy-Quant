@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned.
+In progress.
 
 ## Product Goal
 
@@ -104,8 +104,8 @@ The exact sprint names can change during execution, but the milestone should pre
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
-| S124 | Complete after planning PR merge | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No runtime behavior during planning. |
-| S125 | Planned | Define report source references. | Small typed references to completed governance records and manifests. | No artifact loading, discovery, parsing, scoring, or report generation. |
+| S124 | Complete | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No runtime behavior during planning. |
+| S125 | Complete | Define report source references. | Small typed references to completed governance records and manifests. | No artifact loading, discovery, parsing, scoring, or report generation. |
 | S126 | Planned | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
 | S127 | Planned | Define report artifact summary. | Deterministic caller-supplied report summary with facts, assumptions, warnings, and missing-evidence notes. | No automatic metric calculation, recommendation, ranking, or decision making. |
 | S128 | Planned | Add report manifest and references. | Local manifest/reference contracts for report summaries and report artifacts. | No file I/O, database, hosted service, dashboard, or report engine. |
@@ -233,7 +233,7 @@ Milestone 23 is ready to close when:
 ## Next Step
 
 ```text
-Sprint 125 — Report Source Reference Contract Foundation
+Sprint 126 — Report Section Contract Foundation
 ```
 
-Sprint 125 should define the smallest useful reference contract for completed governance records. It should not discover evidence automatically, load artifacts, calculate metrics, score strategies, generate reports, execute workflows, add broker behavior, or claim readiness for live or real-money trading.
+Sprint 126 should add a small report section contract without rendering pipelines, dashboards, markdown/PDF generation, workflow execution, broker behavior, or readiness claims.

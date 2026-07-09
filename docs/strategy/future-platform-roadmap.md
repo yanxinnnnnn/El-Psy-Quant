@@ -283,7 +283,7 @@ Guardrails preserved:
 
 ### Milestone 23 — Report Artifact Foundation
 
-Next planning focus.
+In progress.
 
 Goal:
 

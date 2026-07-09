@@ -88,9 +88,13 @@ Sprint 122 added local strategy decision manifests and compact summary/record re
 
 Sprint 123 closed Milestone 22 with a documentation-only refresh and preserved the decision-governance guardrails.
 
-Sprint 124 plans Milestone 23 — Report Artifact Foundation. It defines the next conservative platform layer after decision governance: deterministic report artifacts that reference completed governance records without adding runtime behavior during planning.
+Sprint 124 planned Milestone 23 — Report Artifact Foundation. It defines the next conservative platform layer after decision governance: deterministic report artifacts that reference completed governance records without adding runtime behavior during planning.
 
 Milestone 23 should plan explicit report source references, report sections, report artifact summaries, and report manifests before dashboards, broad report engines, broker readiness, live-readiness claims, capital deployment, databases, hosted services, SaaS behavior, or automatic decisions.
+
+Sprint 125 added typed report source references for completed governance records and manifests without evidence discovery, artifact loading, report generation, rendering, scoring, ranking, workflow execution, broker behavior, database behavior, or readiness claims.
+
+The next focus is Sprint 126 — Report Section Contract Foundation. It should add a small report section contract without rendering pipelines, dashboards, markdown/PDF generation, workflow execution, broker behavior, or readiness claims.
 
 ## Implementation Sprint Issue Requirements
 
