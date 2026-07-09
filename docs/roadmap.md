@@ -40,7 +40,7 @@ flowchart LR
     M18 --> M19["Milestone 19<br/>Configured Paper Workflow Wiring Foundation<br/>Sprints 96-102 ✅"]
     M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 ✅"]
     M20 --> M21["Milestone 21<br/>Paper Run Comparison and Review Foundation<br/>Sprints 110-116 ✅"]
-    M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117-123 🟡"]
+    M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117-123 ✅"]
 ```
 
 ## Milestone Table
@@ -68,36 +68,9 @@ flowchart LR
 | Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs conservatively. | Configured local paper inputs can produce, persist, and reference paper workflow outputs without broker, live, database, dashboard, or automatic-promotion behavior. |
 | Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
 | Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed through human-controlled local records without dashboards, broad reporting, broker behavior, runtime execution expansion, database behavior, or live-readiness claims. |
-| Milestone 22 — Decision Governance Foundation | Sprints 117-123 | In Progress | Define explicit strategy-level decision governance above promotion and paper review evidence. | Decision evidence can be referenced, summarized, reviewed, recorded, and listed through human-controlled local contracts without automatic decisions, dashboards, reports, broker behavior, capital deployment, or readiness claims. |
-
-## Completed Milestone 19 — Configured Paper Workflow Wiring Foundation
-
-Milestone 19 closed this conservative chain:
-
-```text
-paper workflow config contract -> configured paper request builder -> configured paper output layout -> configured paper workflow runner -> configured paper manifest and result references
-```
-
-See:
-
-```text
-docs/milestones/milestone-019-configured-paper-workflow-wiring-foundation.md
-docs/sprints/sprint-096-milestone-19-planning.md
-docs/sprints/sprint-102-milestone-19-documentation-refresh-closeout.md
-docs/strategy/future-platform-roadmap.md
-```
+| Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Complete | Define explicit strategy-level decision governance above promotion and paper review evidence. | Decision evidence can be referenced, summarized, reviewed, recorded, and listed through human-controlled local contracts without automatic decisions, dashboards, reports, broker behavior, capital deployment, or readiness claims. |
 
 ## Completed Milestone 20 — Research-to-Paper Promotion Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S103 | Complete | Plan Milestone 20. | Research-to-paper promotion scope, sequence, and guardrails. | No implementation during planning. |
-| S104 | Complete | Define promotion source references. | Small typed references to research, backtest, execution, portfolio, configured-run, paper artifact, or paper-result evidence. | No artifact loading, scoring, or promotion decision yet. |
-| S105 | Complete | Define paper promotion candidate contract. | Explicit paper-trading candidate boundary linked to source references and manual review context. | No `PaperRunRequest` construction or paper workflow execution. |
-| S106 | Complete | Add promotion evidence summary. | Compact deterministic evidence summary for a candidate, including assumptions, warnings, missing evidence, and source facts. | No automatic pass/fail approval engine. |
-| S107 | Complete | Add explicit promotion record. | Human-controlled promotion record tying candidate, evidence, rationale, reviewer context, status, and timestamp together. | No autonomous strategy approval or live-readiness claim. |
-| S108 | Complete | Add promotion manifest and candidate references. | Local manifest/reference contracts for promotion records and paper candidates. | No filesystem I/O, database, dashboard, or broad report generation. |
-| S109 | Complete | Close milestone. | Milestone 20 documentation refresh. | No scope expansion. |
 
 Milestone 20 closed this conservative governance chain:
 
@@ -116,16 +89,6 @@ docs/strategy/future-platform-roadmap.md
 
 ## Completed Milestone 21 — Paper Run Comparison and Review Foundation
 
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S110 | Complete | Plan Milestone 21. | Paper run comparison and review scope, sequence, and guardrails. | No implementation during planning. |
-| S111 | Complete | Define paper run references. | Small typed references to existing paper run artifacts or result summaries. | No artifact loading or automatic discovery. |
-| S112 | Complete | Define paper run comparison input contract. | Explicit comparison set containing paper run references, comparison purpose, and context. | No scoring engine or report generation. |
-| S113 | Complete | Add paper run comparison summary. | Deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields. | No dashboard, plotting, broad report, scoring, ranking, or artifact-loading behavior. |
-| S114 | Complete | Add paper run review decision record. | Human-controlled review status, rationale, reviewer context, and timestamp tied to a comparison summary. | No automatic approval, promotion, capital deployment, broker behavior, or readiness claim. |
-| S115 | Complete | Add review manifest and comparison references. | Local manifest/reference contracts for comparison summaries and review decisions. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
-| S116 | Complete | Close milestone. | Milestone 21 documentation refresh. | No scope expansion. |
-
 Milestone 21 closed this conservative review chain:
 
 ```text
@@ -141,7 +104,7 @@ docs/sprints/sprint-116-milestone-21-documentation-refresh-closeout.md
 docs/strategy/future-platform-roadmap.md
 ```
 
-## Milestone 22 — Decision Governance Foundation
+## Completed Milestone 22 — Decision Governance Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
@@ -151,9 +114,9 @@ docs/strategy/future-platform-roadmap.md
 | S120 | Complete | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
 | S121 | Complete | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
 | S122 | Complete | Add decision manifest and references. | Local manifest/reference contracts for strategy decision summaries and records. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
-| S123 | Planned | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
+| S123 | Complete | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
 
-Milestone 22 should follow this conservative governance chain:
+Milestone 22 closed this conservative governance chain:
 
 ```text
 decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
@@ -164,6 +127,7 @@ See:
 ```text
 docs/milestones/milestone-022-decision-governance-foundation.md
 docs/sprints/sprint-117-milestone-22-planning.md
+docs/sprints/sprint-123-milestone-22-documentation-refresh-closeout.md
 docs/strategy/future-platform-roadmap.md
 ```
 
@@ -172,10 +136,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 123 — Milestone 22 Documentation Refresh
+Sprint 124 — Milestone 23 Planning
 ```
 
-The guiding idea is to close Milestone 22 with documentation updates only before moving beyond decision-governance contracts.
+The guiding idea is to plan the next conservative layer after decision governance before dashboards, broad reports, broker readiness, or live-readiness claims.
 
 Longer-term, the platform should move through:
 
@@ -216,9 +180,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 123 — Milestone 22 Documentation Refresh
+Sprint 124 — Milestone 23 Planning
 ```
 
 Reason:
 
-Sprint 123 should close Milestone 22 with documentation updates only and preserve the decision-governance guardrails.
+Sprint 124 should plan the next conservative platform layer after decision governance without adding runtime behavior during planning.
