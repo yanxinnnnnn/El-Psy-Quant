@@ -39,10 +39,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 119 — Strategy Decision Input Contract Foundation
+Sprint 120 — Strategy Decision Summary Foundation
 ```
 
-Sprint 119 should define an explicit strategy decision input contract that groups decision evidence references without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.
+Sprint 120 should add caller-supplied strategy decision summaries without recommendation engines, metric calculation, scoring, dashboards, reports, workflow execution, broker behavior, or readiness claims.
 
 See the milestone summaries in:
 
@@ -128,6 +128,7 @@ docs/strategy/future-platform-roadmap.md
   - local review manifests and compact comparison/review references for manual inspection
 - Decision governance foundation:
   - typed decision evidence references for existing promotion and paper-review evidence
+  - explicit strategy decision inputs that group evidence references with purpose and review context
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -246,6 +247,8 @@ Sprint 117 planned Milestone 22 and preserved the decision-governance guardrails
 
 Sprint 118 added typed decision evidence references only. Decision evidence references point to existing promotion and paper-review evidence without discovering evidence automatically, loading artifacts, calculating metrics, scoring, ranking, making decisions, generating reports, executing workflows, adding broker behavior, or claiming live or real-money readiness.
 
+Sprint 119 added explicit strategy decision inputs. Decision inputs group caller-supplied evidence references with decision purpose and optional provenance without discovering evidence automatically, loading artifacts, scoring, ranking, making decisions, generating reports, executing workflows, adding broker behavior, or claiming readiness.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -256,7 +259,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is Sprint 119, not to automate evidence discovery, strategy approval, paper execution, broker behavior, or live readiness.
+The next step is Sprint 120, not to automate evidence discovery, strategy approval, paper execution, broker behavior, or live readiness.
 
 ## Module Overview
 
