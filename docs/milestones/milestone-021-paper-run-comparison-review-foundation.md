@@ -2,13 +2,13 @@
 
 ## Status
 
-In progress.
+Complete.
 
 ## Product Goal
 
 Define a conservative, human-controlled comparison and review layer for multiple paper run outputs.
 
-Milestone 21 should make paper runs comparable and reviewable without introducing dashboards, broad reporting, broker readiness, live-readiness claims, automatic capital deployment decisions, or runtime execution expansion.
+Milestone 21 made paper runs comparable and reviewable without introducing dashboards, broad reporting, broker readiness, live-readiness claims, automatic capital deployment decisions, or runtime execution expansion.
 
 ## Strategic Context
 
@@ -41,7 +41,7 @@ research evidence
   -> reviewable promotion references
 ```
 
-Milestone 21 adds the next review boundary after paper outputs exist:
+Milestone 21 added the next review boundary after paper outputs exist:
 
 ```text
 multiple paper runs
@@ -53,7 +53,7 @@ multiple paper runs
 
 This is decision review, not autonomous trading.
 
-## Planned Chain
+## Completed Chain
 
 ```text
 paper run reference contract
@@ -74,19 +74,20 @@ paper run reference contract
 | S113 | Complete | Add paper run comparison summary. | Deterministic caller-supplied comparison facts, assumptions, warnings, and missing-evidence fields. | No dashboard, plotting, broad report, scoring, ranking, or artifact-loading behavior. |
 | S114 | Complete | Add paper run review decision record. | Human-controlled review status, rationale, reviewer context, and timestamp tied to a comparison summary. | No automatic approval, promotion, capital deployment, broker behavior, or readiness claim. |
 | S115 | Complete | Add review manifest and comparison references. | Local manifest/reference contracts for comparison summaries and review decisions. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
-| S116 | Planned | Close milestone. | Milestone 21 documentation refresh. | No scope expansion. |
+| S116 | Complete | Close milestone. | Milestone 21 documentation refresh. | No scope expansion. |
 
-## Planned Capabilities
+## Delivered Capabilities
 
-Milestone 21 should introduce small typed local boundaries for:
+Milestone 21 introduced small typed local boundaries for:
 
-- paper run references
-- paper run comparison inputs
-- paper run comparison summaries
-- paper run review decision records
-- review manifests and comparison references
+- `PaperRunReference`
+- `PaperRunComparisonInput`
+- `PaperRunComparisonSummary`
+- `PaperRunReviewDecision`
+- `PaperReviewReference`
+- `PaperReviewManifest`
 
-These contracts should make paper review explicit and inspectable while keeping the project local, deterministic, and human-controlled.
+These contracts make paper review explicit and inspectable while keeping the project local, deterministic, and human-controlled.
 
 ## Comparison Boundary Semantics
 
@@ -98,7 +99,7 @@ A paper run comparison summary is descriptive context. Comparison facts, assumpt
 
 A paper run review decision record is a human-controlled review artifact. It records status and rationale, but it is not live readiness, real-money readiness, broker approval, autonomous strategy approval, or a capital deployment decision.
 
-A review manifest is an in-memory/local reference contract for inspection. It should not read from disk, write to disk, create reports, persist data, or run workflows unless a later sprint explicitly defines that behavior.
+A review manifest is an in-memory/local reference contract for inspection. It does not read from disk, write to disk, create reports, persist data, use a database, or run workflows.
 
 ## Assumptions And Limits
 
@@ -108,18 +109,20 @@ A review manifest is an in-memory/local reference contract for inspection. It sh
 - comparison summaries are descriptive, not autonomous scoring engines
 - review decisions are human-controlled records
 - review records do not approve live trading or real-money deployment
+- review manifests are local in-memory contracts, not persistence or database behavior
 - configured paper workflow behavior remains unchanged
 - promotion records remain separate from paper comparison records
 - local typed contracts are enough for this milestone
 
 ## Explicitly Out Of Scope
 
-Milestone 21 must not introduce:
+Milestone 21 did not introduce:
 
 - paper workflow execution changes
 - configured paper workflow behavior changes
 - automatic paper run discovery
 - artifact loading/parsing/scoring beyond explicit contracts
+- metric calculation, comparison, ranking, or winner selection
 - automatic research-to-paper promotion changes
 - automatic strategy approval
 - automatic strategy-signal-to-order conversion
@@ -132,7 +135,9 @@ Milestone 21 must not introduce:
 - scheduler behavior
 - real account synchronization
 - paper run comparison dashboards
+- plotting behavior
 - broad report generation
+- file persistence behavior from review manifests
 - database behavior
 - hosted services or SaaS behavior
 - strategy expansion
@@ -142,7 +147,7 @@ Milestone 21 must not introduce:
 
 ## Exit Criteria
 
-Milestone 21 will be complete when:
+Milestone 21 is complete because:
 
 - paper run references are explicit and typed
 - comparison inputs can group multiple paper run references without discovering or loading runs automatically
@@ -155,7 +160,7 @@ Milestone 21 will be complete when:
 ## Next Step
 
 ```text
-Sprint 116 — Milestone 21 Documentation Refresh / Closeout
+Sprint 117 — Milestone 22 Planning
 ```
 
-Sprint 116 should close Milestone 21 with documentation refresh only, preserving the paper run comparison and review guardrails.
+Sprint 117 should plan the next conservative decision-governance milestone after paper run comparison and review, without jumping to dashboards, broad reports, broker behavior, capital deployment, or live-readiness claims.

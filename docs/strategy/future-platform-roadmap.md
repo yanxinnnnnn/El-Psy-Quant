@@ -28,6 +28,7 @@ idea
   -> promotion governance
   -> paper comparison
   -> review decision
+  -> decision governance
   -> controlled live readiness
 ```
 
@@ -48,7 +49,7 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The priority order is:
 
 ```text
-workflow > promotion governance > paper comparison > review decision > reporting artifact > risk controls > broker sandbox > live
+workflow > promotion governance > paper comparison > review decision > decision governance > reporting artifact > risk controls > broker sandbox > live
 ```
 
 The wrong order would be:
@@ -63,7 +64,7 @@ That path would create complexity before the platform earns it.
 
 Status: Complete through the core local paper workflow foundation.
 
-This phase establishes the platform foundation:
+This phase established the platform foundation:
 
 - local data loading and validation
 - reproducible research pipelines
@@ -94,37 +95,11 @@ M17     paper trading persistence and audit foundation
 M18     paper trading workflow integration foundation
 ```
 
-Phase 1 turns the project from a demo into a disciplined local research platform with explicit paper workflow boundaries.
-
 ## Phase 2 — Workflow Integration Foundation
 
-Recommended focus: Milestones 19-21.
+Status: Complete through Milestone 21.
 
-This phase turns isolated capabilities into operating workflows and reviewable promotion/comparison paths.
-
-### Milestone 18 — Paper Trading Workflow Integration Foundation
-
-Status: Complete.
-
-Goal:
-
-```text
-paper run request
-  -> paper run execution
-  -> paper artifact persistence
-  -> paper run result summary
-```
-
-Purpose:
-
-Make paper trading a complete local workflow using the existing M16 and M17 boundaries.
-
-Guardrails:
-
-- no broker integration
-- no live execution
-- no configured-run integration yet
-- no dashboard or report generation
+This phase turned isolated capabilities into operating workflows and reviewable promotion/comparison paths.
 
 ### Milestone 19 — Configured Paper Workflow Wiring Foundation
 
@@ -143,20 +118,6 @@ local config
 Purpose:
 
 Allow local configured runs to drive the completed paper workflow after the explicit paper workflow boundary is stable.
-
-Milestone 19 made configured paper runs reproducible and inspectable without turning the platform into an automated trading system.
-
-Completed sprint chain:
-
-```text
-S96   Milestone 19 planning
-S97   paper workflow config contract
-S98   configured paper request builder
-S99   configured paper output layout
-S100  configured paper workflow runner
-S101  configured paper manifest and result references
-S102  milestone closeout
-```
 
 Guardrails preserved:
 
@@ -218,7 +179,7 @@ Guardrails preserved:
 
 ### Milestone 21 — Paper Run Comparison and Review Foundation
 
-Status: Planned.
+Status: Complete.
 
 Goal:
 
@@ -234,7 +195,7 @@ Purpose:
 
 Move beyond one-off paper runs and make paper performance comparable and reviewable before dashboards, broad reporting, broker readiness, or live-readiness claims.
 
-Planned sprint chain:
+Completed sprint chain:
 
 ```text
 S110  Milestone 21 planning
@@ -246,13 +207,23 @@ S115  review manifest and comparison references
 S116  milestone closeout
 ```
 
-Guardrails:
+Delivered contracts:
+
+- `PaperRunReference`
+- `PaperRunComparisonInput`
+- `PaperRunComparisonSummary`
+- `PaperRunReviewDecision`
+- `PaperReviewReference`
+- `PaperReviewManifest`
+
+Guardrails preserved:
 
 - no automatic paper run discovery
 - no artifact loading/parsing/scoring beyond explicit contracts
+- no metric calculation/comparison/ranking
 - no dashboard
 - no broad report engine
-- no database
+- no file I/O or database behavior from review manifest contracts
 - no hosted service or SaaS behavior
 - no broker integration
 - no live execution
@@ -267,20 +238,27 @@ Recommended focus: Milestones 22-25.
 
 This phase makes strategy decisions explicit and reviewable.
 
-### Milestone 22 — Decision Record Foundation
+### Milestone 22 — Decision Governance Foundation
 
-Goal:
+Recommended next step:
 
 ```text
-research artifact
-  -> paper artifact
-  -> audit summary
-  -> decision record
+Sprint 117 — Milestone 22 Planning
+```
+
+Goal direction:
+
+```text
+promotion records
+  + paper comparison summaries
+  + review decision records
+  + review manifests
+  -> explicit decision governance layer
 ```
 
 Purpose:
 
-Record why a strategy is continued, paused, rejected, promoted, or watched.
+Record why a strategy is continued, paused, rejected, promoted, or watched without jumping to dashboards, broad reports, broker behavior, live readiness, or capital deployment.
 
 Milestone 22 should build on M20 promotion records and M21 paper comparison/review records. It should not skip ahead to live readiness.
 
