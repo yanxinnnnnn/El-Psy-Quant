@@ -70,9 +70,9 @@ Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
 
 Milestone 20 — Research-to-Paper Promotion Foundation is complete.
 
-Milestone 21 — Paper Run Comparison and Review Foundation is in progress.
+Milestone 21 — Paper Run Comparison and Review Foundation is complete.
 
-The next focus is Sprint 116 — Milestone 21 Documentation Refresh / Closeout. Close the paper run comparison and review milestone with documentation refresh only, preserving guardrails against dashboards, broad reports, broker behavior, workflow execution, capital deployment, and readiness claims.
+The next focus is Sprint 117 — Milestone 22 Planning. Plan the next conservative decision-governance layer after paper run comparison and review, without dashboards, broad reports, broker behavior, workflow execution, capital deployment, or readiness claims.
 
 ## Implementation Sprint Issue Requirements
 
