@@ -41,7 +41,7 @@ flowchart LR
     M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 ✅"]
     M20 --> M21["Milestone 21<br/>Paper Run Comparison and Review Foundation<br/>Sprints 110-116 ✅"]
     M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117-123 ✅"]
-    M22 --> M23["Milestone 23<br/>Report Artifact Foundation<br/>Sprints 124-129 planned"]
+    M22 --> M23["Milestone 23<br/>Report Artifact Foundation<br/>Sprints 124-129 🟡"]
 ```
 
 ## Milestone Table
@@ -70,7 +70,7 @@ flowchart LR
 | Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
 | Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed through human-controlled local records without dashboards, broad reporting, broker behavior, runtime execution expansion, database behavior, or live-readiness claims. |
 | Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Complete | Define explicit strategy-level decision governance above promotion and paper review evidence. | Decision evidence can be referenced, summarized, reviewed, recorded, and listed through human-controlled local contracts without automatic decisions, dashboards, reports, broker behavior, capital deployment, or readiness claims. |
-| Milestone 23 — Report Artifact Foundation | Sprints 124-129 | Planned | Define deterministic report artifacts above completed governance records. | Governance records can be referenced and packaged into reviewable report artifacts without automatic report generation, dashboards, scoring, broker readiness, live-readiness claims, runtime changes, database behavior, or capital deployment. |
+| Milestone 23 — Report Artifact Foundation | Sprints 124-129 | In Progress | Define deterministic report artifacts above completed governance records. | Governance records can be referenced and packaged into reviewable report artifacts without automatic report generation, dashboards, scoring, broker readiness, live-readiness claims, runtime changes, database behavior, or capital deployment. |
 
 ## Completed Milestone 20 — Research-to-Paper Promotion Foundation
 
@@ -137,8 +137,8 @@ docs/strategy/future-platform-roadmap.md
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
-| S124 | Complete after planning PR merge | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No implementation during planning. |
-| S125 | Planned | Define report source references. | Small typed references to completed governance records and manifests. | No artifact discovery, loading, parsing, scoring, or report generation. |
+| S124 | Complete | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No implementation during planning. |
+| S125 | Complete | Define report source references. | Small typed references to completed governance records and manifests. | No artifact discovery, loading, parsing, scoring, or report generation. |
 | S126 | Planned | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
 | S127 | Planned | Add report artifact summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and report context. | No recommendation engine, metric calculation, scoring, ranking, dashboards, or reports. |
 | S128 | Planned | Add report manifest and references. | Local manifest/reference contracts for report summaries and artifacts. | No file I/O, database, hosted service, dashboard, report engine, or workflow execution. |
@@ -163,10 +163,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 125 — Report Source Reference Contract Foundation
+Sprint 126 — Report Section Contract Foundation
 ```
 
-The guiding idea is to implement the first small contract in the report-artifact layer after planning, without adding automatic report generation, dashboards, broad report engines, broker readiness, live-readiness claims, or runtime behavior.
+The guiding idea is to add small caller-supplied report section metadata and content boundaries without adding rendering pipelines, dashboards, broad report engines, broker readiness, live-readiness claims, or runtime behavior.
 
 Longer-term, the platform should move through:
 
@@ -208,9 +208,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 125 — Report Source Reference Contract Foundation
+Sprint 126 — Report Section Contract Foundation
 ```
 
 Reason:
 
-Sprint 125 should implement the smallest useful report source reference contract for completed governance records. It should not discover evidence automatically, load artifacts, calculate metrics, score strategies, render reports, execute workflows, add broker behavior, or claim readiness for live or real-money trading.
+Sprint 126 should add a small report section contract without rendering pipelines, dashboards, markdown/PDF generation, workflow execution, broker behavior, or readiness claims.

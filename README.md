@@ -34,7 +34,7 @@ Milestone 22 completed the conservative strategy-level decision governance layer
 decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
 ```
 
-**Milestone 23 — Report Artifact Foundation** is planned.
+**Milestone 23 — Report Artifact Foundation** is in progress.
 
 Milestone 23 should define deterministic report artifacts above completed governance records:
 
@@ -47,10 +47,10 @@ The broader platform direction is to build an AI-native quant research operating
 The next focus is:
 
 ```text
-Sprint 125 — Report Source Reference Contract Foundation
+Sprint 126 — Report Section Contract Foundation
 ```
 
-Sprint 125 should implement the first small report-artifact contract without adding automatic report generation, dashboards, broad report engines, broker behavior, live-readiness claims, or runtime execution changes.
+Sprint 126 should add a small report section contract without rendering pipelines, dashboards, markdown/PDF generation, workflow execution, broker behavior, or readiness claims.
 
 See the milestone summaries in:
 
@@ -141,15 +141,17 @@ docs/strategy/future-platform-roadmap.md
   - caller-supplied strategy decision summaries with facts, assumptions, warnings, and missing-evidence notes
   - human-controlled strategy decision records with explicit status and rationale
   - local strategy decision manifests and compact summary/record references
+- Report artifact foundation:
+  - typed report source references for completed governance records and manifests
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
 
 ## Planned Next Platform Layer
 
-Milestone 23 is planned after the completed decision-governance layer.
+Milestone 23 is in progress after the completed decision-governance layer.
 
-The next implementation sprint should start the conservative report-artifact layer by defining explicit report source references to completed governance records.
+The next implementation sprint should add a small report section contract on top of explicit report source references.
 
 Milestone 23 must not add automatic approval, automatic promotion, automatic decision making, automatic evidence discovery, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, report rendering pipelines, database behavior, hosted service behavior, SaaS behavior, or real-money readiness claims.
 
@@ -265,6 +267,8 @@ A report source reference should be only a pointer to completed governance recor
 
 Sprint 124 planned Milestone 23 and preserved the report-artifact guardrails.
 
+Sprint 125 added typed report source references for completed governance records and manifests. Report source references are pointers only: they do not discover evidence, load artifacts, generate reports, render dashboards, score or rank records, execute workflows, add broker behavior, or claim readiness.
+
 ## Local Experiment Configuration
 
 Experiments can be described by a small local YAML file and run with the existing CLI.
@@ -275,7 +279,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is Sprint 125, not to automate evidence discovery, strategy approval, paper execution, report generation, broker behavior, or live readiness.
+The next step is Sprint 126, not to automate evidence discovery, strategy approval, paper execution, report generation, broker behavior, or live readiness.
 
 ## Module Overview
 
@@ -287,6 +291,7 @@ el_psy_quant/
   configured_paper_references.py # Configured paper metadata and manifest references
   config.py      # Load and validate local YAML experiment settings, including optional explicit paper-run inputs
   decision_governance/ # Strategy-level decision evidence and governance contracts
+  report_artifacts/ # Report artifact source-reference contracts
   promotion/     # Research-to-paper promotion references and governance contracts
   paper_review/  # Paper run comparison and review reference contracts
   outputs.py     # Create deterministic local experiment directories and reserved paths
