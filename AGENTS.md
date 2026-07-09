@@ -78,7 +78,9 @@ Sprint 117 planned the next conservative decision-governance layer after promoti
 
 Sprint 118 added typed decision evidence references for existing promotion and paper-review evidence without artifact loading, scoring, automatic discovery, workflow execution, broker behavior, or readiness claims.
 
-The next focus is Sprint 119 — Strategy Decision Input Contract Foundation. It should group decision evidence references explicitly without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.
+Sprint 119 added explicit strategy decision inputs that group decision evidence references with purpose and review context without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.
+
+The next focus is Sprint 120 — Strategy Decision Summary Foundation. It should add caller-supplied strategy decision summaries without recommendation engines, metric calculation, scoring, dashboards, reports, workflow execution, broker behavior, or readiness claims.
 
 ## Implementation Sprint Issue Requirements
 
