@@ -80,7 +80,9 @@ Sprint 118 added typed decision evidence references for existing promotion and p
 
 Sprint 119 added explicit strategy decision inputs that group decision evidence references with purpose and review context without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.
 
-The next focus is Sprint 120 — Strategy Decision Summary Foundation. It should add caller-supplied strategy decision summaries without recommendation engines, metric calculation, scoring, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 120 added caller-supplied strategy decision summaries with facts, assumptions, warnings, and missing-evidence notes without recommendation engines, metric calculation, scoring, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+
+The next focus is Sprint 121 — Explicit Strategy Decision Record Foundation. It should add human-controlled strategy decision records tied to strategy decision summaries without automatic approval, promotion, capital allocation, broker behavior, or readiness claims.
 
 ## Implementation Sprint Issue Requirements
 

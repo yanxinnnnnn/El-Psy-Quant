@@ -148,7 +148,7 @@ docs/strategy/future-platform-roadmap.md
 | S117 | Complete | Plan Milestone 22. | Decision governance scope, sequence, and guardrails. | No implementation during planning. |
 | S118 | Complete | Define decision evidence references. | Small typed references to existing promotion records, promotion manifests, paper comparison summaries, review decisions, and review manifests. | No evidence discovery, loading, parsing, scoring, ranking, or decision making. |
 | S119 | Complete | Define strategy decision input contract. | Explicit input object grouping evidence references, decision purpose, review context, and reviewer metadata. | No automatic decision generation, scoring, recommendation, or lifecycle automation. |
-| S120 | Planned | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
+| S120 | Complete | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
 | S121 | Planned | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
 | S122 | Planned | Add decision manifest and references. | Local manifest/reference contracts for strategy decision summaries and records. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
 | S123 | Planned | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
@@ -172,10 +172,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 120 — Strategy Decision Summary Foundation
+Sprint 121 — Explicit Strategy Decision Record Foundation
 ```
 
-The guiding idea is to move from explicit strategy decision inputs toward caller-supplied decision summaries before decision records, manifests, dashboards, broad reports, broker readiness, or live-readiness claims.
+The guiding idea is to move from caller-supplied strategy decision summaries toward explicit human-controlled decision records before manifests, dashboards, broad reports, broker readiness, or live-readiness claims.
 
 Longer-term, the platform should move through:
 
@@ -216,9 +216,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 120 — Strategy Decision Summary Foundation
+Sprint 121 — Explicit Strategy Decision Record Foundation
 ```
 
 Reason:
 
-Sprint 120 should add caller-supplied strategy decision summaries without recommendation engines, metric calculation, scoring, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+Sprint 121 should add human-controlled strategy decision records tied to strategy decision summaries without automatic approval, promotion, capital allocation, broker behavior, or readiness claims.
