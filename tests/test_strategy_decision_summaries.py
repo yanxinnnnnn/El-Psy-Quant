@@ -298,7 +298,6 @@ def test_decision_governance_package_does_not_expose_forbidden_behavior() -> Non
     from el_psy_quant import decision_governance
 
     forbidden_names = {
-        "create_strategy_decision_record",
         "create_decision_manifest",
         "recommend_strategy_decision",
         "approve_strategy",

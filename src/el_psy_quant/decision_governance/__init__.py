@@ -5,6 +5,12 @@ from el_psy_quant.decision_governance.decision_inputs import (
     StrategyDecisionInput,
     create_strategy_decision_input,
 )
+from el_psy_quant.decision_governance.decision_records import (
+    STRATEGY_DECISION_RECORD_SCHEMA_VERSION,
+    SUPPORTED_STRATEGY_DECISION_RECORD_STATUSES,
+    StrategyDecisionRecord,
+    create_strategy_decision_record,
+)
 from el_psy_quant.decision_governance.decision_summaries import (
     STRATEGY_DECISION_SUMMARY_SCHEMA_VERSION,
     StrategyDecisionSummary,
@@ -21,11 +27,15 @@ __all__ = [
     "DECISION_EVIDENCE_REFERENCE_SCHEMA_VERSION",
     "SUPPORTED_DECISION_EVIDENCE_REFERENCE_TYPES",
     "STRATEGY_DECISION_INPUT_SCHEMA_VERSION",
+    "STRATEGY_DECISION_RECORD_SCHEMA_VERSION",
     "STRATEGY_DECISION_SUMMARY_SCHEMA_VERSION",
+    "SUPPORTED_STRATEGY_DECISION_RECORD_STATUSES",
     "DecisionEvidenceReference",
     "StrategyDecisionInput",
+    "StrategyDecisionRecord",
     "StrategyDecisionSummary",
     "create_decision_evidence_reference",
+    "create_strategy_decision_record",
     "create_strategy_decision_input",
     "create_strategy_decision_summary",
 ]
