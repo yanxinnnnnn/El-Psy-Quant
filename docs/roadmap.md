@@ -68,7 +68,7 @@ flowchart LR
 | Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs conservatively. | Configured local paper inputs can produce, persist, and reference paper workflow outputs without broker, live, database, dashboard, or automatic-promotion behavior. |
 | Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
 | Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed through human-controlled local records without dashboards, broad reporting, broker behavior, runtime execution expansion, database behavior, or live-readiness claims. |
-| Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Planned | Define explicit strategy-level decision governance above promotion and paper review evidence. | Decision evidence can be referenced, summarized, reviewed, recorded, and listed through human-controlled local contracts without automatic decisions, dashboards, reports, broker behavior, capital deployment, or readiness claims. |
+| Milestone 22 — Decision Governance Foundation | Sprints 117-123 | In Progress | Define explicit strategy-level decision governance above promotion and paper review evidence. | Decision evidence can be referenced, summarized, reviewed, recorded, and listed through human-controlled local contracts without automatic decisions, dashboards, reports, broker behavior, capital deployment, or readiness claims. |
 
 ## Completed Milestone 19 — Configured Paper Workflow Wiring Foundation
 
@@ -141,12 +141,12 @@ docs/sprints/sprint-116-milestone-21-documentation-refresh-closeout.md
 docs/strategy/future-platform-roadmap.md
 ```
 
-## Planned Milestone 22 — Decision Governance Foundation
+## Milestone 22 — Decision Governance Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S117 | Complete | Plan Milestone 22. | Decision governance scope, sequence, and guardrails. | No implementation during planning. |
-| S118 | Planned | Define decision evidence references. | Small typed references to existing promotion records, promotion manifests, paper comparison summaries, review decisions, and review manifests. | No evidence discovery, loading, parsing, scoring, or ranking. |
+| S118 | Complete | Define decision evidence references. | Small typed references to existing promotion records, promotion manifests, paper comparison summaries, review decisions, and review manifests. | No evidence discovery, loading, parsing, scoring, ranking, or decision making. |
 | S119 | Planned | Define strategy decision input contract. | Explicit input object grouping evidence references, decision purpose, review context, and reviewer metadata. | No automatic decision generation or lifecycle automation. |
 | S120 | Planned | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
 | S121 | Planned | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
@@ -172,10 +172,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 118 — Decision Evidence Reference Contract Foundation
+Sprint 119 — Strategy Decision Input Contract Foundation
 ```
 
-The guiding idea is to implement decision governance from the smallest reference contract first, before decision summaries, decision records, manifests, dashboards, broad reports, broker readiness, or live-readiness claims.
+The guiding idea is to move from typed evidence references toward explicit strategy decision inputs before decision summaries, decision records, manifests, dashboards, broad reports, broker readiness, or live-readiness claims.
 
 Longer-term, the platform should move through:
 
@@ -216,9 +216,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 118 — Decision Evidence Reference Contract Foundation
+Sprint 119 — Strategy Decision Input Contract Foundation
 ```
 
 Reason:
 
-Sprint 118 should define the smallest useful evidence reference contract for existing promotion and paper-review evidence without discovering evidence automatically, loading artifacts, calculating metrics, scoring strategies, generating reports, executing workflows, adding broker behavior, or claiming readiness for live or real-money trading.
+Sprint 119 should define an explicit strategy decision input contract that groups decision evidence references without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned.
+In progress.
 
 ## Product Goal
 
@@ -52,7 +52,7 @@ decision evidence reference contract
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S117 | Complete | Plan Milestone 22. | Decision governance scope, sequence, and guardrails. | No implementation during planning. |
-| S118 | Planned | Define decision evidence references. | Small typed references to existing promotion records, promotion manifests, paper comparison summaries, review decisions, and review manifests. | No evidence discovery, loading, parsing, scoring, or ranking. |
+| S118 | Complete | Define decision evidence references. | Small typed references to existing promotion records, promotion manifests, paper comparison summaries, review decisions, and review manifests. | No evidence discovery, loading, parsing, scoring, ranking, or decision making. |
 | S119 | Planned | Define strategy decision input contract. | Explicit input object grouping evidence references, decision purpose, review context, and reviewer metadata. | No automatic decision generation or lifecycle automation. |
 | S120 | Planned | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
 | S121 | Planned | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
@@ -155,7 +155,7 @@ Milestone 22 should be considered complete only when:
 ## Next Step
 
 ```text
-Sprint 118 — Decision Evidence Reference Contract Foundation
+Sprint 119 — Strategy Decision Input Contract Foundation
 ```
 
-Sprint 118 should define the smallest useful evidence reference contract for existing promotion and paper-review evidence. It should not discover evidence automatically, load artifacts, calculate metrics, score strategies, generate reports, execute workflows, add broker behavior, or claim readiness for live or real-money trading.
+Sprint 119 should define an explicit strategy decision input contract that groups decision evidence references without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.

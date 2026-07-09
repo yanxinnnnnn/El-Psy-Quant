@@ -72,13 +72,13 @@ Milestone 20 — Research-to-Paper Promotion Foundation is complete.
 
 Milestone 21 — Paper Run Comparison and Review Foundation is complete.
 
-Milestone 22 — Decision Governance Foundation is planned.
+Milestone 22 — Decision Governance Foundation is in progress.
 
 Sprint 117 planned the next conservative decision-governance layer after promotion governance and paper run comparison/review.
 
-The next focus is Sprint 118 — Decision Evidence Reference Contract Foundation.
+Sprint 118 added typed decision evidence references for existing promotion and paper-review evidence without artifact loading, scoring, automatic discovery, workflow execution, broker behavior, or readiness claims.
 
-Sprint 118 should define the smallest useful evidence reference contract for existing promotion and paper-review evidence. It must not discover evidence automatically, load artifacts, calculate metrics, score strategies, generate reports, execute workflows, add broker behavior, or claim readiness for live or real-money trading.
+The next focus is Sprint 119 — Strategy Decision Input Contract Foundation. It should group decision evidence references explicitly without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.
 
 ## Implementation Sprint Issue Requirements
 
