@@ -10,7 +10,7 @@ It is a rolling plan, not a contract. The order can change if the project learns
 Build a reproducible research platform before chasing strategy complexity.
 ```
 
-For the longer-term founder-level CTO platform plan beyond the current milestone, see:
+For the longer-term founder-level CTO platform plan, see:
 
 ```text
 docs/strategy/future-platform-roadmap.md
@@ -41,7 +41,8 @@ flowchart LR
     M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 ✅"]
     M20 --> M21["Milestone 21<br/>Paper Run Comparison and Review Foundation<br/>Sprints 110-116 ✅"]
     M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117-123 ✅"]
-    M22 --> M23["Milestone 23<br/>Report Artifact Foundation<br/>Sprints 124-129 🟡"]
+    M22 --> M23["Milestone 23<br/>Report Artifact Foundation<br/>Sprints 124-129 ✅"]
+    M23 --> M24["Milestone 24<br/>Strategy Review Workflow Foundation<br/>Planning next"]
 ```
 
 ## Milestone Table
@@ -59,25 +60,28 @@ flowchart LR
 | Milestone 9 — Project Quality Foundation | Sprints 37-41 | Complete | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently. |
 | Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Complete | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts. |
 | Milestone 11 — Strategy Interface Foundation | Sprints 47-52 | Complete | Define cleaner strategy boundaries before adding more strategies. | Strategies plug into configured workflows through a stable interface. |
-| Milestone 12 — Data Integrity & Universe Foundation | Sprints 53-57 | Complete | Improve data validation, symbol universe discipline, and input assumptions. | Configured runs validate symbol and price inputs before strategy execution. |
-| Milestone 13 — Portfolio Construction Foundation | Sprints 58-63 | Complete | Define portfolio-level construction before attribution and execution realism. | Portfolio inputs, equal-weight returns, configurable static weights, and summary artifacts are introduced under explicit assumptions. |
-| Milestone 14 — Portfolio Risk & Attribution Foundation | Sprints 64-69 | Complete | Explain portfolio-level behavior after construction is explicit. | Portfolio risk, drawdown, contribution, and attribution summary artifacts are available under conservative assumptions. |
-| Milestone 15 — Backtest Execution Realism Foundation | Sprints 70-76 | Complete | Make backtest execution assumptions explicit, deterministic, and reviewable. | Execution assumptions, order intent, fill behavior, execution summaries, and execution realism artifacts are available under local research assumptions. |
-| Milestone 16 — Paper Trading Foundation | Sprints 77-83 | Complete | Define local paper-trading state and records before external execution. | Paper account state, paper orders, fill application, session summaries, and artifacts are available under conservative local assumptions. |
-| Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper-trading outputs durable and audit-friendly before runtime workflows. | Paper-trading artifacts can be saved, loaded, validated, and summarized locally without broad operational behavior. |
-| Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Complete | Turn local paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper trading artifact without broader configured workflow behavior. |
-| Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs conservatively. | Configured local paper inputs can produce, persist, and reference paper workflow outputs without broker, live, database, dashboard, or automatic-promotion behavior. |
-| Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper-trading candidates. | Research evidence can be referenced, candidate records can be created, and explicit promotion records can be inspected without automatic promotion, paper execution, broker behavior, or live-readiness claims. |
-| Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper run outputs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed through human-controlled local records without dashboards, broad reporting, broker behavior, runtime execution expansion, database behavior, or live-readiness claims. |
-| Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Complete | Define explicit strategy-level decision governance above promotion and paper review evidence. | Decision evidence can be referenced, summarized, reviewed, recorded, and listed through human-controlled local contracts without automatic decisions, dashboards, reports, broker behavior, capital deployment, or readiness claims. |
-| Milestone 23 — Report Artifact Foundation | Sprints 124-129 | In Progress | Define deterministic report artifacts above completed governance records. | Governance records can be referenced and packaged into reviewable report artifacts without automatic report generation, dashboards, scoring, broker readiness, live-readiness claims, runtime changes, database behavior, or capital deployment. |
+| Milestone 12 — Data Integrity & Universe Foundation | Sprints 53-57 | Complete | Improve data validation, symbol-universe discipline, and input assumptions. | Configured runs validate symbol and price inputs before strategy execution. |
+| Milestone 13 — Portfolio Construction Foundation | Sprints 58-63 | Complete | Define portfolio-level construction before attribution and execution realism. | Portfolio inputs, equal-weight returns, configurable static weights, and summary artifacts are explicit. |
+| Milestone 14 — Portfolio Risk & Attribution Foundation | Sprints 64-69 | Complete | Explain portfolio-level behavior after construction is explicit. | Portfolio risk, drawdown, contribution, and attribution summaries are available. |
+| Milestone 15 — Backtest Execution Realism Foundation | Sprints 70-76 | Complete | Make backtest execution assumptions explicit and reviewable. | Order intent, assumed fills, execution summaries, and realism artifacts are available. |
+| Milestone 16 — Paper Trading Foundation | Sprints 77-83 | Complete | Define local paper-trading state and records before external execution. | Paper account state, orders, fills, session summaries, and artifacts are available. |
+| Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper outputs durable and audit-friendly. | Paper artifacts can be saved, loaded, validated, and summarized locally. |
+| Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Complete | Turn paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper artifact. |
+| Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs. | Configured paper inputs can produce, persist, and reference paper outputs locally. |
+| Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper candidates. | Evidence, candidates, promotion records, and manifests are human-controlled. |
+| Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper runs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed locally. |
+| Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Complete | Define strategy-level decision governance above promotion and paper-review evidence. | Decision evidence, summaries, records, manifests, and references are explicit. |
+| Milestone 23 — Report Artifact Foundation | Sprints 124-129 | Complete | Package completed governance records into deterministic review artifacts. | Report sources, sections, summaries, references, and manifests are explicit without report-generation runtime behavior. |
+| Milestone 24 — Strategy Review Workflow Foundation | Planning starts at Sprint 130 | Planned | Define human-controlled strategy lifecycle workflow semantics. | Scope, lifecycle states, transitions, evidence requirements, and guardrails are planned before implementation. |
 
 ## Completed Milestone 20 — Research-to-Paper Promotion Foundation
 
-Milestone 20 closed this conservative governance chain:
-
 ```text
-promotion source reference contract -> paper promotion candidate contract -> promotion evidence summary -> explicit promotion record -> promotion manifest and candidate references
+promotion source reference contract
+  -> paper promotion candidate contract
+  -> promotion evidence summary
+  -> explicit promotion record
+  -> promotion manifest and candidate references
 ```
 
 See:
@@ -86,15 +90,16 @@ See:
 docs/milestones/milestone-020-research-to-paper-promotion-foundation.md
 docs/sprints/sprint-103-milestone-20-planning.md
 docs/sprints/sprint-109-milestone-20-documentation-refresh.md
-docs/strategy/future-platform-roadmap.md
 ```
 
 ## Completed Milestone 21 — Paper Run Comparison and Review Foundation
 
-Milestone 21 closed this conservative review chain:
-
 ```text
-paper run reference contract -> paper run comparison input contract -> paper run comparison summary -> paper run review decision record -> review manifest and comparison references
+paper run reference contract
+  -> paper run comparison input contract
+  -> paper run comparison summary
+  -> paper run review decision record
+  -> review manifest and comparison references
 ```
 
 See:
@@ -103,25 +108,16 @@ See:
 docs/milestones/milestone-021-paper-run-comparison-review-foundation.md
 docs/sprints/sprint-110-milestone-21-planning.md
 docs/sprints/sprint-116-milestone-21-documentation-refresh-closeout.md
-docs/strategy/future-platform-roadmap.md
 ```
 
 ## Completed Milestone 22 — Decision Governance Foundation
 
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S117 | Complete | Plan Milestone 22. | Decision governance scope, sequence, and guardrails. | No implementation during planning. |
-| S118 | Complete | Define decision evidence references. | Small typed references to existing promotion records, promotion manifests, paper comparison summaries, review decisions, and review manifests. | No evidence discovery, loading, parsing, scoring, ranking, or decision making. |
-| S119 | Complete | Define strategy decision input contract. | Explicit input object grouping evidence references, decision purpose, review context, and reviewer metadata. | No automatic decision generation, scoring, recommendation, or lifecycle automation. |
-| S120 | Complete | Add strategy decision summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and decision context. | No recommendation engine, metric calculation, scoring, dashboards, or reports. |
-| S121 | Complete | Add explicit strategy decision record. | Human-controlled decision status, rationale, reviewer context, and timestamp tied to a decision summary. | No automatic approval, promotion, capital allocation, broker behavior, or readiness claim. |
-| S122 | Complete | Add decision manifest and references. | Local manifest/reference contracts for strategy decision summaries and records. | No file I/O, database, hosted service, dashboard, report, or workflow execution. |
-| S123 | Complete | Close milestone. | Milestone 22 documentation refresh. | No scope expansion. |
-
-Milestone 22 closed this conservative governance chain:
-
 ```text
-decision evidence reference contract -> strategy decision input contract -> strategy decision summary -> explicit strategy decision record -> decision manifest and references
+decision evidence reference contract
+  -> strategy decision input contract
+  -> strategy decision summary
+  -> explicit strategy decision record
+  -> decision manifest and references
 ```
 
 See:
@@ -130,24 +126,27 @@ See:
 docs/milestones/milestone-022-decision-governance-foundation.md
 docs/sprints/sprint-117-milestone-22-planning.md
 docs/sprints/sprint-123-milestone-22-documentation-refresh-closeout.md
-docs/strategy/future-platform-roadmap.md
 ```
 
-## Planned Milestone 23 — Report Artifact Foundation
+## Completed Milestone 23 — Report Artifact Foundation
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S124 | Complete | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No implementation during planning. |
-| S125 | Complete | Define report source references. | Small typed references to completed governance records and manifests. | No artifact discovery, loading, parsing, scoring, or report generation. |
-| S126 | Complete | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
-| S127 | Complete | Add report artifact summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and report context. | No recommendation engine, metric calculation, scoring, ranking, dashboards, or reports. |
-| S128 | Complete | Add report manifest and references. | Local manifest/reference contracts for report artifact summaries. | No file I/O, database, hosted service, dashboard, report engine, or workflow execution. |
-| S129 | Planned | Close milestone. | Milestone 23 documentation refresh. | No scope expansion. |
+| S125 | Complete | Define report source references. | Typed references to completed governance records and manifests. | No artifact discovery, loading, parsing, scoring, or report generation. |
+| S126 | Complete | Define report section contract. | Caller-supplied section content with explicit source references. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
+| S127 | Complete | Add report artifact summary. | Caller-supplied summaries that group explicit sections. | No recommendation engine, metric calculation, scoring, ranking, dashboards, or reports. |
+| S128 | Complete | Add report manifest and references. | Local references and manifests for report summaries. | No file I/O, database, hosted service, dashboard, report engine, or workflow execution. |
+| S129 | Complete | Close milestone. | Documentation refresh and closeout. | No scope expansion. |
 
-Milestone 23 should plan this conservative report-artifact chain:
+Completed chain:
 
 ```text
-report source reference contract -> report section contract -> report artifact summary -> report manifest and references -> report artifact closeout
+report source reference contract
+  -> report section contract
+  -> report artifact summary
+  -> report artifact reference and manifest contracts
+  -> report artifact closeout
 ```
 
 See:
@@ -155,20 +154,20 @@ See:
 ```text
 docs/milestones/milestone-023-report-artifact-foundation.md
 docs/sprints/sprint-124-milestone-23-planning.md
-docs/strategy/future-platform-roadmap.md
+docs/sprints/sprint-129-milestone-023-documentation-refresh-and-closeout.md
 ```
 
 ## Future Platform Direction
 
-The recommended sequence now is:
+The recommended next step is:
 
 ```text
-Sprint 129 — Milestone 23 Documentation Refresh and Closeout
+Sprint 130 — Milestone 24 Planning
 ```
 
-Sprint 128 added local report manifest and reference contracts without file I/O, database behavior, dashboards, broad report engines, broker readiness, live-readiness claims, or runtime behavior. Sprint 129 should close the milestone through documentation only.
+Milestone 24 is **Strategy Review Workflow Foundation**. Sprint 130 should define lifecycle states, transition semantics, evidence requirements, human-control boundaries, sprint sequence, and explicit exclusions before implementation begins.
 
-Longer-term, the platform should move through:
+Longer-term phases remain:
 
 ```text
 Phase 1 — Research & Artifact Foundation
@@ -184,7 +183,7 @@ Phase 5 — Controlled Live Pilot & Production Operations
 2. Evaluation discipline comes before strategy complexity.
 3. Parameter search is not alpha discovery.
 4. Costs, slippage, and benchmarks should arrive before serious strategy claims.
-5. Multi-asset research should come after single-asset workflow is stable.
+5. Multi-asset research should come after the single-asset workflow is stable.
 6. CLI and operations should wrap stable functions, not drive architecture.
 7. Automated quality gates should verify claims before humans review deeper logic.
 8. Every milestone should leave the repository easier to understand than before.
@@ -202,15 +201,14 @@ Phase 5 — Controlled Live Pilot & Production Operations
 20. Paper run comparison should stay explicit, local, and review-driven before dashboards, report engines, broker readiness, or capital deployment decisions.
 21. Decision governance should sit above promotion and paper-review evidence before dashboards, broad reports, broker readiness, live-readiness claims, or capital deployment decisions.
 22. Report artifacts should package completed governance records for review before dashboards, broad report engines, hosted reporting, broker readiness, live-readiness claims, or capital deployment decisions.
+23. Strategy lifecycle workflow must remain human-controlled and evidence-backed before broker readiness or live execution.
 
 ## Current Next Step
 
-The next sprint is:
-
 ```text
-Sprint 129 — Milestone 23 Documentation Refresh and Closeout
+Sprint 130 — Milestone 24 Planning
 ```
 
 Reason:
 
-Sprint 129 should refresh and close the Milestone 23 documentation without expanding runtime scope.
+Milestone 23 is complete. The project should plan the Strategy Review Workflow Foundation before implementing lifecycle states or transitions. Planning must not introduce automatic strategy transitions, workflow execution, broker behavior, live readiness, or capital deployment.

@@ -10,12 +10,14 @@ The project is built like a startup product, not a one-off learning script.
 
 ## Mission
 
-Build a production-ready platform that can ingest market data, research strategies, run backtests, generate reports, and eventually support paper trading and small-scale live trading.
+Build a production-ready platform that can ingest market data, research strategies, run backtests, generate reviewable artifacts, and eventually support paper trading and tightly controlled live trading.
 
 ## Operating Model
 
 - The human founder makes final decisions.
-- AI agents may implement code, tests, and documentation.
+- ChatGPT acts as CTO for milestone planning, sprint scope, architecture boundaries, and PR review.
+- Codex acts as the implementation developer for coding sprints.
+- Documentation-only planning and closeout sprints may be handled directly by the CTO.
 - AI-generated code must be reviewable, tested, and simple.
 - Do not optimize for cleverness. Optimize for correctness and maintainability.
 
@@ -51,6 +53,7 @@ A task is done only when:
 - README or docs are updated when behavior changes.
 - Assumptions and limitations are documented.
 - The implementation is simple enough for a human reviewer to understand.
+- The PR is marked Ready for review, not left as Draft.
 
 ## Long-Term Platform Direction
 
@@ -74,33 +77,27 @@ Milestone 21 — Paper Run Comparison and Review Foundation is complete.
 
 Milestone 22 — Decision Governance Foundation is complete.
 
-Sprint 117 planned the conservative decision-governance layer after promotion governance and paper run comparison/review.
+Milestone 23 — Report Artifact Foundation is complete.
 
-Sprint 118 added typed decision evidence references for existing promotion and paper-review evidence without artifact loading, scoring, automatic discovery, workflow execution, broker behavior, or readiness claims.
+Milestone 23 delivered this conservative chain:
 
-Sprint 119 added explicit strategy decision inputs that group decision evidence references with purpose and review context without automatic evidence discovery, scoring, decision making, workflow execution, broker behavior, or readiness claims.
+```text
+report source reference contract
+  -> report section contract
+  -> report artifact summary
+  -> report artifact reference and manifest contracts
+  -> report artifact closeout
+```
 
-Sprint 120 added caller-supplied strategy decision summaries with facts, assumptions, warnings, and missing-evidence notes without recommendation engines, metric calculation, scoring, dashboards, reports, workflow execution, broker behavior, or readiness claims.
+The report-artifact layer remains explicit caller-supplied/local structure only. It does not add report generation, rendering, dashboards, automatic evidence discovery, artifact loading, metric calculation, scoring, ranking, recommendation, automatic decisions, workflow execution, broker/live behavior, persistence/database behavior, hosted service behavior, or readiness claims.
 
-Sprint 121 added explicit human-controlled strategy decision records with supported statuses, rationale, notes, warnings, and reviewer context without automatic approval, promotion, capital allocation, broker behavior, workflow execution, reports, or readiness claims.
+The next focus is:
 
-Sprint 122 added local strategy decision manifests and compact summary/record references without file I/O, database behavior, persistence services, artifact loading, reports, workflow execution, broker behavior, or readiness claims.
+```text
+Sprint 130 — Milestone 24 Planning
+```
 
-Sprint 123 closed Milestone 22 with a documentation-only refresh and preserved the decision-governance guardrails.
-
-Sprint 124 planned Milestone 23 — Report Artifact Foundation. It defines the next conservative platform layer after decision governance: deterministic report artifacts that reference completed governance records without adding runtime behavior during planning.
-
-Milestone 23 should plan explicit report source references, report sections, report artifact summaries, and report manifests before dashboards, broad report engines, broker readiness, live-readiness claims, capital deployment, databases, hosted services, SaaS behavior, or automatic decisions.
-
-Sprint 125 added typed report source references for completed governance records and manifests without evidence discovery, artifact loading, report generation, rendering, scoring, ranking, workflow execution, broker behavior, database behavior, or readiness claims.
-
-Sprint 126 added caller-supplied report sections with explicit report source references without rendering pipelines, dashboards, markdown/PDF generation, workflow execution, broker behavior, or readiness claims.
-
-Sprint 127 added caller-supplied report artifact summaries that group explicit report sections without automatic metric calculation, recommendation, ranking, dashboards, reports, workflow execution, broker behavior, or readiness claims.
-
-Sprint 128 added local report artifact reference and manifest contracts for explicit `ReportArtifactSummary` IDs without file I/O, database behavior, persistence, rendering, dashboards, report engines, artifact loading, discovery, scoring, ranking, workflow execution, broker behavior, or readiness claims.
-
-The next focus is Sprint 129 — Milestone 23 Documentation Refresh and Closeout.
+Milestone 24 is **Strategy Review Workflow Foundation**. Sprint 130 must plan lifecycle semantics, scope, sequence, and guardrails before implementation begins. It must not automatically connect governance records to workflow execution, broker behavior, live readiness, capital deployment, or autonomous strategy lifecycle changes.
 
 ## Implementation Sprint Issue Requirements
 
@@ -117,6 +114,13 @@ git config https.proxy http://127.0.0.1:7892
 
 They must also state:
 
-- Do not use `--global`
-- Do not commit proxy config
-- Do not modify project files for proxy setup
+- Do not use `--global`.
+- Do not commit proxy config.
+- Do not modify project files for proxy setup.
+- Recommend a Codex model and reasoning effort for the specific sprint.
+- Use GPT-5.6 Terra with Medium reasoning for normal implementation sprints unless complexity justifies another choice.
+- Use GPT-5.6 Sol with High or stronger reasoning for architecture-heavy, ambiguous, high-risk, or difficult cross-module work.
+- Use GPT-5.6 Luna with Light or Medium reasoning for mechanical or documentation-only corrections.
+- Run `uv run python scripts/check.py` before opening the PR.
+- The PR body must start with a clean manually typed `Closes #<issue-number>` line.
+- After opening the PR, mark it Ready for review. Do not leave it as Draft.

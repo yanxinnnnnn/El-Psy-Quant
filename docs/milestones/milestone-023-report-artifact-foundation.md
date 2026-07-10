@@ -2,13 +2,13 @@
 
 ## Status
 
-In progress.
+Complete.
 
 ## Product Goal
 
 Define a conservative report-artifact layer above the completed governance records from Milestones 20, 21, and 22.
 
-Milestone 23 should make report artifacts explicit, deterministic, reproducible, and reviewable without turning the project into a dashboard, broad report engine, automated decision system, broker-readiness workflow, live-readiness workflow, database-backed service, or SaaS product.
+Milestone 23 makes report artifacts explicit, deterministic, reproducible, and reviewable without turning the project into a dashboard, broad report engine, automated decision system, broker-readiness workflow, live-readiness workflow, database-backed service, or SaaS product.
 
 ## Strategic Context
 
@@ -42,132 +42,46 @@ decision evidence reference contract
   -> decision manifest and references
 ```
 
-Milestone 23 should sit above those governance records. Its job is to define deterministic report artifacts that can summarize and reference completed governance records for human review.
-
-This is report artifact governance, not report generation automation.
-
-## Milestone 23 Decision
-
-Milestone 23 should be:
-
-```text
-Report Artifact Foundation
-```
-
-## Why This Is The Right Next Step
-
-The project now has explicit governance records for:
-
-- promotion evidence and promotion decisions
-- paper run comparison and review decisions
-- strategy-level decision inputs, summaries, records, manifests, and references
-
-The missing layer is a stable report artifact contract that can package those completed records into a reviewable artifact without inventing new decisions or pulling runtime behavior into the platform.
-
-Without this milestone, the project has two bad options:
-
-1. jump straight to dashboards or broad report generation before report semantics are stable
-2. keep governance records isolated without a deterministic way to package them for founder review
-
-Both are premature.
-
-The right next step is to define a small report-artifact boundary that can answer:
-
-- what report is being declared
-- which completed governance records are referenced
-- what sections the report contains
-- what assumptions, warnings, and missing evidence remain
-- what schema version and artifact identity make the report reproducible
-- what local references make the report auditable
+Milestone 23 sits above those governance records. It defines deterministic report artifacts that package completed records for human review without inventing new decisions or adding report-generation runtime behavior.
 
 A report artifact is a review package. It is not a dashboard, recommendation engine, approval engine, or readiness claim.
 
-## Planned Milestone 23 Chain
+## Completed Milestone Chain
 
 ```text
 report source reference contract
   -> report section contract
   -> report artifact summary
-  -> report manifest and references
+  -> report artifact reference and manifest contracts
   -> report artifact closeout
 ```
 
-The exact sprint names can change during execution, but the milestone should preserve this direction:
-
-1. define small references to completed governance records
-2. define deterministic report section metadata
-3. define caller-supplied report artifact summaries
-4. define compact report references and manifests
-5. close the milestone with documentation refresh only
-
-## Candidate Sprint Sequence
+## Sprint Sequence
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
 | S124 | Complete | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No runtime behavior during planning. |
 | S125 | Complete | Define report source references. | Small typed references to completed governance records and manifests. | No artifact loading, discovery, parsing, scoring, or report generation. |
 | S126 | Complete | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
-| S127 | Complete | Define report artifact summary. | Deterministic caller-supplied report summary with facts, assumptions, warnings, and missing-evidence notes. | No automatic metric calculation, recommendation, ranking, or decision making. |
+| S127 | Complete | Define report artifact summary. | Deterministic caller-supplied report summaries that group explicit sections. | No automatic metric calculation, recommendation, ranking, or decision making. |
 | S128 | Complete | Add report manifest and references. | Local manifest/reference contracts for report artifact summaries. | No file I/O, database, hosted service, dashboard, or report engine. |
-| S129 | Planned | Close milestone. | Milestone 23 documentation refresh. | No scope expansion. |
+| S129 | Complete | Close milestone. | Milestone 23 documentation refresh and closeout. | No scope expansion. |
 
-## Included Capabilities
+## Delivered Contracts
 
-Milestone 23 may include:
+Milestone 23 delivered:
 
-- a minimal report source reference contract for completed governance records
-- deterministic report section contracts
-- caller-supplied report artifact summaries
-- assumptions, warnings, missing-evidence, and review-context fields
-- local report manifest/reference contracts
-- documentation of report artifact assumptions, limits, and future dashboard boundaries
+- `ReportSourceReference`
+- `ReportSection`
+- `ReportArtifactSummary`
+- `ReportArtifactReference`
+- `ReportArtifactManifest`
 
-## Explicitly Out Of Scope
+Supporting public constants and factories provide schema versions, supported reference types, deterministic validation, and JSON-compatible `to_dict()` exports.
 
-Milestone 23 must not introduce:
+## Contract Boundaries
 
-- runtime behavior
-- automatic report generation
-- report rendering pipelines
-- dashboards
-- broad reporting UI
-- plotting behavior
-- markdown, HTML, PDF, notebook, or hosted report generation
-- automatic evidence discovery
-- artifact loading, parsing, scoring, or validation beyond explicit contract validation
-- metric calculation, comparison, ranking, winner selection, or recommendation
-- automatic decision making
-- automatic approval
-- automatic rejection
-- automatic promotion
-- automatic strategy lifecycle automation
-- broker readiness
-- live readiness
-- real-money readiness claims
-- capital deployment
-- capital allocation
-- order routing
-- broker integration
-- exchange APIs
-- live execution
-- market data streaming
-- scheduler behavior
-- real account synchronization
-- workflow execution changes
-- configured paper workflow behavior changes
-- database behavior
-- hosted services or SaaS behavior
-- strategy expansion
-
-## Design Notes For Implementation Sprints
-
-Implementation sprints should preserve the existing architecture rule:
-
-```text
-CLI and operations should wrap stable functions, not drive architecture.
-```
-
-The safest shape is:
+The report-artifact layer follows these rules:
 
 ```text
 governance records stay separate
@@ -178,26 +92,47 @@ report manifests stay local reference contracts
 rendering, dashboards, and workflows stay separate
 ```
 
-Report artifacts should reference completed governance records. They should not discover records automatically, load artifacts, calculate metrics, rank strategies, create decisions, or imply readiness for broker or live trading.
+Report artifacts reference completed governance records. They do not discover records automatically, load artifacts, calculate metrics, rank strategies, create decisions, or imply readiness for broker or live trading.
 
-## Implementation Sprint Issue Requirements
+## Explicitly Out Of Scope
 
-Future implementation sprint issues must include the Windows proxy prelude when Codex implementation is requested:
+Milestone 23 did not introduce:
 
-```powershell
-$env:HTTP_PROXY="http://127.0.0.1:7892"
-$env:HTTPS_PROXY="http://127.0.0.1:7892"
-$env:ALL_PROXY="http://127.0.0.1:7892"
+- automatic report generation
+- report rendering pipelines
+- dashboards or broad reporting UI
+- plotting behavior
+- markdown, HTML, PDF, notebook, or hosted report generation
+- automatic evidence discovery
+- artifact loading, parsing, scoring, or validation beyond explicit contract validation
+- metric calculation, comparison, ranking, winner selection, or recommendation
+- automatic decision making
+- automatic approval, rejection, or promotion
+- automatic strategy lifecycle automation
+- broker readiness or live readiness
+- real-money readiness claims
+- capital deployment or capital allocation
+- order routing, broker integration, exchange APIs, or live execution
+- market data streaming or scheduler behavior
+- real account synchronization
+- workflow execution changes
+- configured paper workflow behavior changes
+- file I/O or manifest reading/writing from report-artifact contracts
+- database behavior
+- hosted services or SaaS behavior
+- strategy expansion
 
-git config http.proxy http://127.0.0.1:7892
-git config https.proxy http://127.0.0.1:7892
-```
+## Exit Criteria
 
-They must also state:
+Milestone 23 closed with all exit criteria satisfied:
 
-- Do not use `--global`
-- Do not commit proxy config
-- Do not modify project files for proxy setup
+- report source references are explicit and typed
+- report sections are represented without rendering or dashboard behavior
+- report artifact summaries group explicit caller-supplied sections
+- report artifact references point to stable report summary IDs
+- report manifests group explicit references locally
+- documentation explains report artifact assumptions, limits, and future dashboard boundaries
+- dashboards, broad report generation, broker behavior, live behavior, runtime execution expansion, database behavior, automatic capital deployment decisions, and strategy expansion remain outside the milestone
 
 ## Longer-Term Roadmap Alignment
 
@@ -207,35 +142,29 @@ The long-term platform direction is maintained in:
 docs/strategy/future-platform-roadmap.md
 ```
 
-The broad phases remain:
+Milestone 23 remains part of Phase 3 — Decision Intelligence Foundation. It packages completed governance records into deterministic report artifacts before dashboards, broad report engines, broker readiness, live-readiness claims, or capital deployment decisions.
+
+## Closeout Record
+
+Sprint 129 closed Milestone 23 through documentation only. No Python source code, tests, public APIs, schema versions, CLI behavior, workflow behavior, persistence behavior, rendering behavior, or execution behavior changed during closeout.
+
+See:
 
 ```text
-Phase 1 — Research & Artifact Foundation
-Phase 2 — Workflow Integration Foundation
-Phase 3 — Decision Intelligence Foundation
-Phase 4 — Broker Readiness & Execution Governance
-Phase 5 — Controlled Live Pilot & Production Operations
+docs/sprints/sprint-124-milestone-23-planning.md
+docs/sprints/sprint-125-report-source-reference-contract-foundation.md
+docs/sprints/sprint-126-report-section-contract-foundation.md
+docs/sprints/sprint-127-report-artifact-summary-foundation.md
+docs/sprints/sprint-128-report-manifest-and-references-foundation.md
+docs/sprints/sprint-129-milestone-023-documentation-refresh-and-closeout.md
 ```
-
-Milestone 23 is still part of Phase 3. It packages completed governance records into deterministic report artifacts before dashboards, broad report engines, broker readiness, live-readiness claims, or capital deployment decisions.
-
-## Exit Criteria
-
-Milestone 23 is ready to close when:
-
-- report source references are explicit and typed
-- report sections can be represented without rendering or dashboard behavior
-- report artifact summaries can record caller-supplied facts, assumptions, warnings, and missing-evidence notes
-- report manifests and references can be inspected locally
-- documentation explains report artifact assumptions, limits, and future dashboard boundaries
-- dashboards, broad report generation, broker behavior, live behavior, runtime execution expansion, database behavior, automatic capital deployment decisions, and strategy expansion remain outside the milestone
 
 ## Next Step
 
 ```text
-Sprint 129 — Milestone 23 Documentation Refresh and Closeout
+Sprint 130 — Milestone 24 Planning
 ```
 
-Sprint 128 added immutable local references to stable report summary IDs and manifests that group explicit references. These contracts do not add file I/O, persistence, rendering, dashboards, artifact loading, discovery, scoring, ranking, workflow execution, broker/live behavior, or readiness claims.
+Milestone 24 is **Strategy Review Workflow Foundation** in the founder-level roadmap. Sprint 130 should define its scope, lifecycle semantics, sprint sequence, and guardrails before implementation begins.
 
-Sprint 129 should refresh and close the Milestone 23 documentation without expanding runtime scope.
+Planning must not automatically connect governance records to workflow execution, broker behavior, live readiness, capital deployment, or autonomous strategy lifecycle changes.
