@@ -108,7 +108,7 @@ The exact sprint names can change during execution, but the milestone should pre
 | S125 | Complete | Define report source references. | Small typed references to completed governance records and manifests. | No artifact loading, discovery, parsing, scoring, or report generation. |
 | S126 | Complete | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
 | S127 | Complete | Define report artifact summary. | Deterministic caller-supplied report summary with facts, assumptions, warnings, and missing-evidence notes. | No automatic metric calculation, recommendation, ranking, or decision making. |
-| S128 | Planned | Add report manifest and references. | Local manifest/reference contracts for report summaries and report artifacts. | No file I/O, database, hosted service, dashboard, or report engine. |
+| S128 | Complete | Add report manifest and references. | Local manifest/reference contracts for report artifact summaries. | No file I/O, database, hosted service, dashboard, or report engine. |
 | S129 | Planned | Close milestone. | Milestone 23 documentation refresh. | No scope expansion. |
 
 ## Included Capabilities
@@ -233,7 +233,9 @@ Milestone 23 is ready to close when:
 ## Next Step
 
 ```text
-Sprint 128 — Report Manifest and References Foundation
+Sprint 129 — Milestone 23 Documentation Refresh and Closeout
 ```
 
-Sprint 128 should add local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
+Sprint 128 added immutable local references to stable report summary IDs and manifests that group explicit references. These contracts do not add file I/O, persistence, rendering, dashboards, artifact loading, discovery, scoring, ranking, workflow execution, broker/live behavior, or readiness claims.
+
+Sprint 129 should refresh and close the Milestone 23 documentation without expanding runtime scope.

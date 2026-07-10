@@ -141,7 +141,7 @@ docs/strategy/future-platform-roadmap.md
 | S125 | Complete | Define report source references. | Small typed references to completed governance records and manifests. | No artifact discovery, loading, parsing, scoring, or report generation. |
 | S126 | Complete | Define report section contract. | Explicit section metadata and caller-supplied section content boundaries. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
 | S127 | Complete | Add report artifact summary. | Deterministic caller-supplied facts, assumptions, warnings, missing evidence, and report context. | No recommendation engine, metric calculation, scoring, ranking, dashboards, or reports. |
-| S128 | Planned | Add report manifest and references. | Local manifest/reference contracts for report summaries and artifacts. | No file I/O, database, hosted service, dashboard, report engine, or workflow execution. |
+| S128 | Complete | Add report manifest and references. | Local manifest/reference contracts for report artifact summaries. | No file I/O, database, hosted service, dashboard, report engine, or workflow execution. |
 | S129 | Planned | Close milestone. | Milestone 23 documentation refresh. | No scope expansion. |
 
 Milestone 23 should plan this conservative report-artifact chain:
@@ -163,10 +163,10 @@ docs/strategy/future-platform-roadmap.md
 The recommended sequence now is:
 
 ```text
-Sprint 128 — Report Manifest and References Foundation
+Sprint 129 — Milestone 23 Documentation Refresh and Closeout
 ```
 
-The guiding idea is to add local report manifest and reference contracts without adding file I/O, database behavior, dashboards, broad report engines, broker readiness, live-readiness claims, or runtime behavior.
+Sprint 128 added local report manifest and reference contracts without file I/O, database behavior, dashboards, broad report engines, broker readiness, live-readiness claims, or runtime behavior. Sprint 129 should close the milestone through documentation only.
 
 Longer-term, the platform should move through:
 
@@ -208,9 +208,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The next sprint is:
 
 ```text
-Sprint 128 — Report Manifest and References Foundation
+Sprint 129 — Milestone 23 Documentation Refresh and Closeout
 ```
 
 Reason:
 
-Sprint 128 should add local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
+Sprint 129 should refresh and close the Milestone 23 documentation without expanding runtime scope.
