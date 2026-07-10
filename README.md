@@ -44,13 +44,15 @@ report source reference contract -> report section contract -> report artifact s
 
 The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 
-The current implementation sprint is:
+Sprint 128 is complete. It added local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
+
+The next focus is:
 
 ```text
-Sprint 128 — Report Manifest and References Foundation
+Sprint 129 — Milestone 23 Documentation Refresh and Closeout
 ```
 
-Sprint 128 adds local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
+Sprint 129 should close Milestone 23 through documentation only without expanding runtime scope.
 
 See the milestone summaries in:
 
