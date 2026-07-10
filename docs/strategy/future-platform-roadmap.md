@@ -330,7 +330,7 @@ Planned sprint sequence:
 | Sprint | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|
 | S130 | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
-| S131 | Complete | Define strategy review evidence references. | Typed pointers to completed M20–M23 records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
+| S131 | Define strategy review evidence references. **Complete.** | Typed pointers to completed M20–M23 records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
 | S132 | Define lifecycle state snapshots. | Caller-supplied immutable state declarations. | No implicit initial state, mutable state store, persistence, or state-machine service. |
 | S133 | Define lifecycle transition proposals. | Explicit from-state, target-state, rationale, evidence, and requester context. | A proposal does not change state or approve anything. |
 | S134 | Add human-controlled lifecycle transition records. | Reviewer outcome, rationale, approval context, and resulting-state reference. | No automatic approval, transition execution, broker behavior, or readiness claim. |
