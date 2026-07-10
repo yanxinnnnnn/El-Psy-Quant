@@ -52,19 +52,32 @@ report source reference contract
 
 Milestone 23 added deterministic review-package contracts above completed governance records. The report-artifact layer remains explicit caller-supplied/local structure only. It does not generate reports, render dashboards, discover evidence, load artifacts, calculate metrics, score or rank strategies, recommend decisions, execute workflows, integrate brokers, persist report manifests, or claim live readiness.
 
-The next focus is:
+**Milestone 24 — Strategy Review Workflow Foundation** is planned through Sprint 130.
 
 ```text
-Sprint 130 — Milestone 24 Planning
+strategy review evidence reference contract
+  -> strategy lifecycle state snapshot contract
+  -> lifecycle transition proposal contract
+  -> human-controlled lifecycle transition record
+  -> strategy review workflow manifest and references
+  -> strategy review workflow closeout
 ```
 
-Milestone 24 is **Strategy Review Workflow Foundation** in the founder-level roadmap. Sprint 130 should plan lifecycle semantics, transition rules, evidence requirements, human approval boundaries, sprint sequence, and exclusions before implementation begins.
+Milestone 24 is contract-only. Its approved lifecycle vocabulary is limited to `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`. There is no implicit initial state, no automatic mapping from decision statuses, no automatic transition application, and no `live_candidate` or live-readiness state.
+
+After the founder merges the Sprint 130 planning PR, the proposed next focus is:
+
+```text
+Sprint 131 — Strategy Review Evidence Reference Contract Foundation
+```
 
 See:
 
 ```text
 docs/roadmap.md
 docs/milestones/milestone-023-report-artifact-foundation.md
+docs/milestones/milestone-024-strategy-review-workflow-foundation.md
+docs/sprints/sprint-130-milestone-24-planning.md
 docs/strategy/future-platform-roadmap.md
 ```
 
@@ -148,19 +161,21 @@ docs/strategy/future-platform-roadmap.md
 
 ## Planned Next Platform Layer
 
-Milestone 23 is complete. The next milestone should not begin with implementation.
+Milestone 24 is **Strategy Review Workflow Foundation**.
 
-Sprint 130 should plan Milestone 24 — Strategy Review Workflow Foundation and decide:
+Sprint 130 plans this layer before implementation. The milestone should define:
 
-- the minimum lifecycle-state vocabulary
-- permitted transitions
-- evidence requirements for transitions
-- human approval requirements
-- how existing promotion, paper-review, decision, and report-artifact records are referenced
-- whether the milestone remains contract-only or includes a narrow local transition boundary
-- explicit exclusions for automation, broker behavior, live readiness, capital deployment, databases, hosted workflows, and SaaS behavior
+- typed references to completed M20–M23 governance records
+- immutable caller-supplied lifecycle state snapshots
+- a fixed state vocabulary: `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`
+- a documented permitted-transition matrix
+- caller-supplied transition proposals that do not change state
+- explicit human-controlled transition records
+- local manifests and references for lifecycle governance artifacts
 
-Candidate lifecycle names in the long-term roadmap are planning inputs, not approved APIs or behavior.
+The milestone remains contract-only. It must not add runtime state mutation, mutable state storage, a state-machine service, a generic workflow engine, automatic decision-to-state mapping, evidence discovery or loading, configured workflow changes, broker/live behavior, capital deployment, databases, hosted orchestration, or readiness claims.
+
+`live_candidate` and similar states are explicitly excluded. Live-readiness semantics belong to a later dedicated milestone after risk and operational controls exist.
 
 ## Quick Start
 
@@ -215,6 +230,10 @@ A decision evidence reference is not artifact loading. A decision summary is not
 A report source reference is only a pointer. A report section is not a rendering pipeline. A report artifact summary is descriptive and caller-supplied. A report manifest is a local reference contract, not persistence, report generation, dashboard behavior, or workflow execution.
 
 Sprint 129 closed Milestone 23 through documentation only and preserved all report-artifact guardrails.
+
+### Milestone 24 — Planning Decision
+
+A lifecycle state snapshot is an explicit declaration, not stored mutable state. A transition proposal is not an action. A transition record is a human-controlled governance artifact, not a transition executor. No lifecycle artifact implies broker readiness, live readiness, or capital deployment.
 
 ## Local Experiment Configuration
 

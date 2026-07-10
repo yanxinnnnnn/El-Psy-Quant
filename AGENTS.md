@@ -79,25 +79,38 @@ Milestone 22 — Decision Governance Foundation is complete.
 
 Milestone 23 — Report Artifact Foundation is complete.
 
-Milestone 23 delivered this conservative chain:
+Sprint 130 plans **Milestone 24 — Strategy Review Workflow Foundation** as a contract-only, human-controlled lifecycle-governance layer.
+
+The planned Milestone 24 chain is:
 
 ```text
-report source reference contract
-  -> report section contract
-  -> report artifact summary
-  -> report artifact reference and manifest contracts
-  -> report artifact closeout
+strategy review evidence reference contract
+  -> strategy lifecycle state snapshot contract
+  -> lifecycle transition proposal contract
+  -> human-controlled lifecycle transition record
+  -> strategy review workflow manifest and references
+  -> strategy review workflow closeout
 ```
 
-The report-artifact layer remains explicit caller-supplied/local structure only. It does not add report generation, rendering, dashboards, automatic evidence discovery, artifact loading, metric calculation, scoring, ranking, recommendation, automatic decisions, workflow execution, broker/live behavior, persistence/database behavior, hosted service behavior, or readiness claims.
-
-The next focus is:
+The approved lifecycle vocabulary is limited to:
 
 ```text
-Sprint 130 — Milestone 24 Planning
+research_review
+paper_review
+watchlist
+on_hold
+rejected
 ```
 
-Milestone 24 is **Strategy Review Workflow Foundation**. Sprint 130 must plan lifecycle semantics, scope, sequence, and guardrails before implementation begins. It must not automatically connect governance records to workflow execution, broker behavior, live readiness, capital deployment, or autonomous strategy lifecycle changes.
+There is no implicit initial state, no automatic mapping from decision statuses, no automatic transition application, and no `live_candidate` or live-readiness state.
+
+Milestone 24 remains local and contract-only. It must not add mutable state storage, a transition executor, a generic state-machine or workflow engine, automatic decisions, evidence discovery or loading, paper execution, configured workflow changes, broker/live behavior, capital deployment, databases, hosted orchestration, or readiness claims.
+
+After the founder merges the Sprint 130 planning PR, the proposed next focus is:
+
+```text
+Sprint 131 — Strategy Review Evidence Reference Contract Foundation
+```
 
 ## Implementation Sprint Issue Requirements
 
