@@ -183,8 +183,6 @@ def test_strategy_review_package_does_not_expose_forbidden_behavior() -> None:
     from el_psy_quant import strategy_review
 
     forbidden_names = {
-        "StrategyLifecycleStateSnapshot",
-        "create_strategy_lifecycle_state_snapshot",
         "create_lifecycle_transition_proposal",
         "create_lifecycle_transition_record",
         "create_strategy_review_manifest",
