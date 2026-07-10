@@ -4,7 +4,7 @@
 
 This document captures the long-term company-level direction for El-Psy-Quant.
 
-El-Psy-Quant should not become a loose collection of strategy scripts or a thin trading bot. The product direction is to build an AI-native quantitative research operating system that can turn trading ideas into reproducible, auditable, risk-aware decisions before real capital is deployed.
+El-Psy-Quant should not become a loose collection of strategy scripts or a thin trading bot. The product direction is to build an AI-native quantitative research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before real capital is deployed.
 
 ## Strategic North Star
 
@@ -29,6 +29,8 @@ idea
   -> paper comparison
   -> review decision
   -> decision governance
+  -> report artifact
+  -> strategy review workflow
   -> controlled live readiness
 ```
 
@@ -49,7 +51,16 @@ Phase 5 — Controlled Live Pilot & Production Operations
 The priority order is:
 
 ```text
-workflow > promotion governance > paper comparison > review decision > decision governance > reporting artifact > risk controls > broker sandbox > live
+workflow
+  > promotion governance
+  > paper comparison
+  > review decision
+  > decision governance
+  > report artifact
+  > strategy review workflow
+  > risk controls
+  > broker sandbox
+  > live
 ```
 
 The wrong order would be:
@@ -64,19 +75,17 @@ That path would create complexity before the platform earns it.
 
 Status: Complete through the core local paper workflow foundation.
 
-This phase established the platform foundation:
+This phase established:
 
 - local data loading and validation
 - reproducible research pipelines
-- experiment artifacts
-- strategy interface
+- experiment artifacts and comparison
+- strategy interfaces
 - portfolio construction
 - portfolio risk and attribution
 - execution realism
-- paper trading state
-- paper trading artifacts
-- paper artifact persistence
-- paper artifact validation and audit summaries
+- paper trading state and artifacts
+- paper artifact persistence and audit
 - explicit local paper workflow boundaries
 
 Completed milestone chain:
@@ -105,8 +114,6 @@ This phase turned isolated capabilities into operating workflows and reviewable 
 
 Status: Complete.
 
-Goal:
-
 ```text
 local config
   -> validated paper run request
@@ -115,30 +122,20 @@ local config
   -> saved paper outputs and result references
 ```
 
-Purpose:
-
-Allow local configured runs to drive the completed paper workflow after the explicit paper workflow boundary is stable.
-
 Guardrails preserved:
 
-- no broker integration
-- no live execution
-- no market data streaming
-- no scheduler behavior
+- no broker integration or live execution
+- no market-data streaming or scheduler behavior
 - no automatic research-to-paper promotion
 - no automatic strategy-signal-to-order conversion
-- no database
-- no dashboard or broad report generation
-- no strategy expansion
+- no database, dashboard, broad report generation, or strategy expansion
 
 ### Milestone 20 — Research-to-Paper Promotion Foundation
 
 Status: Complete.
 
-Goal:
-
 ```text
-research artifact / execution artifact / configured-run artifact / paper output
+research evidence
   -> promotion source reference
   -> paper promotion candidate
   -> promotion evidence summary
@@ -148,40 +145,18 @@ research artifact / execution artifact / configured-run artifact / paper output
 
 Purpose:
 
-Define what it means for research evidence to be nominated for paper-trading review.
-
-Milestone 20 made the research-to-paper path explicit without automating approval, paper execution, broker behavior, or live-readiness claims.
-
-Completed sprint chain:
-
-```text
-S103  Milestone 20 planning
-S104  promotion source reference contract
-S105  paper promotion candidate contract
-S106  promotion evidence summary
-S107  explicit promotion record
-S108  promotion manifest and candidate references
-S109  milestone closeout
-```
+Define what it means for research evidence to be nominated for paper-trading review while keeping approval human-controlled.
 
 Guardrails preserved:
 
-- no automatic promotion
-- no autonomous strategy approval
-- no automatic strategy-signal-to-order conversion
-- no automatic construction of paper orders, fills, or PaperRunRequest from research outputs
+- no automatic promotion or autonomous strategy approval
 - no paper workflow execution from promotion records
-- no broker integration
-- no live readiness claims
-- no database
-- no dashboard or broad report generation
-- no strategy expansion
+- no broker integration or live-readiness claims
+- no database, dashboard, broad report generation, or strategy expansion
 
 ### Milestone 21 — Paper Run Comparison and Review Foundation
 
 Status: Complete.
-
-Goal:
 
 ```text
 multiple paper runs
@@ -193,56 +168,25 @@ multiple paper runs
 
 Purpose:
 
-Move beyond one-off paper runs and make paper performance comparable and reviewable before dashboards, broad reporting, broker readiness, or live-readiness claims.
-
-Completed sprint chain:
-
-```text
-S110  Milestone 21 planning
-S111  paper run reference contract
-S112  paper run comparison input contract
-S113  paper run comparison summary
-S114  paper run review decision record
-S115  review manifest and comparison references
-S116  milestone closeout
-```
-
-Delivered contracts:
-
-- `PaperRunReference`
-- `PaperRunComparisonInput`
-- `PaperRunComparisonSummary`
-- `PaperRunReviewDecision`
-- `PaperReviewReference`
-- `PaperReviewManifest`
+Make paper performance comparable and reviewable before dashboards, broad reporting, broker readiness, or live-readiness claims.
 
 Guardrails preserved:
 
-- no automatic paper run discovery
-- no artifact loading/parsing/scoring beyond explicit contracts
-- no metric calculation/comparison/ranking
-- no dashboard
-- no broad report engine
-- no file I/O or database behavior from review manifest contracts
-- no hosted service or SaaS behavior
-- no broker integration
-- no live execution
-- no runtime execution expansion
-- no automatic capital deployment decision
-- no live-readiness or real-money readiness claims
-- no strategy expansion
+- no automatic paper-run discovery
+- no artifact loading, parsing, scoring, metric comparison, or ranking
+- no dashboard or broad report engine
+- no persistence or database behavior from review contracts
+- no broker integration, live execution, or automatic capital deployment decision
 
 ## Phase 3 — Decision Intelligence Foundation
 
-Recommended focus: Milestones 22-25.
+Status: Milestones 22 and 23 complete. Milestone 24 planning is next.
 
-This phase makes strategy decisions explicit and reviewable.
+This phase makes strategy decisions, review packages, and lifecycle governance explicit and reviewable.
 
 ### Milestone 22 — Decision Governance Foundation
 
 Status: Complete.
-
-Completed chain:
 
 ```text
 decision evidence reference contract
@@ -264,54 +208,67 @@ Delivered contracts:
 
 Purpose:
 
-Record why a strategy should continue, pause, be rejected, need more evidence, or remain under review without jumping to dashboards, broad reports, broker behavior, live readiness, or capital deployment.
-
-Milestone 22 builds on M20 promotion records and M21 paper comparison/review records. It does not duplicate those records and does not skip ahead to live readiness.
+Record why a strategy should continue, pause, be rejected, need more evidence, or remain under review without jumping to dashboards, broker behavior, live readiness, or capital deployment.
 
 Guardrails preserved:
 
-- no automatic decision making
-- no automatic approval or promotion
-- no automatic evidence discovery
-- no artifact loading/parsing/scoring
-- no metric calculation, comparison, ranking, or winner selection
+- no automatic decision making, approval, or promotion
+- no automatic evidence discovery or artifact loading
+- no metric calculation, scoring, ranking, or winner selection
 - no dashboards or broad reports
-- no broker readiness or live-readiness claim
-- no capital deployment or allocation
-- no workflow execution changes
+- no broker readiness, live-readiness claims, capital allocation, or workflow execution changes
 - no database, hosted service, or SaaS behavior
 
 ### Milestone 23 — Report Artifact Foundation
 
-In progress.
+Status: Complete.
 
-Goal:
+Completed chain:
 
 ```text
-completed governance records
-  -> deterministic report artifact
+report source reference contract
+  -> report section contract
+  -> report artifact summary
+  -> report artifact reference and manifest contracts
+  -> report artifact closeout
 ```
+
+Delivered contracts:
+
+- `ReportSourceReference`
+- `ReportSection`
+- `ReportArtifactSummary`
+- `ReportArtifactReference`
+- `ReportArtifactManifest`
 
 Purpose:
 
-Create structured report artifacts before dashboards.
+Package completed governance records into deterministic, reviewable report artifacts before dashboards or broad report engines.
 
-Reports should summarize evidence, assumptions, risk warnings, and decision status. They should not become a visual dashboard layer yet.
+Guardrails preserved:
+
+- no automatic report generation
+- no rendering, dashboards, markdown/HTML/PDF generation, or broad report engine
+- no automatic evidence discovery or artifact loading
+- no metric calculation, scoring, ranking, recommendation, or automatic decisions
+- no file I/O, manifest reading/writing, persistence services, or database behavior from report-artifact contracts
+- no workflow execution, broker/live behavior, capital deployment, or readiness claims
 
 ### Milestone 24 — Strategy Review Workflow Foundation
 
-Goal:
+Status: Planned. Sprint 130 should plan this milestone before implementation begins.
+
+Candidate workflow direction:
 
 ```text
 candidate strategy
   -> research review
   -> paper review
   -> decision gate
+  -> human-controlled lifecycle state
 ```
 
-Purpose:
-
-Define strategy lifecycle states such as:
+Candidate lifecycle vocabulary may include:
 
 ```text
 draft
@@ -322,9 +279,29 @@ draft
   -> live_candidate
 ```
 
+These states are not approved implementation details yet. Sprint 130 must decide:
+
+- which lifecycle states are actually needed
+- which transitions are permitted
+- what evidence each transition requires
+- which transitions require explicit human approval
+- how existing promotion, paper-review, decision, and report-artifact records are referenced
+- whether the milestone is contract-only or includes a narrow local transition service
+- what remains explicitly outside scope
+
+Planning guardrails:
+
+- no automatic strategy state transitions
+- no autonomous approval, rejection, promotion, or capital allocation
+- no workflow execution from governance records
+- no broker integration, live execution, or real-money behavior
+- no dashboard or hosted workflow product
+- no database-backed orchestration or SaaS behavior
+- no claim that `live_candidate` means live-ready or approved for capital deployment
+
 ### Milestone 25 — Portfolio-Level Decision Review Foundation
 
-Goal:
+Status: Future.
 
 ```text
 strategy candidates
@@ -335,9 +312,7 @@ strategy candidates
 
 Purpose:
 
-Evaluate strategies at portfolio level instead of only strategy level.
-
-A strategy can be attractive alone and still be bad for the portfolio if it adds concentrated risk or duplicate exposure.
+Evaluate strategies at portfolio level instead of only strategy level. A strategy can be attractive alone and still be unsuitable for the portfolio if it adds concentrated risk or duplicate exposure.
 
 ## Phase 4 — Broker Readiness & Execution Governance
 
@@ -347,11 +322,7 @@ This phase approaches broker integration without rushing into real-money executi
 
 ### Milestone 26 — Broker Abstraction Planning
 
-Goal:
-
-Define broker-facing concepts without connecting to a broker.
-
-Questions to answer:
+Define broker-facing concepts without connecting to a broker:
 
 - order model
 - account snapshot model
@@ -362,21 +333,15 @@ Questions to answer:
 
 ### Milestone 27 — Simulated Broker Adapter Foundation
 
-Goal:
-
 ```text
 paper order
   -> simulated broker adapter
   -> simulated ack / fill / reject
 ```
 
-Purpose:
-
 Exercise broker-like behavior locally without external dependencies.
 
 ### Milestone 28 — Execution Risk Control Foundation
-
-Goal:
 
 Add pre-trade guardrails:
 
@@ -388,13 +353,9 @@ Add pre-trade guardrails:
 - trading window
 - manual approval requirement
 
-Purpose:
-
-Risk controls should exist before any real broker integration.
+Risk controls should exist before real broker integration.
 
 ### Milestone 29 — Live Readiness Checklist Foundation
-
-Goal:
 
 ```text
 strategy evidence
@@ -405,25 +366,17 @@ strategy evidence
   -> live readiness status
 ```
 
-Purpose:
-
-Define whether a strategy is eligible for live testing without executing live trades yet.
+Define eligibility for live testing without executing live trades.
 
 ### Milestone 30 — Broker Sandbox Integration
 
-Goal:
+Connect to a broker sandbox or paper-broker API only after local workflow, decision, and risk boundaries are stable.
 
-Connect to a broker sandbox or paper broker API.
-
-Purpose:
-
-Test external integration after local workflow, decision, and risk boundaries exist.
-
-Guardrails:
+Phase 4 guardrails:
 
 - no real-money trading
 - no unattended execution
-- no auto-scaling of strategies
+- no autonomous scaling of strategies
 
 ## Phase 5 — Controlled Live Pilot & Production Operations
 
@@ -433,22 +386,15 @@ This phase should only start after Phase 4 creates strong operational guardrails
 
 ### Milestone 31 — Small-Capital Live Pilot Foundation
 
-Goal:
+Support extremely small, tightly controlled live execution with:
 
-Support extremely small, tightly controlled live execution.
-
-Requirements:
-
-- allowlisted strategy
-- allowlisted symbols
-- strict max exposure
+- allowlisted strategy and symbols
+- strict maximum exposure
 - manual kill switch
 - full audit trail
 - no autonomous scaling
 
 ### Milestone 32 — Live Monitoring Foundation
-
-Goal:
 
 ```text
 live orders
@@ -458,40 +404,25 @@ live orders
   -> alerts
 ```
 
-Purpose:
-
 Produce structured operational status artifacts before complex dashboards.
 
 ### Milestone 33 — Incident & Kill Switch Foundation
 
-Goal:
-
 Define how the system stops, records incidents, and recovers safely.
-
-Questions:
-
-- when should the system stop?
-- who can stop it?
-- how is the stop recorded?
-- how does recovery work?
-- how are repeated incidents prevented?
 
 ### Milestone 34 — Production Operations Foundation
 
-Goal:
-
-Document and support production operating discipline:
+Document and support:
 
 - runbooks
 - status checks
-- deployment records
-- version records
+- deployment and version records
 - rollback rules
-- operational review process
+- operational review processes
 
 ### Milestone 35+ — Productization Foundation
 
-Possible future direction:
+Possible later direction:
 
 - multi-user workspace
 - permissions
@@ -514,11 +445,15 @@ Every research-to-paper nomination should be explicit, evidence-backed, and huma
 
 ### Paper Comparison Memory
 
-Every paper run comparison should be explicit, reproducible, and tied to stable paper run references.
+Every paper-run comparison should be explicit, reproducible, and tied to stable references.
 
 ### Decision Ledger
 
-Every continue, pause, reject, promote-to-paper, and promote-to-live decision should be recorded with evidence.
+Every continue, pause, reject, promote-to-paper, and future promote-to-live decision should be recorded with evidence.
+
+### Report Artifact Memory
+
+Every review package should identify its source records, sections, assumptions, warnings, missing evidence, stable summary ID, and manifest references without implying automated reporting or readiness.
 
 ### Risk Discipline
 
@@ -543,6 +478,14 @@ large databases
 portfolio optimization before basic portfolio accounting
 SaaS before the decision pipeline is proven
 ```
+
+## Current Next Step
+
+```text
+Sprint 130 — Milestone 24 Planning
+```
+
+Sprint 130 should plan the Strategy Review Workflow Foundation. It should define scope, lifecycle semantics, transition boundaries, evidence requirements, human approval requirements, sprint sequence, and exclusions before implementation begins.
 
 ## One-Line Strategy
 
