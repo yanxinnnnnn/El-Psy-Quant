@@ -52,7 +52,7 @@ report source reference contract
 
 Milestone 23 added deterministic review-package contracts above completed governance records. The report-artifact layer remains explicit caller-supplied/local structure only. It does not generate reports, render dashboards, discover evidence, load artifacts, calculate metrics, score or rank strategies, recommend decisions, execute workflows, integrate brokers, persist report manifests, or claim live readiness.
 
-**Milestone 24 — Strategy Review Workflow Foundation** is planned through Sprint 130.
+**Milestone 24 — Strategy Review Workflow Foundation** is in progress.
 
 ```text
 strategy review evidence reference contract
@@ -65,10 +65,12 @@ strategy review evidence reference contract
 
 Milestone 24 is contract-only. Its approved lifecycle vocabulary is limited to `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`. There is no implicit initial state, no automatic mapping from decision statuses, no automatic transition application, and no `live_candidate` or live-readiness state.
 
-After the founder merges the Sprint 130 planning PR, the proposed next focus is:
+Sprint 131 added explicit typed pointers to completed M20–M23 governance artifacts. These evidence references do not discover, load, parse, validate, score, rank, or evaluate artifacts; declare lifecycle states; propose, approve, reject, or execute transitions; or imply paper eligibility, broker readiness, live readiness, or capital deployment.
+
+The next focus is:
 
 ```text
-Sprint 131 — Strategy Review Evidence Reference Contract Foundation
+Sprint 132 — Strategy Lifecycle State Snapshot Foundation
 ```
 
 See:
@@ -163,7 +165,7 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 24 is **Strategy Review Workflow Foundation**.
 
-Sprint 130 plans this layer before implementation. The milestone should define:
+Sprint 131 added the first contract in this layer: explicit evidence references to completed M20–M23 governance artifacts. The next sprint should define caller-supplied lifecycle state snapshots without adding mutable state, persistence, or a state-machine service.
 
 - typed references to completed M20–M23 governance records
 - immutable caller-supplied lifecycle state snapshots
