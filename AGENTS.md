@@ -98,7 +98,9 @@ Sprint 126 added caller-supplied report sections with explicit report source ref
 
 Sprint 127 added caller-supplied report artifact summaries that group explicit report sections without automatic metric calculation, recommendation, ranking, dashboards, reports, workflow execution, broker behavior, or readiness claims.
 
-The next focus is Sprint 128 — Report Manifest and References Foundation. It should add local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
+Sprint 128 added local report artifact reference and manifest contracts for explicit `ReportArtifactSummary` IDs without file I/O, database behavior, persistence, rendering, dashboards, report engines, artifact loading, discovery, scoring, ranking, workflow execution, broker behavior, or readiness claims.
+
+The next focus is Sprint 129 — Milestone 23 Documentation Refresh and Closeout.
 
 ## Implementation Sprint Issue Requirements
 

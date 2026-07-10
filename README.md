@@ -44,13 +44,15 @@ report source reference contract -> report section contract -> report artifact s
 
 The broader platform direction is to build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 
+Sprint 128 is complete. It added local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
+
 The next focus is:
 
 ```text
-Sprint 128 — Report Manifest and References Foundation
+Sprint 129 — Milestone 23 Documentation Refresh and Closeout
 ```
 
-Sprint 128 should add local report manifest and reference contracts without file I/O, database behavior, dashboards, report engines, workflow execution, broker behavior, or readiness claims.
+Sprint 129 should close Milestone 23 through documentation only without expanding runtime scope.
 
 See the milestone summaries in:
 
@@ -145,6 +147,7 @@ docs/strategy/future-platform-roadmap.md
   - typed report source references for completed governance records and manifests
   - caller-supplied report sections with explicit source references
   - caller-supplied report artifact summaries that group explicit report sections
+  - local report artifact manifests containing explicit summary references
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -153,7 +156,7 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 23 is in progress after the completed decision-governance layer.
 
-The next implementation sprint should add local report manifest and reference contracts on top of report artifact summaries.
+Sprint 128 adds local report manifest and reference contracts on top of report artifact summaries. These contracts only group explicit references; they do not read, write, load, render, discover, score, rank, or execute anything.
 
 Milestone 23 must not add automatic approval, automatic promotion, automatic decision making, automatic evidence discovery, broker integration, order routing, live execution, capital allocation, dashboards, broad report generation, report rendering pipelines, database behavior, hosted service behavior, SaaS behavior, or real-money readiness claims.
 
@@ -285,7 +288,7 @@ el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 
 The configured workflow currently supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, can run the local configured paper workflow, and can record paper output references in metadata and manifest files. It does not integrate portfolio construction.
 
-The next step is Sprint 128, not to automate evidence discovery, strategy approval, paper execution, report generation, broker behavior, or live readiness.
+The next step after Sprint 128 is the Milestone 23 documentation closeout, not evidence discovery, strategy approval, paper execution, report generation, broker behavior, or live readiness.
 
 ## Module Overview
 
