@@ -79,7 +79,7 @@ Milestone 22 — Decision Governance Foundation is complete.
 
 Milestone 23 — Report Artifact Foundation is complete.
 
-Sprint 130 plans **Milestone 24 — Strategy Review Workflow Foundation** as a contract-only, human-controlled lifecycle-governance layer.
+Sprint 130 planned **Milestone 24 — Strategy Review Workflow Foundation** as a contract-only, human-controlled lifecycle-governance layer.
 
 The planned Milestone 24 chain is:
 
@@ -106,10 +106,12 @@ There is no implicit initial state, no automatic mapping from decision statuses,
 
 Milestone 24 remains local and contract-only. It must not add mutable state storage, a transition executor, a generic state-machine or workflow engine, automatic decisions, evidence discovery or loading, paper execution, configured workflow changes, broker/live behavior, capital deployment, databases, hosted orchestration, or readiness claims.
 
-After the founder merges the Sprint 130 planning PR, the proposed next focus is:
+Sprint 131 added explicit strategy-review evidence references to completed M20–M23 governance artifacts. These are pointers only: they do not inspect payloads, infer lifecycle state, propose or execute transitions, or imply readiness.
+
+The next focus is:
 
 ```text
-Sprint 131 — Strategy Review Evidence Reference Contract Foundation
+Sprint 132 — Strategy Lifecycle State Snapshot Foundation
 ```
 
 ## Implementation Sprint Issue Requirements

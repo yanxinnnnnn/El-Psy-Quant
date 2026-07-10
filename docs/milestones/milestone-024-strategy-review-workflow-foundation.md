@@ -2,9 +2,9 @@
 
 ## Status
 
-Planned.
+In progress.
 
-Sprint 130 defines the milestone scope, lifecycle vocabulary, transition semantics, evidence requirements, sprint sequence, and guardrails before implementation begins.
+Sprint 130 defined the milestone scope, lifecycle vocabulary, transition semantics, evidence requirements, sprint sequence, and guardrails. Sprint 131 added the first evidence-reference contract.
 
 ## Product Goal
 
@@ -174,8 +174,8 @@ Milestone 22 decision statuses must not be automatically mapped to lifecycle sta
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
-| S130 | Planning | Plan Milestone 24. | Scope, lifecycle vocabulary, transition matrix, evidence rules, sprint sequence, and guardrails. | Documentation only; no runtime behavior. |
-| S131 | Planned | Define strategy review evidence references. | Small typed references to completed M20–M23 governance records and manifests. | No discovery, loading, parsing, scoring, ranking, or workflow execution. |
+| S130 | Complete | Plan Milestone 24. | Scope, lifecycle vocabulary, transition matrix, evidence rules, sprint sequence, and guardrails. | Documentation only; no runtime behavior. |
+| S131 | Complete | Define strategy review evidence references. | Small typed pointers to completed M20–M23 governance records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
 | S132 | Planned | Define lifecycle state snapshots. | Explicit caller-supplied strategy review state snapshots using the approved vocabulary. | No implicit initial state, mutable state store, persistence, or state-machine service. |
 | S133 | Planned | Define lifecycle transition proposals. | Explicit from-state, target-state, rationale, evidence references, and requester context. | A proposal does not change state or approve anything. |
 | S134 | Planned | Add human-controlled lifecycle transition records. | Explicit reviewer outcome, rationale, approval context, and declared resulting-state reference. | No automatic approval, transition execution, paper execution, broker behavior, or readiness claim. |
@@ -285,7 +285,9 @@ Milestone 24 is complete only when:
 ## Next Step
 
 ```text
-Sprint 131 — Strategy Review Evidence Reference Contract Foundation
+Sprint 132 — Strategy Lifecycle State Snapshot Foundation
 ```
 
-Sprint 131 should define the smallest useful typed references to completed M20–M23 governance records. It must not discover or load artifacts, calculate metrics, score or rank strategies, infer lifecycle state, execute transitions, run workflows, add broker behavior, or claim live readiness.
+Sprint 131 added the smallest useful typed pointers to completed M20–M23 governance records. They do not discover, load, parse, validate, score, rank, or evaluate artifacts; declare lifecycle states; propose, approve, reject, or execute transitions; or imply paper eligibility, broker readiness, live readiness, or capital deployment.
+
+Sprint 132 should define explicit caller-supplied lifecycle state snapshots without implicit state, mutable storage, persistence, or a state-machine service.

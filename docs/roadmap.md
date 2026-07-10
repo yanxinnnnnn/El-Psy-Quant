@@ -42,7 +42,7 @@ flowchart LR
     M20 --> M21["Milestone 21<br/>Paper Run Comparison and Review Foundation<br/>Sprints 110-116 ✅"]
     M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117-123 ✅"]
     M22 --> M23["Milestone 23<br/>Report Artifact Foundation<br/>Sprints 124-129 ✅"]
-    M23 --> M24["Milestone 24<br/>Strategy Review Workflow Foundation<br/>Sprints 130-136 planned"]
+    M23 --> M24["Milestone 24<br/>Strategy Review Workflow Foundation<br/>Sprints 130-136 🟡"]
 ```
 
 ## Milestone Table
@@ -72,7 +72,7 @@ flowchart LR
 | Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper runs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed locally. |
 | Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Complete | Define strategy-level decision governance above promotion and paper-review evidence. | Decision evidence, summaries, records, manifests, and references are explicit. |
 | Milestone 23 — Report Artifact Foundation | Sprints 124-129 | Complete | Package completed governance records into deterministic review artifacts. | Report sources, sections, summaries, references, and manifests are explicit without report-generation runtime behavior. |
-| Milestone 24 — Strategy Review Workflow Foundation | Sprints 130-136 | Planned | Define human-controlled lifecycle state and transition governance above completed M20–M23 records. | Evidence references, state snapshots, proposals, transition records, manifests, and guardrails are explicit without runtime lifecycle execution. |
+| Milestone 24 — Strategy Review Workflow Foundation | Sprints 130-136 | In Progress | Define human-controlled lifecycle state and transition governance above completed M20–M23 records. | Evidence references, state snapshots, proposals, transition records, manifests, and guardrails are explicit without runtime lifecycle execution. |
 
 ## Completed Milestone 20 — Research-to-Paper Promotion Foundation
 
@@ -157,7 +157,7 @@ docs/sprints/sprint-124-milestone-23-planning.md
 docs/sprints/sprint-129-milestone-023-documentation-refresh-and-closeout.md
 ```
 
-## Planned Milestone 24 — Strategy Review Workflow Foundation
+## Milestone 24 — Strategy Review Workflow Foundation
 
 Milestone 24 is contract-only and human-controlled.
 
@@ -175,8 +175,8 @@ Planned sequence:
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
-| S130 | Complete after planning PR merge | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
-| S131 | Planned | Define strategy review evidence references. | Typed references to completed M20–M23 governance records and manifests. | No discovery, loading, scoring, ranking, or workflow execution. |
+| S130 | Complete | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
+| S131 | Complete | Define strategy review evidence references. | Typed pointers to completed M20–M23 governance records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
 | S132 | Planned | Define lifecycle state snapshots. | Caller-supplied immutable state declarations. | No implicit initial state, mutable state store, persistence, or state-machine service. |
 | S133 | Planned | Define lifecycle transition proposals. | Explicit from-state, target-state, rationale, evidence, and requester context. | A proposal does not change state or approve anything. |
 | S134 | Planned | Add human-controlled lifecycle transition records. | Reviewer outcome, rationale, approval context, and resulting-state reference. | No automatic approval, transition execution, broker behavior, or readiness claim. |
@@ -205,10 +205,10 @@ docs/sprints/sprint-130-milestone-24-planning.md
 
 ## Future Platform Direction
 
-The proposed next step after the founder merges the Sprint 130 planning PR is:
+Sprint 131 is complete. The next step is:
 
 ```text
-Sprint 131 — Strategy Review Evidence Reference Contract Foundation
+Sprint 132 — Strategy Lifecycle State Snapshot Foundation
 ```
 
 Longer-term phases remain:
@@ -251,9 +251,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 ## Current Next Step
 
 ```text
-Sprint 131 — Strategy Review Evidence Reference Contract Foundation
+Sprint 132 — Strategy Lifecycle State Snapshot Foundation
 ```
 
 Reason:
 
-Sprint 130 has planned Milestone 24 as a contract-only lifecycle-governance layer. After the founder merges the planning PR, Sprint 131 should define typed evidence references without discovering or loading artifacts, calculating metrics, scoring strategies, inferring state, executing transitions, running workflows, adding broker behavior, or claiming live readiness.
+Sprint 131 added typed evidence references without discovering or loading artifacts, parsing payloads, calculating metrics, scoring strategies, inferring state, executing transitions, running workflows, adding broker behavior, or claiming live readiness. Sprint 132 should add explicit caller-supplied lifecycle state snapshots without mutable state, persistence, or a state-machine service.
