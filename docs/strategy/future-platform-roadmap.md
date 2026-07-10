@@ -180,7 +180,7 @@ Guardrails preserved:
 
 ## Phase 3 — Decision Intelligence Foundation
 
-Status: Milestones 22 and 23 complete. Milestone 24 planning is next.
+Status: Milestones 22 and 23 complete. Milestone 24 is planned through Sprint 130; Sprint 131 is the proposed next implementation sprint after founder approval.
 
 This phase makes strategy decisions, review packages, and lifecycle governance explicit and reviewable.
 
@@ -256,48 +256,103 @@ Guardrails preserved:
 
 ### Milestone 24 — Strategy Review Workflow Foundation
 
-Status: Planned. Sprint 130 should plan this milestone before implementation begins.
+Status: Planned through Sprint 130.
 
-Candidate workflow direction:
+Milestone decision:
 
-```text
-candidate strategy
-  -> research review
-  -> paper review
-  -> decision gate
-  -> human-controlled lifecycle state
-```
+Milestone 24 is a contract-only, local, deterministic, human-controlled lifecycle-governance layer. It declares review states and records explicitly reviewed state changes without introducing runtime state mutation or workflow execution.
 
-Candidate lifecycle vocabulary may include:
+Planned chain:
 
 ```text
-draft
-  -> research_candidate
-  -> paper_candidate
-  -> watchlist
-  -> rejected
-  -> live_candidate
+strategy review evidence reference contract
+  -> strategy lifecycle state snapshot contract
+  -> lifecycle transition proposal contract
+  -> human-controlled lifecycle transition record
+  -> strategy review workflow manifest and references
+  -> strategy review workflow closeout
 ```
 
-These states are not approved implementation details yet. Sprint 130 must decide:
+Approved lifecycle vocabulary:
 
-- which lifecycle states are actually needed
-- which transitions are permitted
-- what evidence each transition requires
-- which transitions require explicit human approval
-- how existing promotion, paper-review, decision, and report-artifact records are referenced
-- whether the milestone is contract-only or includes a narrow local transition service
-- what remains explicitly outside scope
+```text
+research_review
+paper_review
+watchlist
+on_hold
+rejected
+```
+
+Semantics:
+
+- `research_review` means explicit research-level review only.
+- `paper_review` means explicit paper-evidence review only.
+- `watchlist` means active evidence monitoring without progression.
+- `on_hold` means the review lifecycle is intentionally paused.
+- `rejected` closes the current lifecycle path within Milestone 24.
+
+There is no implicit initial state. A lifecycle state exists only when explicitly declared by a caller-supplied state snapshot.
+
+Milestone 24 does not include `live_candidate`, `live_ready`, `approved_for_live`, or any equivalent state. Live-readiness semantics belong to a later dedicated milestone after risk and operational controls exist.
+
+Permitted transition matrix:
+
+```text
+research_review -> paper_review | watchlist | on_hold | rejected
+paper_review    -> research_review | watchlist | on_hold | rejected
+watchlist       -> research_review | paper_review | on_hold | rejected
+on_hold         -> research_review | paper_review | watchlist | rejected
+rejected        -> no transitions in Milestone 24
+```
+
+Transition boundary:
+
+- no self-transitions
+- no implicit transitions
+- no automatic transition application
+- a transition proposal does not change state
+- every accepted transition requires a separate explicit human-controlled transition record
+- rejected or deferred proposals leave the declared state unchanged
+- existing decision statuses are evidence, not automatic lifecycle mappings
+- reopening a rejected lifecycle path is outside Milestone 24
+
+Evidence boundary:
+
+- evidence references point to completed promotion, paper-review, decision-governance, and report-artifact records or manifests
+- every transition proposal includes at least one explicit strategy decision record reference
+- entry into `paper_review` additionally includes an explicit promotion record reference
+- report artifacts may provide review context but cannot authorize a transition by themselves
+- evidence references do not discover, load, parse, score, rank, or validate referenced artifacts
+- evidence sufficiency remains explicit human judgment
+
+Planned sprint sequence:
+
+| Sprint | Goal | Main Deliverable | Guardrail |
+|---:|---|---|---|
+| S130 | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
+| S131 | Define strategy review evidence references. | Typed references to completed M20–M23 records and manifests. | No discovery, loading, scoring, ranking, or workflow execution. |
+| S132 | Define lifecycle state snapshots. | Caller-supplied immutable state declarations. | No implicit initial state, mutable state store, persistence, or state-machine service. |
+| S133 | Define lifecycle transition proposals. | Explicit from-state, target-state, rationale, evidence, and requester context. | A proposal does not change state or approve anything. |
+| S134 | Add human-controlled lifecycle transition records. | Reviewer outcome, rationale, approval context, and resulting-state reference. | No automatic approval, transition execution, broker behavior, or readiness claim. |
+| S135 | Add workflow manifests and references. | Local references and manifests for state snapshots, proposals, and transition records. | No file I/O, database, hosted orchestration, dashboard, or workflow engine. |
+| S136 | Close Milestone 24. | Documentation refresh and closeout. | No scope expansion. |
 
 Planning guardrails:
 
+- no strategy lifecycle runtime execution
 - no automatic strategy state transitions
-- no autonomous approval, rejection, promotion, or capital allocation
+- no mutable current-state storage
+- no automatic mapping from decision statuses to lifecycle states
+- no autonomous approval, rejection, promotion, or reopening
 - no workflow execution from governance records
+- no generic state-machine or workflow engine
+- no scheduler, queue, event bus, or hosted orchestration
+- no artifact discovery, loading, scoring, ranking, or recommendation
+- no paper execution or configured workflow changes
 - no broker integration, live execution, or real-money behavior
 - no dashboard or hosted workflow product
 - no database-backed orchestration or SaaS behavior
-- no claim that `live_candidate` means live-ready or approved for capital deployment
+- no claim that a lifecycle state means live-ready or approved for capital deployment
 
 ### Milestone 25 — Portfolio-Level Decision Review Foundation
 
@@ -455,6 +510,10 @@ Every continue, pause, reject, promote-to-paper, and future promote-to-live deci
 
 Every review package should identify its source records, sections, assumptions, warnings, missing evidence, stable summary ID, and manifest references without implying automated reporting or readiness.
 
+### Strategy Review Lifecycle Memory
+
+Every declared strategy review state and every proposed or approved state change should be explicit, evidence-referenced, human-controlled, and auditable without implying runtime transition execution or live readiness.
+
 ### Risk Discipline
 
 The platform should slow down bad decisions and speed up good reviews.
@@ -482,10 +541,10 @@ SaaS before the decision pipeline is proven
 ## Current Next Step
 
 ```text
-Sprint 130 — Milestone 24 Planning
+Sprint 131 — Strategy Review Evidence Reference Contract Foundation
 ```
 
-Sprint 130 should plan the Strategy Review Workflow Foundation. It should define scope, lifecycle semantics, transition boundaries, evidence requirements, human approval requirements, sprint sequence, and exclusions before implementation begins.
+After the founder merges the Sprint 130 planning PR, Sprint 131 should define the smallest useful typed references to completed M20–M23 governance records. It must not discover or load artifacts, calculate metrics, score or rank strategies, infer lifecycle state, execute transitions, run workflows, add broker behavior, or claim live readiness.
 
 ## One-Line Strategy
 
