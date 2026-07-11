@@ -112,10 +112,12 @@ Sprint 132 added immutable caller-supplied lifecycle state snapshots using the a
 
 Sprint 133 added immutable caller-supplied transition proposals with the exact permitted-pair matrix and minimum evidence-reference type rules. Proposals remain non-approving, non-executing, non-mutating, and do not create resulting snapshots or imply readiness.
 
+Sprint 134 added immutable caller-supplied human-review transition records with exactly `approved`, `rejected`, and `deferred` outcomes. Approved records require a separately supplied matching resulting snapshot; rejected and deferred records prohibit one. Records are governance evidence only and do not execute transitions, mutate or make snapshots current, map decision statuses automatically, or imply paper execution, broker/live readiness, or capital deployment.
+
 The next focus is:
 
 ```text
-Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
+Sprint 135 — Strategy Review Workflow Manifest and Reference Foundation
 ```
 
 ## Implementation Sprint Issue Requirements
