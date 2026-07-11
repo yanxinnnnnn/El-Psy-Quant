@@ -70,7 +70,7 @@ Sprint 131 added explicit typed pointers to completed M20–M23 governance artif
 The next focus is:
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
 See:

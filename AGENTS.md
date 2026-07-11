@@ -113,7 +113,7 @@ Sprint 132 added immutable caller-supplied lifecycle state snapshots using the a
 The next focus is:
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
 ## Implementation Sprint Issue Requirements

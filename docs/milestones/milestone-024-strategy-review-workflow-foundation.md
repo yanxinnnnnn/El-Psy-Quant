@@ -285,7 +285,7 @@ Milestone 24 is complete only when:
 ## Next Step
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
 Sprint 131 added the smallest useful typed pointers to completed M20–M23 governance records. They do not discover, load, parse, validate, score, rank, or evaluate artifacts; declare lifecycle states; propose, approve, reject, or execute transitions; or imply paper eligibility, broker readiness, live readiness, or capital deployment.

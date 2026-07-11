@@ -208,7 +208,7 @@ docs/sprints/sprint-130-milestone-24-planning.md
 Sprint 132 is complete. The next step is:
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
 Longer-term phases remain:
@@ -251,7 +251,7 @@ Phase 5 — Controlled Live Pilot & Production Operations
 ## Current Next Step
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
 Reason:
