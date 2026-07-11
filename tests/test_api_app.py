@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.testclient import TestClient
 
+from el_psy_quant import __version__
 from el_psy_quant.api.app import app, create_app
 from el_psy_quant.api.middleware import REQUEST_ID_HEADER
 from el_psy_quant.api.schemas import ApiErrorResponse, HealthResponse
@@ -23,7 +24,7 @@ def test_application_factory_returns_independent_fastapi_instances() -> None:
     assert first is not second
     assert isinstance(app, FastAPI)
     assert first.title == "el-psy-quant"
-    assert first.version == "0.1.0"
+    assert first.version == __version__ == "0.1.0"
 
 
 def test_application_has_no_startup_or_shutdown_dependencies() -> None:
@@ -107,6 +108,7 @@ def test_unsupported_method_uses_stable_method_not_allowed_envelope() -> None:
         "code": "method_not_allowed",
         "message": "Method Not Allowed",
     }
+    assert "GET" in response.headers["allow"].split(", ")
     _assert_error_request_id(response)
 
 

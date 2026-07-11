@@ -1,5 +1,6 @@
 """Small explicit exception-to-API translation boundary."""
 
+from collections.abc import Mapping
 from http import HTTPStatus
 from uuid import uuid4
 
@@ -23,8 +24,11 @@ def _error_response(
     status_code: int,
     code: str,
     message: str,
+    headers: Mapping[str, str] | None = None,
 ) -> JSONResponse:
     request_id = _request_id(request)
+    response_headers = dict(headers or {})
+    response_headers[REQUEST_ID_HEADER] = request_id
     body = ApiErrorResponse(
         error=ApiError(code=code, message=message),
         request_id=request_id,
@@ -32,7 +36,7 @@ def _error_response(
     return JSONResponse(
         status_code=status_code,
         content=body.model_dump(),
-        headers={REQUEST_ID_HEADER: request_id},
+        headers=response_headers,
     )
 
 
@@ -55,6 +59,7 @@ async def http_exception_handler(
         status_code=exception.status_code,
         code=code,
         message=message,
+        headers=exception.headers,
     )
 
 
