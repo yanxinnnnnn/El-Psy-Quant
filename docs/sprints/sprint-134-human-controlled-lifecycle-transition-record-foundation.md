@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete after this implementation PR is merged.
+Complete.
 
 ## Objective
 
