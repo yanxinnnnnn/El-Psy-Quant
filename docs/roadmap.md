@@ -23,8 +23,9 @@ flowchart LR
     M1["M1-M8<br/>Research Workflow Foundations ✅"] --> M9["M9-M15<br/>Quality, Portfolio & Execution Realism ✅"]
     M9 --> M16["M16-M19<br/>Paper Trading & Configured Workflow ✅"]
     M16 --> M20["M20-M24<br/>Governance & Review Workflow ✅"]
-    M20 --> M25["M25-M29<br/>Founder Paper Productization 🟡"]
-    M25 --> M30["M30+<br/>Portfolio Decisions & Execution Readiness"]
+    M20 --> M25["M25<br/>Productization Planning ✅"]
+    M25 --> M26["M26-M29<br/>Founder Paper Productization 🟡"]
+    M26 --> M30["M30+<br/>Portfolio Decisions & Execution Readiness"]
 ```
 
 ## Milestone Table
@@ -55,11 +56,11 @@ flowchart LR
 | M22 — Decision Governance Foundation | S117-123 | Complete | Strategy-level human decisions. | Decision evidence, summaries, records, and manifests are explicit. |
 | M23 — Report Artifact Foundation | S124-129 | Complete | Deterministic review packaging. | Report sources, sections, summaries, references, and manifests are explicit. |
 | M24 — Strategy Review Workflow Foundation | S130-136 | Complete | Human-controlled lifecycle governance. | States, proposals, transition records, references, manifests, and guardrails are explicit without runtime lifecycle execution. |
-| M25 — Paper Trading Productization Planning | TBD | Next | Plan the founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
-| M26 — Paper Trading Application Service Foundation | TBD | Planned | Add the application-service boundary. | Existing domain capabilities are exposed through a small local API without broker behavior. |
-| M27 — Persistence and Paper Job Control Foundation | TBD | Planned | Add product persistence and controllable local jobs. | Product entities and paper jobs are durable, inspectable, and manually controlled. |
-| M28 — Founder Paper Trading Web Workspace | TBD | Planned | Deliver a usable founder UI. | The founder can inspect strategies and operate paper workflows locally. |
-| M29 — Product Feedback and Hardening | TBD | Planned | Improve usability and reliability. | Founder feedback is incorporated and the local product is hardened. |
+| M25 — Paper Trading Productization Planning | S137 | Complete after merge | Founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
+| M26 — Paper Trading Application Service Foundation | S138-144 | Next | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
+| M27 — Persistence and Paper Job Control Foundation | S145-151 | Planned | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
+| M28 — Founder Paper Trading Web Workspace | S152-159 | Planned | Deliver the first usable Founder Web MVP. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary. |
+| M29 — Product Feedback and Hardening | S160-165 | Planned | Improve usability and reliability from real usage. | Founder feedback is incorporated and the local product is reliable enough for daily use. |
 | M30 — Portfolio-Level Decision Review Foundation | TBD | Deferred | Resume portfolio-level strategy review. | Portfolio impact and concentration are included in human decisions. |
 
 ## Completed Milestone 24 — Strategy Review Workflow Foundation
@@ -106,32 +107,96 @@ docs/milestones/milestone-024-strategy-review-workflow-foundation.md
 docs/sprints/sprint-136-milestone-24-closeout-and-productization-pivot.md
 ```
 
-## Productization Pivot
+## Completed Milestone 25 — Paper Trading Productization Planning
 
-The project now has deep foundations for research, paper trading, persistence, review, decisions, reporting, and lifecycle governance. The highest-value next move is to make those capabilities usable through a coherent founder product rather than adding another abstract contract layer.
+Milestone 25 converts the productization pivot into an explicit implementation plan.
 
-Provisional sequence:
+Approved product architecture:
 
 ```text
-M25 — Paper Trading Productization Planning
-M26 — Paper Trading Application Service Foundation
-M27 — Persistence and Paper Job Control Foundation
-M28 — Founder Paper Trading Web Workspace
-M29 — Product Feedback and Hardening
-M30 — Portfolio-Level Decision Review Foundation
+Browser
+  -> React/Next.js founder workspace
+  -> FastAPI application API
+  -> thin application services / use cases
+  -> existing domain modules and artifact readers
+  -> SQLite product repositories and simple local job runner
 ```
 
-Portfolio-level review is deferred, not canceled.
+Critical ownership decisions:
+
+- existing domain modules remain authoritative for financial and governance rules
+- existing artifact files remain authoritative for completed outputs
+- SQLite stores product metadata and references rather than silently duplicating full artifact payloads
+- lifecycle current state is derived from immutable snapshots and approved human records
+- paper job status is separate mutable operational state
+- the browser uses the API and never directly accesses the database, filesystem, Python modules, QMT, or a broker
+
+### M26 Sprint Sequence
+
+| Sprint | Deliverable |
+|---:|---|
+| S138 | Application Service and API Skeleton |
+| S139 | Strategy Catalog and Detail Read Services |
+| S140 | Research and Backtest Artifact Inspection Services |
+| S141 | Governance, Report, and Lifecycle Evidence Inspection Services |
+| S142 | Paper Run Application Command Boundary |
+| S143 | Lifecycle Proposal and Human Review Application Commands |
+| S144 | Milestone 26 Closeout |
+
+### M27 Sprint Sequence
+
+| Sprint | Deliverable |
+|---:|---|
+| S145 | SQLite and SQLAlchemy Product Persistence Foundation |
+| S146 | Artifact Index and Product Repository Foundation |
+| S147 | Durable Paper Job Record and Submission Foundation |
+| S148 | Simple Local Paper Job Runner and Manual Control |
+| S149 | Job Recovery, Idempotency, and Error Audit Foundation |
+| S150 | Durable Job API and Result Reference Integration |
+| S151 | Milestone 27 Closeout |
+
+### M28 Sprint Sequence
+
+| Sprint | Deliverable |
+|---:|---|
+| S152 | Next.js Workspace Shell and API Client Foundation |
+| S153 | Strategy List, Detail, Research, and Backtest Views |
+| S154 | Governance Evidence and Report Artifact Views |
+| S155 | Paper Run Launch and Status Workspace |
+| S156 | Equity, Positions, Orders, and Fills Views |
+| S157 | Paper Run Comparison Workspace |
+| S158 | Lifecycle Proposal, Human Review, and Timeline Workspace |
+| S159 | Minimal Authentication, Docker Compose, and End-to-End MVP Closeout |
+
+### M29 Sprint Sequence
+
+| Sprint | Deliverable |
+|---:|---|
+| S160 | Founder Usage Review and Hardening Prioritization |
+| S161 | Workflow and Information Architecture Hardening |
+| S162 | Reliability, Idempotency, and Job Recovery Hardening |
+| S163 | Error Surface, Observability, and Audit Hardening |
+| S164 | Migration, Test, and Local Deployment Hardening |
+| S165 | Milestone 29 Closeout and M30 Handoff |
+
+See:
+
+```text
+docs/milestones/milestone-025-paper-trading-productization-planning.md
+docs/sprints/sprint-137-milestone-25-paper-trading-productization-planning.md
+```
 
 ## Founder Product Target
 
-The first product should be local and single-user. It should support:
+The first product is local, Founder-only, single-user or minimally authenticated, and Paper Trading only.
+
+It supports:
 
 - strategy list and detail
 - research and backtest inspection
 - governance evidence and report-artifact inspection
-- starting and reviewing paper runs
-- paper status, equity, positions, orders, and fills
+- paper-run launch and status
+- equity, positions, orders, and fills
 - paper-run comparison
 - lifecycle proposals and human transition records
 - lifecycle timeline
@@ -147,7 +212,7 @@ Docker Compose / local-first
 single-user or minimal authentication
 ```
 
-Explicitly defer microservices, Kubernetes, Kafka, Redis clusters, multi-tenancy, complex RBAC, real-time dashboards, and broker integration.
+Explicitly defer microservices, Kubernetes, Kafka, Redis clusters, distributed queues, multi-tenancy, complex RBAC, cloud SaaS hosting, broad real-time dashboards, broker integration, automatic lifecycle transitions, automatic capital allocation, and real-money trading.
 
 ## Future Execution Direction
 
@@ -178,13 +243,15 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 8. A proposal is not an action and an approval record is not runtime execution.
 9. Productization should wrap stable domain capabilities rather than rewrite them.
 10. Start with one founder and one local deployment before multi-user or cloud complexity.
-11. Broker-specific concerns must remain behind adapters.
-12. Real capital requires separate risk, operational, and live-readiness governance.
+11. Existing artifact files remain authoritative; product persistence should index and operate around them.
+12. Operational paper-job state must remain separate from strategy lifecycle governance.
+13. Broker-specific concerns must remain behind adapters.
+14. Real capital requires separate risk, operational, and live-readiness governance.
 
 ## Current Next Step
 
 ```text
-Milestone 25 — Paper Trading Productization Planning
+Sprint 138 — Application Service and API Skeleton
 ```
 
-M25 is planning-only. It should define the founder journeys, application boundary, product data model, API surface, persistence ownership, job-control semantics, UI scope, deployment shape, security baseline, and sprint sequence for M26-M29.
+Sprint 138 begins Milestone 26 and should be created as a separate Codex implementation issue only after the Founder merges the Sprint 137 planning PR.
