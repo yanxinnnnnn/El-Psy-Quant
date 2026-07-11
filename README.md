@@ -10,69 +10,82 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 
 ## Current Milestone Status
 
-Milestones 1–24 are complete.
+Milestones 1–25 are complete after the Sprint 137 planning PR is merged.
 
-The latest completed governance chain is **Milestone 24 — Strategy Review Workflow Foundation**:
+The latest completed milestone is **Milestone 25 — Paper Trading Productization Planning**.
+
+Milestone 25 defined the staged founder product architecture:
 
 ```text
-strategy review evidence reference contract
-  -> strategy lifecycle state snapshot contract
-  -> lifecycle transition proposal contract
-  -> human-controlled lifecycle transition record
-  -> strategy review workflow manifest and references
-  -> milestone closeout
+Browser
+  -> React/Next.js founder workspace
+  -> FastAPI application API
+  -> thin application services / use cases
+  -> existing El-Psy-Quant domain modules and artifact readers
+  -> SQLite product repositories and simple local job runner
 ```
 
-Milestone 24 added:
+Key ownership decisions:
 
-- typed pointers to completed M20–M23 governance artifacts
-- immutable caller-supplied lifecycle state snapshots
-- the exact five-state vocabulary: `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`
-- deterministic validation of the approved 16-pair transition matrix
-- non-executing transition proposals
-- explicit human-controlled records using `approved`, `rejected`, and `deferred`
-- compact stable-ID workflow references and immutable grouped manifests
-
-Milestone 24 remains contract-only. It does not provide mutable current-state storage, automatic transitions, automatic decision-status mapping, artifact loading or resolution, workflow execution, paper execution from governance records, broker behavior, live-readiness claims, capital deployment, databases, hosted orchestration, or dashboard runtime.
+- existing domain modules remain authoritative for quantitative and governance rules
+- API handlers and UI code must not duplicate domain logic
+- existing local artifact files remain authoritative
+- SQLite stores product indexes, references, jobs, operational status, and other product metadata rather than silently duplicating full artifact payloads
+- lifecycle current state is a derived read model from immutable snapshots and approved human records, not an independently authoritative mutable field
+- paper job status is separate mutable operational state
+- the browser uses the API and never directly accesses SQLite, artifact directories, Python modules, QMT, MiniQMT, or a broker
 
 ## Current Direction
 
 The next milestone is:
 
 ```text
-Milestone 25 — Paper Trading Productization Planning
+Milestone 26 — Paper Trading Application Service Foundation
 ```
 
-The provisional productization sequence is:
+The first implementation sprint is:
 
 ```text
-M25 — Paper Trading Productization Planning
-M26 — Paper Trading Application Service Foundation
-M27 — Persistence and Paper Job Control Foundation
-M28 — Founder Paper Trading Web Workspace
-M29 — Product Feedback and Hardening
-M30 — Portfolio-Level Decision Review Foundation
+Sprint 138 — Application Service and API Skeleton
 ```
 
-Portfolio-level decision review is deferred, not canceled.
+The approved productization sequence is:
 
-The first usable product target is a local, single-user founder workspace for operating and reviewing the platform’s existing paper-trading and governance capabilities.
+```text
+M25 — Paper Trading Productization Planning                 S137      Complete after merge
+M26 — Paper Trading Application Service Foundation          S138-S144 Next
+M27 — Persistence and Paper Job Control Foundation          S145-S151 Planned
+M28 — Founder Paper Trading Web Workspace                   S152-S159 Planned
+M29 — Product Feedback and Hardening                        S160-S165 Planned
+M30 — Portfolio-Level Decision Review Foundation                       Deferred, not canceled
+```
 
-Planned founder journeys include:
+M28 must deliver the first usable local Web MVP.
+
+M29 must use real founder workflows to harden usability, reliability, recovery, audit visibility, migrations, tests, and local deployment. After M29, the target is a local Paper Trading Web MVP reliable enough for daily Founder use.
+
+## Founder Product Target
+
+The first product is local-first, Founder-only, single-user or minimally authenticated, and Paper Trading only.
+
+Approved founder journeys:
 
 - strategy list and strategy detail
 - research and backtest inspection
 - governance evidence and report-artifact inspection
-- starting and reviewing paper runs
-- paper-run status, equity, positions, orders, and fills
+- starting a paper run
+- paper-run status
+- equity, positions, orders, and fills
 - paper-run comparison
-- lifecycle transition proposals and human review records
+- lifecycle transition proposals
+- human review records
 - lifecycle timeline
 
-Recommended future implementation direction:
+Recommended implementation direction:
 
 ```text
 FastAPI
+explicit request/response schemas
 SQLite + SQLAlchemy
 simple local background jobs
 React/Next.js
@@ -80,7 +93,21 @@ Docker Compose / local-first
 single-user or minimal authentication
 ```
 
-Premature microservices, Kubernetes, Kafka, Redis clusters, multi-tenancy, complex RBAC, real-time dashboards, and broker integration remain deferred.
+Explicitly deferred through the founder productization phase unless a separate roadmap decision changes the scope:
+
+- microservices
+- Kubernetes
+- Kafka
+- Redis clusters
+- distributed queues
+- multi-tenancy
+- complex RBAC
+- cloud SaaS hosting
+- broad real-time trading dashboards
+- broker integration
+- automatic lifecycle transitions
+- automatic strategy approval or capital allocation
+- real-money trading
 
 ## Future QMT Boundary
 
@@ -95,7 +122,18 @@ Browser
   -> broker
 ```
 
-QMT-specific behavior must not leak into strategy, evaluation, governance, or UI domain models. The browser must never connect directly to QMT, and no live QMT behavior should be added before dedicated execution-risk and live-readiness governance exists.
+Future broker-neutral execution concepts remain:
+
+```text
+OrderIntent
+ExecutionOrder
+ExecutionFill
+AccountSnapshot
+PositionSnapshot
+BrokerOrderReference
+```
+
+QMT-specific behavior must not leak into strategy, evaluation, governance, persistence, or UI domain models. The browser must never connect directly to QMT, and no live QMT behavior should be added before dedicated execution-risk and live-readiness governance exists.
 
 ## Current Capabilities
 
@@ -242,6 +280,10 @@ A report source reference is only a pointer. A report artifact is not a renderin
 ### Milestone 24 — Strategy Review Workflow Foundation
 
 A lifecycle state snapshot is an explicit declaration, not stored mutable state. A transition proposal is not an action. A transition record is human governance evidence, not a runtime executor. A workflow manifest is a local index, not a resolved chain.
+
+### Milestone 25 — Paper Trading Productization Planning
+
+Productization wraps existing domain capabilities rather than rewriting them. Product persistence must not become a competing source of artifact truth, and operational paper-job state must remain separate from human-controlled strategy lifecycle governance.
 
 ## Module Overview
 

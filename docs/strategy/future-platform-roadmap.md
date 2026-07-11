@@ -180,8 +180,6 @@ Report artifacts package completed governance records. They do not render dashbo
 
 Status: Complete.
 
-Completed chain:
-
 ```text
 strategy review evidence reference
   -> lifecycle state snapshot
@@ -222,133 +220,313 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Next.
+Status: Milestone 25 complete after the Sprint 137 planning PR is merged; Milestone 26 next.
 
-The platform now has enough domain depth. The next company-level objective is to make existing capabilities usable by the founder through a coherent local product.
+The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
 This phase is deliberately single-user and local-first. It is not a SaaS phase.
 
+### Approved Product Architecture
+
+```text
+Browser
+  -> React/Next.js founder workspace
+  -> FastAPI application API
+  -> thin application services / use cases
+  -> existing El-Psy-Quant domain modules and artifact readers
+  -> SQLite product repositories and simple local job runner
+```
+
+The implementation remains a modular monolith.
+
+Approved baseline:
+
+- FastAPI
+- explicit request and response schemas
+- SQLite + SQLAlchemy
+- repository boundaries
+- simple local background jobs
+- React/Next.js
+- Docker Compose / local-first deployment
+- single-user or minimal authentication
+
+### Product Target
+
+The first product is:
+
+- local-first
+- Founder-only
+- single-user or minimally authenticated
+- Paper Trading only
+- review-oriented rather than latency-oriented
+- built around existing research, paper, governance, report, and lifecycle capabilities
+
+It is not:
+
+- a live trading system
+- a broker integration project
+- a SaaS product
+- a multi-tenant platform
+- a professional real-time trading terminal
+- an automatic strategy approval or capital-allocation engine
+
+### Founder Journeys
+
+The staged product must support:
+
+- strategy list and strategy detail
+- research and backtest inspection
+- governance evidence and report-artifact inspection
+- paper-run launch and status
+- equity, positions, orders, and fills
+- paper-run comparison
+- lifecycle transition proposals
+- human review records
+- lifecycle timeline
+
+M28 must deliver the first usable Web MVP.
+
+M29 must use real founder workflows to harden usability, reliability, recovery, audit visibility, migrations, tests, and local deployment.
+
+### Product Ownership Boundaries
+
+#### Domain Authority
+
+Existing research, backtesting, paper, promotion, comparison, decision, report, and strategy-review modules remain authoritative for quantitative and governance behavior.
+
+The application and UI layers must not duplicate financial calculations, paper execution semantics, comparison logic, governance validation, lifecycle validation, or human-control rules.
+
+API route handlers remain thin and must not become a second domain layer.
+
+#### Artifact Authority
+
+Existing local artifact files remain authoritative for completed research, paper, comparison, governance, and report outputs.
+
+SQLite may store:
+
+- product indexes
+- explicit artifact references
+- paper job records
+- operational status and errors
+- idempotency data
+- minimal local authentication data
+
+SQLite must not silently copy complete artifact payloads and become a competing source of truth.
+
+Artifact paths must resolve only under configured local roots. Reject path traversal and arbitrary filesystem access.
+
+#### Lifecycle Authority
+
+Do not create an independently authoritative mutable strategy lifecycle `current_state` field.
+
+A current lifecycle view may be derived from immutable state snapshots and approved human transition records.
+
+A transition proposal remains non-executing. A human review record remains governance evidence. Neither silently mutates lifecycle state.
+
+#### Paper Job Authority
+
+Paper job status is mutable operational state and remains separate from strategy lifecycle governance.
+
+M27 may define durable local states equivalent to:
+
+```text
+queued
+running
+succeeded
+failed
+canceled
+```
+
+Exact transitions, retries, idempotency, recovery, and cancellation semantics belong in implementation issues. No distributed execution guarantees may be claimed.
+
+#### Browser Boundary
+
+The browser must use the Web/API boundary.
+
+The UI must not directly access:
+
+- SQLite
+- local artifact directories
+- Python domain modules
+- QMT
+- MiniQMT
+- any broker
+
+### API Baseline
+
+M26 should establish:
+
+- a versioned local API initially under `/api/v1`
+- explicit schemas instead of leaked internal Python objects
+- stable error responses
+- request IDs and job IDs where applicable
+- synchronous read operations
+- thin application commands over existing local domain behavior
+- no product database requirement
+- no background worker requirement
+- no broker behavior
+
+Long-running paper execution should move behind durable local job control in M27 rather than blocking Web requests indefinitely.
+
+### Persistence and Job-Control Baseline
+
+M27 should establish:
+
+- SQLite product persistence
+- SQLAlchemy repository boundaries
+- migration discipline
+- durable paper job records
+- idempotent paper-run submission
+- inspectable job errors
+- a simple in-process or local-process runner
+- explicit recovery and restart behavior
+- deterministic links from jobs to existing artifact outputs
+
+Do not introduce Kafka, Redis clusters, distributed queues, Kubernetes, or multi-service orchestration.
+
+### Security Baseline
+
+- Bind to loopback by default.
+- A loopback-only deployment may use a minimal single-user trust model.
+- Any non-loopback exposure must require authentication.
+- Do not introduce multi-tenancy or complex RBAC.
+- Use same-origin defaults and avoid broad CORS.
+- Do not expose arbitrary filesystem paths.
+- Do not log secrets, credentials, or authentication material.
+- Validate all user-supplied identifiers and paths at the application boundary.
+
+The exact minimal authentication mechanism is deferred to an M28 implementation issue.
+
+### Local Deployment Baseline
+
+- One local machine is the supported target through M29.
+- FastAPI and Next.js remain separate logical components without requiring distributed infrastructure.
+- Docker Compose may provide convenient startup in M28.
+- SQLite data and artifact roots use explicit local volumes or mounts.
+- The product remains operable without Kubernetes, cloud services, or external message brokers.
+
 ### Milestone 25 — Paper Trading Productization Planning
 
-Status: Next.
+Status: Complete after the Sprint 137 planning PR is merged.
 
-Purpose:
+Sprint:
 
-Define the product boundary and implementation sequence before building the application layer.
+```text
+S137 — Paper Trading Productization Planning
+```
 
-M25 should decide:
+M25 delivered:
 
-- primary founder journeys
-- application-service responsibilities
-- domain-to-API boundaries
-- product persistence ownership
-- local job-control semantics
-- UI information architecture
-- security and authentication baseline
-- local deployment model
-- observability and error-surface expectations
-- M26-M29 sprint sequence and exit criteria
+- explicit founder journeys and product non-goals
+- application, domain, artifact, persistence, lifecycle, paper-job, and UI ownership boundaries
+- API, security, authentication, and local deployment baselines
+- M26–M29 sprint sequences and milestone exit criteria
+- confirmation that M28 delivers the first Web MVP
+- confirmation that M29 is founder-feedback and hardening driven
+- preserved QMT and live-readiness boundaries
 
-M25 is planning-only. It must not implement FastAPI endpoints, database models, job workers, or web screens.
+M25 is documentation-only. It does not implement FastAPI endpoints, database models, job workers, Web screens, deployment files, authentication, QMT, or live behavior.
 
 ### Milestone 26 — Paper Trading Application Service Foundation
 
-Status: Planned.
+Status: Next.
 
-Purpose:
+Sprint sequence:
 
-Expose existing research, paper, comparison, decision, report, and lifecycle capabilities through a small local application-service boundary.
+```text
+S138 — Application Service and API Skeleton
+S139 — Strategy Catalog and Detail Read Services
+S140 — Research and Backtest Artifact Inspection Services
+S141 — Governance, Report, and Lifecycle Evidence Inspection Services
+S142 — Paper Run Application Command Boundary
+S143 — Lifecycle Proposal and Human Review Application Commands
+S144 — Milestone 26 Closeout
+```
 
-Recommended direction:
+Exit criteria:
 
-- FastAPI
-- explicit request/response schemas
-- thin application services over existing domain contracts
-- no broker integration
-- no domain logic duplicated in API handlers
-
-Initial API capabilities may include:
-
-- list and inspect strategies
-- inspect research/backtest artifacts
-- inspect governance and report artifacts
-- submit a local paper-run request
-- inspect paper-run results
-- create lifecycle proposals and human review records
+- a small local FastAPI application boundary exists
+- explicit API schemas and stable errors exist
+- strategies and existing artifacts are inspectable through application services
+- existing paper-run behavior is available through a thin command boundary
+- lifecycle proposals and human review records use existing domain contracts
+- no product database, background worker, Web UI, broker integration, or live behavior exists
 
 ### Milestone 27 — Persistence and Paper Job Control Foundation
 
 Status: Planned.
 
-Purpose:
+Sprint sequence:
 
-Add product-level durability and controllable local execution without turning the system into distributed infrastructure.
+```text
+S145 — SQLite and SQLAlchemy Product Persistence Foundation
+S146 — Artifact Index and Product Repository Foundation
+S147 — Durable Paper Job Record and Submission Foundation
+S148 — Simple Local Paper Job Runner and Manual Control
+S149 — Job Recovery, Idempotency, and Error Audit Foundation
+S150 — Durable Job API and Result Reference Integration
+S151 — Milestone 27 Closeout
+```
 
-Recommended direction:
+Exit criteria:
 
-- SQLite
-- SQLAlchemy
-- explicit repository boundaries
-- simple local background jobs
-- manually controllable job lifecycle
-- durable job status and errors
-- deterministic links to existing domain artifacts
-
-Do not introduce Kafka, distributed queues, Redis clusters, Kubernetes, or multi-service orchestration.
+- product metadata is durable in SQLite
+- existing artifacts remain authoritative and are linked by explicit references
+- paper-run submissions create durable inspectable jobs
+- a simple local runner executes and records jobs
+- restart, failure, idempotency, and manual-control behavior are documented and tested
+- no distributed infrastructure, broker integration, or Web UI exists
 
 ### Milestone 28 — Founder Paper Trading Web Workspace
 
 Status: Planned.
 
-Purpose:
+Sprint sequence:
 
-Deliver the first usable founder product.
+```text
+S152 — Next.js Workspace Shell and API Client Foundation
+S153 — Strategy List, Detail, Research, and Backtest Views
+S154 — Governance Evidence and Report Artifact Views
+S155 — Paper Run Launch and Status Workspace
+S156 — Equity, Positions, Orders, and Fills Views
+S157 — Paper Run Comparison Workspace
+S158 — Lifecycle Proposal, Human Review, and Timeline Workspace
+S159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
+```
 
-The workspace should support:
+Exit criteria:
 
-- strategy list and strategy detail
-- research and backtest inspection
-- governance evidence and report-artifact inspection
-- start paper run
-- paper-run status
-- equity, positions, orders, and fills
-- compare paper runs
-- lifecycle transition proposal
-- human review record
-- lifecycle timeline
-
-Recommended direction:
-
-- React/Next.js
-- clean founder-focused information architecture
-- Web/API separation
-- local-first operation
-- Docker Compose for convenient local startup
-- single-user or minimal authentication
-
-Do not build a broad real-time trading dashboard. Focus on reviewability and operation of existing paper workflows.
+- the Founder can use the first local Web MVP end to end
+- all approved founder journeys are available through the UI
+- the browser uses the API rather than direct filesystem or database access
+- local startup is documented and reproducible
+- authentication matches the approved local exposure model
+- no broad real-time terminal, broker integration, or live behavior exists
 
 ### Milestone 29 — Product Feedback and Hardening
 
 Status: Planned.
 
-Purpose:
+Sprint sequence:
 
-Use the founder workspace in real workflows and fix the highest-value usability, reliability, audit, and operational issues.
+```text
+S160 — Founder Usage Review and Hardening Prioritization
+S161 — Workflow and Information Architecture Hardening
+S162 — Reliability, Idempotency, and Job Recovery Hardening
+S163 — Error Surface, Observability, and Audit Hardening
+S164 — Migration, Test, and Local Deployment Hardening
+S165 — Milestone 29 Closeout and M30 Handoff
+```
 
-Expected focus:
+Exit criteria:
 
-- workflow friction
-- missing product state
-- error handling
-- idempotency
-- job recovery
-- audit visibility
-- migration discipline
-- test coverage across API, persistence, and UI boundaries
-- local deployment reliability
-
-This milestone should be driven by actual founder usage rather than speculative features.
+- actual founder usage produces a prioritized feedback record
+- high-value workflow friction is reduced
+- job recovery and idempotency are reliable for local use
+- product errors and audit information are visible and actionable
+- API, persistence, and UI boundaries have meaningful test coverage
+- local deployment is reliable enough for daily founder use
+- speculative features, broker work, and live behavior remain excluded
 
 ## Phase 5 — Portfolio Decisions & Execution Governance
 
@@ -442,7 +620,7 @@ qmt_paper
 qmt_live
 ```
 
-QMT must not leak into strategy, evaluation, governance, or UI domain models.
+QMT must not leak into strategy, evaluation, governance, persistence, or UI domain models.
 
 Required future concerns include:
 
@@ -487,11 +665,13 @@ Guardrails:
 3. Prefer one application service before microservices.
 4. Prefer SQLite before a larger database unless real usage proves otherwise.
 5. Prefer simple local jobs before distributed queues.
-6. Keep UI state separate from financial domain truth.
-7. Keep broker-specific behavior behind adapters.
-8. Treat auditability and human review as product features.
-9. Make failure states visible rather than hiding them behind automation.
-10. Delay multi-tenancy, complex RBAC, cloud orchestration, and SaaS behavior.
+6. Keep existing artifact files authoritative.
+7. Keep operational paper-job state separate from strategy lifecycle governance.
+8. Keep UI state separate from financial domain truth.
+9. Keep broker-specific behavior behind adapters.
+10. Treat auditability and human review as product features.
+11. Make failure states visible rather than hiding them behind automation.
+12. Delay multi-tenancy, complex RBAC, cloud orchestration, and SaaS behavior.
 
 ## Core Assets To Preserve
 
@@ -513,7 +693,7 @@ Every review package, declared state, proposal, transition record, and manifest 
 
 ### Product Audit Trail
 
-Future application and web layers should make existing audit records easier to use, not replace them with opaque UI state.
+Future application and Web layers should make existing audit records easier to use, not replace them with opaque UI state.
 
 ### Execution Readiness
 
@@ -534,6 +714,7 @@ microservice architecture
 Kubernetes
 Kafka
 Redis clusters
+distributed queues
 multi-tenancy
 complex RBAC
 large cloud infrastructure
@@ -544,10 +725,10 @@ real-time dashboard complexity
 ## Current Next Step
 
 ```text
-Milestone 25 — Paper Trading Productization Planning
+Sprint 138 — Application Service and API Skeleton
 ```
 
-M25 should turn the productization direction into an explicit, reviewable architecture and sprint plan while preserving the local-first, human-controlled, non-live boundaries established by Milestones 1–24.
+Sprint 138 begins Milestone 26 and should be created as a separate Codex implementation issue only after the Founder merges the Sprint 137 planning PR.
 
 ## One-Line Strategy
 
