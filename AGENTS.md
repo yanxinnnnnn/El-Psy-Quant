@@ -70,7 +70,7 @@ docs/strategy/future-platform-roadmap.md
 
 ## Completed Foundations
 
-Milestones 18–25 are complete after the Sprint 137 planning PR is merged:
+Milestones 18–25 are complete:
 
 ```text
 M18 — Paper Trading Workflow Integration Foundation
@@ -89,16 +89,18 @@ Milestone 25 then defined how productization wraps those completed domain capabi
 
 ## Current Focus
 
-The next milestone is:
+The current milestone is:
 
 ```text
 Milestone 26 — Paper Trading Application Service Foundation
 ```
 
+Sprint 138 added the local FastAPI application factory, `/api/v1` boundary, process-health endpoint, server-owned request IDs, and stable sanitized error envelopes. It adds no application services, persistence, background jobs, Web UI, broker, QMT, live, or real-money behavior.
+
 The next sprint is:
 
 ```text
-Sprint 138 — Application Service and API Skeleton
+Sprint 139 — Strategy Catalog and Detail Read Services
 ```
 
 Approved productization sequence:

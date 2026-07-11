@@ -10,7 +10,7 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 
 ## Current Milestone Status
 
-Milestones 1–25 are complete after the Sprint 137 planning PR is merged.
+Milestones 1–25 are complete.
 
 The latest completed milestone is **Milestone 25 — Paper Trading Productization Planning**.
 
@@ -37,23 +37,23 @@ Key ownership decisions:
 
 ## Current Direction
 
-The next milestone is:
+The current milestone is:
 
 ```text
 Milestone 26 — Paper Trading Application Service Foundation
 ```
 
-The first implementation sprint is:
+Sprint 138 is complete. The next implementation sprint is:
 
 ```text
-Sprint 138 — Application Service and API Skeleton
+Sprint 139 — Strategy Catalog and Detail Read Services
 ```
 
 The approved productization sequence is:
 
 ```text
-M25 — Paper Trading Productization Planning                 S137      Complete after merge
-M26 — Paper Trading Application Service Foundation          S138-S144 Next
+M25 — Paper Trading Productization Planning                 S137      Complete
+M26 — Paper Trading Application Service Foundation          S138-S144 In progress
 M27 — Persistence and Paper Job Control Foundation          S145-S151 Planned
 M28 — Founder Paper Trading Web Workspace                   S152-S159 Planned
 M29 — Product Feedback and Hardening                        S160-S165 Planned
@@ -229,6 +229,14 @@ Run the complete quality gate used by GitHub Actions:
 uv run python scripts/check.py
 ```
 
+Run the local application API on loopback only:
+
+```bash
+uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
+```
+
+`create_app()` provides independent FastAPI instances, and all Sprint 138 routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
+
 ## Minimal Research Pipeline Example
 
 ```python
@@ -290,6 +298,7 @@ Productization wraps existing domain capabilities rather than rewriting them. Pr
 ```text
 el_psy_quant/
   cli.py         # Thin argparse entrypoint for local configured experiments
+  api/           # Local FastAPI factory, versioned routes, request IDs, and errors
   comparison.py  # Compare existing metrics from saved local experiment runs
   configured_paper.py # Configured local paper workflow runner
   configured_paper_references.py # Configured paper metadata and manifest references

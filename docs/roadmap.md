@@ -56,8 +56,8 @@ flowchart LR
 | M22 — Decision Governance Foundation | S117-123 | Complete | Strategy-level human decisions. | Decision evidence, summaries, records, and manifests are explicit. |
 | M23 — Report Artifact Foundation | S124-129 | Complete | Deterministic review packaging. | Report sources, sections, summaries, references, and manifests are explicit. |
 | M24 — Strategy Review Workflow Foundation | S130-136 | Complete | Human-controlled lifecycle governance. | States, proposals, transition records, references, manifests, and guardrails are explicit without runtime lifecycle execution. |
-| M25 — Paper Trading Productization Planning | S137 | Complete after merge | Founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
-| M26 — Paper Trading Application Service Foundation | S138-144 | Next | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
+| M25 — Paper Trading Productization Planning | S137 | Complete | Founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
+| M26 — Paper Trading Application Service Foundation | S138-144 | In progress | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
 | M27 — Persistence and Paper Job Control Foundation | S145-151 | Planned | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
 | M28 — Founder Paper Trading Web Workspace | S152-159 | Planned | Deliver the first usable Founder Web MVP. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary. |
 | M29 — Product Feedback and Hardening | S160-165 | Planned | Improve usability and reliability from real usage. | Founder feedback is incorporated and the local product is reliable enough for daily use. |
@@ -135,7 +135,7 @@ Critical ownership decisions:
 
 | Sprint | Deliverable |
 |---:|---|
-| S138 | Application Service and API Skeleton |
+| S138 | Application Service and API Skeleton. **Complete.** |
 | S139 | Strategy Catalog and Detail Read Services |
 | S140 | Research and Backtest Artifact Inspection Services |
 | S141 | Governance, Report, and Lifecycle Evidence Inspection Services |
@@ -251,7 +251,7 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 ## Current Next Step
 
 ```text
-Sprint 138 — Application Service and API Skeleton
+Sprint 139 — Strategy Catalog and Detail Read Services
 ```
 
-Sprint 138 begins Milestone 26 and should be created as a separate Codex implementation issue only after the Founder merges the Sprint 137 planning PR.
+Sprint 138 established the deterministic local FastAPI factory, `/api/v1` route boundary, process-only health contract, server-owned request IDs, and stable sanitized error envelopes. It added no strategy catalog, artifact inspection, paper commands, lifecycle commands, persistence, background jobs, Web UI, broker, QMT, or live behavior.
