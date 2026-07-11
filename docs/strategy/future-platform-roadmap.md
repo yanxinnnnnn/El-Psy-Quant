@@ -180,7 +180,7 @@ Guardrails preserved:
 
 ## Phase 3 — Decision Intelligence Foundation
 
-Status: Milestones 22 and 23 complete. Milestone 24 is in progress: Sprints 131–133 delivered evidence references, state snapshots, and transition proposals; Sprint 134 is next.
+Status: Milestones 22 and 23 complete. Milestone 24 is in progress: Sprints 131–134 delivered evidence references, state snapshots, transition proposals, and human-controlled transition records; Sprint 135 is next.
 
 This phase makes strategy decisions, review packages, and lifecycle governance explicit and reviewable.
 
@@ -256,7 +256,7 @@ Guardrails preserved:
 
 ### Milestone 24 — Strategy Review Workflow Foundation
 
-Status: In progress. Sprint 131 delivered the evidence-reference contract.
+Status: In progress through Sprint 134.
 
 Milestone decision:
 
@@ -333,7 +333,7 @@ Planned sprint sequence:
 | S131 | Define strategy review evidence references. **Complete.** | Typed pointers to completed M20–M23 records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
 | S132 | Define lifecycle state snapshots. **Complete.** | Caller-supplied immutable declarations using the five approved lifecycle states. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
 | S133 | Define lifecycle transition proposals. **Complete.** | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
-| S134 | Add human-controlled lifecycle transition records. | Reviewer outcome, rationale, approval context, and resulting-state reference. | No automatic approval, transition execution, broker behavior, or readiness claim. |
+| S134 | Add human-controlled lifecycle transition records. **Complete.** | Immutable caller-supplied records with `approved`, `rejected`, and `deferred` outcomes and conditional resulting snapshots. | Governance approval only; no execution, mutation, current-state behavior, or readiness claim. |
 | S135 | Add workflow manifests and references. | Local references and manifests for state snapshots, proposals, and transition records. | No file I/O, database, hosted orchestration, dashboard, or workflow engine. |
 | S136 | Close Milestone 24. | Documentation refresh and closeout. | No scope expansion. |
 
@@ -541,10 +541,10 @@ SaaS before the decision pipeline is proven
 ## Current Next Step
 
 ```text
-Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
+Sprint 135 — Strategy Review Workflow Manifest and Reference Foundation
 ```
 
-Sprint 133 added immutable caller-supplied proposals with exact permitted-pair validation and minimum evidence-reference rules. Proposals do not approve, reject, defer, execute, mutate snapshots, create resulting snapshots, or imply broker/live readiness or capital deployment.
+Sprint 134 added immutable caller-supplied human-review records with exactly `approved`, `rejected`, and `deferred` outcomes. Approved records require a separately supplied snapshot matching the proposal strategy and target state; rejected and deferred records prohibit one. Approval is governance evidence only. Records do not execute transitions, mutate proposals or snapshots, make snapshots current, map decision statuses automatically, or imply paper execution, broker/live readiness, or capital deployment.
 
 ## One-Line Strategy
 
