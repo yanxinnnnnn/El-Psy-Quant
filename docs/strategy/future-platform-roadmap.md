@@ -180,7 +180,7 @@ Guardrails preserved:
 
 ## Phase 3 — Decision Intelligence Foundation
 
-Status: Milestones 22 and 23 complete. Milestone 24 is in progress: Sprint 131 delivered evidence references, and Sprint 132 is the next planned implementation sprint.
+Status: Milestones 22 and 23 complete. Milestone 24 is in progress: Sprints 131 and 132 delivered evidence references and lifecycle state snapshots, and Sprint 133 is the next planned implementation sprint.
 
 This phase makes strategy decisions, review packages, and lifecycle governance explicit and reviewable.
 
@@ -331,7 +331,7 @@ Planned sprint sequence:
 |---:|---|---|---|
 | S130 | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
 | S131 | Define strategy review evidence references. **Complete.** | Typed pointers to completed M20–M23 records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
-| S132 | Define lifecycle state snapshots. | Caller-supplied immutable state declarations. | No implicit initial state, mutable state store, persistence, or state-machine service. |
+| S132 | Define lifecycle state snapshots. **Complete.** | Caller-supplied immutable declarations using the five approved lifecycle states. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
 | S133 | Define lifecycle transition proposals. | Explicit from-state, target-state, rationale, evidence, and requester context. | A proposal does not change state or approve anything. |
 | S134 | Add human-controlled lifecycle transition records. | Reviewer outcome, rationale, approval context, and resulting-state reference. | No automatic approval, transition execution, broker behavior, or readiness claim. |
 | S135 | Add workflow manifests and references. | Local references and manifests for state snapshots, proposals, and transition records. | No file I/O, database, hosted orchestration, dashboard, or workflow engine. |
@@ -541,10 +541,10 @@ SaaS before the decision pipeline is proven
 ## Current Next Step
 
 ```text
-Sprint 132 — Strategy Lifecycle State Snapshot Foundation
+Sprint 133 — Lifecycle Transition Proposal Foundation
 ```
 
-Sprint 131 added the smallest useful typed pointers to completed M20–M23 governance records. They do not discover, load, parse, validate, score, rank, or evaluate artifacts; declare lifecycle states; propose, approve, reject, or execute transitions; or imply paper eligibility, broker readiness, live readiness, or capital deployment. Sprint 132 should define explicit caller-supplied lifecycle state snapshots without mutable state, persistence, or a state-machine service.
+Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots using exactly `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`. Snapshots have no implicit initial state, are not mutable current state, do not automatically map decision statuses, and do not request, approve, reject, validate, or execute transitions. `paper_review` does not imply broker readiness, live readiness, or capital deployment; `rejected` is terminal within Milestone 24, while transition enforcement belongs to Sprint 133.
 
 ## One-Line Strategy
 

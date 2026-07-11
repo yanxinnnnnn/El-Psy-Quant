@@ -108,10 +108,12 @@ Milestone 24 remains local and contract-only. It must not add mutable state stor
 
 Sprint 131 added explicit strategy-review evidence references to completed M20–M23 governance artifacts. These are pointers only: they do not inspect payloads, infer lifecycle state, propose or execute transitions, or imply readiness.
 
+Sprint 132 added immutable caller-supplied lifecycle state snapshots using the approved five-state vocabulary. Snapshots have no implicit initial state, are not mutable current state, do not automatically map decision statuses, and do not request, approve, reject, validate, or execute transitions.
+
 The next focus is:
 
 ```text
-Sprint 132 — Strategy Lifecycle State Snapshot Foundation
+Sprint 133 — Lifecycle Transition Proposal Foundation
 ```
 
 ## Implementation Sprint Issue Requirements

@@ -65,12 +65,12 @@ strategy review evidence reference contract
 
 Milestone 24 is contract-only. Its approved lifecycle vocabulary is limited to `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`. There is no implicit initial state, no automatic mapping from decision statuses, no automatic transition application, and no `live_candidate` or live-readiness state.
 
-Sprint 131 added explicit typed pointers to completed M20–M23 governance artifacts. These evidence references do not discover, load, parse, validate, score, rank, or evaluate artifacts; declare lifecycle states; propose, approve, reject, or execute transitions; or imply paper eligibility, broker readiness, live readiness, or capital deployment.
+Sprint 131 added explicit typed pointers to completed M20–M23 governance artifacts. Sprint 132 added immutable caller-supplied lifecycle state snapshots using exactly `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`. Snapshots have no implicit initial state, are not mutable current state, and do not request, approve, reject, validate, or execute transitions. Decision statuses are not mapped automatically; `paper_review` does not imply broker readiness, live readiness, or capital deployment.
 
 The next focus is:
 
 ```text
-Sprint 132 — Strategy Lifecycle State Snapshot Foundation
+Sprint 133 — Lifecycle Transition Proposal Foundation
 ```
 
 See:
@@ -165,7 +165,7 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 24 is **Strategy Review Workflow Foundation**.
 
-Sprint 131 added the first contract in this layer: explicit evidence references to completed M20–M23 governance artifacts. The next sprint should define caller-supplied lifecycle state snapshots without adding mutable state, persistence, or a state-machine service.
+Sprint 132 added the second contract in this layer: explicit immutable lifecycle state snapshots. The next sprint should define caller-supplied lifecycle transition proposals with deterministic permitted transition-pair validation, without approving or executing transitions.
 
 - typed references to completed M20–M23 governance records
 - immutable caller-supplied lifecycle state snapshots
