@@ -4,7 +4,7 @@
 
 In progress.
 
-Sprint 130 defined the milestone scope and guardrails. Sprints 131–134 added evidence references, immutable lifecycle state snapshots, non-executing transition proposals, and human-controlled transition records.
+Sprint 130 defined the milestone scope and guardrails. Sprints 131–135 added evidence references, immutable lifecycle state snapshots, non-executing transition proposals, human-controlled transition records, and compact workflow references and manifests.
 
 ## Product Goal
 
@@ -179,7 +179,7 @@ Milestone 22 decision statuses must not be automatically mapped to lifecycle sta
 | S132 | Complete | Define lifecycle state snapshots. | Explicit caller-supplied immutable declarations using the approved vocabulary. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
 | S133 | Complete | Define lifecycle transition proposals. | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
 | S134 | Complete | Add human-controlled lifecycle transition records. | Immutable caller-supplied records with `approved`, `rejected`, and `deferred` outcomes and conditional resulting snapshots. | Governance approval only; no execution, mutation, current-state behavior, or readiness claim. |
-| S135 | Planned | Add workflow manifests and references. | Local references and manifests for state snapshots, proposals, and transition records. | No file I/O, database, hosted orchestration, dashboard, or workflow engine. |
+| S135 | Complete | Add workflow manifests and references. | Compact stable-ID pointers and immutable grouped manifests for snapshots, proposals, and records. | No resolution, chain validation, file I/O, persistence, state mutation, or workflow execution. |
 | S136 | Planned | Close Milestone 24. | Documentation refresh and closeout. | No scope expansion. |
 
 ## Included Capabilities
@@ -285,7 +285,7 @@ Milestone 24 is complete only when:
 ## Next Step
 
 ```text
-Sprint 135 — Strategy Review Workflow Manifest and Reference Foundation
+Sprint 136 — Milestone 24 Closeout
 ```
 
 Sprint 131 added the smallest useful typed pointers to completed M20–M23 governance records. They do not discover, load, parse, validate, score, rank, or evaluate artifacts; declare lifecycle states; propose, approve, reject, or execute transitions; or imply paper eligibility, broker readiness, live readiness, or capital deployment.
@@ -295,3 +295,5 @@ Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots. T
 Sprint 133 added immutable caller-supplied transition proposals with deterministic permitted transition-pair validation. Proposals remain non-approving, non-executing, and non-mutating.
 
 Sprint 134 added immutable caller-supplied human-review records. Approved records require a separately supplied snapshot matching the proposal strategy and target state; rejected and deferred records must not contain one. Approval is governance evidence only. Records do not execute transitions, mutate proposals or snapshots, make snapshots current, map decision statuses automatically, or imply paper execution, broker/live readiness, or capital deployment.
+
+Sprint 135 added compact typed stable-ID references to lifecycle state snapshots, transition proposals, and transition records plus immutable grouped manifests. Reference order and duplicates are preserved, manifests may be partial, and only one reference total is required. This layer does not load or resolve artifacts, validate artifact existence or chain completeness, mutate state, make snapshots current, execute transitions, persist data, run paper workflows, or imply broker/live readiness or capital deployment.

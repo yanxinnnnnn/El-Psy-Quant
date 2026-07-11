@@ -65,12 +65,12 @@ strategy review evidence reference contract
 
 Milestone 24 is contract-only. Its approved lifecycle vocabulary is limited to `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`. There is no implicit initial state, no automatic mapping from decision statuses, no automatic transition application, and no `live_candidate` or live-readiness state.
 
-Sprint 131 added explicit typed pointers to completed M20–M23 governance artifacts. Sprint 132 added immutable caller-supplied lifecycle state snapshots, and Sprint 133 added non-executing transition proposals. Sprint 134 added immutable caller-supplied human-review records with exactly `approved`, `rejected`, and `deferred` outcomes. Approved records require a separately supplied snapshot matching the proposal strategy and target state; rejected and deferred records prohibit one. Approval is governance evidence only: records do not execute transitions, mutate proposals or snapshots, make snapshots current, map decision statuses automatically, or imply paper execution, broker/live readiness, or capital deployment.
+Sprints 131–134 added evidence pointers, immutable state snapshots, non-executing proposals, and human-controlled transition records. Sprint 135 added compact typed pointers to snapshots, proposals, and records plus immutable grouped manifests. Reference order and duplicates are caller-supplied and preserved; a manifest may be partial and requires only one reference total. References and manifests do not discover, load, resolve, parse, inspect, score, rank, validate chain completeness or artifact existence, mutate state, make snapshots current, execute transitions, persist data, run paper workflows, or imply broker/live readiness or capital deployment.
 
 The next focus is:
 
 ```text
-Sprint 135 — Strategy Review Workflow Manifest and Reference Foundation
+Sprint 136 — Milestone 24 Closeout
 ```
 
 See:

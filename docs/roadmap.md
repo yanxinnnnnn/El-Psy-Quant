@@ -180,7 +180,7 @@ Planned sequence:
 | S132 | Complete | Define lifecycle state snapshots. | Caller-supplied immutable declarations using the five approved lifecycle states. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
 | S133 | Complete | Define lifecycle transition proposals. | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
 | S134 | Complete | Add human-controlled lifecycle transition records. | Immutable caller-supplied records with `approved`, `rejected`, and `deferred` outcomes and conditional resulting snapshots. | Governance approval only; no execution, mutation, current-state behavior, or readiness claim. |
-| S135 | Planned | Add workflow manifests and references. | Local references and manifests for state snapshots, proposals, and transition records. | No file I/O, database, hosted orchestration, dashboard, or workflow engine. |
+| S135 | Complete | Add workflow manifests and references. | Compact stable-ID pointers and immutable grouped manifests for snapshots, proposals, and records. | No resolution, chain validation, file I/O, persistence, state mutation, or workflow execution. |
 | S136 | Planned | Close milestone. | Documentation refresh and closeout. | No scope expansion. |
 
 Planned chain:
@@ -205,10 +205,10 @@ docs/sprints/sprint-130-milestone-24-planning.md
 
 ## Future Platform Direction
 
-Sprint 134 is complete. The next step is:
+Sprint 135 is complete. The next step is:
 
 ```text
-Sprint 135 — Strategy Review Workflow Manifest and Reference Foundation
+Sprint 136 — Milestone 24 Closeout
 ```
 
 Longer-term phases remain:
@@ -251,9 +251,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 ## Current Next Step
 
 ```text
-Sprint 135 — Strategy Review Workflow Manifest and Reference Foundation
+Sprint 136 — Milestone 24 Closeout
 ```
 
 Reason:
 
-Sprint 134 added immutable caller-supplied human-review records with exactly `approved`, `rejected`, and `deferred` outcomes. Approved records require a caller-supplied snapshot matching the proposal strategy and target state; rejected and deferred records prohibit one. Approval is governance evidence only. Records do not execute transitions, mutate proposals or snapshots, make snapshots current, map decision statuses automatically, or imply paper execution, broker/live readiness, or capital deployment.
+Sprint 135 added compact typed stable-ID pointers to lifecycle snapshots, proposals, and records plus immutable grouped manifests. Manifests preserve caller order and duplicates, may be partial, and require only one reference total. They do not resolve artifacts, validate existence or chain completeness, mutate state, make snapshots current, execute transitions, persist data, run paper workflows, or imply broker/live readiness or capital deployment.

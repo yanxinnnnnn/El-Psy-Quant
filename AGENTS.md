@@ -114,10 +114,12 @@ Sprint 133 added immutable caller-supplied transition proposals with the exact p
 
 Sprint 134 added immutable caller-supplied human-review transition records with exactly `approved`, `rejected`, and `deferred` outcomes. Approved records require a separately supplied matching resulting snapshot; rejected and deferred records prohibit one. Records are governance evidence only and do not execute transitions, mutate or make snapshots current, map decision statuses automatically, or imply paper execution, broker/live readiness, or capital deployment.
 
+Sprint 135 added compact stable-ID references to lifecycle state snapshots, transition proposals, and transition records, plus immutable grouped manifests. Caller order and duplicates are preserved, manifests may be partial with one reference total, and the layer does not load or resolve artifacts, validate workflow completeness, mutate state, execute transitions, persist data, or imply readiness.
+
 The next focus is:
 
 ```text
-Sprint 135 — Strategy Review Workflow Manifest and Reference Foundation
+Sprint 136 — Milestone 24 Closeout
 ```
 
 ## Implementation Sprint Issue Requirements
