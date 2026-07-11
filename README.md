@@ -6,53 +6,13 @@ An AI-native quantitative research and trading platform built in public.
 
 Build a production-ready quantitative research platform from zero to production, using AI as an engineering teammate while keeping human judgment in control.
 
-The project is intentionally built sprint by sprint. The goal is not to find a magic profitable strategy on day one. The goal is to build a reliable platform that can repeatedly test, evaluate, review, and improve trading ideas.
+The project is intentionally built sprint by sprint. The goal is not to find a magic profitable strategy on day one. The goal is to build a reliable platform that can repeatedly research, test, evaluate, review, operate, and improve trading ideas.
 
 ## Current Milestone Status
 
-**Milestone 20 — Research-to-Paper Promotion Foundation** is complete.
+Milestones 1–24 are complete.
 
-```text
-promotion source reference contract
-  -> paper promotion candidate contract
-  -> promotion evidence summary
-  -> explicit promotion record
-  -> promotion manifest and candidate references
-```
-
-**Milestone 21 — Paper Run Comparison and Review Foundation** is complete.
-
-```text
-paper run reference contract
-  -> paper run comparison input contract
-  -> paper run comparison summary
-  -> paper run review decision record
-  -> review manifest and comparison references
-```
-
-**Milestone 22 — Decision Governance Foundation** is complete.
-
-```text
-decision evidence reference contract
-  -> strategy decision input contract
-  -> strategy decision summary
-  -> explicit strategy decision record
-  -> decision manifest and references
-```
-
-**Milestone 23 — Report Artifact Foundation** is complete.
-
-```text
-report source reference contract
-  -> report section contract
-  -> report artifact summary
-  -> report artifact reference and manifest contracts
-  -> report artifact closeout
-```
-
-Milestone 23 added deterministic review-package contracts above completed governance records. The report-artifact layer remains explicit caller-supplied/local structure only. It does not generate reports, render dashboards, discover evidence, load artifacts, calculate metrics, score or rank strategies, recommend decisions, execute workflows, integrate brokers, persist report manifests, or claim live readiness.
-
-**Milestone 24 — Strategy Review Workflow Foundation** is in progress.
+The latest completed governance chain is **Milestone 24 — Strategy Review Workflow Foundation**:
 
 ```text
 strategy review evidence reference contract
@@ -60,28 +20,82 @@ strategy review evidence reference contract
   -> lifecycle transition proposal contract
   -> human-controlled lifecycle transition record
   -> strategy review workflow manifest and references
-  -> strategy review workflow closeout
+  -> milestone closeout
 ```
 
-Milestone 24 is contract-only. Its approved lifecycle vocabulary is limited to `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`. There is no implicit initial state, no automatic mapping from decision statuses, no automatic transition application, and no `live_candidate` or live-readiness state.
+Milestone 24 added:
 
-Sprints 131–134 added evidence pointers, immutable state snapshots, non-executing proposals, and human-controlled transition records. Sprint 135 added compact typed pointers to snapshots, proposals, and records plus immutable grouped manifests. Reference order and duplicates are caller-supplied and preserved; a manifest may be partial and requires only one reference total. References and manifests do not discover, load, resolve, parse, inspect, score, rank, validate chain completeness or artifact existence, mutate state, make snapshots current, execute transitions, persist data, run paper workflows, or imply broker/live readiness or capital deployment.
+- typed pointers to completed M20–M23 governance artifacts
+- immutable caller-supplied lifecycle state snapshots
+- the exact five-state vocabulary: `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`
+- deterministic validation of the approved 16-pair transition matrix
+- non-executing transition proposals
+- explicit human-controlled records using `approved`, `rejected`, and `deferred`
+- compact stable-ID workflow references and immutable grouped manifests
 
-The next focus is:
+Milestone 24 remains contract-only. It does not provide mutable current-state storage, automatic transitions, automatic decision-status mapping, artifact loading or resolution, workflow execution, paper execution from governance records, broker behavior, live-readiness claims, capital deployment, databases, hosted orchestration, or dashboard runtime.
+
+## Current Direction
+
+The next milestone is:
 
 ```text
-Sprint 136 — Milestone 24 Closeout
+Milestone 25 — Paper Trading Productization Planning
 ```
 
-See:
+The provisional productization sequence is:
 
 ```text
-docs/roadmap.md
-docs/milestones/milestone-023-report-artifact-foundation.md
-docs/milestones/milestone-024-strategy-review-workflow-foundation.md
-docs/sprints/sprint-130-milestone-24-planning.md
-docs/strategy/future-platform-roadmap.md
+M25 — Paper Trading Productization Planning
+M26 — Paper Trading Application Service Foundation
+M27 — Persistence and Paper Job Control Foundation
+M28 — Founder Paper Trading Web Workspace
+M29 — Product Feedback and Hardening
+M30 — Portfolio-Level Decision Review Foundation
 ```
+
+Portfolio-level decision review is deferred, not canceled.
+
+The first usable product target is a local, single-user founder workspace for operating and reviewing the platform’s existing paper-trading and governance capabilities.
+
+Planned founder journeys include:
+
+- strategy list and strategy detail
+- research and backtest inspection
+- governance evidence and report-artifact inspection
+- starting and reviewing paper runs
+- paper-run status, equity, positions, orders, and fills
+- paper-run comparison
+- lifecycle transition proposals and human review records
+- lifecycle timeline
+
+Recommended future implementation direction:
+
+```text
+FastAPI
+SQLite + SQLAlchemy
+simple local background jobs
+React/Next.js
+Docker Compose / local-first
+single-user or minimal authentication
+```
+
+Premature microservices, Kubernetes, Kafka, Redis clusters, multi-tenancy, complex RBAC, real-time dashboards, and broker integration remain deferred.
+
+## Future QMT Boundary
+
+QMT is a future execution adapter only.
+
+```text
+Browser
+  -> Web/API
+  -> broker-neutral execution command
+  -> Windows QMT agent
+  -> MiniQMT
+  -> broker
+```
+
+QMT-specific behavior must not leak into strategy, evaluation, governance, or UI domain models. The browser must never connect directly to QMT, and no live QMT behavior should be added before dedicated execution-risk and live-readiness governance exists.
 
 ## Current Capabilities
 
@@ -100,86 +114,68 @@ docs/strategy/future-platform-roadmap.md
   - weighted portfolio returns
   - standalone portfolio summary artifacts
 - Portfolio risk and attribution foundation:
-  - portfolio return risk metrics
-  - single worst portfolio drawdown inspection
-  - static-weight per-symbol contribution returns and summaries
-  - standalone portfolio attribution summary artifacts
+  - portfolio risk metrics
+  - worst drawdown inspection
+  - per-symbol contribution returns and summaries
+  - standalone attribution artifacts
 - Backtest execution realism foundation:
   - explicit execution assumptions
   - order-intent boundaries
   - deterministic assumed fills
   - execution-adjusted trade summaries
-  - in-memory execution realism artifacts for local backtests
+  - in-memory execution realism artifacts
 - Paper trading foundation:
   - deterministic local paper account state
-  - optional equity snapshots from explicitly supplied prices only
-  - deterministic local paper order records and ledgers
-  - explicit paper fill application to local account state
-  - deterministic local paper trading session summaries
-  - standalone in-memory paper trading artifacts
-- Paper trading persistence and audit foundation:
-  - explicit local paper artifact file contract
-  - local paper artifact writer for explicit destination paths
-  - local paper artifact reader with top-level file-contract validation
-  - compact paper session audit summaries from validated artifact payloads
-- Paper trading workflow integration foundation:
-  - immutable local paper run request contract
-  - local in-memory paper run execution boundary
-  - explicit local paper run artifact persistence
-  - immutable local paper run result summaries
-- Configured paper workflow wiring foundation:
-  - optional local YAML `paper_run` config contract
-  - side-effect-free conversion to `PaperRunRequest`
+  - explicit paper order records and ledgers
+  - paper fill application
+  - equity snapshots from caller-supplied prices
+  - deterministic session summaries
+- Paper persistence and audit foundation:
+  - explicit paper artifact file contracts
+  - local writers and readers
+  - top-level file validation
+  - compact audit summaries
+- Paper workflow integration foundation:
+  - immutable paper run requests
+  - local in-memory execution boundary
+  - explicit artifact persistence
+  - immutable result summaries
+- Configured paper workflow wiring:
+  - optional local YAML `paper_run` configuration
+  - conversion to `PaperRunRequest`
   - configured paper output paths
-  - local configured paper workflow runner
-  - configured-run metadata and manifest references to paper outputs
-- Research-to-paper promotion foundation:
-  - typed promotion source references
-  - explicit paper promotion candidates
-  - descriptive promotion evidence summaries
-  - explicit human-controlled promotion records
-  - local promotion manifests and candidate references
-- Paper run comparison and review foundation:
-  - typed paper run references
-  - explicit comparison inputs
-  - caller-supplied comparison summaries
-  - human-controlled review decision records
-  - local review manifests and comparison/review references
-- Decision governance foundation:
+  - local configured paper runner
+  - metadata and manifest references to paper outputs
+- Research-to-paper promotion governance:
+  - typed promotion evidence references
+  - explicit promotion candidates
+  - evidence summaries
+  - human-controlled promotion records
+  - promotion manifests and candidate references
+- Paper run comparison and review governance:
+  - typed run references
+  - explicit comparison inputs and summaries
+  - human review decision records
+  - review manifests and references
+- Decision governance:
   - typed decision evidence references
-  - explicit strategy decision inputs
-  - caller-supplied strategy decision summaries
-  - human-controlled strategy decision records
-  - local strategy decision manifests and summary/record references
+  - explicit decision inputs and summaries
+  - human-controlled decision records
+  - decision manifests and references
 - Report artifact foundation:
-  - typed report source references for completed governance records and manifests
-  - caller-supplied report sections with explicit source references
-  - caller-supplied report artifact summaries that group explicit sections
-  - compact report artifact references to stable report summary IDs
-  - local report artifact manifests containing explicit summary references
+  - report source references
+  - caller-supplied sections and summaries
+  - compact report references
+  - local report manifests
+- Strategy lifecycle governance:
+  - typed M20–M23 evidence references
+  - immutable state snapshots
+  - deterministic transition proposals
+  - human-controlled transition records
+  - compact workflow references and manifests
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
-
-## Planned Next Platform Layer
-
-Milestone 24 is **Strategy Review Workflow Foundation**.
-
-Sprint 132 added explicit immutable lifecycle state snapshots.
-
-Sprint 133 added immutable caller-supplied transition proposals, the exact 16-pair matrix, minimum decision-record and paper-entry promotion-record reference rules, order-preserving evidence tuples, and deterministic serialization. Proposals do not approve, reject, defer, execute, mutate the source snapshot, or create resulting snapshots. Evidence remains pointers only, and no broker/live readiness or capital deployment is implied.
-
-- typed references to completed M20–M23 governance records
-- immutable caller-supplied lifecycle state snapshots
-- a fixed state vocabulary: `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`
-- a documented permitted-transition matrix
-- caller-supplied transition proposals that do not change state
-- explicit human-controlled transition records
-- local manifests and references for lifecycle governance artifacts
-
-The milestone remains contract-only. It must not add runtime state mutation, mutable state storage, a state-machine service, a generic workflow engine, automatic decision-to-state mapping, evidence discovery or loading, configured workflow changes, broker/live behavior, capital deployment, databases, hosted orchestration, or readiness claims.
-
-`live_candidate` and similar states are explicitly excluded. Live-readiness semantics belong to a later dedicated milestone after risk and operational controls exist.
 
 ## Quick Start
 
@@ -215,30 +211,6 @@ result = moving_average_crossover_pipeline(
 )
 ```
 
-## Recent Milestone Closeouts
-
-### Milestone 20 — Research-to-Paper Promotion Foundation
-
-A promotion candidate is not an approval. A promotion record is not a live-readiness claim. Paper workflow execution remains separate from promotion governance.
-
-### Milestone 21 — Paper Run Comparison and Review Foundation
-
-A paper-run reference is not artifact loading. A comparison summary is not a scoring engine. A review decision record is not a capital-deployment decision or live-readiness claim.
-
-### Milestone 22 — Decision Governance Foundation
-
-A decision evidence reference is not artifact loading. A decision summary is not a recommendation engine. A decision record is not automatic approval, capital deployment, broker approval, or live readiness.
-
-### Milestone 23 — Report Artifact Foundation
-
-A report source reference is only a pointer. A report section is not a rendering pipeline. A report artifact summary is descriptive and caller-supplied. A report manifest is a local reference contract, not persistence, report generation, dashboard behavior, or workflow execution.
-
-Sprint 129 closed Milestone 23 through documentation only and preserved all report-artifact guardrails.
-
-### Milestone 24 — Planning Decision
-
-A lifecycle state snapshot is an explicit declaration, not stored mutable state. A transition proposal is not an action. A transition record is a human-controlled governance artifact, not a transition executor. No lifecycle artifact implies broker readiness, live readiness, or capital deployment.
-
 ## Local Experiment Configuration
 
 Experiments can be described by a local YAML file and run with the existing CLI.
@@ -247,7 +219,29 @@ Experiments can be described by a local YAML file and run with the existing CLI.
 el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
 ```
 
-The configured workflow supports the existing moving-average crossover strategy, validates optional explicit paper-run inputs, converts them into `PaperRunRequest`, reserves configured paper output paths, runs the local configured paper workflow, and records paper output references in metadata and manifest files. It does not integrate portfolio construction into that configured paper workflow.
+The configured workflow validates explicit research and optional paper-run inputs, executes the existing local workflows, persists deterministic outputs, and records references in metadata and manifest files. It does not integrate with a broker or imply live readiness.
+
+## Recent Milestone Closeouts
+
+### Milestone 20 — Research-to-Paper Promotion Foundation
+
+A promotion candidate is not approval. A promotion record is not a live-readiness claim. Paper execution remains separate from promotion governance.
+
+### Milestone 21 — Paper Run Comparison and Review Foundation
+
+A paper-run reference is not artifact loading. A comparison summary is not a scoring engine. A review decision is not a capital-deployment decision.
+
+### Milestone 22 — Decision Governance Foundation
+
+A decision evidence reference is not artifact loading. A decision summary is not a recommendation engine. A decision record is not automatic approval.
+
+### Milestone 23 — Report Artifact Foundation
+
+A report source reference is only a pointer. A report artifact is not a rendering pipeline, dashboard, report engine, or workflow executor.
+
+### Milestone 24 — Strategy Review Workflow Foundation
+
+A lifecycle state snapshot is an explicit declaration, not stored mutable state. A transition proposal is not an action. A transition record is human governance evidence, not a runtime executor. A workflow manifest is a local index, not a resolved chain.
 
 ## Module Overview
 
@@ -261,15 +255,16 @@ el_psy_quant/
   decision_governance/ # Strategy-level decision evidence and governance contracts
   report_artifacts/ # Report source, section, summary, reference, and manifest contracts
   promotion/     # Research-to-paper promotion references and governance contracts
-  paper_review/  # Paper run comparison and review reference contracts
-  outputs.py     # Create deterministic local experiment directories and reserved paths
-  strategies/    # Strategy contract, adapters, validation, and exact-name resolution
+  paper_review/  # Paper run comparison and review contracts
+  strategy_review/ # Lifecycle evidence, snapshots, proposals, records, references, and manifests
+  outputs.py     # Deterministic local experiment directories and reserved paths
+  strategies/    # Strategy contracts, adapters, validation, and resolution
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, fills, summaries, and artifacts
   paper/         # Local paper state, records, persistence, audit, and run boundaries
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
-  portfolio/     # Alignment, weights, return aggregation, and standalone summaries
+  portfolio/     # Alignment, weights, aggregation, risk, and attribution
   backtesting/   # Research pipelines, experiments, benchmarks, and multi-symbol helpers
   performance/   # Metrics, annualized evaluation, and backtest summaries
 ```
@@ -287,7 +282,8 @@ AGENTS.md
 ## Engineering Principles
 
 - Build in small, reviewable milestones.
-- Keep everything local and deterministic until the architecture is ready for more operational complexity.
-- Treat documentation as part of the product, not an afterthought.
+- Keep behavior local and deterministic until operational complexity is justified.
+- Treat documentation as part of the product.
 - Prefer simple, explicit Python over clever abstractions.
+- Preserve human control over promotion, decisions, lifecycle changes, and future capital deployment.
 - Do not claim trading performance without evidence.
