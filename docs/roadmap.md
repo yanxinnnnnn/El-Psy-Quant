@@ -178,7 +178,7 @@ Planned sequence:
 | S130 | Complete | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
 | S131 | Complete | Define strategy review evidence references. | Typed pointers to completed M20–M23 governance records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
 | S132 | Complete | Define lifecycle state snapshots. | Caller-supplied immutable declarations using the five approved lifecycle states. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
-| S133 | Planned | Define lifecycle transition proposals. | Explicit from-state, target-state, rationale, evidence, and requester context. | A proposal does not change state or approve anything. |
+| S133 | Complete | Define lifecycle transition proposals. | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
 | S134 | Planned | Add human-controlled lifecycle transition records. | Reviewer outcome, rationale, approval context, and resulting-state reference. | No automatic approval, transition execution, broker behavior, or readiness claim. |
 | S135 | Planned | Add workflow manifests and references. | Local references and manifests for state snapshots, proposals, and transition records. | No file I/O, database, hosted orchestration, dashboard, or workflow engine. |
 | S136 | Planned | Close milestone. | Documentation refresh and closeout. | No scope expansion. |

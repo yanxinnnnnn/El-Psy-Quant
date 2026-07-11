@@ -158,7 +158,26 @@ class StrategyLifecycleTransitionProposal:
 
 
 def create_strategy_lifecycle_transition_proposal(
-    **kwargs: object,
+    *,
+    proposal_id: str,
+    source_snapshot: StrategyLifecycleStateSnapshot,
+    target_state: str,
+    rationale: str,
+    evidence_references: Sequence[StrategyReviewEvidenceReference],
+    requested_by: str | None = None,
+    requested_timestamp: object | None = None,
+    notes: Sequence[str] = (),
+    warnings: Sequence[str] = (),
 ) -> StrategyLifecycleTransitionProposal:
     """Create and validate one non-executing lifecycle transition proposal."""
-    return StrategyLifecycleTransitionProposal(**kwargs)  # type: ignore[arg-type]
+    return StrategyLifecycleTransitionProposal(
+        proposal_id=proposal_id,
+        source_snapshot=source_snapshot,
+        target_state=target_state,
+        rationale=rationale,
+        evidence_references=evidence_references,
+        requested_by=requested_by,
+        requested_timestamp=requested_timestamp,
+        notes=notes,
+        warnings=warnings,
+    )
