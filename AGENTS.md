@@ -23,7 +23,7 @@ Build a production-ready platform that can ingest market data, research strategi
 
 ## Engineering Principles
 
-- Use Python.
+- Use Python for the backend and domain platform.
 - Prefer modern Python packaging and tooling.
 - Prefer `uv` for dependency management unless the founder decides otherwise.
 - Use a `src/` layout.
@@ -34,7 +34,7 @@ Build a production-ready platform that can ingest market data, research strategi
 - Avoid premature abstraction.
 - Avoid hidden network calls in tests.
 - Keep financial calculations explicit and well documented.
-- Keep broker-specific behavior behind adapters rather than leaking it into strategy, evaluation, governance, or UI domain models.
+- Keep broker-specific behavior behind adapters rather than leaking it into strategy, evaluation, governance, persistence, or UI domain models.
 
 ## Quant Principles
 
@@ -68,9 +68,9 @@ The long-term phase roadmap is maintained in:
 docs/strategy/future-platform-roadmap.md
 ```
 
-## Completed Governance Foundation
+## Completed Foundations
 
-Milestones 18–24 are complete:
+Milestones 18–25 are complete after the Sprint 137 planning PR is merged:
 
 ```text
 M18 — Paper Trading Workflow Integration Foundation
@@ -80,83 +80,170 @@ M21 — Paper Run Comparison and Review Foundation
 M22 — Decision Governance Foundation
 M23 — Report Artifact Foundation
 M24 — Strategy Review Workflow Foundation
+M25 — Paper Trading Productization Planning
 ```
 
-Milestone 24 delivered this contract-only, human-controlled chain:
+Milestone 24 delivered explicit, immutable, human-controlled strategy lifecycle governance without runtime lifecycle execution.
 
-```text
-strategy review evidence reference contract
-  -> strategy lifecycle state snapshot contract
-  -> lifecycle transition proposal contract
-  -> human-controlled lifecycle transition record
-  -> strategy review workflow manifest and references
-  -> milestone closeout
-```
-
-Its lifecycle vocabulary is exactly:
-
-```text
-research_review
-paper_review
-watchlist
-on_hold
-rejected
-```
-
-Milestone 24 added:
-
-- typed evidence pointers to completed M20–M23 governance artifacts
-- immutable caller-supplied lifecycle state snapshots
-- deterministic validation of the approved 16-pair transition matrix
-- non-executing lifecycle transition proposals
-- human-controlled records with exactly `approved`, `rejected`, and `deferred` outcomes
-- compact stable-ID references and immutable grouped manifests
-
-Milestone 24 did not add mutable current-state storage, automatic transitions, decision-status mapping, artifact discovery or loading, workflow execution, paper execution from governance records, broker behavior, live-readiness claims, capital deployment, databases, hosted orchestration, dashboards, or SaaS behavior.
+Milestone 25 then defined how productization wraps those completed domain capabilities without replacing or weakening their boundaries.
 
 ## Current Focus
 
 The next milestone is:
 
 ```text
-Milestone 25 — Paper Trading Productization Planning
+Milestone 26 — Paper Trading Application Service Foundation
 ```
 
-The provisional productization sequence is:
+The next sprint is:
 
 ```text
-M25 — Paper Trading Productization Planning
-M26 — Paper Trading Application Service Foundation
-M27 — Persistence and Paper Job Control Foundation
-M28 — Founder Paper Trading Web Workspace
-M29 — Product Feedback and Hardening
-M30 — Portfolio-Level Decision Review Foundation
+Sprint 138 — Application Service and API Skeleton
 ```
 
-Portfolio-level review is deferred, not canceled.
+Approved productization sequence:
 
-## Founder-Only Product Direction
+```text
+M25 — S137      Paper Trading Productization Planning
+M26 — S138-S144 Paper Trading Application Service Foundation
+M27 — S145-S151 Persistence and Paper Job Control Foundation
+M28 — S152-S159 Founder Paper Trading Web Workspace
+M29 — S160-S165 Product Feedback and Hardening
+M30 —           Portfolio-Level Decision Review Foundation
+```
 
-The first usable product target is a local, single-user founder workspace that supports:
+M28 must deliver the first usable local Web MVP.
+
+M29 must use real founder feedback and reliability evidence to harden the MVP for daily local use.
+
+Portfolio-level review is deferred to M30, not canceled.
+
+## Founder Product Target
+
+The first usable product is:
+
+- local-first
+- Founder-only
+- single-user or minimally authenticated
+- Paper Trading only
+- review-oriented rather than latency-oriented
+- a modular monolith
+
+It must support:
 
 - strategy list and detail
-- research, backtest, governance, and evidence inspection
-- starting and reviewing paper runs
-- paper-run status, equity, positions, orders, and fills
+- research and backtest inspection
+- governance evidence and report-artifact inspection
+- paper-run launch and status
+- equity, positions, orders, and fills
 - paper-run comparison
-- lifecycle transition proposals and human review records
+- lifecycle transition proposals
+- human review records
 - lifecycle timeline
 
-Recommended direction for the next productization milestones:
+It is not a live trading system, broker project, SaaS product, multi-tenant platform, or professional real-time trading terminal.
 
-- FastAPI application service
+## Approved Product Architecture
+
+```text
+Browser
+  -> React/Next.js founder workspace
+  -> FastAPI application API
+  -> thin application services / use cases
+  -> existing El-Psy-Quant domain modules and artifact readers
+  -> SQLite product repositories and simple local job runner
+```
+
+Recommended implementation direction:
+
+- FastAPI
+- explicit request and response schemas
 - SQLite with SQLAlchemy
+- repository boundaries
 - simple local background jobs
-- React/Next.js web workspace
+- React/Next.js
 - Docker Compose and local-first deployment
 - single-user or minimal authentication
 
-Do not introduce premature microservices, Kubernetes, Kafka, Redis clusters, multi-tenancy, complex RBAC, real-time dashboards, or broker integration.
+Do not introduce premature microservices, Kubernetes, Kafka, Redis clusters, distributed queues, multi-tenancy, complex RBAC, cloud SaaS behavior, broad real-time dashboards, or broker integration.
+
+## Product Ownership Boundaries
+
+### Domain Authority
+
+Existing research, backtesting, paper, promotion, comparison, decision, report, and strategy-review modules remain authoritative for quantitative and governance behavior.
+
+The application and UI layers must not duplicate:
+
+- financial calculations
+- paper execution semantics
+- comparison logic
+- governance validation
+- lifecycle transition validation
+- human-control rules
+
+FastAPI route handlers must remain thin and must not become a second domain layer.
+
+### Artifact Authority
+
+Existing local artifact files remain authoritative for completed research, paper, comparison, governance, and report outputs.
+
+SQLite may store product indexes, explicit artifact references, paper job records, operational status, idempotency data, and minimal local authentication data.
+
+SQLite must not silently copy complete artifact payloads and become a competing source of truth.
+
+Artifact access must remain under configured local roots. Reject path traversal and arbitrary filesystem access.
+
+### Lifecycle Authority
+
+Do not create an independently authoritative mutable strategy lifecycle `current_state` field.
+
+A product current-state view may be derived from explicit immutable snapshots and approved human transition records.
+
+A transition proposal remains non-executing. A human review record remains governance evidence. Neither may silently mutate lifecycle state.
+
+### Paper Job Authority
+
+Paper job status is mutable operational state and must remain separate from strategy lifecycle governance.
+
+M27 may define durable local states equivalent to:
+
+```text
+queued
+running
+succeeded
+failed
+canceled
+```
+
+Exact transitions, retries, recovery, idempotency, and cancellation semantics belong in the relevant implementation issues.
+
+### Browser Boundary
+
+The browser must use the Web/API boundary.
+
+The UI must not directly access:
+
+- SQLite
+- local artifact directories
+- Python domain modules
+- QMT
+- MiniQMT
+- any broker
+
+## API, Security, and Deployment Baselines
+
+- Use a versioned local API, initially under `/api/v1`.
+- Use explicit API schemas instead of leaking internal Python objects.
+- Provide stable error responses and request or job IDs where applicable.
+- Keep M26 free of product database and background-worker requirements.
+- Move long-running paper execution behind durable local job control in M27.
+- Bind to loopback by default.
+- Require authentication for non-loopback exposure.
+- Avoid broad CORS and keep same-origin defaults.
+- Never log credentials or authentication material.
+- Support one local machine through M29.
+- Use Docker Compose only when it materially simplifies the M28 Web MVP.
 
 ## Future QMT Boundary
 
