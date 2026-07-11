@@ -2,68 +2,17 @@
 
 ## Status
 
-In progress.
+Complete.
 
-Sprint 130 defined the milestone scope and guardrails. Sprints 131–135 added evidence references, immutable lifecycle state snapshots, non-executing transition proposals, human-controlled transition records, and compact workflow references and manifests.
+Milestone 24 was completed through Sprints 130–136.
 
 ## Product Goal
 
 Define a small, local, deterministic, human-controlled contract layer for strategy review lifecycle governance above the completed promotion, paper-review, decision-governance, and report-artifact layers.
 
-Milestone 24 should make declared strategy review states and explicitly approved lifecycle transitions reviewable and auditable without introducing a runtime state machine, mutable state storage, workflow execution, broker behavior, live-readiness claims, or capital deployment.
+Milestone 24 makes declared strategy review states and explicitly reviewed lifecycle transitions reviewable and auditable without introducing runtime state mutation, workflow execution, broker behavior, live-readiness claims, or capital deployment.
 
-## Strategic Context
-
-Milestone 20 completed research-to-paper promotion governance:
-
-```text
-research evidence
-  -> promotion candidate
-  -> evidence summary
-  -> explicit promotion record
-  -> reviewable promotion references
-```
-
-Milestone 21 completed paper-run comparison and review governance:
-
-```text
-multiple paper runs
-  -> explicit comparison set
-  -> comparison summary
-  -> review decision record
-  -> reviewable comparison references
-```
-
-Milestone 22 completed strategy-level decision governance:
-
-```text
-decision evidence reference
-  -> strategy decision input
-  -> strategy decision summary
-  -> explicit strategy decision record
-  -> decision manifest and references
-```
-
-Milestone 23 completed deterministic report-artifact packaging:
-
-```text
-report source reference
-  -> report section
-  -> report artifact summary
-  -> report artifact reference and manifest
-```
-
-Milestone 24 sits above these completed records. It does not replace or execute them. Its job is to declare where a strategy is in a human-controlled review lifecycle and to record an explicitly reviewed transition between declared states.
-
-This is lifecycle governance, not lifecycle automation.
-
-## Milestone Decision
-
-Milestone 24 is contract-only.
-
-It may add small immutable contracts, deterministic validation, constants, factories, JSON-compatible exports, and local reference/manifest structures. It must not add a transition executor, state repository, workflow engine, orchestration service, scheduler, queue, event bus, CLI lifecycle commands, or configured workflow changes.
-
-## Planned Milestone Chain
+## Completed Milestone Chain
 
 ```text
 strategy review evidence reference contract
@@ -71,12 +20,24 @@ strategy review evidence reference contract
   -> lifecycle transition proposal contract
   -> human-controlled lifecycle transition record
   -> strategy review workflow manifest and references
-  -> strategy review workflow closeout
+  -> milestone closeout
 ```
+
+## Delivered Contracts
+
+Milestone 24 delivered:
+
+- typed strategy-review evidence references to completed M20–M23 governance artifacts
+- immutable caller-supplied lifecycle state snapshots
+- deterministic lifecycle transition proposals
+- explicit human-controlled lifecycle transition records
+- compact workflow references and immutable grouped manifests
+
+The public contract layer remains local, deterministic, caller-supplied, and non-executing.
 
 ## Lifecycle Vocabulary
 
-Milestone 24 uses this conservative vocabulary:
+Milestone 24 uses exactly these states:
 
 ```text
 research_review
@@ -104,11 +65,11 @@ The review lifecycle is intentionally paused.
 
 ### `rejected`
 
-The current lifecycle path is closed within Milestone 24. Reopening a rejected lifecycle path is outside this milestone and requires later explicit planning.
+The current lifecycle path is closed within Milestone 24. Reopening a rejected lifecycle path requires later explicit planning.
 
-Milestone 24 does not include `live_candidate`, `live_ready`, `approved_for_live`, or any equivalent state. Live-readiness semantics belong to a later dedicated milestone.
+There is no implicit initial state. A lifecycle state exists only when a caller explicitly supplies a state snapshot.
 
-There is no implicit initial state. A state exists only when a caller explicitly declares a lifecycle state snapshot.
+Milestone 24 does not include `live_candidate`, `live_ready`, `approved_for_live`, or any equivalent state.
 
 ## Permitted Transition Matrix
 
@@ -120,180 +81,143 @@ on_hold         -> research_review | paper_review | watchlist | rejected
 rejected        -> no transitions in Milestone 24
 ```
 
+The matrix contains exactly 16 permitted ordered pairs.
+
 Transition rules:
 
 - no self-transitions
 - no implicit transitions
 - no automatic transition application
 - a transition proposal does not change state
-- every accepted transition requires a separate explicit human-controlled transition record
-- rejected or deferred proposals leave the declared state unchanged
-- existing decision statuses are evidence, not automatic lifecycle mappings
-- a completed review decision can exist without causing a lifecycle transition
+- every accepted transition requires a separate human-controlled transition record
+- rejected or deferred review outcomes leave the declared source state unchanged
+- decision statuses remain evidence rather than automatic lifecycle mappings
 
-## Evidence Requirements
+## Evidence Rules
 
-Milestone 24 references existing governance artifacts instead of duplicating or loading them.
+Milestone 24 references completed governance artifacts rather than duplicating or loading them.
 
-Candidate evidence-reference types may cover explicit references to:
+Minimum proposal rules:
 
-- promotion records and manifests
-- paper comparison summaries
-- paper review decision records and manifests
-- strategy decision summaries, records, and manifests
-- report artifact summaries and manifests
+- every proposal includes at least one `strategy_decision_record` reference
+- entry into `paper_review` additionally requires a `promotion_record` reference
+- report artifacts may provide context but cannot authorize a transition by themselves
+- evidence references remain compact pointers only
+- evidence references do not discover, load, resolve, parse, inspect, score, rank, or validate payloads
+- evidence sufficiency remains explicit human judgment
 
-Minimum rules:
+## Human Review Boundary
 
-- every transition proposal includes at least one explicit strategy decision record reference
-- a transition into `paper_review` additionally includes an explicit promotion record reference
-- report artifacts may provide review context but are never sufficient by themselves to authorize a transition
-- evidence references are pointers only
-- evidence references do not discover, load, parse, score, rank, or validate referenced artifacts
-- evidence sufficiency remains a human judgment supplied explicitly by the caller
-
-## Human Approval Boundary
-
-The intended governance flow is:
+The governance flow is:
 
 ```text
 existing governance evidence
   -> caller-supplied transition proposal
   -> explicit human review
   -> caller-supplied transition record
-  -> declared lifecycle state snapshot/reference
+  -> separately declared resulting state snapshot when approved
 ```
 
-A transition proposal describes a requested change. It does not approve or execute anything.
+A proposal is a request, not an action.
 
-A transition record captures a human reviewer outcome, rationale, and resulting-state declaration when approved. It does not mutate stored state, run paper workflows, trigger strategy execution, approve broker behavior, claim live readiness, or deploy capital.
+A transition record captures one human review outcome using exactly:
 
-Milestone 22 decision statuses must not be automatically mapped to lifecycle states. The caller must make the lifecycle declaration explicitly and attach the relevant evidence references.
+```text
+approved
+rejected
+deferred
+```
 
-## Planned Sprint Sequence
+An approved record requires a separately caller-supplied resulting snapshot matching the proposal strategy and target state. Rejected and deferred records prohibit a resulting snapshot.
+
+Approval is governance evidence only. The record does not execute the transition, mutate either snapshot, make a snapshot current, or trigger a paper workflow.
+
+## Workflow Reference and Manifest Boundary
+
+Milestone 24 added compact references for exactly:
+
+```text
+strategy_lifecycle_state_snapshot
+strategy_lifecycle_transition_proposal
+strategy_lifecycle_transition_record
+```
+
+Workflow manifests group these references in separate immutable sequences.
+
+Manifests:
+
+- preserve caller order and duplicates
+- may be partial
+- require at least one reference total
+- do not require one reference of every type
+- do not validate artifact existence, same-strategy membership, chronological order, or chain completeness
+- do not resolve IDs, load artifacts, make snapshots current, or execute transitions
+
+## Sprint Sequence
 
 | Sprint | Status | Goal | Main Deliverable | Guardrail |
 |---:|---|---|---|---|
-| S130 | Complete | Plan Milestone 24. | Scope, lifecycle vocabulary, transition matrix, evidence rules, sprint sequence, and guardrails. | Documentation only; no runtime behavior. |
-| S131 | Complete | Define strategy review evidence references. | Small typed pointers to completed M20–M23 governance records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
-| S132 | Complete | Define lifecycle state snapshots. | Explicit caller-supplied immutable declarations using the approved vocabulary. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
-| S133 | Complete | Define lifecycle transition proposals. | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
-| S134 | Complete | Add human-controlled lifecycle transition records. | Immutable caller-supplied records with `approved`, `rejected`, and `deferred` outcomes and conditional resulting snapshots. | Governance approval only; no execution, mutation, current-state behavior, or readiness claim. |
-| S135 | Complete | Add workflow manifests and references. | Compact stable-ID pointers and immutable grouped manifests for snapshots, proposals, and records. | No resolution, chain validation, file I/O, persistence, state mutation, or workflow execution. |
-| S136 | Planned | Close Milestone 24. | Documentation refresh and closeout. | No scope expansion. |
+| S130 | Complete | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only. |
+| S131 | Complete | Define strategy review evidence references. | Typed pointers to completed M20–M23 records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
+| S132 | Complete | Define lifecycle state snapshots. | Immutable caller-supplied declarations using the five approved states. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
+| S133 | Complete | Define lifecycle transition proposals. | Immutable proposals with exact permitted-pair validation and minimum evidence-type rules. | No approval, execution, or mutation. |
+| S134 | Complete | Add human-controlled transition records. | `approved`, `rejected`, and `deferred` records with conditional resulting snapshots. | Governance approval only; no execution or current-state behavior. |
+| S135 | Complete | Add workflow manifests and references. | Compact stable-ID pointers and immutable grouped manifests. | No resolution, chain validation, file I/O, persistence, state mutation, or workflow execution. |
+| S136 | Complete | Close Milestone 24. | Documentation refresh, exit verification, and productization pivot. | No runtime scope expansion. |
 
-## Included Capabilities
+## Exit Criteria Verification
 
-Milestone 24 may include:
+Milestone 24 is complete because:
 
-- typed strategy review evidence references to completed M20–M23 governance records
-- a fixed supported lifecycle-state vocabulary
-- immutable caller-supplied lifecycle state snapshots
-- deterministic validation of the documented transition matrix
-- immutable caller-supplied lifecycle transition proposals
-- explicit human-controlled transition records
-- local references and manifests for lifecycle governance artifacts
-- documentation of lifecycle assumptions, human approval boundaries, and future readiness boundaries
+- strategy-review evidence references are explicit and typed
+- lifecycle states use the approved five-state vocabulary
+- state snapshots are caller-supplied and immutable
+- the exact permitted transition matrix is deterministic and documented
+- proposals remain non-executing requests
+- transition records remain explicit human-controlled governance artifacts
+- workflow references and manifests remain local pointer/index contracts
+- completed M20–M23 artifacts remain separate and are referenced rather than duplicated or loaded
+- no live-readiness state was introduced
+- assumptions, human-approval boundaries, and future-readiness boundaries are documented
 
-## Architecture Boundary
+## Preserved Guardrails
 
-The safest implementation shape is:
+Milestone 24 did not introduce:
 
-```text
-existing M20-M23 records remain separate
-strategy review inputs remain explicit
-state snapshots remain immutable declarations
-transition proposals remain non-executing requests
-transition records remain human-controlled governance artifacts
-manifests remain local reference contracts
-runtime workflow execution remains separate
-broker and live readiness remain separate
-```
-
-Do not create a generic workflow engine or reusable state-machine framework. Milestone 24 needs narrow domain contracts, not infrastructure.
-
-## Explicitly Out Of Scope
-
-Milestone 24 must not introduce:
-
-- strategy lifecycle runtime execution
-- automatic strategy state transitions
+- runtime lifecycle execution
+- automatic state transitions
 - mutable current-state storage
-- automatic mapping from decision statuses to lifecycle states
-- automatic approval, rejection, promotion, or reopening
-- automatic evidence discovery
-- artifact loading, parsing, scoring, ranking, or recommendation
-- metric calculation or winner selection
-- paper workflow execution from lifecycle records
+- automatic decision-status-to-state mapping
+- automatic approval, rejection, promotion, deferral, or reopening
+- artifact discovery, loading, resolution, scoring, ranking, or recommendation
+- paper execution triggered by governance records
 - configured workflow behavior changes
-- CLI commands for lifecycle operations
-- file I/O from lifecycle contracts
-- persistence services or databases
-- generic workflow or state-machine engines
+- a generic state-machine or workflow engine
 - schedulers, queues, event buses, or hosted orchestration
-- dashboards, broad reporting UI, or report generation
-- broker integration or broker readiness
-- live execution or live readiness
-- `live_candidate`, `live_ready`, or equivalent states
-- real-money behavior
+- file or database persistence from lifecycle contracts
+- dashboards, report generation, or hosted workflow products
+- broker integration, live execution, or real-money behavior
+- broker-readiness or live-readiness claims
 - capital allocation or deployment
-- strategy-signal-to-order conversion
-- market-data streaming
-- real account synchronization
-- hosted services or SaaS behavior
 - strategy expansion
 
-## Implementation Sprint Requirements
+## Closeout Decision
 
-Every Codex implementation sprint issue must include the Windows proxy prelude:
+Milestone 24 completes the contract-only governance foundation above research, paper trading, promotion, comparison, decisions, and report artifacts.
 
-```powershell
-$env:HTTP_PROXY="http://127.0.0.1:7892"
-$env:HTTPS_PROXY="http://127.0.0.1:7892"
-$env:ALL_PROXY="http://127.0.0.1:7892"
+The next step is not another abstract governance layer. The platform should now turn its existing capabilities into a usable founder-only paper-trading product while preserving the human-controlled decision boundaries established through Milestone 24.
 
-git config http.proxy http://127.0.0.1:7892
-git config https.proxy http://127.0.0.1:7892
-```
-
-Implementation issues must also state:
-
-- Do not use `--global`.
-- Do not commit proxy config.
-- Do not modify project files for proxy setup.
-- Include the recommended Codex model and reasoning effort.
-- Run `uv run python scripts/check.py` before opening the PR.
-- Start the PR body with a clean manually typed `Closes #<issue-number>` line.
-- Mark the PR Ready for review rather than leaving it as Draft.
-
-## Exit Criteria
-
-Milestone 24 is complete only when:
-
-- strategy review evidence references are explicit and typed
-- lifecycle states use the approved vocabulary
-- state snapshots are caller-supplied and immutable
-- permitted transitions are deterministic and documented
-- transition proposals remain non-executing requests
-- transition records remain explicit human-controlled governance artifacts
-- workflow manifests and references remain local contracts
-- existing M20–M23 records remain separate and are referenced rather than duplicated or loaded
-- no live-readiness state is introduced
-- documentation explains assumptions, human approval boundaries, and future readiness boundaries
-- runtime mutation, workflow execution, automatic decisions, broker/live behavior, capital deployment, databases, hosted orchestration, and strategy expansion remain outside the milestone
-
-## Next Step
+## Next Milestone
 
 ```text
-Sprint 136 — Milestone 24 Closeout
+Milestone 25 — Paper Trading Productization Planning
 ```
 
-Sprint 131 added the smallest useful typed pointers to completed M20–M23 governance records. They do not discover, load, parse, validate, score, rank, or evaluate artifacts; declare lifecycle states; propose, approve, reject, or execute transitions; or imply paper eligibility, broker readiness, live readiness, or capital deployment.
+Milestone 25 will plan the application boundary, persistence and job-control direction, founder web workspace, and staged productization sequence. It remains planning-only and must not implement the application service or web UI prematurely.
 
-Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots. They use exactly the five approved states; they have no implicit initial state; and they do not request, approve, reject, validate, or execute transitions. Decision statuses are not mapped automatically. `paper_review` does not imply broker readiness, live readiness, or capital deployment. `rejected` remains terminal within Milestone 24, while transition enforcement belongs to Sprint 133.
+See:
 
-Sprint 133 added immutable caller-supplied transition proposals with deterministic permitted transition-pair validation. Proposals remain non-approving, non-executing, and non-mutating.
-
-Sprint 134 added immutable caller-supplied human-review records. Approved records require a separately supplied snapshot matching the proposal strategy and target state; rejected and deferred records must not contain one. Approval is governance evidence only. Records do not execute transitions, mutate proposals or snapshots, make snapshots current, map decision statuses automatically, or imply paper execution, broker/live readiness, or capital deployment.
-
-Sprint 135 added compact typed stable-ID references to lifecycle state snapshots, transition proposals, and transition records plus immutable grouped manifests. Reference order and duplicates are preserved, manifests may be partial, and only one reference total is required. This layer does not load or resolve artifacts, validate artifact existence or chain completeness, mutate state, make snapshots current, execute transitions, persist data, run paper workflows, or imply broker/live readiness or capital deployment.
+```text
+docs/sprints/sprint-136-milestone-24-closeout-and-productization-pivot.md
+docs/strategy/future-platform-roadmap.md
+```
