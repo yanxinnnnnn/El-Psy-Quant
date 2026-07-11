@@ -10,7 +10,7 @@ The project is built like a startup product, not a one-off learning script.
 
 ## Mission
 
-Build a production-ready platform that can ingest market data, research strategies, run backtests, generate reviewable artifacts, and eventually support paper trading and tightly controlled live trading.
+Build a production-ready platform that can ingest market data, research strategies, run backtests, generate reviewable artifacts, operate paper-trading workflows, and eventually support tightly controlled live trading.
 
 ## Operating Model
 
@@ -34,25 +34,28 @@ Build a production-ready platform that can ingest market data, research strategi
 - Avoid premature abstraction.
 - Avoid hidden network calls in tests.
 - Keep financial calculations explicit and well documented.
+- Keep broker-specific behavior behind adapters rather than leaking it into strategy, evaluation, governance, or UI domain models.
 
 ## Quant Principles
 
 - Never claim a strategy is profitable without evidence.
 - Avoid look-ahead bias.
 - Avoid survivorship bias where possible.
-- Always distinguish research code, backtesting code, and execution code.
+- Always distinguish research code, backtesting code, paper execution code, and live execution code.
 - Prefer reproducible experiments.
 - Risk metrics matter as much as return metrics.
+- Human approval records are governance evidence, not proof that runtime execution occurred.
 
 ## Definition of Done
 
 A task is done only when:
 
-- The code runs locally.
+- The code runs locally when runtime behavior changes.
 - Tests are included where appropriate.
 - README or docs are updated when behavior changes.
 - Assumptions and limitations are documented.
 - The implementation is simple enough for a human reviewer to understand.
+- The complete quality gate passes.
 - The PR is marked Ready for review, not left as Draft.
 
 ## Long-Term Platform Direction
@@ -65,23 +68,21 @@ The long-term phase roadmap is maintained in:
 docs/strategy/future-platform-roadmap.md
 ```
 
-## Current Focus
+## Completed Governance Foundation
 
-Milestone 18 — Paper Trading Workflow Integration Foundation is complete.
+Milestones 18–24 are complete:
 
-Milestone 19 — Configured Paper Workflow Wiring Foundation is complete.
+```text
+M18 — Paper Trading Workflow Integration Foundation
+M19 — Configured Paper Workflow Wiring Foundation
+M20 — Research-to-Paper Promotion Foundation
+M21 — Paper Run Comparison and Review Foundation
+M22 — Decision Governance Foundation
+M23 — Report Artifact Foundation
+M24 — Strategy Review Workflow Foundation
+```
 
-Milestone 20 — Research-to-Paper Promotion Foundation is complete.
-
-Milestone 21 — Paper Run Comparison and Review Foundation is complete.
-
-Milestone 22 — Decision Governance Foundation is complete.
-
-Milestone 23 — Report Artifact Foundation is complete.
-
-Sprint 130 planned **Milestone 24 — Strategy Review Workflow Foundation** as a contract-only, human-controlled lifecycle-governance layer.
-
-The planned Milestone 24 chain is:
+Milestone 24 delivered this contract-only, human-controlled chain:
 
 ```text
 strategy review evidence reference contract
@@ -89,10 +90,10 @@ strategy review evidence reference contract
   -> lifecycle transition proposal contract
   -> human-controlled lifecycle transition record
   -> strategy review workflow manifest and references
-  -> strategy review workflow closeout
+  -> milestone closeout
 ```
 
-The approved lifecycle vocabulary is limited to:
+Its lifecycle vocabulary is exactly:
 
 ```text
 research_review
@@ -102,25 +103,90 @@ on_hold
 rejected
 ```
 
-There is no implicit initial state, no automatic mapping from decision statuses, no automatic transition application, and no `live_candidate` or live-readiness state.
+Milestone 24 added:
 
-Milestone 24 remains local and contract-only. It must not add mutable state storage, a transition executor, a generic state-machine or workflow engine, automatic decisions, evidence discovery or loading, paper execution, configured workflow changes, broker/live behavior, capital deployment, databases, hosted orchestration, or readiness claims.
+- typed evidence pointers to completed M20–M23 governance artifacts
+- immutable caller-supplied lifecycle state snapshots
+- deterministic validation of the approved 16-pair transition matrix
+- non-executing lifecycle transition proposals
+- human-controlled records with exactly `approved`, `rejected`, and `deferred` outcomes
+- compact stable-ID references and immutable grouped manifests
 
-Sprint 131 added explicit strategy-review evidence references to completed M20–M23 governance artifacts. These are pointers only: they do not inspect payloads, infer lifecycle state, propose or execute transitions, or imply readiness.
+Milestone 24 did not add mutable current-state storage, automatic transitions, decision-status mapping, artifact discovery or loading, workflow execution, paper execution from governance records, broker behavior, live-readiness claims, capital deployment, databases, hosted orchestration, dashboards, or SaaS behavior.
 
-Sprint 132 added immutable caller-supplied lifecycle state snapshots using the approved five-state vocabulary. Snapshots have no implicit initial state, are not mutable current state, do not automatically map decision statuses, and do not request, approve, reject, validate, or execute transitions.
+## Current Focus
 
-Sprint 133 added immutable caller-supplied transition proposals with the exact permitted-pair matrix and minimum evidence-reference type rules. Proposals remain non-approving, non-executing, non-mutating, and do not create resulting snapshots or imply readiness.
-
-Sprint 134 added immutable caller-supplied human-review transition records with exactly `approved`, `rejected`, and `deferred` outcomes. Approved records require a separately supplied matching resulting snapshot; rejected and deferred records prohibit one. Records are governance evidence only and do not execute transitions, mutate or make snapshots current, map decision statuses automatically, or imply paper execution, broker/live readiness, or capital deployment.
-
-Sprint 135 added compact stable-ID references to lifecycle state snapshots, transition proposals, and transition records, plus immutable grouped manifests. Caller order and duplicates are preserved, manifests may be partial with one reference total, and the layer does not load or resolve artifacts, validate workflow completeness, mutate state, execute transitions, persist data, or imply readiness.
-
-The next focus is:
+The next milestone is:
 
 ```text
-Sprint 136 — Milestone 24 Closeout
+Milestone 25 — Paper Trading Productization Planning
 ```
+
+The provisional productization sequence is:
+
+```text
+M25 — Paper Trading Productization Planning
+M26 — Paper Trading Application Service Foundation
+M27 — Persistence and Paper Job Control Foundation
+M28 — Founder Paper Trading Web Workspace
+M29 — Product Feedback and Hardening
+M30 — Portfolio-Level Decision Review Foundation
+```
+
+Portfolio-level review is deferred, not canceled.
+
+## Founder-Only Product Direction
+
+The first usable product target is a local, single-user founder workspace that supports:
+
+- strategy list and detail
+- research, backtest, governance, and evidence inspection
+- starting and reviewing paper runs
+- paper-run status, equity, positions, orders, and fills
+- paper-run comparison
+- lifecycle transition proposals and human review records
+- lifecycle timeline
+
+Recommended direction for the next productization milestones:
+
+- FastAPI application service
+- SQLite with SQLAlchemy
+- simple local background jobs
+- React/Next.js web workspace
+- Docker Compose and local-first deployment
+- single-user or minimal authentication
+
+Do not introduce premature microservices, Kubernetes, Kafka, Redis clusters, multi-tenancy, complex RBAC, real-time dashboards, or broker integration.
+
+## Future QMT Boundary
+
+QMT is a future execution adapter only.
+
+Preferred boundary:
+
+```text
+Browser
+  -> Web/API
+  -> broker-neutral execution command
+  -> Windows QMT agent
+  -> MiniQMT
+  -> broker
+```
+
+Future broker-neutral execution concepts may include:
+
+```text
+OrderIntent
+ExecutionOrder
+ExecutionFill
+AccountSnapshot
+PositionSnapshot
+BrokerOrderReference
+```
+
+Potential venues may include `internal_paper`, optional future `qmt_paper`, and future `qmt_live`.
+
+Never connect the browser directly to QMT. Do not add live QMT behavior before dedicated execution-risk and live-readiness governance exists.
 
 ## Implementation Sprint Issue Requirements
 
@@ -144,6 +210,8 @@ They must also state:
 - Use GPT-5.6 Terra with Medium reasoning for normal implementation sprints unless complexity justifies another choice.
 - Use GPT-5.6 Sol with High or stronger reasoning for architecture-heavy, ambiguous, high-risk, or difficult cross-module work.
 - Use GPT-5.6 Luna with Light or Medium reasoning for mechanical or documentation-only corrections.
+- Treat the GitHub issue body as the authoritative specification; keep the separate Codex execution prompt short.
 - Run `uv run python scripts/check.py` before opening the PR.
 - The PR body must start with a clean manually typed `Closes #<issue-number>` line.
 - After opening the PR, mark it Ready for review. Do not leave it as Draft.
+- Do not merge the PR unless the founder explicitly requests it.
