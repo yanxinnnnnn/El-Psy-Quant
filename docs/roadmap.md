@@ -4,13 +4,13 @@
 
 This roadmap turns the sprint-by-sprint project plan into a clear milestone timeline.
 
-It is a rolling plan, not a contract. The order can change if the project learns something important, but the guiding principle stays the same:
+It is a rolling plan rather than a permanent contract. The order may change when the project learns something important, but the guiding principle remains:
 
 ```text
-Build a reproducible research platform before chasing strategy complexity.
+Build a reproducible research and decision platform before adding operational complexity or real capital.
 ```
 
-For the longer-term founder-level CTO platform plan, see:
+For the founder-level strategic plan, see:
 
 ```text
 docs/strategy/future-platform-roadmap.md
@@ -20,146 +20,60 @@ docs/strategy/future-platform-roadmap.md
 
 ```mermaid
 flowchart LR
-    M1["Milestone 1<br/>Research Pipeline Foundation<br/>Sprints 1-7 ✅"] --> M2["Milestone 2<br/>Performance & Local Data Foundation<br/>Sprints 8-12 ✅"]
-    M2 --> M3["Milestone 3<br/>Data Reproducibility & Research Workflow<br/>Sprints 13-16 ✅"]
-    M3 --> M4["Milestone 4<br/>Research Experimentation Foundation<br/>Sprints 17-20 ✅"]
-    M4 --> M5["Milestone 5<br/>Strategy Realism Foundation<br/>Sprints 21-24 ✅"]
-    M5 --> M6["Milestone 6<br/>Risk & Benchmark Foundation<br/>Sprints 25-28 ✅"]
-    M6 --> M7["Milestone 7<br/>Multi-Asset Research Foundation<br/>Sprints 29-32 ✅"]
-    M7 --> M8["Milestone 8<br/>Research Operations Foundation<br/>Sprints 33-36 ✅"]
-    M8 --> M9["Milestone 9<br/>Project Quality Foundation<br/>Sprints 37-41 ✅"]
-    M9 --> M10["Milestone 10<br/>Experiment Artifact & Comparison Foundation<br/>Sprints 42-46 ✅"]
-    M10 --> M11["Milestone 11<br/>Strategy Interface Foundation<br/>Sprints 47-52 ✅"]
-    M11 --> M12["Milestone 12<br/>Data Integrity & Universe Foundation<br/>Sprints 53-57 ✅"]
-    M12 --> M13["Milestone 13<br/>Portfolio Construction Foundation<br/>Sprints 58-63 ✅"]
-    M13 --> M14["Milestone 14<br/>Portfolio Risk & Attribution Foundation<br/>Sprints 64-69 ✅"]
-    M14 --> M15["Milestone 15<br/>Backtest Execution Realism Foundation<br/>Sprints 70-76 ✅"]
-    M15 --> M16["Milestone 16<br/>Paper Trading Foundation<br/>Sprints 77-83 ✅"]
-    M16 --> M17["Milestone 17<br/>Paper Trading Persistence & Audit Foundation<br/>Sprints 84-89 ✅"]
-    M17 --> M18["Milestone 18<br/>Paper Trading Workflow Integration Foundation<br/>Sprints 90-95 ✅"]
-    M18 --> M19["Milestone 19<br/>Configured Paper Workflow Wiring Foundation<br/>Sprints 96-102 ✅"]
-    M19 --> M20["Milestone 20<br/>Research-to-Paper Promotion Foundation<br/>Sprints 103-109 ✅"]
-    M20 --> M21["Milestone 21<br/>Paper Run Comparison and Review Foundation<br/>Sprints 110-116 ✅"]
-    M21 --> M22["Milestone 22<br/>Decision Governance Foundation<br/>Sprints 117-123 ✅"]
-    M22 --> M23["Milestone 23<br/>Report Artifact Foundation<br/>Sprints 124-129 ✅"]
-    M23 --> M24["Milestone 24<br/>Strategy Review Workflow Foundation<br/>Sprints 130-136 🟡"]
+    M1["M1-M8<br/>Research Workflow Foundations ✅"] --> M9["M9-M15<br/>Quality, Portfolio & Execution Realism ✅"]
+    M9 --> M16["M16-M19<br/>Paper Trading & Configured Workflow ✅"]
+    M16 --> M20["M20-M24<br/>Governance & Review Workflow ✅"]
+    M20 --> M25["M25-M29<br/>Founder Paper Productization 🟡"]
+    M25 --> M30["M30+<br/>Portfolio Decisions & Execution Readiness"]
 ```
 
 ## Milestone Table
 
 | Milestone | Sprint Range | Status | Theme | Exit Criteria |
 |---|---:|---|---|---|
-| Milestone 1 — Research Pipeline Foundation | Sprints 1-7 | Complete | Build the first minimal moving-average crossover research pipeline. | Close prices can produce signals, positions, returns, and an equity curve. |
-| Milestone 2 — Performance & Local Data Foundation | Sprints 8-12 | Complete | Add evaluation metrics and deterministic local CSV input. | The project can summarize backtests and run research from local CSV data. |
-| Milestone 3 — Data Reproducibility & Research Workflow | Sprints 13-16 | Complete | Add local cache, Yahoo-to-cache workflow, and CSV-to-pipeline helper. | Local market data workflows can be persisted and reused. |
-| Milestone 4 — Research Experimentation Foundation | Sprints 17-20 | Complete | Make experiments repeatable and comparable. | Parameter runs can be executed and summarized without claiming false alpha. |
-| Milestone 5 — Strategy Realism Foundation | Sprints 21-24 | Complete | Add realistic frictions and trade-level visibility. | Backtests include basic costs, slippage, and trade records. |
-| Milestone 6 — Risk & Benchmark Foundation | Sprints 25-28 | Complete | Improve evaluation discipline. | Results can be compared against benchmarks and basic risk-adjusted metrics. |
-| Milestone 7 — Multi-Asset Research Foundation | Sprints 29-32 | Complete | Move from single-symbol to multi-symbol research. | The platform can load, run, and summarize independent multi-symbol research workflows. |
-| Milestone 8 — Research Operations Foundation | Sprints 33-36 | Complete | Make repeated research workflows easier to run and inspect. | Experiments can be configured, executed, and stored more consistently. |
-| Milestone 9 — Project Quality Foundation | Sprints 37-41 | Complete | Add automated quality gates and repository hygiene. | Pull requests can be checked consistently. |
-| Milestone 10 — Experiment Artifact & Comparison Foundation | Sprints 42-46 | Complete | Make experiment outputs easier to inspect, persist, and compare. | Runs can produce and compare stable artifacts. |
-| Milestone 11 — Strategy Interface Foundation | Sprints 47-52 | Complete | Define cleaner strategy boundaries before adding more strategies. | Strategies plug into configured workflows through a stable interface. |
-| Milestone 12 — Data Integrity & Universe Foundation | Sprints 53-57 | Complete | Improve data validation, symbol-universe discipline, and input assumptions. | Configured runs validate symbol and price inputs before strategy execution. |
-| Milestone 13 — Portfolio Construction Foundation | Sprints 58-63 | Complete | Define portfolio-level construction before attribution and execution realism. | Portfolio inputs, equal-weight returns, configurable static weights, and summary artifacts are explicit. |
-| Milestone 14 — Portfolio Risk & Attribution Foundation | Sprints 64-69 | Complete | Explain portfolio-level behavior after construction is explicit. | Portfolio risk, drawdown, contribution, and attribution summaries are available. |
-| Milestone 15 — Backtest Execution Realism Foundation | Sprints 70-76 | Complete | Make backtest execution assumptions explicit and reviewable. | Order intent, assumed fills, execution summaries, and realism artifacts are available. |
-| Milestone 16 — Paper Trading Foundation | Sprints 77-83 | Complete | Define local paper-trading state and records before external execution. | Paper account state, orders, fills, session summaries, and artifacts are available. |
-| Milestone 17 — Paper Trading Persistence & Audit Foundation | Sprints 84-89 | Complete | Make local paper outputs durable and audit-friendly. | Paper artifacts can be saved, loaded, validated, and summarized locally. |
-| Milestone 18 — Paper Trading Workflow Integration Foundation | Sprints 90-95 | Complete | Turn paper-trading building blocks into an explicit workflow boundary. | A paper run request can produce, persist, and summarize a local paper artifact. |
-| Milestone 19 — Configured Paper Workflow Wiring Foundation | Sprints 96-102 | Complete | Wire the explicit paper workflow into configured local runs. | Configured paper inputs can produce, persist, and reference paper outputs locally. |
-| Milestone 20 — Research-to-Paper Promotion Foundation | Sprints 103-109 | Complete | Define explicit promotion governance between research evidence and paper candidates. | Evidence, candidates, promotion records, and manifests are human-controlled. |
-| Milestone 21 — Paper Run Comparison and Review Foundation | Sprints 110-116 | Complete | Define explicit comparison and review governance for multiple paper runs. | Paper runs can be referenced, grouped, summarized, reviewed, and listed locally. |
-| Milestone 22 — Decision Governance Foundation | Sprints 117-123 | Complete | Define strategy-level decision governance above promotion and paper-review evidence. | Decision evidence, summaries, records, manifests, and references are explicit. |
-| Milestone 23 — Report Artifact Foundation | Sprints 124-129 | Complete | Package completed governance records into deterministic review artifacts. | Report sources, sections, summaries, references, and manifests are explicit without report-generation runtime behavior. |
-| Milestone 24 — Strategy Review Workflow Foundation | Sprints 130-136 | In Progress | Define human-controlled lifecycle state and transition governance above completed M20–M23 records. | Evidence references, state snapshots, proposals, transition records, manifests, and guardrails are explicit without runtime lifecycle execution. |
+| M1 — Research Pipeline Foundation | S1-7 | Complete | First reproducible strategy pipeline. | Prices produce signals, positions, returns, and equity. |
+| M2 — Performance & Local Data Foundation | S8-12 | Complete | Metrics and deterministic local data. | Local CSV research can be evaluated consistently. |
+| M3 — Data Reproducibility & Research Workflow | S13-16 | Complete | Cache and reusable data workflows. | Inputs can be persisted and reused. |
+| M4 — Research Experimentation Foundation | S17-20 | Complete | Repeatable experiments. | Parameter runs can be summarized without false alpha claims. |
+| M5 — Strategy Realism Foundation | S21-24 | Complete | Costs, slippage, and trade visibility. | Backtests include realistic basic frictions. |
+| M6 — Risk & Benchmark Foundation | S25-28 | Complete | Evaluation discipline. | Results include benchmark and risk-adjusted context. |
+| M7 — Multi-Asset Research Foundation | S29-32 | Complete | Multi-symbol research. | Independent symbol workflows can be summarized together. |
+| M8 — Research Operations Foundation | S33-36 | Complete | Repeatable local operations. | Experiments can be configured and stored consistently. |
+| M9 — Project Quality Foundation | S37-41 | Complete | Automated quality gates. | Pull requests are checked consistently. |
+| M10 — Experiment Artifact & Comparison Foundation | S42-46 | Complete | Stable run artifacts. | Existing runs can be inspected and compared. |
+| M11 — Strategy Interface Foundation | S47-52 | Complete | Stable strategy boundaries. | Strategies plug into configured workflows through an interface. |
+| M12 — Data Integrity & Universe Foundation | S53-57 | Complete | Input and universe validation. | Strategy boundaries reject invalid symbol and price inputs. |
+| M13 — Portfolio Construction Foundation | S58-63 | Complete | Portfolio alignment and allocation. | Static portfolio construction assumptions are explicit. |
+| M14 — Portfolio Risk & Attribution Foundation | S64-69 | Complete | Portfolio explanation. | Risk, drawdown, contribution, and attribution are available. |
+| M15 — Backtest Execution Realism Foundation | S70-76 | Complete | Explicit execution assumptions. | Order intents, fills, and realism summaries are reviewable. |
+| M16 — Paper Trading Foundation | S77-83 | Complete | Local paper state and records. | Accounts, orders, fills, sessions, and artifacts are explicit. |
+| M17 — Paper Trading Persistence & Audit Foundation | S84-89 | Complete | Durable paper outputs. | Paper artifacts can be saved, loaded, validated, and summarized. |
+| M18 — Paper Trading Workflow Integration Foundation | S90-95 | Complete | Explicit paper-run boundary. | A paper request can produce and persist a local result. |
+| M19 — Configured Paper Workflow Wiring Foundation | S96-102 | Complete | Config-driven paper runs. | Configured runs can produce and reference paper outputs. |
+| M20 — Research-to-Paper Promotion Foundation | S103-109 | Complete | Human-controlled promotion governance. | Evidence, candidates, records, and manifests are explicit. |
+| M21 — Paper Run Comparison and Review Foundation | S110-116 | Complete | Multi-run review governance. | Paper runs can be referenced, compared, and reviewed. |
+| M22 — Decision Governance Foundation | S117-123 | Complete | Strategy-level human decisions. | Decision evidence, summaries, records, and manifests are explicit. |
+| M23 — Report Artifact Foundation | S124-129 | Complete | Deterministic review packaging. | Report sources, sections, summaries, references, and manifests are explicit. |
+| M24 — Strategy Review Workflow Foundation | S130-136 | Complete | Human-controlled lifecycle governance. | States, proposals, transition records, references, manifests, and guardrails are explicit without runtime lifecycle execution. |
+| M25 — Paper Trading Productization Planning | TBD | Next | Plan the founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
+| M26 — Paper Trading Application Service Foundation | TBD | Planned | Add the application-service boundary. | Existing domain capabilities are exposed through a small local API without broker behavior. |
+| M27 — Persistence and Paper Job Control Foundation | TBD | Planned | Add product persistence and controllable local jobs. | Product entities and paper jobs are durable, inspectable, and manually controlled. |
+| M28 — Founder Paper Trading Web Workspace | TBD | Planned | Deliver a usable founder UI. | The founder can inspect strategies and operate paper workflows locally. |
+| M29 — Product Feedback and Hardening | TBD | Planned | Improve usability and reliability. | Founder feedback is incorporated and the local product is hardened. |
+| M30 — Portfolio-Level Decision Review Foundation | TBD | Deferred | Resume portfolio-level strategy review. | Portfolio impact and concentration are included in human decisions. |
 
-## Completed Milestone 20 — Research-to-Paper Promotion Foundation
+## Completed Milestone 24 — Strategy Review Workflow Foundation
 
-```text
-promotion source reference contract
-  -> paper promotion candidate contract
-  -> promotion evidence summary
-  -> explicit promotion record
-  -> promotion manifest and candidate references
-```
-
-See:
+Milestone 24 completed this chain:
 
 ```text
-docs/milestones/milestone-020-research-to-paper-promotion-foundation.md
-docs/sprints/sprint-103-milestone-20-planning.md
-docs/sprints/sprint-109-milestone-20-documentation-refresh.md
+strategy review evidence reference contract
+  -> strategy lifecycle state snapshot contract
+  -> lifecycle transition proposal contract
+  -> human-controlled lifecycle transition record
+  -> strategy review workflow manifest and references
+  -> milestone closeout
 ```
-
-## Completed Milestone 21 — Paper Run Comparison and Review Foundation
-
-```text
-paper run reference contract
-  -> paper run comparison input contract
-  -> paper run comparison summary
-  -> paper run review decision record
-  -> review manifest and comparison references
-```
-
-See:
-
-```text
-docs/milestones/milestone-021-paper-run-comparison-review-foundation.md
-docs/sprints/sprint-110-milestone-21-planning.md
-docs/sprints/sprint-116-milestone-21-documentation-refresh-closeout.md
-```
-
-## Completed Milestone 22 — Decision Governance Foundation
-
-```text
-decision evidence reference contract
-  -> strategy decision input contract
-  -> strategy decision summary
-  -> explicit strategy decision record
-  -> decision manifest and references
-```
-
-See:
-
-```text
-docs/milestones/milestone-022-decision-governance-foundation.md
-docs/sprints/sprint-117-milestone-22-planning.md
-docs/sprints/sprint-123-milestone-22-documentation-refresh-closeout.md
-```
-
-## Completed Milestone 23 — Report Artifact Foundation
-
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S124 | Complete | Plan Milestone 23. | Report artifact scope, sequence, and guardrails. | No implementation during planning. |
-| S125 | Complete | Define report source references. | Typed references to completed governance records and manifests. | No artifact discovery, loading, parsing, scoring, or report generation. |
-| S126 | Complete | Define report section contract. | Caller-supplied section content with explicit source references. | No rendering pipeline, dashboard, markdown/PDF generation, or workflow execution. |
-| S127 | Complete | Add report artifact summary. | Caller-supplied summaries that group explicit sections. | No recommendation engine, metric calculation, scoring, ranking, dashboards, or reports. |
-| S128 | Complete | Add report manifest and references. | Local references and manifests for report summaries. | No file I/O, database, hosted service, dashboard, report engine, or workflow execution. |
-| S129 | Complete | Close milestone. | Documentation refresh and closeout. | No scope expansion. |
-
-Completed chain:
-
-```text
-report source reference contract
-  -> report section contract
-  -> report artifact summary
-  -> report artifact reference and manifest contracts
-  -> report artifact closeout
-```
-
-See:
-
-```text
-docs/milestones/milestone-023-report-artifact-foundation.md
-docs/sprints/sprint-124-milestone-23-planning.md
-docs/sprints/sprint-129-milestone-023-documentation-refresh-and-closeout.md
-```
-
-## Milestone 24 — Strategy Review Workflow Foundation
-
-Milestone 24 is contract-only and human-controlled.
 
 Approved lifecycle vocabulary:
 
@@ -171,89 +85,106 @@ on_hold
 rejected
 ```
 
-Planned sequence:
+Sprint sequence:
 
-| Sprint | Status | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|---|
-| S130 | Complete | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
-| S131 | Complete | Define strategy review evidence references. | Typed pointers to completed M20–M23 governance records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
-| S132 | Complete | Define lifecycle state snapshots. | Caller-supplied immutable declarations using the five approved lifecycle states. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
-| S133 | Complete | Define lifecycle transition proposals. | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
-| S134 | Complete | Add human-controlled lifecycle transition records. | Immutable caller-supplied records with `approved`, `rejected`, and `deferred` outcomes and conditional resulting snapshots. | Governance approval only; no execution, mutation, current-state behavior, or readiness claim. |
-| S135 | Complete | Add workflow manifests and references. | Compact stable-ID pointers and immutable grouped manifests for snapshots, proposals, and records. | No resolution, chain validation, file I/O, persistence, state mutation, or workflow execution. |
-| S136 | Planned | Close milestone. | Documentation refresh and closeout. | No scope expansion. |
+| Sprint | Status | Deliverable | Guardrail |
+|---:|---|---|---|
+| S130 | Complete | M24 scope, vocabulary, matrix, evidence rules, sequence, and guardrails. | Planning only. |
+| S131 | Complete | Typed pointers to completed M20-M23 governance artifacts. | No discovery, loading, scoring, or execution. |
+| S132 | Complete | Immutable caller-supplied state snapshots. | No implicit or mutable current state. |
+| S133 | Complete | Non-executing proposals using the exact 16-pair matrix. | No approval or mutation. |
+| S134 | Complete | Human-controlled `approved`, `rejected`, and `deferred` transition records. | Governance evidence only. |
+| S135 | Complete | Compact workflow references and grouped manifests. | No ID resolution, chain validation, persistence, or execution. |
+| S136 | Complete | Closeout and productization pivot. | Documentation only. |
 
-Planned chain:
-
-```text
-strategy review evidence reference contract
-  -> strategy lifecycle state snapshot contract
-  -> lifecycle transition proposal contract
-  -> human-controlled lifecycle transition record
-  -> strategy review workflow manifest and references
-  -> strategy review workflow closeout
-```
-
-A lifecycle state is an explicit declaration, not stored mutable state. A proposal is not an action. A transition record is a human-controlled governance artifact, not an executor. `live_candidate`, live readiness, broker behavior, capital deployment, databases, hosted orchestration, and automatic transitions remain outside Milestone 24.
+Milestone 24 did not add runtime state mutation, automatic transitions, automatic decision mapping, artifact loading, workflow orchestration, broker behavior, live readiness, capital deployment, databases, dashboards, or hosted SaaS behavior.
 
 See:
 
 ```text
 docs/milestones/milestone-024-strategy-review-workflow-foundation.md
-docs/sprints/sprint-130-milestone-24-planning.md
+docs/sprints/sprint-136-milestone-24-closeout-and-productization-pivot.md
 ```
 
-## Future Platform Direction
+## Productization Pivot
 
-Sprint 135 is complete. The next step is:
+The project now has deep foundations for research, paper trading, persistence, review, decisions, reporting, and lifecycle governance. The highest-value next move is to make those capabilities usable through a coherent founder product rather than adding another abstract contract layer.
+
+Provisional sequence:
 
 ```text
-Sprint 136 — Milestone 24 Closeout
+M25 — Paper Trading Productization Planning
+M26 — Paper Trading Application Service Foundation
+M27 — Persistence and Paper Job Control Foundation
+M28 — Founder Paper Trading Web Workspace
+M29 — Product Feedback and Hardening
+M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Longer-term phases remain:
+Portfolio-level review is deferred, not canceled.
+
+## Founder Product Target
+
+The first product should be local and single-user. It should support:
+
+- strategy list and detail
+- research and backtest inspection
+- governance evidence and report-artifact inspection
+- starting and reviewing paper runs
+- paper status, equity, positions, orders, and fills
+- paper-run comparison
+- lifecycle proposals and human transition records
+- lifecycle timeline
+
+Planning baseline:
 
 ```text
-Phase 1 — Research & Artifact Foundation
-Phase 2 — Workflow Integration Foundation
-Phase 3 — Decision Intelligence Foundation
-Phase 4 — Broker Readiness & Execution Governance
-Phase 5 — Controlled Live Pilot & Production Operations
+FastAPI
+SQLite + SQLAlchemy
+simple local background jobs
+React/Next.js
+Docker Compose / local-first
+single-user or minimal authentication
 ```
+
+Explicitly defer microservices, Kubernetes, Kafka, Redis clusters, multi-tenancy, complex RBAC, real-time dashboards, and broker integration.
+
+## Future Execution Direction
+
+Broker-specific systems must remain adapters behind broker-neutral domain models.
+
+Future QMT boundary:
+
+```text
+Browser
+  -> Web/API
+  -> broker-neutral execution command
+  -> Windows QMT agent
+  -> MiniQMT
+  -> broker
+```
+
+No browser-to-QMT direct connection and no live QMT work before dedicated execution-risk and live-readiness governance.
 
 ## Roadmap Principles
 
-1. Local reproducibility beats live convenience.
+1. Reproducibility beats convenience.
 2. Evaluation discipline comes before strategy complexity.
 3. Parameter search is not alpha discovery.
-4. Costs, slippage, and benchmarks should arrive before serious strategy claims.
-5. Multi-asset research should come after the single-asset workflow is stable.
-6. CLI and operations should wrap stable functions, not drive architecture.
-7. Automated quality gates should verify claims before humans review deeper logic.
-8. Every milestone should leave the repository easier to understand than before.
-9. Experiments that cannot be inspected later are not research assets.
-10. Strategy interfaces should come before strategy proliferation.
-11. Data validation should protect the strategy boundary before more strategies are added.
-12. Portfolio construction should define capital, alignment, and allocation assumptions before portfolio risk attribution.
-13. Portfolio risk should be explainable before execution realism.
-14. Execution assumptions should be explicit before paper trading.
-15. Paper trading state should be explicit before broker integration.
-16. Paper trading artifacts should be durable and audit-friendly before runtime workflows or broker integration.
-17. Paper trading workflows should be explicit before configured-run integration or broker readiness.
-18. Configured paper workflows should stay local and explicit before decision records, broker readiness, or live-readiness claims.
-19. Promotion records should be explicit and human-controlled; they are not automatic approval engines.
-20. Paper run comparison should stay explicit, local, and review-driven before dashboards, report engines, broker readiness, or capital deployment decisions.
-21. Decision governance should sit above promotion and paper-review evidence before dashboards, broad reports, broker readiness, live-readiness claims, or capital deployment decisions.
-22. Report artifacts should package completed governance records for review before dashboards, broad report engines, hosted reporting, broker readiness, live-readiness claims, or capital deployment decisions.
-23. Strategy lifecycle workflow must remain human-controlled, explicit, and evidence-backed before broker readiness or live execution.
-24. A lifecycle proposal is not an action, and a lifecycle record is not a runtime transition executor.
+4. Costs, slippage, benchmarks, and risk context precede serious claims.
+5. Stable interfaces should come before strategy proliferation.
+6. Paper state and auditability should precede broker integration.
+7. Promotion, review, decision, and lifecycle records remain human-controlled.
+8. A proposal is not an action and an approval record is not runtime execution.
+9. Productization should wrap stable domain capabilities rather than rewrite them.
+10. Start with one founder and one local deployment before multi-user or cloud complexity.
+11. Broker-specific concerns must remain behind adapters.
+12. Real capital requires separate risk, operational, and live-readiness governance.
 
 ## Current Next Step
 
 ```text
-Sprint 136 — Milestone 24 Closeout
+Milestone 25 — Paper Trading Productization Planning
 ```
 
-Reason:
-
-Sprint 135 added compact typed stable-ID pointers to lifecycle snapshots, proposals, and records plus immutable grouped manifests. Manifests preserve caller order and duplicates, may be partial, and require only one reference total. They do not resolve artifacts, validate existence or chain completeness, mutate state, make snapshots current, execute transitions, persist data, run paper workflows, or imply broker/live readiness or capital deployment.
+M25 is planning-only. It should define the founder journeys, application boundary, product data model, API surface, persistence ownership, job-control semantics, UI scope, deployment shape, security baseline, and sprint sequence for M26-M29.
