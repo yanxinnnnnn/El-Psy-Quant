@@ -12,7 +12,9 @@ El-Psy-Quant should not become a loose collection of strategy scripts or a thin 
 Build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
 ```
 
-The platform should support this decision chain reliably:
+The target is not a magic profitable strategy. The target is a trusted decision and operating pipeline.
+
+## Capability Chain
 
 ```text
 idea
@@ -22,58 +24,53 @@ idea
   -> portfolio
   -> execution assumptions
   -> paper trading
-  -> persistence
-  -> audit
+  -> persistence and audit
   -> configured workflow
   -> promotion governance
   -> paper comparison
-  -> review decision
-  -> decision governance
+  -> strategy decision governance
   -> report artifact
-  -> strategy review workflow
+  -> lifecycle governance
+  -> founder product workspace
+  -> portfolio-level review
+  -> execution-risk governance
   -> controlled live readiness
 ```
 
-The target is not a magic profitable strategy. The target is a trusted decision pipeline.
-
-## Company-Level Capability Curve
-
-The platform should move through these phases:
+## Company-Level Phases
 
 ```text
 Phase 1 — Research & Artifact Foundation
 Phase 2 — Workflow Integration Foundation
 Phase 3 — Decision Intelligence Foundation
-Phase 4 — Broker Readiness & Execution Governance
-Phase 5 — Controlled Live Pilot & Production Operations
+Phase 4 — Founder Paper Trading Productization
+Phase 5 — Portfolio Decisions & Execution Governance
+Phase 6 — Controlled Live Pilot & Production Operations
 ```
 
 The priority order is:
 
 ```text
-workflow
-  > promotion governance
-  > paper comparison
-  > review decision
-  > decision governance
-  > report artifact
-  > strategy review workflow
-  > risk controls
-  > broker sandbox
-  > live
+trusted local workflow
+  > human-controlled governance
+  > usable founder product
+  > portfolio-level decisions
+  > execution-risk controls
+  > broker adapters
+  > controlled live pilot
 ```
 
-The wrong order would be:
+The wrong order is:
 
 ```text
 broker > dashboard > live > strategy zoo
 ```
 
-That path would create complexity before the platform earns it.
+That path creates operational and financial risk before the platform earns complexity.
 
 ## Phase 1 — Research & Artifact Foundation
 
-Status: Complete through the core local paper workflow foundation.
+Status: Complete through Milestone 18.
 
 This phase established:
 
@@ -83,15 +80,15 @@ This phase established:
 - strategy interfaces
 - portfolio construction
 - portfolio risk and attribution
-- execution realism
-- paper trading state and artifacts
+- explicit execution realism
+- paper account state, orders, fills, and sessions
 - paper artifact persistence and audit
-- explicit local paper workflow boundaries
+- explicit local paper-run boundaries
 
 Completed milestone chain:
 
 ```text
-M1-M8   basic research workflow and operations
+M1-M8   research workflow and operations
 M9      project quality foundation
 M10     experiment artifact and comparison foundation
 M11     strategy interface foundation
@@ -108,8 +105,6 @@ M18     paper trading workflow integration foundation
 
 Status: Complete through Milestone 21.
 
-This phase turned isolated capabilities into operating workflows and reviewable promotion/comparison paths.
-
 ### Milestone 19 — Configured Paper Workflow Wiring Foundation
 
 Status: Complete.
@@ -119,16 +114,8 @@ local config
   -> validated paper run request
   -> configured output layout
   -> paper workflow execution
-  -> saved paper outputs and result references
+  -> saved outputs and result references
 ```
-
-Guardrails preserved:
-
-- no broker integration or live execution
-- no market-data streaming or scheduler behavior
-- no automatic research-to-paper promotion
-- no automatic strategy-signal-to-order conversion
-- no database, dashboard, broad report generation, or strategy expansion
 
 ### Milestone 20 — Research-to-Paper Promotion Foundation
 
@@ -136,23 +123,13 @@ Status: Complete.
 
 ```text
 research evidence
-  -> promotion source reference
-  -> paper promotion candidate
-  -> promotion evidence summary
-  -> explicit promotion record
-  -> promotion manifest and candidate references
+  -> promotion candidate
+  -> evidence summary
+  -> explicit human promotion record
+  -> promotion references and manifest
 ```
 
-Purpose:
-
-Define what it means for research evidence to be nominated for paper-trading review while keeping approval human-controlled.
-
-Guardrails preserved:
-
-- no automatic promotion or autonomous strategy approval
-- no paper workflow execution from promotion records
-- no broker integration or live-readiness claims
-- no database, dashboard, broad report generation, or strategy expansion
+A promotion candidate is not approval. A promotion record does not imply live readiness.
 
 ### Milestone 21 — Paper Run Comparison and Review Foundation
 
@@ -160,120 +137,61 @@ Status: Complete.
 
 ```text
 multiple paper runs
-  -> explicit comparison set
+  -> explicit comparison input
   -> comparison summary
-  -> review decision record
-  -> review manifest and comparison references
+  -> human review decision
+  -> review references and manifest
 ```
 
-Purpose:
-
-Make paper performance comparable and reviewable before dashboards, broad reporting, broker readiness, or live-readiness claims.
-
-Guardrails preserved:
-
-- no automatic paper-run discovery
-- no artifact loading, parsing, scoring, metric comparison, or ranking
-- no dashboard or broad report engine
-- no persistence or database behavior from review contracts
-- no broker integration, live execution, or automatic capital deployment decision
+The comparison layer does not discover runs, rank strategies automatically, or make capital decisions.
 
 ## Phase 3 — Decision Intelligence Foundation
 
-Status: Milestones 22 and 23 complete. Milestone 24 is in progress through Sprint 135; Sprint 136 closeout is next.
-
-This phase makes strategy decisions, review packages, and lifecycle governance explicit and reviewable.
+Status: Complete through Milestone 24.
 
 ### Milestone 22 — Decision Governance Foundation
 
 Status: Complete.
 
 ```text
-decision evidence reference contract
-  -> strategy decision input contract
-  -> strategy decision summary
-  -> explicit strategy decision record
-  -> decision manifest and references
-  -> decision governance closeout
+decision evidence
+  -> strategy decision input
+  -> caller-supplied summary
+  -> explicit human decision record
+  -> decision references and manifest
 ```
 
-Delivered contracts:
-
-- `DecisionEvidenceReference`
-- `StrategyDecisionInput`
-- `StrategyDecisionSummary`
-- `StrategyDecisionRecord`
-- `StrategyDecisionReference`
-- `StrategyDecisionManifest`
-
-Purpose:
-
-Record why a strategy should continue, pause, be rejected, need more evidence, or remain under review without jumping to dashboards, broker behavior, live readiness, or capital deployment.
-
-Guardrails preserved:
-
-- no automatic decision making, approval, or promotion
-- no automatic evidence discovery or artifact loading
-- no metric calculation, scoring, ranking, or winner selection
-- no dashboards or broad reports
-- no broker readiness, live-readiness claims, capital allocation, or workflow execution changes
-- no database, hosted service, or SaaS behavior
+The layer records why a strategy should continue, pause, be rejected, or need more evidence without becoming an automatic decision engine.
 
 ### Milestone 23 — Report Artifact Foundation
+
+Status: Complete.
+
+```text
+report source reference
+  -> report section
+  -> report artifact summary
+  -> report reference and manifest
+```
+
+Report artifacts package completed governance records. They do not render dashboards, calculate new metrics, recommend decisions, or imply readiness.
+
+### Milestone 24 — Strategy Review Workflow Foundation
 
 Status: Complete.
 
 Completed chain:
 
 ```text
-report source reference contract
-  -> report section contract
-  -> report artifact summary
-  -> report artifact reference and manifest contracts
-  -> report artifact closeout
+strategy review evidence reference
+  -> lifecycle state snapshot
+  -> transition proposal
+  -> human-controlled transition record
+  -> workflow reference and manifest
+  -> closeout
 ```
 
-Delivered contracts:
-
-- `ReportSourceReference`
-- `ReportSection`
-- `ReportArtifactSummary`
-- `ReportArtifactReference`
-- `ReportArtifactManifest`
-
-Purpose:
-
-Package completed governance records into deterministic, reviewable report artifacts before dashboards or broad report engines.
-
-Guardrails preserved:
-
-- no automatic report generation
-- no rendering, dashboards, markdown/HTML/PDF generation, or broad report engine
-- no automatic evidence discovery or artifact loading
-- no metric calculation, scoring, ranking, recommendation, or automatic decisions
-- no file I/O, manifest reading/writing, persistence services, or database behavior from report-artifact contracts
-- no workflow execution, broker/live behavior, capital deployment, or readiness claims
-
-### Milestone 24 — Strategy Review Workflow Foundation
-
-Status: In progress through Sprint 135.
-
-Milestone decision:
-
-Milestone 24 is a contract-only, local, deterministic, human-controlled lifecycle-governance layer. It declares review states and records explicitly reviewed state changes without introducing runtime state mutation or workflow execution.
-
-Planned chain:
-
-```text
-strategy review evidence reference contract
-  -> strategy lifecycle state snapshot contract
-  -> lifecycle transition proposal contract
-  -> human-controlled lifecycle transition record
-  -> strategy review workflow manifest and references
-  -> strategy review workflow closeout
-```
-
-Approved lifecycle vocabulary:
+Lifecycle vocabulary:
 
 ```text
 research_review
@@ -283,244 +201,323 @@ on_hold
 rejected
 ```
 
-Semantics:
-
-- `research_review` means explicit research-level review only.
-- `paper_review` means explicit paper-evidence review only.
-- `watchlist` means active evidence monitoring without progression.
-- `on_hold` means the review lifecycle is intentionally paused.
-- `rejected` closes the current lifecycle path within Milestone 24.
-
-There is no implicit initial state. A lifecycle state exists only when explicitly declared by a caller-supplied state snapshot.
-
-Milestone 24 does not include `live_candidate`, `live_ready`, `approved_for_live`, or any equivalent state. Live-readiness semantics belong to a later dedicated milestone after risk and operational controls exist.
-
-Permitted transition matrix:
+Transition outcomes:
 
 ```text
-research_review -> paper_review | watchlist | on_hold | rejected
-paper_review    -> research_review | watchlist | on_hold | rejected
-watchlist       -> research_review | paper_review | on_hold | rejected
-on_hold         -> research_review | paper_review | watchlist | rejected
-rejected        -> no transitions in Milestone 24
+approved
+rejected
+deferred
 ```
 
-Transition boundary:
+Milestone 24 established explicit lifecycle governance while preserving these boundaries:
 
-- no self-transitions
-- no implicit transitions
+- no implicit initial state
+- no mutable current-state store
 - no automatic transition application
-- a transition proposal does not change state
-- every accepted transition requires a separate explicit human-controlled transition record
-- rejected or deferred proposals leave the declared state unchanged
-- existing decision statuses are evidence, not automatic lifecycle mappings
-- reopening a rejected lifecycle path is outside Milestone 24
-
-Evidence boundary:
-
-- evidence references point to completed promotion, paper-review, decision-governance, and report-artifact records or manifests
-- every transition proposal includes at least one explicit strategy decision record reference
-- entry into `paper_review` additionally includes an explicit promotion record reference
-- report artifacts may provide review context but cannot authorize a transition by themselves
-- evidence references do not discover, load, parse, score, rank, or validate referenced artifacts
-- evidence sufficiency remains explicit human judgment
-
-Planned sprint sequence:
-
-| Sprint | Goal | Main Deliverable | Guardrail |
-|---:|---|---|---|
-| S130 | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
-| S131 | Define strategy review evidence references. **Complete.** | Typed pointers to completed M20–M23 records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
-| S132 | Define lifecycle state snapshots. **Complete.** | Caller-supplied immutable declarations using the five approved lifecycle states. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
-| S133 | Define lifecycle transition proposals. **Complete.** | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
-| S134 | Add human-controlled lifecycle transition records. **Complete.** | Immutable caller-supplied records with `approved`, `rejected`, and `deferred` outcomes and conditional resulting snapshots. | Governance approval only; no execution, mutation, current-state behavior, or readiness claim. |
-| S135 | Add workflow manifests and references. **Complete.** | Compact stable-ID pointers and immutable grouped manifests for snapshots, proposals, and records. | No resolution, chain validation, file I/O, persistence, state mutation, or workflow execution. |
-| S136 | Close Milestone 24. | Documentation refresh and closeout. | No scope expansion. |
-
-Planning guardrails:
-
-- no strategy lifecycle runtime execution
-- no automatic strategy state transitions
-- no mutable current-state storage
-- no automatic mapping from decision statuses to lifecycle states
-- no autonomous approval, rejection, promotion, or reopening
-- no workflow execution from governance records
+- no automatic decision-status mapping
+- no evidence discovery, loading, or resolution
 - no generic state-machine or workflow engine
-- no scheduler, queue, event bus, or hosted orchestration
-- no artifact discovery, loading, scoring, ranking, or recommendation
-- no paper execution or configured workflow changes
-- no broker integration, live execution, or real-money behavior
-- no dashboard or hosted workflow product
-- no database-backed orchestration or SaaS behavior
-- no claim that a lifecycle state means live-ready or approved for capital deployment
+- no paper execution triggered by governance records
+- no broker behavior, live-readiness claim, or capital deployment
 
-### Milestone 25 — Portfolio-Level Decision Review Foundation
+## Phase 4 — Founder Paper Trading Productization
 
-Status: Future.
+Status: Next.
 
-```text
-strategy candidates
-  -> portfolio impact
-  -> risk concentration
-  -> decision recommendation
-```
+The platform now has enough domain depth. The next company-level objective is to make existing capabilities usable by the founder through a coherent local product.
+
+This phase is deliberately single-user and local-first. It is not a SaaS phase.
+
+### Milestone 25 — Paper Trading Productization Planning
+
+Status: Next.
 
 Purpose:
 
-Evaluate strategies at portfolio level instead of only strategy level. A strategy can be attractive alone and still be unsuitable for the portfolio if it adds concentrated risk or duplicate exposure.
+Define the product boundary and implementation sequence before building the application layer.
 
-## Phase 4 — Broker Readiness & Execution Governance
+M25 should decide:
 
-Recommended focus: Milestones 26-30.
+- primary founder journeys
+- application-service responsibilities
+- domain-to-API boundaries
+- product persistence ownership
+- local job-control semantics
+- UI information architecture
+- security and authentication baseline
+- local deployment model
+- observability and error-surface expectations
+- M26-M29 sprint sequence and exit criteria
 
-This phase approaches broker integration without rushing into real-money execution.
+M25 is planning-only. It must not implement FastAPI endpoints, database models, job workers, or web screens.
 
-### Milestone 26 — Broker Abstraction Planning
+### Milestone 26 — Paper Trading Application Service Foundation
 
-Define broker-facing concepts without connecting to a broker:
+Status: Planned.
 
-- order model
-- account snapshot model
-- fill event model
-- broker error model
-- retry and idempotency rules
-- manual approval boundaries
+Purpose:
 
-### Milestone 27 — Simulated Broker Adapter Foundation
+Expose existing research, paper, comparison, decision, report, and lifecycle capabilities through a small local application-service boundary.
+
+Recommended direction:
+
+- FastAPI
+- explicit request/response schemas
+- thin application services over existing domain contracts
+- no broker integration
+- no domain logic duplicated in API handlers
+
+Initial API capabilities may include:
+
+- list and inspect strategies
+- inspect research/backtest artifacts
+- inspect governance and report artifacts
+- submit a local paper-run request
+- inspect paper-run results
+- create lifecycle proposals and human review records
+
+### Milestone 27 — Persistence and Paper Job Control Foundation
+
+Status: Planned.
+
+Purpose:
+
+Add product-level durability and controllable local execution without turning the system into distributed infrastructure.
+
+Recommended direction:
+
+- SQLite
+- SQLAlchemy
+- explicit repository boundaries
+- simple local background jobs
+- manually controllable job lifecycle
+- durable job status and errors
+- deterministic links to existing domain artifacts
+
+Do not introduce Kafka, distributed queues, Redis clusters, Kubernetes, or multi-service orchestration.
+
+### Milestone 28 — Founder Paper Trading Web Workspace
+
+Status: Planned.
+
+Purpose:
+
+Deliver the first usable founder product.
+
+The workspace should support:
+
+- strategy list and strategy detail
+- research and backtest inspection
+- governance evidence and report-artifact inspection
+- start paper run
+- paper-run status
+- equity, positions, orders, and fills
+- compare paper runs
+- lifecycle transition proposal
+- human review record
+- lifecycle timeline
+
+Recommended direction:
+
+- React/Next.js
+- clean founder-focused information architecture
+- Web/API separation
+- local-first operation
+- Docker Compose for convenient local startup
+- single-user or minimal authentication
+
+Do not build a broad real-time trading dashboard. Focus on reviewability and operation of existing paper workflows.
+
+### Milestone 29 — Product Feedback and Hardening
+
+Status: Planned.
+
+Purpose:
+
+Use the founder workspace in real workflows and fix the highest-value usability, reliability, audit, and operational issues.
+
+Expected focus:
+
+- workflow friction
+- missing product state
+- error handling
+- idempotency
+- job recovery
+- audit visibility
+- migration discipline
+- test coverage across API, persistence, and UI boundaries
+- local deployment reliability
+
+This milestone should be driven by actual founder usage rather than speculative features.
+
+## Phase 5 — Portfolio Decisions & Execution Governance
+
+Status: Future.
+
+### Milestone 30 — Portfolio-Level Decision Review Foundation
+
+Status: Deferred, not canceled.
+
+Purpose:
+
+Evaluate strategies at portfolio level rather than only as standalone candidates.
+
+Potential review inputs:
+
+- marginal risk contribution
+- duplicated factor or symbol exposure
+- concentration
+- correlation with existing approved strategies
+- expected portfolio impact
+- capital and turnover implications
+
+This remains human-controlled decision governance, not automatic portfolio optimization or capital allocation.
+
+### Milestone 31 — Broker Abstraction Planning
+
+Define broker-neutral concepts before connecting to any broker:
 
 ```text
-paper order
-  -> simulated broker adapter
-  -> simulated ack / fill / reject
+OrderIntent
+ExecutionOrder
+ExecutionFill
+AccountSnapshot
+PositionSnapshot
+BrokerOrderReference
 ```
 
-Exercise broker-like behavior locally without external dependencies.
+Define idempotency, retries, reconciliation, error handling, manual approval, and kill-switch boundaries.
 
-### Milestone 28 — Execution Risk Control Foundation
+### Milestone 32 — Simulated Broker Adapter Foundation
 
-Add pre-trade guardrails:
+Exercise broker-like acknowledgements, fills, rejections, reconnects, and reconciliation locally without external dependencies.
 
-- max order size
-- max position size
-- max daily turnover
-- max loss threshold
-- symbol allowlist
-- trading window
-- manual approval requirement
+### Milestone 33 — Execution Risk Control Foundation
 
-Risk controls should exist before real broker integration.
+Add explicit pre-trade and operational guardrails such as:
 
-### Milestone 29 — Live Readiness Checklist Foundation
+- maximum order size
+- maximum position size
+- maximum turnover
+- loss thresholds
+- symbol allowlists
+- trading windows
+- manual approval requirements
+- emergency stop behavior
+
+### Milestone 34 — Live Readiness Checklist Foundation
+
+Define eligibility for a controlled live pilot without executing live trades.
 
 ```text
 strategy evidence
-  + paper performance
-  + risk controls
+  + paper evidence
+  + portfolio review
+  + execution-risk controls
   + operational checks
-  + manual approval
-  -> live readiness status
+  + explicit human approval
+  -> live-readiness record
 ```
 
-Define eligibility for live testing without executing live trades.
+### Milestone 35 — QMT Paper Adapter Foundation
 
-### Milestone 30 — Broker Sandbox Integration
+QMT may enter only as an execution adapter after broker-neutral commands and risk boundaries exist.
 
-Connect to a broker sandbox or paper-broker API only after local workflow, decision, and risk boundaries are stable.
-
-Phase 4 guardrails:
-
-- no real-money trading
-- no unattended execution
-- no autonomous scaling of strategies
-
-## Phase 5 — Controlled Live Pilot & Production Operations
-
-Recommended focus: Milestones 31+.
-
-This phase should only start after Phase 4 creates strong operational guardrails.
-
-### Milestone 31 — Small-Capital Live Pilot Foundation
-
-Support extremely small, tightly controlled live execution with:
-
-- allowlisted strategy and symbols
-- strict maximum exposure
-- manual kill switch
-- full audit trail
-- no autonomous scaling
-
-### Milestone 32 — Live Monitoring Foundation
+Preferred architecture:
 
 ```text
-live orders
-  -> fills
-  -> account state
-  -> risk status
-  -> alerts
+Browser
+  -> Web/API
+  -> broker-neutral execution command
+  -> Windows QMT agent
+  -> MiniQMT
+  -> broker
 ```
 
-Produce structured operational status artifacts before complex dashboards.
+Potential venues:
 
-### Milestone 33 — Incident & Kill Switch Foundation
+```text
+internal_paper
+qmt_paper
+qmt_live
+```
 
-Define how the system stops, records incidents, and recovers safely.
+QMT must not leak into strategy, evaluation, governance, or UI domain models.
 
-### Milestone 34 — Production Operations Foundation
+Required future concerns include:
 
-Document and support:
+- reconnect behavior
+- order and fill reconciliation
+- internal-to-broker ID mapping
+- manual-trade reconciliation
+- agent authentication
+- command idempotency
+- audit trail
 
-- runbooks
-- status checks
-- deployment and version records
-- rollback rules
-- operational review processes
+Never connect the browser directly to QMT.
 
-### Milestone 35+ — Productization Foundation
+## Phase 6 — Controlled Live Pilot & Production Operations
 
-Possible later direction:
+Status: Future and conditional.
 
-- multi-user workspace
-- permissions
-- hosted dashboard
-- cloud deployment
-- team collaboration
-- SaaS productization
+This phase begins only after strong paper evidence, portfolio review, execution-risk controls, operational readiness, and explicit human approval exist.
 
-This should come after the core decision pipeline is proven.
+Potential milestones:
 
-## Core Assets To Build
+- tiny-capital controlled live pilot
+- live account and order reconciliation
+- operational monitoring and alerts
+- incident records and kill switch
+- deployment, rollback, and runbooks
+- production review processes
+
+Guardrails:
+
+- no unattended scaling
+- no autonomous capital allocation
+- strict exposure limits
+- complete audit trail
+- manual kill switch
+- staged rollout
+
+## Founder Product Architecture Principles
+
+1. Use existing domain contracts rather than rewriting them in the API layer.
+2. Keep the first product local and single-user.
+3. Prefer one application service before microservices.
+4. Prefer SQLite before a larger database unless real usage proves otherwise.
+5. Prefer simple local jobs before distributed queues.
+6. Keep UI state separate from financial domain truth.
+7. Keep broker-specific behavior behind adapters.
+8. Treat auditability and human review as product features.
+9. Make failure states visible rather than hiding them behind automation.
+10. Delay multi-tenancy, complex RBAC, cloud orchestration, and SaaS behavior.
+
+## Core Assets To Preserve
 
 ### Research Memory
 
-Every experiment, strategy, parameter set, data assumption, and result should be traceable.
+Every experiment, strategy, parameter set, data assumption, and result should remain traceable.
 
-### Promotion Governance
+### Paper Trading Memory
 
-Every research-to-paper nomination should be explicit, evidence-backed, and human-controlled.
+Every paper request, order, fill, account change, session, job, and result should remain inspectable.
 
-### Paper Comparison Memory
+### Promotion and Decision Ledger
 
-Every paper-run comparison should be explicit, reproducible, and tied to stable references.
+Every nomination, review, pause, rejection, and lifecycle change should remain explicit, evidence-backed, and human-controlled.
 
-### Decision Ledger
+### Report and Lifecycle Memory
 
-Every continue, pause, reject, promote-to-paper, and future promote-to-live decision should be recorded with evidence.
+Every review package, declared state, proposal, transition record, and manifest should remain tied to stable IDs without implying runtime execution.
 
-### Report Artifact Memory
+### Product Audit Trail
 
-Every review package should identify its source records, sections, assumptions, warnings, missing evidence, stable summary ID, and manifest references without implying automated reporting or readiness.
-
-### Strategy Review Lifecycle Memory
-
-Every declared strategy review state and every proposed or approved state change should be explicit, evidence-referenced, human-controlled, and auditable without implying runtime transition execution or live readiness.
-
-### Risk Discipline
-
-The platform should slow down bad decisions and speed up good reviews.
+Future application and web layers should make existing audit records easier to use, not replace them with opaque UI state.
 
 ### Execution Readiness
 
-Live trading should be the outcome of trusted workflow and governance, not the starting point.
+Live trading should be the outcome of trusted research, paper evidence, product operation, portfolio review, risk controls, and operational governance—not the starting point.
 
 ## Explicit Non-Priorities
 
@@ -528,26 +525,32 @@ The project should not prioritize these too early:
 
 ```text
 strategy count for its own sake
-live broker integration
 real-money trading
-deep learning alpha
+live broker integration
+browser-to-broker direct connectivity
 high-frequency trading
-complex web dashboards
-large databases
-portfolio optimization before basic portfolio accounting
-SaaS before the decision pipeline is proven
+deep-learning alpha
+microservice architecture
+Kubernetes
+Kafka
+Redis clusters
+multi-tenancy
+complex RBAC
+large cloud infrastructure
+SaaS behavior
+real-time dashboard complexity
 ```
 
 ## Current Next Step
 
 ```text
-Sprint 136 — Milestone 24 Closeout
+Milestone 25 — Paper Trading Productization Planning
 ```
 
-Sprint 135 added compact typed stable-ID references to lifecycle snapshots, proposals, and records plus immutable grouped manifests. Caller order and duplicates are preserved, manifests may be partial, and only one reference total is required. References and manifests do not discover, load, resolve, parse, inspect, score, rank, validate artifact existence or chain completeness, mutate state, make snapshots current, execute transitions, persist data, run paper workflows, or imply broker/live readiness or capital deployment.
+M25 should turn the productization direction into an explicit, reviewable architecture and sprint plan while preserving the local-first, human-controlled, non-live boundaries established by Milestones 1–24.
 
 ## One-Line Strategy
 
 ```text
-Do not rush to find a magic strategy. Build a research and decision system that is hard to fool.
+Do not rush to find a magic strategy or connect a broker. Build a trusted founder operating system for research, paper trading, and decisions first.
 ```
