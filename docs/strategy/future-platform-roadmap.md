@@ -180,7 +180,7 @@ Guardrails preserved:
 
 ## Phase 3 — Decision Intelligence Foundation
 
-Status: Milestones 22 and 23 complete. Milestone 24 is in progress: Sprints 131 and 132 delivered evidence references and lifecycle state snapshots, and Sprint 133 is the next planned implementation sprint.
+Status: Milestones 22 and 23 complete. Milestone 24 is in progress: Sprints 131–133 delivered evidence references, state snapshots, and transition proposals; Sprint 134 is next.
 
 This phase makes strategy decisions, review packages, and lifecycle governance explicit and reviewable.
 
@@ -541,10 +541,10 @@ SaaS before the decision pipeline is proven
 ## Current Next Step
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
-Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots using exactly `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`. Snapshots have no implicit initial state, are not mutable current state, do not automatically map decision statuses, and do not request, approve, reject, validate, or execute transitions. `paper_review` does not imply broker readiness, live readiness, or capital deployment; `rejected` is terminal within Milestone 24, while transition enforcement belongs to Sprint 133.
+Sprint 133 added immutable caller-supplied proposals with exact permitted-pair validation and minimum evidence-reference rules. Proposals do not approve, reject, defer, execute, mutate snapshots, create resulting snapshots, or imply broker/live readiness or capital deployment.
 
 ## One-Line Strategy
 

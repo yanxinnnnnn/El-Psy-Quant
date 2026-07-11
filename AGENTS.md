@@ -110,6 +110,8 @@ Sprint 131 added explicit strategy-review evidence references to completed M20â€
 
 Sprint 132 added immutable caller-supplied lifecycle state snapshots using the approved five-state vocabulary. Snapshots have no implicit initial state, are not mutable current state, do not automatically map decision statuses, and do not request, approve, reject, validate, or execute transitions.
 
+Sprint 133 added immutable caller-supplied transition proposals with the exact permitted-pair matrix and minimum evidence-reference type rules. Proposals remain non-approving, non-executing, non-mutating, and do not create resulting snapshots or imply readiness.
+
 The next focus is:
 
 ```text

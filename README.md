@@ -167,6 +167,8 @@ Milestone 24 is **Strategy Review Workflow Foundation**.
 
 Sprint 132 added the second contract in this layer: explicit immutable lifecycle state snapshots. The next sprint should define caller-supplied lifecycle transition proposals with deterministic permitted transition-pair validation, without approving or executing transitions.
 
+Sprint 133 added immutable caller-supplied transition proposals, the exact 16-pair matrix, minimum decision-record and paper-entry promotion-record reference rules, order-preserving evidence tuples, and deterministic serialization. Proposals do not approve, reject, defer, execute, mutate the source snapshot, or create resulting snapshots. Evidence remains pointers only, and no broker/live readiness or capital deployment is implied.
+
 - typed references to completed M20–M23 governance records
 - immutable caller-supplied lifecycle state snapshots
 - a fixed state vocabulary: `research_review`, `paper_review`, `watchlist`, `on_hold`, and `rejected`
