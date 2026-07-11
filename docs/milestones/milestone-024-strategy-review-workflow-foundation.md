@@ -177,7 +177,7 @@ Milestone 22 decision statuses must not be automatically mapped to lifecycle sta
 | S130 | Complete | Plan Milestone 24. | Scope, lifecycle vocabulary, transition matrix, evidence rules, sprint sequence, and guardrails. | Documentation only; no runtime behavior. |
 | S131 | Complete | Define strategy review evidence references. | Small typed pointers to completed M20–M23 governance records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
 | S132 | Complete | Define lifecycle state snapshots. | Explicit caller-supplied immutable declarations using the approved vocabulary. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
-| S133 | Planned | Define lifecycle transition proposals. | Explicit from-state, target-state, rationale, evidence references, and requester context. | A proposal does not change state or approve anything. |
+| S133 | Complete | Define lifecycle transition proposals. | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
 | S134 | Planned | Add human-controlled lifecycle transition records. | Explicit reviewer outcome, rationale, approval context, and declared resulting-state reference. | No automatic approval, transition execution, paper execution, broker behavior, or readiness claim. |
 | S135 | Planned | Add workflow manifests and references. | Local references and manifests for state snapshots, proposals, and transition records. | No file I/O, database, hosted orchestration, dashboard, or workflow engine. |
 | S136 | Planned | Close Milestone 24. | Documentation refresh and closeout. | No scope expansion. |
@@ -285,11 +285,11 @@ Milestone 24 is complete only when:
 ## Next Step
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
 Sprint 131 added the smallest useful typed pointers to completed M20–M23 governance records. They do not discover, load, parse, validate, score, rank, or evaluate artifacts; declare lifecycle states; propose, approve, reject, or execute transitions; or imply paper eligibility, broker readiness, live readiness, or capital deployment.
 
 Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots. They use exactly the five approved states; they have no implicit initial state; and they do not request, approve, reject, validate, or execute transitions. Decision statuses are not mapped automatically. `paper_review` does not imply broker readiness, live readiness, or capital deployment. `rejected` remains terminal within Milestone 24, while transition enforcement belongs to Sprint 133.
 
-Sprint 133 should define explicit lifecycle transition proposals with deterministic permitted transition-pair validation, without approving or executing transitions.
+Sprint 133 added immutable caller-supplied transition proposals with deterministic permitted transition-pair validation. Proposals remain non-approving, non-executing, and non-mutating.

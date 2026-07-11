@@ -178,7 +178,7 @@ Planned sequence:
 | S130 | Complete | Plan Milestone 24. | Scope, vocabulary, transitions, evidence rules, sequence, and guardrails. | Documentation only; no runtime behavior. |
 | S131 | Complete | Define strategy review evidence references. | Typed pointers to completed M20–M23 governance records and manifests. | No discovery, loading, parsing, scoring, ranking, evaluation, or workflow execution. |
 | S132 | Complete | Define lifecycle state snapshots. | Caller-supplied immutable declarations using the five approved lifecycle states. | No implicit initial state, mutable state store, persistence, state-machine service, or transition behavior. |
-| S133 | Planned | Define lifecycle transition proposals. | Explicit from-state, target-state, rationale, evidence, and requester context. | A proposal does not change state or approve anything. |
+| S133 | Complete | Define lifecycle transition proposals. | Immutable caller-supplied proposals with deterministic permitted-pair validation. | No approval, execution, or mutation. |
 | S134 | Planned | Add human-controlled lifecycle transition records. | Reviewer outcome, rationale, approval context, and resulting-state reference. | No automatic approval, transition execution, broker behavior, or readiness claim. |
 | S135 | Planned | Add workflow manifests and references. | Local references and manifests for state snapshots, proposals, and transition records. | No file I/O, database, hosted orchestration, dashboard, or workflow engine. |
 | S136 | Planned | Close milestone. | Documentation refresh and closeout. | No scope expansion. |
@@ -208,7 +208,7 @@ docs/sprints/sprint-130-milestone-24-planning.md
 Sprint 132 is complete. The next step is:
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
 Longer-term phases remain:
@@ -251,9 +251,9 @@ Phase 5 — Controlled Live Pilot & Production Operations
 ## Current Next Step
 
 ```text
-Sprint 133 — Lifecycle Transition Proposal Foundation
+Sprint 134 — Human-Controlled Lifecycle Transition Record Foundation
 ```
 
 Reason:
 
-Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots using the five approved states. Snapshots have no implicit initial state, are not mutable current state, and do not request, approve, reject, validate, or execute transitions. Sprint 133 should define explicit lifecycle transition proposals with deterministic validation of the approved transition matrix, without approving or executing transitions.
+Sprint 133 added immutable caller-supplied transition proposals with the exact 16-pair matrix, deterministic pair validation, minimum evidence-reference rules, order-preserving immutable references, and deterministic serialization. Proposals do not approve, reject, defer, execute, mutate snapshots, or create resulting snapshots. Sprint 134 is the next planned step.
