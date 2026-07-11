@@ -45,4 +45,4 @@ Sprint 132 does not add transition proposals, transition records, transition-mat
 Sprint 133 — Lifecycle Transition Proposal Foundation
 ```
 
-Sprint 133 should add explicit caller-supplied transition proposals without validating or executing transitions.
+Sprint 133 should add explicit caller-supplied transition proposals with deterministic permitted transition-pair validation, without approving or executing transitions.

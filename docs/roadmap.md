@@ -256,4 +256,4 @@ Sprint 133 — Lifecycle Transition Proposal Foundation
 
 Reason:
 
-Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots using the five approved states. Snapshots have no implicit initial state, are not mutable current state, and do not request, approve, reject, validate, or execute transitions. Sprint 133 should define explicit lifecycle transition proposals without transition validation or execution.
+Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots using the five approved states. Snapshots have no implicit initial state, are not mutable current state, and do not request, approve, reject, validate, or execute transitions. Sprint 133 should define explicit lifecycle transition proposals with deterministic validation of the approved transition matrix, without approving or executing transitions.

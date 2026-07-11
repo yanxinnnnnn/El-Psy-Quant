@@ -165,7 +165,7 @@ docs/strategy/future-platform-roadmap.md
 
 Milestone 24 is **Strategy Review Workflow Foundation**.
 
-Sprint 132 added the second contract in this layer: explicit immutable lifecycle state snapshots. The next sprint should define caller-supplied lifecycle transition proposals without approving, validating, or executing transitions.
+Sprint 132 added the second contract in this layer: explicit immutable lifecycle state snapshots. The next sprint should define caller-supplied lifecycle transition proposals with deterministic permitted transition-pair validation, without approving or executing transitions.
 
 - typed references to completed M20–M23 governance records
 - immutable caller-supplied lifecycle state snapshots

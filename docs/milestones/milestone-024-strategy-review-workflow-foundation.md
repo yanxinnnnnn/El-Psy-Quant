@@ -292,4 +292,4 @@ Sprint 131 added the smallest useful typed pointers to completed M20–M23 gover
 
 Sprint 132 added explicit caller-supplied immutable lifecycle state snapshots. They use exactly the five approved states; they have no implicit initial state; and they do not request, approve, reject, validate, or execute transitions. Decision statuses are not mapped automatically. `paper_review` does not imply broker readiness, live readiness, or capital deployment. `rejected` remains terminal within Milestone 24, while transition enforcement belongs to Sprint 133.
 
-Sprint 133 should define explicit lifecycle transition proposals without validating or executing transitions.
+Sprint 133 should define explicit lifecycle transition proposals with deterministic permitted transition-pair validation, without approving or executing transitions.
