@@ -136,7 +136,7 @@ Critical ownership decisions:
 | Sprint | Deliverable |
 |---:|---|
 | S138 | Application Service and API Skeleton. **Complete.** |
-| S139 | Strategy Catalog and Detail Read Services |
+| S139 | Strategy Catalog and Detail Read Services. **Complete.** |
 | S140 | Research and Backtest Artifact Inspection Services |
 | S141 | Governance, Report, and Lifecycle Evidence Inspection Services |
 | S142 | Paper Run Application Command Boundary |
@@ -251,7 +251,7 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 ## Current Next Step
 
 ```text
-Sprint 139 — Strategy Catalog and Detail Read Services
+Sprint 140 — Research and Backtest Artifact Inspection Services
 ```
 
-Sprint 138 established the deterministic local FastAPI factory, `/api/v1` route boundary, process-only health contract, server-owned request IDs, and stable sanitized error envelopes. It added no strategy catalog, artifact inspection, paper commands, lifecycle commands, persistence, background jobs, Web UI, broker, QMT, or live behavior.
+Sprint 139 added an immutable in-memory catalog for the exact built-in strategy set and versioned list/detail endpoints. Order follows `supported_strategy_names()`, and moving-average parameter order, required flags, and defaults reflect the existing configuration dataclass. The catalog is descriptive only and adds no execution, experiment discovery, artifact inspection, performance ranking, lifecycle state, persistence, background work, paper commands, UI, broker, QMT, live, or real-money behavior.

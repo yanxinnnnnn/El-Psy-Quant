@@ -220,7 +220,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Milestone 25 complete; Milestone 26 in progress through Sprint 138.
+Status: Milestone 25 complete; Milestone 26 in progress through Sprint 139.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -429,13 +429,13 @@ M25 is documentation-only. It does not implement FastAPI endpoints, database mod
 
 ### Milestone 26 — Paper Trading Application Service Foundation
 
-Status: In progress. Sprint 138 is complete.
+Status: In progress. Sprints 138 and 139 are complete.
 
 Sprint sequence:
 
 ```text
 S138 — Application Service and API Skeleton — Complete
-S139 — Strategy Catalog and Detail Read Services
+S139 — Strategy Catalog and Detail Read Services — Complete
 S140 — Research and Backtest Artifact Inspection Services
 S141 — Governance, Report, and Lifecycle Evidence Inspection Services
 S142 — Paper Run Application Command Boundary
@@ -725,10 +725,10 @@ real-time dashboard complexity
 ## Current Next Step
 
 ```text
-Sprint 139 — Strategy Catalog and Detail Read Services
+Sprint 140 — Research and Backtest Artifact Inspection Services
 ```
 
-Sprint 138 established a local FastAPI factory, `/api/v1` boundary, process-only health endpoint, server-owned request IDs, and stable sanitized error responses. Sprint 139 should add only the planned strategy catalog and detail read services while preserving the existing domain and artifact ownership boundaries.
+Sprint 139 added an immutable built-in strategy catalog and versioned list/detail endpoints. Catalog order follows `supported_strategy_names()`, while parameter metadata reflects the existing configuration dataclass and remains descriptive only. No strategy execution, experiment discovery, artifact inspection, ranking, lifecycle state, persistence, background work, paper commands, UI, broker, QMT, live, or real-money behavior was added.
 
 ## One-Line Strategy
 

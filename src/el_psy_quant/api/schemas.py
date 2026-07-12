@@ -25,3 +25,32 @@ class ApiErrorResponse(BaseModel):
 
     error: ApiError
     request_id: str
+
+
+class StrategyParameterResponse(BaseModel):
+    """Descriptive strategy parameter metadata."""
+
+    name: str
+    value_type: Literal["integer", "number"]
+    required: bool
+    default: int | float | None
+
+
+class StrategySummaryResponse(BaseModel):
+    """Built-in strategy list item."""
+
+    name: str
+    display_name: str
+    description: str
+
+
+class StrategyDetailResponse(StrategySummaryResponse):
+    """Built-in strategy detail response."""
+
+    parameters: list[StrategyParameterResponse]
+
+
+class StrategyListResponse(BaseModel):
+    """Deterministically ordered built-in strategy list."""
+
+    strategies: list[StrategySummaryResponse]

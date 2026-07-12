@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Sprint 138 is complete.
+In progress. Sprints 138 and 139 are complete.
 
 ## Objective
 
@@ -25,7 +25,7 @@ Milestone 26 remains a modular monolith. Existing research, backtesting, paper, 
 | Sprint | Status | Deliverable |
 |---:|---|---|
 | S138 | Complete | Application service and API skeleton. |
-| S139 | Planned | Strategy catalog and detail read services. |
+| S139 | Complete | Strategy catalog and detail read services. |
 | S140 | Planned | Research and backtest artifact inspection services. |
 | S141 | Planned | Governance, report, and lifecycle evidence inspection services. |
 | S142 | Planned | Paper run application command boundary. |
@@ -57,8 +57,21 @@ Milestone 26 does not add a product database, repositories, background workers, 
 
 API handlers must remain thin. The application layer must not duplicate financial calculations, paper execution semantics, comparison logic, governance validation, lifecycle validation, or human-control rules.
 
+## Sprint 139 Strategy Reads
+
+Sprint 139 adds:
+
+```text
+GET /api/v1/strategies
+GET /api/v1/strategies/{strategy_name}
+```
+
+The catalog is an immutable, deterministic in-memory description of built-in supported strategies only. Identity and order follow `supported_strategy_names()` exactly. The current catalog contains only `moving_average_crossover`. Its parameter metadata reflects the existing `MovingAverageCrossoverParameters` field order, required status, and defaults, but remains descriptive; existing configuration and domain validation are authoritative.
+
+The catalog performs no strategy execution, experiment discovery, artifact inspection, market-data or network access, performance ranking, lifecycle-state inference, paper workflow action, persistence, background work, broker/QMT integration, live behavior, or capital allocation.
+
 ## Next Step
 
 ```text
-Sprint 139 — Strategy Catalog and Detail Read Services
+Sprint 140 — Research and Backtest Artifact Inspection Services
 ```
