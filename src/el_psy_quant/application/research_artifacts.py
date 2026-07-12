@@ -117,7 +117,7 @@ def _canonical_root(artifact_root: str | Path) -> Path:
             raise ResearchArtifactRootUnavailableError(
                 "research artifact root unavailable"
             )
-    except (OSError, RuntimeError) as exc:
+    except (OSError, RuntimeError, ValueError) as exc:
         raise ResearchArtifactRootUnavailableError(
             "research artifact root unavailable"
         ) from exc
@@ -192,26 +192,28 @@ def _contains_symlink(run_dir: Path, relative_path: Path) -> bool:
 
 def _artifact_reference(value: object, run_dir: Path) -> str:
     reference = _string(value)
-    relative = Path(reference)
-    posix = PurePosixPath(reference)
-    windows = PureWindowsPath(reference)
-    if (
-        "\\" in reference
-        or posix.is_absolute()
-        or windows.is_absolute()
-        or bool(windows.drive)
-        or ".." in posix.parts
-        or ".." in windows.parts
-        or not relative.parts
-    ):
-        raise _invalid()
-    if _contains_symlink(run_dir, relative):
-        raise _invalid()
     try:
+        relative = Path(reference)
+        posix = PurePosixPath(reference)
+        windows = PureWindowsPath(reference)
+        if (
+            "\\" in reference
+            or posix.is_absolute()
+            or windows.is_absolute()
+            or bool(windows.drive)
+            or ".." in posix.parts
+            or ".." in windows.parts
+            or not relative.parts
+        ):
+            raise _invalid()
+        if _contains_symlink(run_dir, relative):
+            raise _invalid()
         resolved = (run_dir / relative).resolve(strict=False)
         if not resolved.is_relative_to(run_dir):
             raise _invalid()
-    except (OSError, RuntimeError) as exc:
+    except ResearchArtifactInvalidError:
+        raise
+    except (OSError, RuntimeError, ValueError) as exc:
         raise _invalid() from exc
     return reference
 

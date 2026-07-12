@@ -135,6 +135,20 @@ def test_unavailable_root_has_stable_503_while_existing_routes_work() -> None:
     assert client.get("/api/v1/strategies").status_code == 200
 
 
+def test_nul_root_has_sanitized_503_and_request_id() -> None:
+    response = TestClient(
+        create_app(research_artifact_root="invalid\0root")
+    ).get("/api/v1/research-runs")
+
+    assert response.status_code == 503
+    assert response.json()["error"] == {
+        "code": "research_artifact_root_unavailable",
+        "message": "Research artifact root is unavailable",
+    }
+    assert "invalid" not in response.text
+    _assert_request_id(response)
+
+
 def test_empty_root_and_list_success_contract(tmp_path: Path) -> None:
     client = TestClient(create_app(research_artifact_root=tmp_path))
     empty = client.get("/api/v1/research-runs")
@@ -217,6 +231,60 @@ def test_malformed_artifact_has_sanitized_422(tmp_path: Path) -> None:
     assert "not-json" not in response.text
     assert str(tmp_path) not in response.text
     _assert_request_id(response)
+
+
+def test_nul_artifact_reference_has_sanitized_422_and_request_ids(
+    tmp_path: Path,
+) -> None:
+    _write_run(tmp_path)
+    manifest_path = tmp_path / "my-experiment" / "run_1" / "manifest.json"
+    manifest = _manifest("run_1")
+    manifest["artifacts"]["metrics"] = "results/private\0metrics.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    client = TestClient(create_app(research_artifact_root=tmp_path))
+
+    list_response = client.get("/api/v1/research-runs")
+    detail_response = client.get("/api/v1/research-runs/my-experiment/run_1")
+
+    for response in (list_response, detail_response):
+        assert response.status_code == 422
+        assert response.json()["error"] == {
+            "code": "research_artifact_invalid",
+            "message": "Research artifact is invalid",
+        }
+        assert "private" not in response.text
+        assert str(tmp_path) not in response.text
+        _assert_request_id(response)
+    assert (
+        list_response.headers[REQUEST_ID_HEADER]
+        != detail_response.headers[REQUEST_ID_HEADER]
+    )
+
+
+def test_nul_metrics_source_reference_preserves_list_and_sanitizes_detail(
+    tmp_path: Path,
+) -> None:
+    _write_run(tmp_path)
+    metrics_path = tmp_path / "my-experiment" / "run_1" / "results" / "metrics.json"
+    metrics = _metrics("run_1")
+    metrics["source_artifact"] = "results/private\0summary.csv"
+    metrics_path.write_text(json.dumps(metrics), encoding="utf-8")
+    client = TestClient(create_app(research_artifact_root=tmp_path))
+
+    list_response = client.get("/api/v1/research-runs")
+    detail_response = client.get("/api/v1/research-runs/my-experiment/run_1")
+
+    assert list_response.status_code == 200
+    assert len(list_response.json()["runs"]) == 1
+    _assert_request_id(list_response)
+    assert detail_response.status_code == 422
+    assert detail_response.json()["error"] == {
+        "code": "research_artifact_invalid",
+        "message": "Research artifact is invalid",
+    }
+    assert "private" not in detail_response.text
+    assert str(tmp_path) not in detail_response.text
+    _assert_request_id(detail_response)
 
 
 def test_only_two_versioned_research_routes_exist() -> None:

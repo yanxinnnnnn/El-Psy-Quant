@@ -111,6 +111,11 @@ def test_root_validation_and_empty_valid_root(tmp_path: Path) -> None:
             list_research_runs(artifact_root=root)  # type: ignore[arg-type]
 
 
+def test_malformed_root_value_is_unavailable() -> None:
+    with pytest.raises(ResearchArtifactRootUnavailableError):
+        list_research_runs(artifact_root="invalid\0root")
+
+
 def test_discovery_is_direct_deterministic_and_ignores_non_runs(tmp_path: Path) -> None:
     _write_run(tmp_path, "z-experiment", "run_2")
     _write_run(tmp_path, "a-experiment", "run_3")
@@ -268,6 +273,35 @@ def test_invalid_manifest_contract_is_rejected(tmp_path: Path, mutate) -> None:
     manifest = _manifest("run_1")
     mutate(manifest)
     _write_run(tmp_path, manifest=manifest)
+    with pytest.raises(ResearchArtifactInvalidError):
+        get_research_run_detail(
+            artifact_root=tmp_path,
+            experiment_slug="my-experiment",
+            run_id="run_1",
+        )
+
+
+def test_nul_artifact_reference_is_invalid_for_list_and_detail(tmp_path: Path) -> None:
+    manifest = _manifest("run_1")
+    manifest["artifacts"]["metrics"] = "results/invalid\0metrics.json"
+    _write_run(tmp_path, manifest=manifest)
+
+    with pytest.raises(ResearchArtifactInvalidError):
+        list_research_runs(artifact_root=tmp_path)
+    with pytest.raises(ResearchArtifactInvalidError):
+        get_research_run_detail(
+            artifact_root=tmp_path,
+            experiment_slug="my-experiment",
+            run_id="run_1",
+        )
+
+
+def test_nul_metrics_source_reference_is_invalid_for_detail(tmp_path: Path) -> None:
+    metrics = _metrics("run_1")
+    metrics["source_artifact"] = "results/invalid\0summary.csv"
+    _write_run(tmp_path, metrics=metrics)
+
+    assert len(list_research_runs(artifact_root=tmp_path)) == 1
     with pytest.raises(ResearchArtifactInvalidError):
         get_research_run_detail(
             artifact_root=tmp_path,
