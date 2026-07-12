@@ -1,5 +1,19 @@
 """Thin application-service read and command boundaries."""
 
+from el_psy_quant.application.evidence_manifests import (
+    SUPPORTED_EVIDENCE_MANIFEST_TYPES,
+    EvidenceArtifactInvalidError,
+    EvidenceArtifactRootUnavailableError,
+    EvidenceManifestDetail,
+    EvidenceManifestNotFoundError,
+    EvidenceManifestReference,
+    EvidenceManifestSummary,
+    ReportArtifactManifestDetail,
+    StrategyDecisionManifestDetail,
+    StrategyReviewWorkflowManifestDetail,
+    get_evidence_manifest_detail,
+    list_evidence_manifests,
+)
 from el_psy_quant.application.research_artifacts import (
     ResearchArtifactInvalidError,
     ResearchArtifactReferences,
@@ -24,6 +38,14 @@ from el_psy_quant.application.strategy_catalog import (
 )
 
 __all__ = [
+    "SUPPORTED_EVIDENCE_MANIFEST_TYPES",
+    "EvidenceArtifactInvalidError",
+    "EvidenceArtifactRootUnavailableError",
+    "EvidenceManifestDetail",
+    "EvidenceManifestNotFoundError",
+    "EvidenceManifestReference",
+    "EvidenceManifestSummary",
+    "ReportArtifactManifestDetail",
     "ResearchArtifactInvalidError",
     "ResearchArtifactReferences",
     "ResearchArtifactRootUnavailableError",
@@ -35,11 +57,15 @@ __all__ = [
     "ResearchRunParameters",
     "ResearchRunSummary",
     "StrategyDetail",
+    "StrategyDecisionManifestDetail",
     "StrategyNotFoundError",
     "StrategyParameterDefinition",
     "StrategySummary",
+    "StrategyReviewWorkflowManifestDetail",
+    "get_evidence_manifest_detail",
     "get_strategy_detail",
     "get_research_run_detail",
     "list_research_runs",
+    "list_evidence_manifests",
     "list_strategies",
 ]

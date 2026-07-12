@@ -101,10 +101,12 @@ Sprint 139 added a deterministic built-in strategy catalog read service and the 
 
 Sprint 140 added bounded read-only inspection for configured research-run manifests and saved metrics under `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT`. List reads manifests only; detail reads one manifest plus its safely contained metrics reference. No arbitrary HTTP path, recomputation, comparison, governance, paper, lifecycle, persistence, background work, UI, broker, QMT, live, or real-money behavior was added.
 
+Sprint 141 added bounded read-only inspection for saved strategy-decision, report-artifact, and strategy-review workflow manifests under `EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT`. Existing domain factories remain authoritative, artifact keys are safe file selectors rather than manifest IDs, and compact references are never resolved. No chain inference, lifecycle state derivation, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior was added.
+
 The next sprint is:
 
 ```text
-Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
+Sprint 142 — Paper Run Application Command Boundary
 ```
 
 Approved productization sequence:

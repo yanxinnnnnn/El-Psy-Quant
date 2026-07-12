@@ -138,7 +138,7 @@ Critical ownership decisions:
 | S138 | Application Service and API Skeleton. **Complete.** |
 | S139 | Strategy Catalog and Detail Read Services. **Complete.** |
 | S140 | Research and Backtest Artifact Inspection Services. **Complete.** |
-| S141 | Governance, Report, and Lifecycle Evidence Inspection Services |
+| S141 | Governance, Report, and Lifecycle Evidence Inspection Services. **Complete.** |
 | S142 | Paper Run Application Command Boundary |
 | S143 | Lifecycle Proposal and Human Review Application Commands |
 | S144 | Milestone 26 Closeout |
@@ -251,7 +251,7 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 ## Current Next Step
 
 ```text
-Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
+Sprint 142 — Paper Run Application Command Boundary
 ```
 
-Sprint 140 added bounded, read-only configured research-run inspection under one server-configured artifact root. Listing reads direct-child manifests only; detail reads a fixed manifest and its single safely contained metrics reference. It exposes validated saved values without arbitrary paths, recomputation, comparison, ranking, governance, paper, lifecycle, persistence, background work, UI, broker, QMT, live, or real-money behavior.
+Sprint 141 added bounded, read-only inspection of the three completed top-level decision, report, and strategy-review workflow manifest contracts. Saved JSON is reconstructed through existing domain factories; safe artifact keys are separate from manifest IDs, and references remain unresolved pointers. No chain or state inference, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior was added.

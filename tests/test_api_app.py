@@ -32,7 +32,10 @@ def test_application_has_no_startup_or_shutdown_dependencies() -> None:
 
     assert application.router.on_startup == []
     assert application.router.on_shutdown == []
-    assert application.state._state == {"research_artifact_root": None}
+    assert application.state._state == {
+        "research_artifact_root": None,
+        "evidence_artifact_root": None,
+    }
 
 
 def test_health_contract_is_exact_json_and_schema_valid() -> None:

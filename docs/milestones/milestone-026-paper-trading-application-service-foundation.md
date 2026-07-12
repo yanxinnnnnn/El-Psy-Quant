@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Sprints 138 through 140 are complete.
+In progress. Sprints 138 through 141 are complete.
 
 ## Objective
 
@@ -27,7 +27,7 @@ Milestone 26 remains a modular monolith. Existing research, backtesting, paper, 
 | S138 | Complete | Application service and API skeleton. |
 | S139 | Complete | Strategy catalog and detail read services. |
 | S140 | Complete | Research and backtest artifact inspection services. |
-| S141 | Planned | Governance, report, and lifecycle evidence inspection services. |
+| S141 | Complete | Governance, report, and lifecycle evidence inspection services. |
 | S142 | Planned | Paper run application command boundary. |
 | S143 | Planned | Lifecycle proposal and human review application commands. |
 | S144 | Planned | Milestone 26 closeout. |
@@ -83,8 +83,21 @@ Discovery is limited to direct experiment/run children. Symlinked directories an
 
 No HTTP input selects an artifact root or arbitrary file. Config, metadata, summary CSV, logs, raw outputs, governance, paper, lifecycle, persistence, jobs, UI, broker, QMT, live, and real-money behavior remain outside this sprint.
 
+## Sprint 141 Evidence Manifest Reads
+
+Sprint 141 configures an independent local root through `EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT` or an explicit `create_app(...)` override and adds:
+
+```text
+GET /api/v1/evidence-manifests
+GET /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
+```
+
+Discovery is limited to direct safe JSON files in the fixed `strategy-decisions`, `report-artifacts`, and `strategy-review` directories. Artifact keys select files and remain separate from domain manifest IDs. Saved top-level decision, report, and workflow manifests are reconstructed through their existing domain reference and manifest factories, which remain authoritative for validation.
+
+References remain compact pointers and are never resolved. The service does not validate chain completeness, infer current lifecycle state or approval, render reports, execute commands, write artifacts, persist data, create jobs, add UI behavior, call brokers or QMT, imply live readiness, or allocate capital.
+
 ## Next Step
 
 ```text
-Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
+Sprint 142 — Paper Run Application Command Boundary
 ```

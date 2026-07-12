@@ -43,10 +43,10 @@ The current milestone is:
 Milestone 26 — Paper Trading Application Service Foundation
 ```
 
-Sprints 138 through 140 are complete. The next implementation sprint is:
+Sprints 138 through 141 are complete. The next implementation sprint is:
 
 ```text
-Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
+Sprint 142 — Paper Run Application Command Boundary
 ```
 
 The approved productization sequence is:
@@ -261,6 +261,31 @@ GET /api/v1/research-runs/{experiment_slug}/{run_id}
 ```
 
 The list reads fixed `manifest.json` files only. Detail reads the selected fixed manifest and its safely contained `artifacts.metrics` JSON reference. All identifiers and artifact references remain under the configured root; HTTP requests cannot select a root or arbitrary path. The service does not read config, metadata, summary CSV, logs, or raw results, and it does not recompute, compare, aggregate, or rank metrics. Governance, paper, lifecycle, persistence, jobs, UI, broker, QMT, live, and real-money behavior remain excluded.
+
+Configured evidence-manifest inspection uses an independent server-side root:
+
+```powershell
+$env:EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT="C:\path\to\evidence-artifacts"
+uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
+```
+
+The fixed layout is:
+
+```text
+<evidence-root>/
+  strategy-decisions/<artifact-key>.json
+  report-artifacts/<artifact-key>.json
+  strategy-review/<artifact-key>.json
+```
+
+The read-only endpoints are:
+
+```text
+GET /api/v1/evidence-manifests
+GET /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
+```
+
+Only saved top-level `StrategyDecisionManifest`, `ReportArtifactManifest`, and `StrategyReviewWorkflowManifest` payloads are inspected. Existing domain reference and manifest factories remain authoritative for validation. Safe artifact keys select configured files and remain separate from domain manifest IDs. Compact references are returned as pointers only; they are not loaded or resolved. The service adds no chain-completeness or current-state inference, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior.
 
 ## Minimal Research Pipeline Example
 
