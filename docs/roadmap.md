@@ -137,7 +137,7 @@ Critical ownership decisions:
 |---:|---|
 | S138 | Application Service and API Skeleton. **Complete.** |
 | S139 | Strategy Catalog and Detail Read Services. **Complete.** |
-| S140 | Research and Backtest Artifact Inspection Services |
+| S140 | Research and Backtest Artifact Inspection Services. **Complete.** |
 | S141 | Governance, Report, and Lifecycle Evidence Inspection Services |
 | S142 | Paper Run Application Command Boundary |
 | S143 | Lifecycle Proposal and Human Review Application Commands |
@@ -251,7 +251,7 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 ## Current Next Step
 
 ```text
-Sprint 140 — Research and Backtest Artifact Inspection Services
+Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
 ```
 
-Sprint 139 added an immutable in-memory catalog for the exact built-in strategy set and versioned list/detail endpoints. Order follows `supported_strategy_names()`, and moving-average parameter order, required flags, and defaults reflect the existing configuration dataclass. The catalog is descriptive only and adds no execution, experiment discovery, artifact inspection, performance ranking, lifecycle state, persistence, background work, paper commands, UI, broker, QMT, live, or real-money behavior.
+Sprint 140 added bounded, read-only configured research-run inspection under one server-configured artifact root. Listing reads direct-child manifests only; detail reads a fixed manifest and its single safely contained metrics reference. It exposes validated saved values without arbitrary paths, recomputation, comparison, ranking, governance, paper, lifecycle, persistence, background work, UI, broker, QMT, live, or real-money behavior.

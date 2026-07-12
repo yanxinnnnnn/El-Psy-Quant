@@ -43,10 +43,10 @@ The current milestone is:
 Milestone 26 — Paper Trading Application Service Foundation
 ```
 
-Sprints 138 and 139 are complete. The next implementation sprint is:
+Sprints 138 through 140 are complete. The next implementation sprint is:
 
 ```text
-Sprint 140 — Research and Backtest Artifact Inspection Services
+Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
 ```
 
 The approved productization sequence is:
@@ -245,6 +245,22 @@ GET /api/v1/strategies/{strategy_name}
 ```
 
 Catalog identity and order follow `supported_strategy_names()` exactly. It currently describes only `moving_average_crossover`. Parameter metadata is descriptive; existing configuration and domain validation remain authoritative. These endpoints do not discover experiments, inspect artifacts, execute strategies, expose performance or lifecycle state, rank strategies, run paper workflows, persist data, or imply broker/QMT/live readiness.
+
+Configured research-run inspection uses one server-side local root:
+
+```powershell
+$env:EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT="C:\path\to\experiment-outputs"
+uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
+```
+
+The read-only endpoints are:
+
+```text
+GET /api/v1/research-runs
+GET /api/v1/research-runs/{experiment_slug}/{run_id}
+```
+
+The list reads fixed `manifest.json` files only. Detail reads the selected fixed manifest and its safely contained `artifacts.metrics` JSON reference. All identifiers and artifact references remain under the configured root; HTTP requests cannot select a root or arbitrary path. The service does not read config, metadata, summary CSV, logs, or raw results, and it does not recompute, compare, aggregate, or rank metrics. Governance, paper, lifecycle, persistence, jobs, UI, broker, QMT, live, and real-money behavior remain excluded.
 
 ## Minimal Research Pipeline Example
 

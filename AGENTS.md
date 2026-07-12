@@ -99,10 +99,12 @@ Sprint 138 added the local FastAPI application factory, `/api/v1` boundary, proc
 
 Sprint 139 added a deterministic built-in strategy catalog read service and the versioned strategy list/detail endpoints. Catalog order follows `supported_strategy_names()`, and parameter metadata is descriptive only; existing configuration and domain validation remain authoritative. It adds no execution, experiment discovery, artifact inspection, ranking, lifecycle state, persistence, paper commands, UI, broker, QMT, live, or real-money behavior.
 
+Sprint 140 added bounded read-only inspection for configured research-run manifests and saved metrics under `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT`. List reads manifests only; detail reads one manifest plus its safely contained metrics reference. No arbitrary HTTP path, recomputation, comparison, governance, paper, lifecycle, persistence, background work, UI, broker, QMT, live, or real-money behavior was added.
+
 The next sprint is:
 
 ```text
-Sprint 140 — Research and Backtest Artifact Inspection Services
+Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
 ```
 
 Approved productization sequence:
