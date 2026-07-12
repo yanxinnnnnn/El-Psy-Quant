@@ -13,6 +13,24 @@ from el_psy_quant.api.middleware import REQUEST_ID_HEADER
 from el_psy_quant.api.schemas import ApiError, ApiErrorResponse
 
 
+class PublicApiError(Exception):
+    """Small explicit public error translated through the stable envelope."""
+
+    def __init__(
+        self,
+        *,
+        status_code: int,
+        code: str,
+        message: str,
+        headers: Mapping[str, str] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.code = code
+        self.message = message
+        self.headers = headers
+
+
 def _request_id(request: Request) -> str:
     request_id = getattr(request.state, "request_id", None)
     return request_id if isinstance(request_id, str) else str(uuid4())
@@ -91,9 +109,24 @@ async def unexpected_exception_handler(
     )
 
 
+async def public_api_error_handler(
+    request: Request,
+    exception: PublicApiError,
+) -> JSONResponse:
+    """Return one explicitly sanitized application-facing error."""
+    return _error_response(
+        request,
+        status_code=exception.status_code,
+        code=exception.code,
+        message=exception.message,
+        headers=exception.headers,
+    )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """Register the bounded Sprint 138 exception mappings."""
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+    app.add_exception_handler(PublicApiError, public_api_error_handler)
     app.add_exception_handler(
         RequestValidationError,
         request_validation_exception_handler,

@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Sprints 138 and 139 are complete.
+In progress. Sprints 138 through 140 are complete.
 
 ## Objective
 
@@ -26,7 +26,7 @@ Milestone 26 remains a modular monolith. Existing research, backtesting, paper, 
 |---:|---|---|
 | S138 | Complete | Application service and API skeleton. |
 | S139 | Complete | Strategy catalog and detail read services. |
-| S140 | Planned | Research and backtest artifact inspection services. |
+| S140 | Complete | Research and backtest artifact inspection services. |
 | S141 | Planned | Governance, report, and lifecycle evidence inspection services. |
 | S142 | Planned | Paper run application command boundary. |
 | S143 | Planned | Lifecycle proposal and human review application commands. |
@@ -70,8 +70,21 @@ The catalog is an immutable, deterministic in-memory description of built-in sup
 
 The catalog performs no strategy execution, experiment discovery, artifact inspection, market-data or network access, performance ranking, lifecycle-state inference, paper workflow action, persistence, background work, broker/QMT integration, live behavior, or capital allocation.
 
+## Sprint 140 Research Artifact Reads
+
+Sprint 140 configures one local root through `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT` or an explicit `create_app(...)` override and adds:
+
+```text
+GET /api/v1/research-runs
+GET /api/v1/research-runs/{experiment_slug}/{run_id}
+```
+
+Discovery is limited to direct experiment/run children. Symlinked directories and files are excluded, identifiers are exact, and all manifest-derived references are verified under the selected run. Listing reads fixed manifests only. Detail reads one fixed manifest and the single safely referenced metrics artifact. Saved metrics are validated and exposed without recomputation, aggregation, comparison, or ranking.
+
+No HTTP input selects an artifact root or arbitrary file. Config, metadata, summary CSV, logs, raw outputs, governance, paper, lifecycle, persistence, jobs, UI, broker, QMT, live, and real-money behavior remain outside this sprint.
+
 ## Next Step
 
 ```text
-Sprint 140 — Research and Backtest Artifact Inspection Services
+Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
 ```
