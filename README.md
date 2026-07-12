@@ -43,10 +43,10 @@ The current milestone is:
 Milestone 26 — Paper Trading Application Service Foundation
 ```
 
-Sprint 138 is complete. The next implementation sprint is:
+Sprints 138 and 139 are complete. The next implementation sprint is:
 
 ```text
-Sprint 139 — Strategy Catalog and Detail Read Services
+Sprint 140 — Research and Backtest Artifact Inspection Services
 ```
 
 The approved productization sequence is:
@@ -236,6 +236,15 @@ uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
 ```
 
 `create_app()` provides independent FastAPI instances, and all Sprint 138 routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
+
+The built-in strategy catalog is available through:
+
+```text
+GET /api/v1/strategies
+GET /api/v1/strategies/{strategy_name}
+```
+
+Catalog identity and order follow `supported_strategy_names()` exactly. It currently describes only `moving_average_crossover`. Parameter metadata is descriptive; existing configuration and domain validation remain authoritative. These endpoints do not discover experiments, inspect artifacts, execute strategies, expose performance or lifecycle state, rank strategies, run paper workflows, persist data, or imply broker/QMT/live readiness.
 
 ## Minimal Research Pipeline Example
 

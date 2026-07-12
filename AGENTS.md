@@ -97,10 +97,12 @@ Milestone 26 — Paper Trading Application Service Foundation
 
 Sprint 138 added the local FastAPI application factory, `/api/v1` boundary, process-health endpoint, server-owned request IDs, and stable sanitized error envelopes. It adds no application services, persistence, background jobs, Web UI, broker, QMT, live, or real-money behavior.
 
+Sprint 139 added a deterministic built-in strategy catalog read service and the versioned strategy list/detail endpoints. Catalog order follows `supported_strategy_names()`, and parameter metadata is descriptive only; existing configuration and domain validation remain authoritative. It adds no execution, experiment discovery, artifact inspection, ranking, lifecycle state, persistence, paper commands, UI, broker, QMT, live, or real-money behavior.
+
 The next sprint is:
 
 ```text
-Sprint 139 — Strategy Catalog and Detail Read Services
+Sprint 140 — Research and Backtest Artifact Inspection Services
 ```
 
 Approved productization sequence:
