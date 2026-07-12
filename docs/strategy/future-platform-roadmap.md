@@ -220,7 +220,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Milestone 25 complete after the Sprint 137 planning PR is merged; Milestone 26 next.
+Status: Milestone 25 complete; Milestone 26 in progress through Sprint 138.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -407,7 +407,7 @@ The exact minimal authentication mechanism is deferred to an M28 implementation 
 
 ### Milestone 25 — Paper Trading Productization Planning
 
-Status: Complete after the Sprint 137 planning PR is merged.
+Status: Complete.
 
 Sprint:
 
@@ -429,12 +429,12 @@ M25 is documentation-only. It does not implement FastAPI endpoints, database mod
 
 ### Milestone 26 — Paper Trading Application Service Foundation
 
-Status: Next.
+Status: In progress. Sprint 138 is complete.
 
 Sprint sequence:
 
 ```text
-S138 — Application Service and API Skeleton
+S138 — Application Service and API Skeleton — Complete
 S139 — Strategy Catalog and Detail Read Services
 S140 — Research and Backtest Artifact Inspection Services
 S141 — Governance, Report, and Lifecycle Evidence Inspection Services
@@ -725,10 +725,10 @@ real-time dashboard complexity
 ## Current Next Step
 
 ```text
-Sprint 138 — Application Service and API Skeleton
+Sprint 139 — Strategy Catalog and Detail Read Services
 ```
 
-Sprint 138 begins Milestone 26 and should be created as a separate Codex implementation issue only after the Founder merges the Sprint 137 planning PR.
+Sprint 138 established a local FastAPI factory, `/api/v1` boundary, process-only health endpoint, server-owned request IDs, and stable sanitized error responses. Sprint 139 should add only the planned strategy catalog and detail read services while preserving the existing domain and artifact ownership boundaries.
 
 ## One-Line Strategy
 
