@@ -84,10 +84,11 @@ versions, and approved-status check. It leaves `artifact_index_entries`
 unchanged; downgrade removes only `paper_jobs`.
 
 `SqlAlchemyPaperJobRepository` receives one caller-owned session and never
-commits, rolls back, or closes it. It serializes through the strict codec,
-returns typed immutable records, flushes additions to surface constraints, and
-supports exact job/run reads plus deterministic status-filtered lists. It has
-no update or transition method and does not execute or access files.
+commits, rolls back, or closes it. Additions accept only queued records plus the
+caller-prepared canonical request payload, return typed immutable records, and
+flush to surface constraints. Reads rehydrate through the strict codec and
+support exact job/run lookup plus deterministic status-filtered lists. It has no
+update or transition method and does not execute or access files.
 
 ## Submission and Read Services
 
