@@ -17,8 +17,10 @@ from el_psy_quant.paper import (
 )
 from el_psy_quant.persistence import (
     PaperJobRecord,
+    PreparedPaperRunRequest,
     create_queued_paper_job_record,
     deserialize_paper_run_request,
+    prepare_paper_run_request_for_persistence,
     serialize_paper_run_request,
 )
 
@@ -172,6 +174,18 @@ def test_codec_performs_no_execution_or_filesystem_io(
     assert list(tmp_path.iterdir()) == []
 
 
+def test_prepared_persistence_input_is_codec_created_bound_and_immutable() -> None:
+    request = _request()
+    prepared = prepare_paper_run_request_for_persistence(request)
+
+    assert prepared.request is request
+    assert serialize_paper_run_request(request) not in repr(prepared)
+    with pytest.raises(FrozenInstanceError):
+        prepared.request = _request(run_id="other")  # type: ignore[misc]
+    with pytest.raises(TypeError, match="must be created through"):
+        PreparedPaperRunRequest()
+
+
 def test_queued_factory_creates_exact_frozen_product_contract() -> None:
     request = _request()
     job = create_queued_paper_job_record(
@@ -212,6 +226,8 @@ def test_queued_factory_creates_exact_frozen_product_contract() -> None:
         "lease",
         "lifecycle_state",
         "broker",
+        "request_payload",
+        "prepared_request",
     }
     assert all(not hasattr(job, field) for field in forbidden)
 

@@ -20,8 +20,10 @@ from el_psy_quant.persistence.paper_job_repository import (
 )
 from el_psy_quant.persistence.paper_jobs import (
     PaperJobRecord,
+    PreparedPaperRunRequest,
     create_queued_paper_job_record,
     deserialize_paper_run_request,
+    prepare_paper_run_request_for_persistence,
     serialize_paper_run_request,
 )
 from el_psy_quant.persistence.session import create_product_session_factory
@@ -31,6 +33,7 @@ __all__ = [
     "ArtifactIndexRepository",
     "PaperJobRecord",
     "PaperJobRepository",
+    "PreparedPaperRunRequest",
     "ProductDatabaseConfig",
     "ProductPersistenceBase",
     "SqlAlchemyArtifactIndexRepository",
@@ -40,6 +43,7 @@ __all__ = [
     "create_product_session_factory",
     "create_queued_paper_job_record",
     "deserialize_paper_run_request",
+    "prepare_paper_run_request_for_persistence",
     "resolve_product_database_config",
     "serialize_paper_run_request",
 ]

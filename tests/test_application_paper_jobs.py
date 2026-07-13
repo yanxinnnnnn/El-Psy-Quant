@@ -12,6 +12,7 @@ from sqlalchemy import select
 import el_psy_quant.application.paper_jobs as service
 import el_psy_quant.application.paper_runs as paper_run_service
 import el_psy_quant.persistence.paper_job_repository as repository_module
+import el_psy_quant.persistence.paper_jobs as paper_jobs_module
 from el_psy_quant.application import (
     PaperAccountStateCommandInput,
     PaperFillCommandInput,
@@ -127,7 +128,7 @@ def test_validation_and_serialization_finish_before_transaction(
     events: list[str] = []
     transaction_started = False
     prepared_payload: str | None = None
-    original_serialize = service.serialize_paper_run_request
+    original_serialize = paper_jobs_module.serialize_paper_run_request
 
     def tracked_serialize(request):
         nonlocal prepared_payload
@@ -144,7 +145,11 @@ def test_validation_and_serialization_finish_before_transaction(
             transaction_started = True
             return session_factory.begin()
 
-    monkeypatch.setattr(service, "serialize_paper_run_request", tracked_serialize)
+    monkeypatch.setattr(
+        paper_jobs_module,
+        "serialize_paper_run_request",
+        tracked_serialize,
+    )
     monkeypatch.setattr(
         repository_module,
         "serialize_paper_run_request",
@@ -209,8 +214,8 @@ def test_database_failure_rolls_back_fully(
     _deterministic_identity(monkeypatch)
     original = service.SqlAlchemyPaperJobRepository.add
 
-    def fail_after_flush(self, *, job, request_payload):
-        original(self, job=job, request_payload=request_payload)
+    def fail_after_flush(self, *, job, prepared_request):
+        original(self, job=job, prepared_request=prepared_request)
         raise RuntimeError("database write failed")
 
     monkeypatch.setattr(service.SqlAlchemyPaperJobRepository, "add", fail_after_flush)

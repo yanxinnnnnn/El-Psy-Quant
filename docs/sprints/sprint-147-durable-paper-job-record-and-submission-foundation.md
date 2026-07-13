@@ -84,17 +84,20 @@ versions, and approved-status check. It leaves `artifact_index_entries`
 unchanged; downgrade removes only `paper_jobs`.
 
 `SqlAlchemyPaperJobRepository` receives one caller-owned session and never
-commits, rolls back, or closes it. Additions accept only queued records plus the
-caller-prepared canonical request payload, return typed immutable records, and
-flush to surface constraints. Reads rehydrate through the strict codec and
-support exact job/run lookup plus deterministic status-filtered lists. It has no
-update or transition method and does not execute or access files.
+commits, rolls back, or closes it. Additions accept only queued records plus a
+codec-created immutable prepared request that binds the exact job request to its
+hidden canonical payload. Raw payload strings are not a repository trust
+boundary. Additions return typed immutable records and flush to surface
+constraints. Reads rehydrate through the strict codec and support exact job/run
+lookup plus deterministic status-filtered lists. It has no update or transition
+method and does not execute or access files.
 
 ## Submission and Read Services
 
-`submit_paper_job(...)` validates and serializes the complete request before
-opening the database transaction. It then generates an application-owned UUID4
-and UTC timestamp, creates one queued record, and adds it in one transaction.
+`submit_paper_job(...)` validates the complete request and creates its immutable
+codec-prepared persistence input before opening the database transaction. It
+then generates an application-owned UUID4 and UTC timestamp, creates one queued
+record, and adds it in one transaction.
 Invalid input creates no row. Duplicate job or run identity raises a sanitized
 conflict; a duplicate run is not treated as idempotent success. Other database
 failures roll back and are not retried.

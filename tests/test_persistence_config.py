@@ -135,6 +135,7 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "ArtifactIndexRepository",
         "PaperJobRecord",
         "PaperJobRepository",
+        "PreparedPaperRunRequest",
         "ProductDatabaseConfig",
         "ProductPersistenceBase",
         "SqlAlchemyArtifactIndexRepository",
@@ -144,6 +145,7 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "create_product_session_factory",
         "create_queued_paper_job_record",
         "deserialize_paper_run_request",
+        "prepare_paper_run_request_for_persistence",
         "resolve_product_database_config",
         "serialize_paper_run_request",
     }

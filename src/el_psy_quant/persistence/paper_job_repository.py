@@ -12,7 +12,9 @@ from el_psy_quant.paper import PAPER_RUN_REQUEST_SCHEMA_VERSION
 from el_psy_quant.persistence.paper_job_model import PaperJobRow
 from el_psy_quant.persistence.paper_jobs import (
     PaperJobRecord,
+    PreparedPaperRunRequest,
     _job_id,
+    _prepared_payload_for_request,
     _run_id,
     _status,
     deserialize_paper_run_request,
@@ -26,7 +28,7 @@ class PaperJobRepository(Protocol):
         self,
         *,
         job: PaperJobRecord,
-        request_payload: str,
+        prepared_request: PreparedPaperRunRequest,
     ) -> PaperJobRecord: ...
 
     def get(self, *, job_id: str) -> PaperJobRecord | None: ...
@@ -56,14 +58,21 @@ def _job_from_row(row: PaperJobRow) -> PaperJobRecord:
     )
 
 
-def _row_from_job(*, job: PaperJobRecord, request_payload: str) -> PaperJobRow:
+def _row_from_job(
+    *,
+    job: PaperJobRecord,
+    prepared_request: PreparedPaperRunRequest,
+) -> PaperJobRow:
     return PaperJobRow(
         record_schema_version=job.record_schema_version,
         job_id=job.job_id,
         run_id=job.run_id,
         status=job.status,
         request_schema_version=PAPER_RUN_REQUEST_SCHEMA_VERSION,
-        request_payload=request_payload,
+        request_payload=_prepared_payload_for_request(
+            prepared_request,
+            request=job.request,
+        ),
         submitted_timestamp=job.submitted_timestamp,
         updated_timestamp=job.updated_timestamp,
     )
@@ -81,16 +90,16 @@ class SqlAlchemyPaperJobRepository:
         self,
         *,
         job: PaperJobRecord,
-        request_payload: str,
+        prepared_request: PreparedPaperRunRequest,
     ) -> PaperJobRecord:
-        """Add and flush one queued job using its caller-prepared payload."""
+        """Add and flush one queued job using its codec-prepared request."""
         if type(job) is not PaperJobRecord:
             raise ValueError("job must be a PaperJobRecord")
         if job.status != "queued":
             raise ValueError("only queued paper jobs may be added")
-        if type(request_payload) is not str:
-            raise ValueError("request payload must be a canonical JSON string")
-        self._session.add(_row_from_job(job=job, request_payload=request_payload))
+        self._session.add(
+            _row_from_job(job=job, prepared_request=prepared_request)
+        )
         self._session.flush()
         return job
 

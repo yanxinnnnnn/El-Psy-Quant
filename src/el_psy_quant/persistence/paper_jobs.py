@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal, TypeAlias, cast
 from uuid import UUID
@@ -191,6 +191,51 @@ def deserialize_paper_run_request(payload: str) -> PaperRunRequest:
         if isinstance(exc, ValueError) and str(exc) == str(_invalid_snapshot()):
             raise
         raise _invalid_snapshot() from exc
+
+
+_PREPARED_REQUEST_TOKEN = object()
+
+
+@dataclass(frozen=True, init=False)
+class PreparedPaperRunRequest:
+    """Codec-validated immutable request input for one persistence write."""
+
+    request: PaperRunRequest
+    _canonical_payload: str = field(repr=False)
+    _validation_token: object = field(repr=False, compare=False)
+
+    def __init__(self) -> None:
+        raise TypeError(
+            "PreparedPaperRunRequest must be created through the persistence factory"
+        )
+
+
+def prepare_paper_run_request_for_persistence(
+    request: PaperRunRequest,
+) -> PreparedPaperRunRequest:
+    """Bind one validated request to its strict canonical storage payload."""
+    canonical_payload = serialize_paper_run_request(request)
+    prepared = object.__new__(PreparedPaperRunRequest)
+    object.__setattr__(prepared, "request", request)
+    object.__setattr__(prepared, "_canonical_payload", canonical_payload)
+    object.__setattr__(prepared, "_validation_token", _PREPARED_REQUEST_TOKEN)
+    return prepared
+
+
+def _prepared_payload_for_request(
+    prepared_request: PreparedPaperRunRequest,
+    *,
+    request: PaperRunRequest,
+) -> str:
+    if (
+        type(prepared_request) is not PreparedPaperRunRequest
+        or getattr(prepared_request, "_validation_token", None)
+        is not _PREPARED_REQUEST_TOKEN
+    ):
+        raise ValueError("prepared request must come from the strict codec factory")
+    if prepared_request.request is not request:
+        raise ValueError("prepared request must belong to the paper job request")
+    return prepared_request._canonical_payload
 
 
 def _job_id(value: object) -> str:

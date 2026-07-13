@@ -21,6 +21,7 @@ from el_psy_quant.persistence import (
     create_product_database_engine,
     create_product_session_factory,
     create_queued_paper_job_record,
+    prepare_paper_run_request_for_persistence,
     resolve_product_database_config,
     serialize_paper_run_request,
 )
@@ -79,16 +80,20 @@ def _job(job_id: str, run_id: str, timestamp: datetime = NOW) -> PaperJobRecord:
     )
 
 
+def _prepare(job: PaperJobRecord):
+    return prepare_paper_run_request_for_persistence(job.request)
+
+
 def test_add_get_get_by_run_and_list_round_trip_typed_records(database) -> None:
     _, _, factory = database
     first = _job(FIRST_ID, "run-1", NOW)
     second = _job(SECOND_ID, "run-2", NOW + timedelta(seconds=1))
-    first_payload = serialize_paper_run_request(first.request)
-    second_payload = serialize_paper_run_request(second.request)
+    first_prepared = _prepare(first)
+    second_prepared = _prepare(second)
     with factory.begin() as session:
         repository = SqlAlchemyPaperJobRepository(session=session)
-        assert repository.add(job=second, request_payload=second_payload) is second
-        assert repository.add(job=first, request_payload=first_payload) is first
+        assert repository.add(job=second, prepared_request=second_prepared) is second
+        assert repository.add(job=first, prepared_request=first_prepared) is first
 
     with factory() as session:
         repository = SqlAlchemyPaperJobRepository(session=session)
@@ -107,12 +112,56 @@ def test_add_get_get_by_run_and_list_round_trip_typed_records(database) -> None:
 def test_add_rejects_non_queued_statuses(database, status: str) -> None:
     _, _, factory = database
     job = replace(_job(FIRST_ID, "run-1"), status=status)
-    request_payload = serialize_paper_run_request(job.request)
+    prepared_request = _prepare(job)
 
     with factory.begin() as session:
         repository = SqlAlchemyPaperJobRepository(session=session)
         with pytest.raises(ValueError, match="only queued paper jobs may be added"):
-            repository.add(job=job, request_payload=request_payload)
+            repository.add(job=job, prepared_request=prepared_request)
+
+    with factory() as session:
+        assert SqlAlchemyPaperJobRepository(session=session).list() == ()
+
+
+def test_add_rejects_malformed_and_noncanonical_raw_payloads(database) -> None:
+    _, _, factory = database
+    job = _job(FIRST_ID, "run-1")
+    canonical_payload = serialize_paper_run_request(job.request)
+
+    for raw_payload in ("{", f" {canonical_payload}"):
+        with factory.begin() as session:
+            repository = SqlAlchemyPaperJobRepository(session=session)
+            with pytest.raises(
+                ValueError,
+                match="prepared request must come from the strict codec factory",
+            ):
+                repository.add(
+                    job=job,
+                    prepared_request=raw_payload,  # type: ignore[arg-type]
+                )
+
+    with factory() as session:
+        assert SqlAlchemyPaperJobRepository(session=session).list() == ()
+
+
+def test_add_rejects_prepared_payload_for_a_different_request(database) -> None:
+    _, _, factory = database
+    job = _job(FIRST_ID, "run-1")
+    different_request = replace(
+        job.request,
+        created_timestamp="2026-07-13T11:46:00Z",
+    )
+    mismatched_prepared = prepare_paper_run_request_for_persistence(
+        different_request
+    )
+
+    with factory.begin() as session:
+        repository = SqlAlchemyPaperJobRepository(session=session)
+        with pytest.raises(
+            ValueError,
+            match="prepared request must belong to the paper job request",
+        ):
+            repository.add(job=job, prepared_request=mismatched_prepared)
 
     with factory() as session:
         assert SqlAlchemyPaperJobRepository(session=session).list() == ()
@@ -121,16 +170,17 @@ def test_add_rejects_non_queued_statuses(database, status: str) -> None:
 def test_canonical_request_survives_new_engine_and_session(database) -> None:
     database_path, engine, factory = database
     job = _job(FIRST_ID, "durable-run")
-    request_payload = serialize_paper_run_request(job.request)
+    expected_payload = serialize_paper_run_request(job.request)
+    prepared_request = _prepare(job)
     with factory.begin() as session:
         SqlAlchemyPaperJobRepository(session=session).add(
             job=job,
-            request_payload=request_payload,
+            prepared_request=prepared_request,
         )
         stored_payload = session.scalar(
             select(PaperJobRow.request_payload).where(PaperJobRow.job_id == FIRST_ID)
         )
-        assert stored_payload == serialize_paper_run_request(job.request)
+        assert stored_payload == expected_payload
 
     engine.dispose()
     reopened = create_product_database_engine(
@@ -153,11 +203,11 @@ def test_canonical_request_survives_new_engine_and_session(database) -> None:
 def test_repository_add_does_not_commit_and_caller_rollback_wins(database) -> None:
     _, _, factory = database
     job = _job(FIRST_ID, "rolled-back")
-    request_payload = serialize_paper_run_request(job.request)
+    prepared_request = _prepare(job)
     with factory() as session:
         SqlAlchemyPaperJobRepository(session=session).add(
             job=job,
-            request_payload=request_payload,
+            prepared_request=prepared_request,
         )
         session.rollback()
 
@@ -170,31 +220,31 @@ def test_duplicate_job_and_run_id_surface_integrity_without_hidden_commit(
 ) -> None:
     _, _, factory = database
     first = _job(FIRST_ID, "unique-run")
-    first_payload = serialize_paper_run_request(first.request)
+    first_prepared = _prepare(first)
     with factory.begin() as session:
         SqlAlchemyPaperJobRepository(session=session).add(
             job=first,
-            request_payload=first_payload,
+            prepared_request=first_prepared,
         )
 
     duplicate_job = _job(FIRST_ID, "other-run")
-    duplicate_job_payload = serialize_paper_run_request(duplicate_job.request)
+    duplicate_job_prepared = _prepare(duplicate_job)
     with factory() as session:
         repository = SqlAlchemyPaperJobRepository(session=session)
         with pytest.raises(IntegrityError):
             repository.add(
                 job=duplicate_job,
-                request_payload=duplicate_job_payload,
+                prepared_request=duplicate_job_prepared,
             )
         session.rollback()
     duplicate_run = _job(SECOND_ID, "unique-run")
-    duplicate_run_payload = serialize_paper_run_request(duplicate_run.request)
+    duplicate_run_prepared = _prepare(duplicate_run)
     with factory() as session:
         repository = SqlAlchemyPaperJobRepository(session=session)
         with pytest.raises(IntegrityError):
             repository.add(
                 job=duplicate_run,
-                request_payload=duplicate_run_payload,
+                prepared_request=duplicate_run_prepared,
             )
         session.rollback()
 
@@ -216,11 +266,11 @@ def test_repository_performs_no_execution_or_filesystem_access(
     monkeypatch.setattr(Path, "write_text", forbidden)
     monkeypatch.setattr(paper_execution, "run_paper_trading_request", forbidden)
     job = _job(FIRST_ID, "no-side-effect")
-    request_payload = serialize_paper_run_request(job.request)
+    prepared_request = _prepare(job)
     with factory.begin() as session:
         SqlAlchemyPaperJobRepository(session=session).add(
             job=job,
-            request_payload=request_payload,
+            prepared_request=prepared_request,
         )
     with factory() as session:
         restored = SqlAlchemyPaperJobRepository(session=session).get(job_id=FIRST_ID)
