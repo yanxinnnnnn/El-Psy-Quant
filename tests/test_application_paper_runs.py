@@ -266,6 +266,34 @@ def test_invalid_command_object_type_uses_sanitized_application_error() -> None:
         execute_paper_run(command=object())  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize(
+    "command",
+    (
+        replace(_command(), starting_account_state=object()),  # type: ignore[arg-type]
+        replace(_command(), ending_account_state=object()),  # type: ignore[arg-type]
+        replace(_command(), orders=(object(),)),  # type: ignore[arg-type]
+        replace(_command(), fills=(object(),)),  # type: ignore[arg-type]
+    ),
+    ids=(
+        "starting-account",
+        "ending-account",
+        "order-entry",
+        "fill-entry",
+    ),
+)
+def test_invalid_nested_command_types_use_exact_sanitized_error(
+    command: PaperRunCommand,
+) -> None:
+    with pytest.raises(PaperRunInvalidError) as raised:
+        execute_paper_run(command=command)
+
+    message = str(raised.value)
+    assert message == "paper run request is invalid"
+    assert "object at" not in message
+    assert "AttributeError" not in message
+    assert "has no attribute" not in message
+
+
 def test_public_application_exports_are_exact_types() -> None:
     from el_psy_quant import application
 

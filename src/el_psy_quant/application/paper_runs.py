@@ -268,10 +268,22 @@ def _artifact_view(artifact: PaperTradingArtifact) -> PaperTradingArtifactView:
     )
 
 
+def _require_nested_command_types(command: PaperRunCommand) -> None:
+    if type(command.starting_account_state) is not PaperAccountStateCommandInput:
+        raise PaperRunInvalidError()
+    if type(command.ending_account_state) is not PaperAccountStateCommandInput:
+        raise PaperRunInvalidError()
+    if any(type(order) is not PaperOrderCommandInput for order in command.orders):
+        raise PaperRunInvalidError()
+    if any(type(fill) is not PaperFillCommandInput for fill in command.fills):
+        raise PaperRunInvalidError()
+
+
 def execute_paper_run(*, command: PaperRunCommand) -> PaperRunCommandResult:
     """Execute one explicit paper run synchronously and only in memory."""
     if type(command) is not PaperRunCommand:
         raise PaperRunInvalidError()
+    _require_nested_command_types(command)
     try:
         starting_state = _account_state(command.starting_account_state)
         ending_state = _account_state(command.ending_account_state)
