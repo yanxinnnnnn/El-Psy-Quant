@@ -23,9 +23,9 @@ flowchart LR
     M1["M1-M8<br/>Research Workflow Foundations ✅"] --> M9["M9-M15<br/>Quality, Portfolio & Execution Realism ✅"]
     M9 --> M16["M16-M19<br/>Paper Trading & Configured Workflow ✅"]
     M16 --> M20["M20-M24<br/>Governance & Review Workflow ✅"]
-    M20 --> M25["M25<br/>Productization Planning ✅"]
-    M25 --> M26["M26-M29<br/>Founder Paper Productization 🟡"]
-    M26 --> M30["M30+<br/>Portfolio Decisions & Execution Readiness"]
+    M20 --> M25["M25-M26<br/>Productization Planning & API ✅"]
+    M25 --> M27["M27-M29<br/>Founder Paper Productization 🟡"]
+    M27 --> M30["M30+<br/>Portfolio Decisions & Execution Readiness"]
 ```
 
 ## Milestone Table
@@ -57,7 +57,7 @@ flowchart LR
 | M23 — Report Artifact Foundation | S124-129 | Complete | Deterministic review packaging. | Report sources, sections, summaries, references, and manifests are explicit. |
 | M24 — Strategy Review Workflow Foundation | S130-136 | Complete | Human-controlled lifecycle governance. | States, proposals, transition records, references, manifests, and guardrails are explicit without runtime lifecycle execution. |
 | M25 — Paper Trading Productization Planning | S137 | Complete | Founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
-| M26 — Paper Trading Application Service Foundation | S138-144 | In progress | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
+| M26 — Paper Trading Application Service Foundation | S138-144 | Complete | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
 | M27 — Persistence and Paper Job Control Foundation | S145-151 | Planned | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
 | M28 — Founder Paper Trading Web Workspace | S152-159 | Planned | Deliver the first usable Founder Web MVP. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary. |
 | M29 — Product Feedback and Hardening | S160-165 | Planned | Improve usability and reliability from real usage. | Founder feedback is incorporated and the local product is reliable enough for daily use. |
@@ -141,7 +141,7 @@ Critical ownership decisions:
 | S141 | Governance, Report, and Lifecycle Evidence Inspection Services. **Complete.** |
 | S142 | Paper Run Application Command Boundary. **Complete.** |
 | S143 | Lifecycle Proposal and Human Review Application Commands. **Complete.** |
-| S144 | Milestone 26 Closeout |
+| S144 | Milestone 26 Closeout. **Complete.** |
 
 ### M27 Sprint Sequence
 
@@ -184,6 +184,45 @@ See:
 ```text
 docs/milestones/milestone-025-paper-trading-productization-planning.md
 docs/sprints/sprint-137-milestone-25-paper-trading-productization-planning.md
+```
+
+## Completed Milestone 26 — Paper Trading Application Service Foundation
+
+Milestone 26 established a thin local application/API boundary without replacing existing domain or artifact authority.
+
+Completed chain:
+
+```text
+application/API skeleton
+  -> strategy catalog reads
+  -> research and backtest artifact inspection
+  -> governance, report, and lifecycle evidence inspection
+  -> synchronous paper-run command
+  -> lifecycle proposal and human-review commands
+  -> closeout
+```
+
+Delivered boundaries:
+
+- deterministic FastAPI application construction and `/api/v1`
+- server-owned request IDs and stable sanitized errors
+- explicit request and response schemas
+- safe configured artifact inspection
+- synchronous in-memory commands over existing paper and lifecycle factories
+- no product persistence or operational job control
+
+Preserved guardrails:
+
+- existing artifact files remain authoritative
+- lifecycle current state is not stored as an independent mutable field
+- paper-job status remains separate from lifecycle governance
+- no database, repository, worker, queue, Web UI, broker, QMT, live, or capital behavior was added
+
+See:
+
+```text
+docs/milestones/milestone-026-paper-trading-application-service-foundation.md
+docs/sprints/sprint-144-milestone-26-closeout.md
 ```
 
 ## Founder Product Target
@@ -251,7 +290,7 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 ## Current Next Step
 
 ```text
-Sprint 144 — Milestone 26 Closeout
+Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
 ```
 
-Sprint 143 added synchronous stateless lifecycle proposal and human-review commands through two versioned POST endpoints. Both reconstruct complete caller-supplied inputs through the existing strategy-review factories. Evidence remains unresolved, approved records require a separate matching resulting snapshot, approval does not execute a transition or make any snapshot current, and no artifact, proposal, record, timeline, status, database, job, paper workflow, broker, QMT, live, or capital behavior is added.
+Sprint 144 closed Milestone 26 after verifying the complete local application/API boundary and its guardrails. Milestone 27 is next and remains planned until Sprint 145 begins. Sprint 145 should add the smallest explicit SQLite and SQLAlchemy foundation for later product repositories and durable paper-job control while preserving existing artifact authority and keeping operational job state separate from lifecycle governance.
