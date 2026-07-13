@@ -58,7 +58,7 @@ flowchart LR
 | M24 — Strategy Review Workflow Foundation | S130-136 | Complete | Human-controlled lifecycle governance. | States, proposals, transition records, references, manifests, and guardrails are explicit without runtime lifecycle execution. |
 | M25 — Paper Trading Productization Planning | S137 | Complete | Founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
 | M26 — Paper Trading Application Service Foundation | S138-144 | Complete | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
-| M27 — Persistence and Paper Job Control Foundation | S145-151 | Planned | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
+| M27 — Persistence and Paper Job Control Foundation | S145-151 | In Progress | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
 | M28 — Founder Paper Trading Web Workspace | S152-159 | Planned | Deliver the first usable Founder Web MVP. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary. |
 | M29 — Product Feedback and Hardening | S160-165 | Planned | Improve usability and reliability from real usage. | Founder feedback is incorporated and the local product is reliable enough for daily use. |
 | M30 — Portfolio-Level Decision Review Foundation | TBD | Deferred | Resume portfolio-level strategy review. | Portfolio impact and concentration are included in human decisions. |
@@ -147,7 +147,7 @@ Critical ownership decisions:
 
 | Sprint | Deliverable |
 |---:|---|
-| S145 | SQLite and SQLAlchemy Product Persistence Foundation |
+| S145 | SQLite and SQLAlchemy Product Persistence Foundation. **Complete.** |
 | S146 | Artifact Index and Product Repository Foundation |
 | S147 | Durable Paper Job Record and Submission Foundation |
 | S148 | Simple Local Paper Job Runner and Manual Control |
@@ -287,10 +287,27 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 13. Broker-specific concerns must remain behind adapters.
 14. Real capital requires separate risk, operational, and live-readiness governance.
 
+## Milestone 27 Progress
+
+Sprint 145 established:
+
+- one explicit local SQLite file selected through `EL_PSY_QUANT_PRODUCT_DATABASE_PATH`
+- a project-owned SQLAlchemy 2.x declarative metadata boundary
+- lazy SQLite engine construction with foreign-key enforcement
+- caller-owned session factories and explicit transactions
+- an intentionally empty Alembic baseline that upgrades and downgrades cleanly
+
+It did not add artifact indexes, product repositories, durable paper jobs,
+workers, new APIs, lifecycle current-state storage, Web UI, broker, QMT, live,
+or capital behavior. Existing artifact files remain authoritative.
+
 ## Current Next Step
 
 ```text
-Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
+Sprint 146 — Artifact Index and Product Repository Foundation
 ```
 
-Sprint 144 closed Milestone 26 after verifying the complete local application/API boundary and its guardrails. Milestone 27 is next and remains planned until Sprint 145 begins. Sprint 145 should add the smallest explicit SQLite and SQLAlchemy foundation for later product repositories and durable paper-job control while preserving existing artifact authority and keeping operational job state separate from lifecycle governance.
+Sprint 146 should build only the first explicit artifact index and repository
+boundary on the shared Sprint 145 persistence foundation. Complete artifact
+payloads must remain in their existing authoritative files, and durable paper
+job behavior remains for later M27 sprints.

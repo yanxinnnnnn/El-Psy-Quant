@@ -222,7 +222,8 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Milestones 25 and 26 complete; Milestone 27 is next and planned.
+Status: Milestones 25 and 26 complete; Milestone 27 is in progress through
+Sprint 145.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -490,12 +491,12 @@ docs/sprints/sprint-144-milestone-26-closeout.md
 
 ### Milestone 27 — Persistence and Paper Job Control Foundation
 
-Status: Planned.
+Status: In Progress.
 
 Sprint sequence:
 
 ```text
-S145 — SQLite and SQLAlchemy Product Persistence Foundation
+S145 — SQLite and SQLAlchemy Product Persistence Foundation — Complete
 S146 — Artifact Index and Product Repository Foundation
 S147 — Durable Paper Job Record and Submission Foundation
 S148 — Simple Local Paper Job Runner and Manual Control
@@ -758,13 +759,23 @@ SaaS behavior
 real-time dashboard complexity
 ```
 
+Sprint 145 established one explicitly configured local SQLite file, a
+project-owned SQLAlchemy metadata boundary, lazy engine and caller-owned session
+factories, and an empty Alembic baseline. No artifact index, product repository,
+durable paper job, mutable paper-job state, API database dependency, lifecycle
+current-state store, Web UI, broker, QMT, live, or capital behavior was added.
+Existing artifact files remain authoritative.
+
 ## Current Next Step
 
 ```text
-Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
+Sprint 146 — Artifact Index and Product Repository Foundation
 ```
 
-Sprint 144 closed Milestone 26 after verifying the complete local application/API boundary and its guardrails. Milestone 27 remains planned until Sprint 145 begins. The first M27 sprint should establish a minimal explicit SQLite and SQLAlchemy foundation without prematurely adding artifact indexes, durable paper jobs, workers, job APIs, Web UI, broker, QMT, live, or capital behavior.
+Sprint 146 should add the smallest explicit artifact index and product
+repository boundary without copying complete artifact payloads into SQLite.
+Paper-job operational state remains separate from lifecycle governance and is
+deferred to later M27 sprints.
 
 ## One-Line Strategy
 

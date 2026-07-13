@@ -92,7 +92,7 @@ Milestone 26 then established a thin local FastAPI application and versioned API
 
 ## Current Focus
 
-The next milestone is:
+The current milestone is:
 
 ```text
 Milestone 27 — Persistence and Paper Job Control Foundation
@@ -115,20 +115,28 @@ POST /api/v1/lifecycle-transition-records
 
 Milestone 26 added no product database, repository layer, durable job, worker, scheduler, queue, idempotency registry, Web UI, broker, QMT, live, or capital behavior.
 
+Sprint 145 added the explicit `EL_PSY_QUANT_PRODUCT_DATABASE_PATH` contract,
+lazy SQLite SQLAlchemy engine construction, caller-owned session factories, and
+an intentionally empty Alembic baseline. It added no artifact index, product
+repository, business table, durable job, worker, or API database dependency.
+
 The next sprint is:
 
 ```text
-Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
+Sprint 146 — Artifact Index and Product Repository Foundation
 ```
 
-Sprint 145 must establish the smallest explicit local persistence foundation for later product repositories and durable paper-job control. It must not index artifacts prematurely, create paper jobs, add workers or job APIs, introduce Web UI, duplicate complete artifact payloads, create an independently authoritative lifecycle current-state field, or add broker/QMT/live behavior unless the issue explicitly requires it.
+Sprint 146 may add the first explicit artifact index and product repository
+boundary. It must keep complete artifact payloads in their existing files and
+must not begin durable paper-job behavior unless its issue explicitly requires
+it.
 
 Approved productization sequence:
 
 ```text
 M25 — S137      Paper Trading Productization Planning
 M26 — S138-S144 Paper Trading Application Service Foundation — Complete
-M27 — S145-S151 Persistence and Paper Job Control Foundation — Planned
+M27 — S145-S151 Persistence and Paper Job Control Foundation — In Progress
 M28 — S152-S159 Founder Paper Trading Web Workspace
 M29 — S160-S165 Product Feedback and Hardening
 M30 —           Portfolio-Level Decision Review Foundation
