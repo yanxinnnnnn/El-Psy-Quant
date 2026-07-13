@@ -10,9 +10,11 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 
 ## Current Milestone Status
 
-Milestones 1–26 are complete.
+Milestones 1–26 are complete. **Milestone 27 — Persistence and Paper Job
+Control Foundation** is in progress.
 
-The latest completed milestone is **Milestone 26 — Paper Trading Application Service Foundation**.
+The latest completed sprint is **Sprint 145 — SQLite and SQLAlchemy Product
+Persistence Foundation**.
 
 Milestone 26 established a thin local application and versioned API boundary over selected existing capabilities:
 
@@ -36,16 +38,14 @@ Key ownership decisions remain:
 
 ## Current Direction
 
-The next milestone is:
+Milestone 27 is in progress. Sprint 145 established one explicitly configured
+local SQLite database path, a SQLAlchemy 2.x engine and session foundation, and
+an Alembic empty baseline without adding business tables or API integration.
+
+Sprints 138 through 145 are complete. The next sprint is:
 
 ```text
-Milestone 27 — Persistence and Paper Job Control Foundation
-```
-
-Sprints 138 through 144 are complete. The next sprint is:
-
-```text
-Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
+Sprint 146 — Artifact Index and Product Repository Foundation
 ```
 
 The approved productization sequence is:
@@ -53,7 +53,7 @@ The approved productization sequence is:
 ```text
 M25 — Paper Trading Productization Planning                 S137      Complete
 M26 — Paper Trading Application Service Foundation          S138-S144 Complete
-M27 — Persistence and Paper Job Control Foundation          S145-S151 Planned
+M27 — Persistence and Paper Job Control Foundation          S145-S151 In Progress
 M28 — Founder Paper Trading Web Workspace                   S152-S159 Planned
 M29 — Product Feedback and Hardening                        S160-S165 Planned
 M30 — Portfolio-Level Decision Review Foundation                       Deferred, not canceled
@@ -244,6 +244,23 @@ Run the local application API on loopback only:
 uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
 ```
 
+Initialize or upgrade the local product database only through an explicit
+operator action. The parent directory must already exist:
+
+```powershell
+$env:EL_PSY_QUANT_PRODUCT_DATABASE_PATH="C:\path\to\el-psy-quant-product.sqlite3"
+uv run alembic upgrade head
+```
+
+Sprint 145 supports one local SQLite file only. SQLAlchemy provides lazy engine
+and caller-owned session construction, while Alembic owns production schema
+migrations. Configuration resolution, imports, engine construction, and
+`create_app()` do not open or migrate the database. No artifact index, product
+repository, durable paper job, mutable paper-job state, or database-backed API
+exists yet. Existing artifact files remain authoritative, lifecycle current
+state remains a future derived read model, and paper-job operational state will
+remain separate from lifecycle governance.
+
 `create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
 
 The built-in strategy catalog is available through:
@@ -396,6 +413,7 @@ el_psy_quant/
   data/          # Price validation, symbol universes, providers, and local input helpers
   execution/     # Execution assumptions, order intents, fills, summaries, and artifacts
   paper/         # Local paper state, records, persistence, audit, and run boundaries
+  persistence/   # Explicit local SQLite, SQLAlchemy, sessions, and Alembic metadata
   indicators/    # Pure indicator calculations
   signals/       # Signal event generation
   portfolio/     # Alignment, weights, aggregation, risk, and attribution
