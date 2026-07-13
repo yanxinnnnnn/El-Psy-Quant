@@ -429,7 +429,7 @@ M25 is documentation-only. It does not implement FastAPI endpoints, database mod
 
 ### Milestone 26 — Paper Trading Application Service Foundation
 
-Status: In progress. Sprints 138 through 140 are complete.
+Status: In progress. Sprints 138 through 141 are complete.
 
 Sprint sequence:
 
@@ -437,7 +437,7 @@ Sprint sequence:
 S138 — Application Service and API Skeleton — Complete
 S139 — Strategy Catalog and Detail Read Services — Complete
 S140 — Research and Backtest Artifact Inspection Services — Complete
-S141 — Governance, Report, and Lifecycle Evidence Inspection Services
+S141 — Governance, Report, and Lifecycle Evidence Inspection Services — Complete
 S142 — Paper Run Application Command Boundary
 S143 — Lifecycle Proposal and Human Review Application Commands
 S144 — Milestone 26 Closeout
@@ -725,10 +725,10 @@ real-time dashboard complexity
 ## Current Next Step
 
 ```text
-Sprint 141 — Governance, Report, and Lifecycle Evidence Inspection Services
+Sprint 142 — Paper Run Application Command Boundary
 ```
 
-Sprint 140 added a bounded read-only service and versioned API for configured research-run manifests and saved metrics under one server-configured root. Discovery is direct-child only, paths remain contained, and no arbitrary HTTP path, recomputation, comparison, ranking, governance, paper, lifecycle, persistence, background work, UI, broker, QMT, live, or real-money behavior was added.
+Sprint 141 added bounded read-only inspection for the three completed top-level decision, report, and strategy-review workflow manifest types. Fixed category directories and safe artifact keys contain filesystem access; existing domain factories validate saved JSON, and compact references are not resolved. No chain or state inference, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior was added.
 
 ## One-Line Strategy
 
