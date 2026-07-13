@@ -220,7 +220,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Milestone 25 complete; Milestone 26 in progress through Sprint 140.
+Status: Milestone 25 complete; Milestone 26 in progress through Sprint 142.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -429,7 +429,7 @@ M25 is documentation-only. It does not implement FastAPI endpoints, database mod
 
 ### Milestone 26 — Paper Trading Application Service Foundation
 
-Status: In progress. Sprints 138 through 141 are complete.
+Status: In progress. Sprints 138 through 142 are complete.
 
 Sprint sequence:
 
@@ -438,7 +438,7 @@ S138 — Application Service and API Skeleton — Complete
 S139 — Strategy Catalog and Detail Read Services — Complete
 S140 — Research and Backtest Artifact Inspection Services — Complete
 S141 — Governance, Report, and Lifecycle Evidence Inspection Services — Complete
-S142 — Paper Run Application Command Boundary
+S142 — Paper Run Application Command Boundary — Complete
 S143 — Lifecycle Proposal and Human Review Application Commands
 S144 — Milestone 26 Closeout
 ```
@@ -725,10 +725,10 @@ real-time dashboard complexity
 ## Current Next Step
 
 ```text
-Sprint 142 — Paper Run Application Command Boundary
+Sprint 143 — Lifecycle Proposal and Human Review Application Commands
 ```
 
-Sprint 141 added bounded read-only inspection for the three completed top-level decision, report, and strategy-review workflow manifest types. Fixed category directories and safe artifact keys contain filesystem access; existing domain factories validate saved JSON, and compact references are not resolved. No chain or state inference, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior was added.
+Sprint 142 added a synchronous in-memory paper-run command over explicit caller-supplied starting and ending states, orders, and fills. Existing domain factories and `run_paper_trading_request(...)` remain authoritative. The command does not generate orders, apply fills to derive state, accept paths, persist outputs, create durable jobs or status, run configured-paper workflows, call brokers or QMT, imply live readiness, or allocate capital.
 
 ## One-Line Strategy
 

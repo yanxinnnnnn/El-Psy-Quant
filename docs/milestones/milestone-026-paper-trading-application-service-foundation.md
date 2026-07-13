@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Sprints 138 through 141 are complete.
+In progress. Sprints 138 through 142 are complete.
 
 ## Objective
 
@@ -28,7 +28,7 @@ Milestone 26 remains a modular monolith. Existing research, backtesting, paper, 
 | S139 | Complete | Strategy catalog and detail read services. |
 | S140 | Complete | Research and backtest artifact inspection services. |
 | S141 | Complete | Governance, report, and lifecycle evidence inspection services. |
-| S142 | Planned | Paper run application command boundary. |
+| S142 | Complete | Paper run application command boundary. |
 | S143 | Planned | Lifecycle proposal and human review application commands. |
 | S144 | Planned | Milestone 26 closeout. |
 
@@ -96,8 +96,20 @@ Discovery is limited to direct safe JSON files in the fixed `strategy-decisions`
 
 References remain compact pointers and are never resolved. The service does not validate chain completeness, infer current lifecycle state or approval, render reports, execute commands, write artifacts, persist data, create jobs, add UI behavior, call brokers or QMT, imply live readiness, or allocate capital.
 
+## Sprint 142 Paper Run Command
+
+Sprint 142 adds exactly one synchronous command endpoint:
+
+```text
+POST /api/v1/paper-runs
+```
+
+The caller supplies explicit starting and ending paper account states, orders, and fills. The application command reconstructs existing domain objects through `create_paper_account_state(...)`, `create_paper_order_record(...)`, `create_paper_fill(...)`, and `create_paper_run_request(...)`, then executes only through `run_paper_trading_request(...)`. Domain normalization and session-summary behavior remain authoritative.
+
+The response is the normalized in-memory artifact. The command does not generate orders, apply fills to derive or reconcile ending state, accept any path, execute configured-paper workflows, persist artifacts or result summaries, or create durable jobs, status, idempotency, retries, cancellation, recovery, repositories, or databases. `run_id` remains caller-supplied domain identity rather than a durable job ID. No broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation is implied.
+
 ## Next Step
 
 ```text
-Sprint 142 — Paper Run Application Command Boundary
+Sprint 143 — Lifecycle Proposal and Human Review Application Commands
 ```

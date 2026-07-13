@@ -103,10 +103,12 @@ Sprint 140 added bounded read-only inspection for configured research-run manife
 
 Sprint 141 added bounded read-only inspection for saved strategy-decision, report-artifact, and strategy-review workflow manifests under `EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT`. Existing domain factories remain authoritative, artifact keys are safe file selectors rather than manifest IDs, and compact references are never resolved. No chain inference, lifecycle state derivation, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior was added.
 
+Sprint 142 added a synchronous in-memory paper-run application command and `POST /api/v1/paper-runs`. Callers supply explicit starting and ending states, orders, and fills; existing paper factories and `run_paper_trading_request(...)` remain authoritative. The command does not generate orders, apply fills to derive state, accept paths, persist artifacts, create durable jobs or status, execute configured-paper workflows, or add broker, QMT, live, or capital behavior.
+
 The next sprint is:
 
 ```text
-Sprint 142 — Paper Run Application Command Boundary
+Sprint 143 — Lifecycle Proposal and Human Review Application Commands
 ```
 
 Approved productization sequence:

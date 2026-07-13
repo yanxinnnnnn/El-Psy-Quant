@@ -43,10 +43,10 @@ The current milestone is:
 Milestone 26 — Paper Trading Application Service Foundation
 ```
 
-Sprints 138 through 141 are complete. The next implementation sprint is:
+Sprints 138 through 142 are complete. The next implementation sprint is:
 
 ```text
-Sprint 142 — Paper Run Application Command Boundary
+Sprint 143 — Lifecycle Proposal and Human Review Application Commands
 ```
 
 The approved productization sequence is:
@@ -286,6 +286,14 @@ GET /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
 ```
 
 Only saved top-level `StrategyDecisionManifest`, `ReportArtifactManifest`, and `StrategyReviewWorkflowManifest` payloads are inspected. Existing domain reference and manifest factories remain authoritative for validation. Safe artifact keys select configured files and remain separate from domain manifest IDs. Compact references are returned as pointers only; they are not loaded or resolved. The service adds no chain-completeness or current-state inference, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior.
+
+The synchronous paper-run command is available through:
+
+```text
+POST /api/v1/paper-runs
+```
+
+The request supplies explicit starting and ending account states, orders, and fills. Existing paper domain factories and `run_paper_trading_request(...)` remain authoritative; the command does not generate orders, apply fills to derive state, or reconcile the caller's ending state. The normalized artifact is returned in memory without accepting a file path or writing an artifact or result summary. Repeated caller-supplied `run_id` values are independent because no durable job, status, idempotency, retry, cancellation, recovery, repository, or database exists in Sprint 142. The endpoint adds no configured-paper execution, broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation.
 
 ## Minimal Research Pipeline Example
 
