@@ -223,7 +223,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 ## Phase 4 — Founder Paper Trading Productization
 
 Status: Milestones 25 and 26 complete; Milestone 27 is in progress through
-Sprint 147.
+Sprint 148.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -499,7 +499,7 @@ Sprint sequence:
 S145 — SQLite and SQLAlchemy Product Persistence Foundation — Complete
 S146 — Artifact Index and Product Repository Foundation — Complete
 S147 — Durable Paper Job Record and Submission Foundation — Complete
-S148 — Simple Local Paper Job Runner and Manual Control
+S148 — Simple Local Paper Job Runner and Manual Control — Complete
 S149 — Job Recovery, Idempotency, and Error Audit Foundation
 S150 — Durable Job API and Result Reference Integration
 S151 — Milestone 27 Closeout
@@ -783,15 +783,30 @@ status transition, retry, recovery, error/result persistence, API endpoint, Web
 UI, broker, QMT, live, or capital behavior was added. The existing synchronous
 paper-run API remains database-free.
 
+Sprint 148 added one shared request-driven paper workflow, exactly four legal
+operational transitions, conditional caller-owned repository updates, one
+explicit selected-job runner, and queued-only manual cancellation. The runner
+commits a queued-to-running claim before executing and persists files outside
+database transactions, then records success or an expected failure separately.
+Artifact and result-summary files remain completed-output authority; SQLite
+stores no result reference, result payload, or error detail. The migration chain
+remains `0001 -> 0002 -> 0003`.
+
+Sprint 148 added no automatic queue scan, worker, poller, scheduler, retry,
+recovery, idempotency, error audit, partial-output cleanup, running-job
+cancellation, durable-job API, Web UI, broker, QMT, live, or capital behavior.
+Interrupted jobs may remain running and partial output may remain after failure.
+
 ## Current Next Step
 
 ```text
-Sprint 148 — Simple Local Paper Job Runner and Manual Control
+Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
 ```
 
-Sprint 148 should add the smallest simple local runner and manual-control
-foundation while keeping operational job state separate from lifecycle
-governance and retaining artifact files as completed-output authority.
+Sprint 149 should add the smallest explicit recovery, idempotency, and
+error-audit foundation while preserving the Sprint 148 single-job runner,
+transaction boundaries, artifact authority, and separation from lifecycle
+governance.
 
 ## One-Line Strategy
 

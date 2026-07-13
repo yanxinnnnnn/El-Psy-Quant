@@ -23,14 +23,19 @@ from el_psy_quant.paper.file_contract import PAPER_TRADING_ARTIFACT_FILE_ENCODIN
 
 
 @dataclass(frozen=True)
-class ConfiguredPaperWorkflowRunResult:
-    """Result objects and paths from one configured paper workflow run."""
+class PaperWorkflowRunResult:
+    """Result objects and paths from one request-driven paper workflow run."""
 
     request: PaperRunRequest
     artifact: PaperTradingArtifact
     result_summary: PaperRunResultSummary
     paper_run_artifact_path: Path
     paper_run_result_summary_path: Path
+
+
+@dataclass(frozen=True)
+class ConfiguredPaperWorkflowRunResult(PaperWorkflowRunResult):
+    """Backward-compatible result from one configured paper workflow run."""
 
 
 def _validate_config(config: ExperimentConfig) -> ExperimentConfig:
@@ -65,20 +70,20 @@ def _write_result_summary_file(
     return destination_path
 
 
-def run_configured_paper_workflow(
+def run_paper_workflow_request(
     *,
-    config: ExperimentConfig,
+    request: PaperRunRequest,
     run_dir: str | Path,
-) -> ConfiguredPaperWorkflowRunResult:
-    """Execute and persist one configured local paper workflow."""
-    validated_config = _validate_config(config)
+) -> PaperWorkflowRunResult:
+    """Execute and persist one explicit request-driven paper workflow."""
+    if type(request) is not PaperRunRequest:
+        raise ValueError("request must be a PaperRunRequest")
     validated_run_dir = _validate_existing_run_dir(run_dir)
     paths = create_configured_paper_run_output_paths(run_dir=validated_run_dir)
 
     paper_dir = paths.paper_run_artifact_path.parent
     paper_dir.mkdir(exist_ok=True)
 
-    request = create_paper_run_request_from_config(validated_config.paper_run)
     artifact = run_paper_trading_request(request)
     artifact_path = persist_paper_run_artifact(
         artifact,
@@ -97,10 +102,33 @@ def run_configured_paper_workflow(
         paths.paper_run_result_summary_path,
     )
 
-    return ConfiguredPaperWorkflowRunResult(
+    return PaperWorkflowRunResult(
         request=request,
         artifact=artifact,
         result_summary=result_summary,
         paper_run_artifact_path=artifact_path,
         paper_run_result_summary_path=result_summary_path,
+    )
+
+
+def run_configured_paper_workflow(
+    *,
+    config: ExperimentConfig,
+    run_dir: str | Path,
+) -> ConfiguredPaperWorkflowRunResult:
+    """Execute and persist one configured local paper workflow."""
+    validated_config = _validate_config(config)
+    validated_run_dir = _validate_existing_run_dir(run_dir)
+    request = create_paper_run_request_from_config(validated_config.paper_run)
+    workflow = run_paper_workflow_request(
+        request=request,
+        run_dir=validated_run_dir,
+    )
+
+    return ConfiguredPaperWorkflowRunResult(
+        request=workflow.request,
+        artifact=workflow.artifact,
+        result_summary=workflow.result_summary,
+        paper_run_artifact_path=workflow.paper_run_artifact_path,
+        paper_run_result_summary_path=workflow.paper_run_result_summary_path,
     )

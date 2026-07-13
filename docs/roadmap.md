@@ -150,7 +150,7 @@ Critical ownership decisions:
 | S145 | SQLite and SQLAlchemy Product Persistence Foundation. **Complete.** |
 | S146 | Artifact Index and Product Repository Foundation. **Complete.** |
 | S147 | Durable Paper Job Record and Submission Foundation. **Complete.** |
-| S148 | Simple Local Paper Job Runner and Manual Control |
+| S148 | Simple Local Paper Job Runner and Manual Control. **Complete.** |
 | S149 | Job Recovery, Idempotency, and Error Audit Foundation |
 | S150 | Durable Job API and Result Reference Integration |
 | S151 | Milestone 27 Closeout |
@@ -332,12 +332,30 @@ idempotency key, error/result persistence, API endpoint, Web UI, broker, QMT,
 live, or capital behavior. The existing synchronous paper-run API remains
 unchanged and database-free.
 
+Sprint 148 established:
+
+- one shared request-driven paper workflow reused by configured execution
+- exactly four immutable transitions: queued-to-running, queued-to-canceled,
+  running-to-succeeded, and running-to-failed
+- conditional repository updates under caller-owned transactions
+- one explicit runner for one caller-selected queued job, with output preflight
+  and workflow execution outside database transactions
+- expected local failure recording without persisted error details
+- queued-only manual cancellation
+
+The migration chain remains `0001 -> 0002 -> 0003`. Completed paper outputs
+remain authoritative files; SQLite stores no result payload or reference.
+Sprint 148 adds no queue scan, worker loop, polling, scheduler, retry, recovery,
+idempotency, error audit, partial-output cleanup, running-job cancellation, API
+endpoint, Web UI, broker, QMT, live, or capital behavior. Interrupted jobs may
+remain running and partial output may remain after failure.
+
 ## Current Next Step
 
 ```text
-Sprint 148 — Simple Local Paper Job Runner and Manual Control
+Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
 ```
 
-Sprint 148 should add only the simple local paper-job runner and manual-control
-foundation defined by its issue. It must preserve request, artifact, lifecycle,
-and transaction ownership boundaries.
+Sprint 149 should add only the explicitly designed recovery, idempotency, and
+error-audit foundation while preserving Sprint 148's selected-job execution,
+file authority, transaction ownership, and lifecycle-separation boundaries.

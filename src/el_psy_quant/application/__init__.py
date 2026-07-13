@@ -70,10 +70,16 @@ from el_psy_quant.application.paper_runs import (
 )
 from el_psy_quant.application.paper_jobs import (
     PaperJobConflictError,
+    PaperJobExecutionError,
     PaperJobNotFoundError,
+    PaperJobOutputConflictError,
+    PaperJobRunResult,
+    PaperJobStateConflictError,
+    cancel_paper_job,
     get_paper_job,
     get_paper_job_by_run_id,
     list_paper_jobs,
+    run_paper_job_once,
     submit_paper_job,
 )
 from el_psy_quant.persistence import PaperJobRecord
@@ -107,8 +113,12 @@ __all__ = [
     "PaperFillCommandInput",
     "PaperFillView",
     "PaperJobConflictError",
+    "PaperJobExecutionError",
     "PaperJobNotFoundError",
+    "PaperJobOutputConflictError",
     "PaperJobRecord",
+    "PaperJobRunResult",
+    "PaperJobStateConflictError",
     "PaperOrderCommandInput",
     "PaperOrderView",
     "PaperPositionChangeView",
@@ -150,6 +160,7 @@ __all__ = [
     "get_research_run_detail",
     "get_paper_job",
     "get_paper_job_by_run_id",
+    "cancel_paper_job",
     "list_research_runs",
     "list_indexed_artifacts",
     "list_paper_jobs",
@@ -157,5 +168,6 @@ __all__ = [
     "list_strategies",
     "record_lifecycle_transition_review",
     "refresh_artifact_index",
+    "run_paper_job_once",
     "submit_paper_job",
 ]

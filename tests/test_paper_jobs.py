@@ -22,6 +22,7 @@ from el_psy_quant.persistence import (
     deserialize_paper_run_request,
     prepare_paper_run_request_for_persistence,
     serialize_paper_run_request,
+    transition_paper_job_record,
 )
 
 JOB_ID = "12345678-1234-4abc-8def-1234567890ab"
@@ -267,3 +268,113 @@ def test_product_record_rejects_invalid_identity_state_and_time(
 
     with pytest.raises(ValueError):
         replace(job, **{field: value})
+
+
+@pytest.mark.parametrize(
+    ("current_status", "target_status"),
+    (
+        ("queued", "running"),
+        ("queued", "canceled"),
+        ("running", "succeeded"),
+        ("running", "failed"),
+    ),
+)
+def test_transition_contract_allows_only_approved_immutable_changes(
+    current_status: str,
+    target_status: str,
+) -> None:
+    original = replace(
+        create_queued_paper_job_record(
+            job_id=JOB_ID,
+            request=_request(),
+            submitted_timestamp=SUBMITTED,
+        ),
+        status=current_status,
+    )
+    updated = SUBMITTED + timedelta(seconds=1)
+
+    transitioned = transition_paper_job_record(
+        job=original,
+        target_status=target_status,  # type: ignore[arg-type]
+        updated_timestamp=updated,
+    )
+
+    assert transitioned is not original
+    assert transitioned.status == target_status
+    assert transitioned.updated_timestamp == updated
+    assert replace(
+        transitioned,
+        status=original.status,
+        updated_timestamp=original.updated_timestamp,
+    ) == original
+    with pytest.raises(FrozenInstanceError):
+        transitioned.status = "queued"  # type: ignore[misc]
+
+
+@pytest.mark.parametrize(
+    ("current_status", "target_status"),
+    tuple(
+        (current, target)
+        for current in ("queued", "running", "succeeded", "failed", "canceled")
+        for target in ("queued", "running", "succeeded", "failed", "canceled")
+        if (current, target)
+        not in {
+            ("queued", "running"),
+            ("queued", "canceled"),
+            ("running", "succeeded"),
+            ("running", "failed"),
+        }
+    ),
+)
+def test_transition_contract_rejects_every_unapproved_transition(
+    current_status: str,
+    target_status: str,
+) -> None:
+    job = replace(
+        create_queued_paper_job_record(
+            job_id=JOB_ID,
+            request=_request(),
+            submitted_timestamp=SUBMITTED,
+        ),
+        status=current_status,
+    )
+
+    with pytest.raises(ValueError, match="transition is not allowed"):
+        transition_paper_job_record(
+            job=job,
+            target_status=target_status,  # type: ignore[arg-type]
+            updated_timestamp=SUBMITTED + timedelta(seconds=1),
+        )
+
+
+@pytest.mark.parametrize(
+    "updated_timestamp",
+    (
+        datetime(2026, 7, 13, 12, 0, 1),
+        datetime(
+            2026,
+            7,
+            13,
+            13,
+            0,
+            1,
+            tzinfo=timezone(timedelta(hours=1)),
+        ),
+        SUBMITTED - timedelta(microseconds=1),
+    ),
+)
+def test_transition_contract_rejects_naive_non_utc_and_reversed_time(
+    updated_timestamp: datetime,
+) -> None:
+    job = create_queued_paper_job_record(
+        job_id=JOB_ID,
+        request=_request(),
+        submitted_timestamp=SUBMITTED,
+    )
+
+    with pytest.raises(ValueError, match="updated_timestamp"):
+        transition_paper_job_record(
+            job=job,
+            target_status="running",
+            updated_timestamp=updated_timestamp,
+        )

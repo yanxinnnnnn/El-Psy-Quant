@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal, TypeAlias, cast
 from uuid import UUID
@@ -32,6 +32,16 @@ SUPPORTED_PAPER_JOB_STATUSES: tuple[PaperJobStatus, ...] = (
     "succeeded",
     "failed",
     "canceled",
+)
+_LEGAL_PAPER_JOB_TRANSITIONS: frozenset[tuple[PaperJobStatus, PaperJobStatus]] = (
+    frozenset(
+        {
+            ("queued", "running"),
+            ("queued", "canceled"),
+            ("running", "succeeded"),
+            ("running", "failed"),
+        }
+    )
 )
 
 _REQUEST_FIELDS = {
@@ -326,4 +336,38 @@ def create_queued_paper_job_record(
         request=request,
         submitted_timestamp=submitted_timestamp,
         updated_timestamp=submitted_timestamp,
+    )
+
+
+def _validate_paper_job_status_transition(
+    current_status: PaperJobStatus,
+    target_status: PaperJobStatus,
+) -> None:
+    if (current_status, target_status) not in _LEGAL_PAPER_JOB_TRANSITIONS:
+        raise ValueError("paper job status transition is not allowed")
+
+
+def transition_paper_job_record(
+    *,
+    job: PaperJobRecord,
+    target_status: PaperJobStatus,
+    updated_timestamp: datetime,
+) -> PaperJobRecord:
+    """Return one immutable record after an approved operational transition."""
+    if type(job) is not PaperJobRecord:
+        raise ValueError("job must be a PaperJobRecord")
+    validated_target = _status(target_status)
+    validated_timestamp = _utc_timestamp(
+        updated_timestamp,
+        field_name="updated_timestamp",
+    )
+    _validate_paper_job_status_transition(job.status, validated_target)
+    if validated_timestamp < job.updated_timestamp:
+        raise ValueError(
+            "updated_timestamp must not precede the current updated_timestamp"
+        )
+    return replace(
+        job,
+        status=validated_target,
+        updated_timestamp=validated_timestamp,
     )

@@ -136,15 +136,23 @@ duplicate run IDs conflict. The existing synchronous API remains unchanged and
 database-free. It added no runner, status transition, retry, recovery,
 idempotency design, error/result persistence, API route, or Sprint 148 behavior.
 
+Sprint 148 added a shared request-driven paper workflow, the four explicit
+operational transitions, conditional caller-owned repository updates, one
+explicit selected-job runner, and queued-only manual cancellation. The runner
+claims and commits before executing outside database transactions, then records
+success or expected failure in a separate transaction. Existing artifact files
+remain completed-output authority. It added no migration, recovery, retry,
+idempotency, persisted error detail, result reference, API route, or worker.
+
 The next sprint is:
 
 ```text
-Sprint 148 — Simple Local Paper Job Runner and Manual Control
+Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
 ```
 
-Sprint 148 may add only the simple local runner and manual-control behavior
-defined by its authoritative issue. Paper-job operational state must remain
-separate from lifecycle governance and completed artifact authority.
+Sprint 149 may add only the recovery, idempotency, and error-audit behavior
+defined by its authoritative issue. It must not weaken the Sprint 148
+single-job, file-authority, transaction, or lifecycle-separation boundaries.
 
 Approved productization sequence:
 

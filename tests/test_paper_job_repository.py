@@ -1,8 +1,10 @@
 """Integration tests for the caller-owned paper-job repository."""
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from threading import Barrier
 
 import pytest
 from alembic import command
@@ -277,3 +279,228 @@ def test_repository_performs_no_execution_or_filesystem_access(
 
     assert restored is not None
     assert restored.run_id == "no-side-effect"
+
+
+def test_approved_conditional_transitions_round_trip_typed_records(database) -> None:
+    _, _, factory = database
+    success = _job(FIRST_ID, "success")
+    failed = _job(SECOND_ID, "failed")
+    canceled = _job("00000000-0000-4000-8000-000000000003", "canceled")
+    with factory.begin() as session:
+        repository = SqlAlchemyPaperJobRepository(session=session)
+        for job in (success, failed, canceled):
+            repository.add(job=job, prepared_request=_prepare(job))
+
+    running_time = NOW + timedelta(seconds=1)
+    terminal_time = NOW + timedelta(seconds=2)
+    with factory.begin() as session:
+        repository = SqlAlchemyPaperJobRepository(session=session)
+        running_success = repository.transition_status(
+            job_id=success.job_id,
+            expected_status="queued",
+            target_status="running",
+            updated_timestamp=running_time,
+        )
+        running_failed = repository.transition_status(
+            job_id=failed.job_id,
+            expected_status="queued",
+            target_status="running",
+            updated_timestamp=running_time,
+        )
+        canceled_job = repository.transition_status(
+            job_id=canceled.job_id,
+            expected_status="queued",
+            target_status="canceled",
+            updated_timestamp=terminal_time,
+        )
+    with factory.begin() as session:
+        repository = SqlAlchemyPaperJobRepository(session=session)
+        succeeded_job = repository.transition_status(
+            job_id=success.job_id,
+            expected_status="running",
+            target_status="succeeded",
+            updated_timestamp=terminal_time,
+        )
+        failed_job = repository.transition_status(
+            job_id=failed.job_id,
+            expected_status="running",
+            target_status="failed",
+            updated_timestamp=terminal_time,
+        )
+
+    assert running_success is not None and running_success.status == "running"
+    assert running_failed is not None and running_failed.status == "running"
+    assert canceled_job is not None and canceled_job.status == "canceled"
+    assert succeeded_job is not None and succeeded_job.status == "succeeded"
+    assert failed_job is not None and failed_job.status == "failed"
+    with factory() as session:
+        repository = SqlAlchemyPaperJobRepository(session=session)
+        assert repository.get(job_id=success.job_id) == succeeded_job
+        assert repository.get(job_id=failed.job_id) == failed_job
+        assert repository.get(job_id=canceled.job_id) == canceled_job
+        assert repository.list(status="succeeded") == (succeeded_job,)
+        assert repository.list(status="failed") == (failed_job,)
+        assert repository.list(status="canceled") == (canceled_job,)
+
+
+def test_transition_expected_status_mismatch_is_no_update(database) -> None:
+    _, _, factory = database
+    job = _job(FIRST_ID, "mismatch")
+    with factory.begin() as session:
+        SqlAlchemyPaperJobRepository(session=session).add(
+            job=job,
+            prepared_request=_prepare(job),
+        )
+
+    with factory.begin() as session:
+        result = SqlAlchemyPaperJobRepository(session=session).transition_status(
+            job_id=job.job_id,
+            expected_status="running",
+            target_status="succeeded",
+            updated_timestamp=NOW + timedelta(seconds=1),
+        )
+
+    assert result is None
+    with factory() as session:
+        assert SqlAlchemyPaperJobRepository(session=session).get(job_id=job.job_id) == job
+
+
+def test_repository_rejects_reversed_transition_timestamp(database) -> None:
+    _, _, factory = database
+    job = _job(FIRST_ID, "reversed-time")
+    with factory.begin() as session:
+        SqlAlchemyPaperJobRepository(session=session).add(
+            job=job,
+            prepared_request=_prepare(job),
+        )
+
+    with factory.begin() as session:
+        with pytest.raises(ValueError, match="updated_timestamp"):
+            SqlAlchemyPaperJobRepository(session=session).transition_status(
+                job_id=job.job_id,
+                expected_status="queued",
+                target_status="running",
+                updated_timestamp=NOW - timedelta(microseconds=1),
+            )
+
+    with factory() as session:
+        assert SqlAlchemyPaperJobRepository(session=session).get(job_id=job.job_id) == job
+
+
+def test_transition_flush_is_caller_owned_and_rollback_wins(database) -> None:
+    _, _, factory = database
+    job = _job(FIRST_ID, "rollback-transition")
+    with factory.begin() as session:
+        SqlAlchemyPaperJobRepository(session=session).add(
+            job=job,
+            prepared_request=_prepare(job),
+        )
+
+    with factory() as session:
+        transitioned = SqlAlchemyPaperJobRepository(
+            session=session
+        ).transition_status(
+            job_id=job.job_id,
+            expected_status="queued",
+            target_status="running",
+            updated_timestamp=NOW + timedelta(seconds=1),
+        )
+        assert transitioned is not None and transitioned.status == "running"
+        session.rollback()
+
+    with factory() as session:
+        assert SqlAlchemyPaperJobRepository(session=session).get(job_id=job.job_id) == job
+
+
+@pytest.mark.parametrize(
+    ("expected", "target"),
+    (
+        ("queued", "succeeded"),
+        ("running", "canceled"),
+        ("succeeded", "running"),
+        ("failed", "running"),
+        ("canceled", "queued"),
+    ),
+)
+def test_repository_rejects_unapproved_transition_surface(
+    database,
+    expected: str,
+    target: str,
+) -> None:
+    _, _, factory = database
+
+    with factory.begin() as session:
+        with pytest.raises(ValueError, match="transition is not allowed"):
+            SqlAlchemyPaperJobRepository(session=session).transition_status(
+                job_id=FIRST_ID,
+                expected_status=expected,  # type: ignore[arg-type]
+                target_status=target,  # type: ignore[arg-type]
+                updated_timestamp=NOW,
+            )
+
+
+def test_concurrent_claim_cancel_operations_have_exactly_one_winner(database) -> None:
+    _, _, factory = database
+    job = _job(FIRST_ID, "claim-cancel-race")
+    with factory.begin() as session:
+        SqlAlchemyPaperJobRepository(session=session).add(
+            job=job,
+            prepared_request=_prepare(job),
+        )
+    barrier = Barrier(2)
+
+    def attempt(target):
+        barrier.wait()
+        with factory.begin() as session:
+            return SqlAlchemyPaperJobRepository(session=session).transition_status(
+                job_id=job.job_id,
+                expected_status="queued",
+                target_status=target,
+                updated_timestamp=NOW + timedelta(seconds=1),
+            )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = tuple(
+            executor.map(attempt, ("running", "canceled"))  # type: ignore[arg-type]
+        )
+
+    winners = tuple(result for result in results if result is not None)
+    assert len(winners) == 1
+    assert winners[0].status in {"running", "canceled"}
+
+
+def test_two_independent_sessions_cannot_both_claim_one_job(database) -> None:
+    _, _, factory = database
+    job = _job(FIRST_ID, "single-claim")
+    with factory.begin() as session:
+        SqlAlchemyPaperJobRepository(session=session).add(
+            job=job,
+            prepared_request=_prepare(job),
+        )
+
+    barrier = Barrier(2)
+
+    def claim(seconds: int):
+        barrier.wait()
+        with factory.begin() as session:
+            return SqlAlchemyPaperJobRepository(session=session).transition_status(
+                job_id=job.job_id,
+                expected_status="queued",
+                target_status="running",
+                updated_timestamp=NOW + timedelta(seconds=seconds),
+            )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = tuple(executor.map(claim, (1, 2)))
+
+    assert sum(result is not None for result in results) == 1
+
+
+def test_repository_exposes_no_generic_mutation_or_queue_scan(database) -> None:
+    _, _, factory = database
+    with factory() as session:
+        repository = SqlAlchemyPaperJobRepository(session=session)
+        assert all(
+            not hasattr(repository, name)
+            for name in ("update", "delete", "claim_next", "scan", "set_status")
+        )

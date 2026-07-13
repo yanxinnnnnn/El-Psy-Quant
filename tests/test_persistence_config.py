@@ -135,6 +135,7 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "ArtifactIndexRepository",
         "PaperJobRecord",
         "PaperJobRepository",
+        "PaperJobStatus",
         "PreparedPaperRunRequest",
         "ProductDatabaseConfig",
         "ProductPersistenceBase",
@@ -148,6 +149,7 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "prepare_paper_run_request_for_persistence",
         "resolve_product_database_config",
         "serialize_paper_run_request",
+        "transition_paper_job_record",
     }
     assert not hasattr(persistence, "Repository")
     assert not hasattr(persistence, "JobStatus")

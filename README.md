@@ -13,8 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–26 are complete. **Milestone 27 — Persistence and Paper Job
 Control Foundation** is in progress.
 
-The latest completed sprint is **Sprint 147 — Durable Paper Job Record and
-Submission Foundation**.
+The latest completed sprint is **Sprint 148 — Simple Local Paper Job Runner and
+Manual Control**.
 
 Milestone 26 established a thin local application and versioned API boundary over selected existing capabilities:
 
@@ -38,14 +38,14 @@ Key ownership decisions remain:
 
 ## Current Direction
 
-Milestone 27 is in progress. Sprint 147 added strict durable paper-run request
-snapshots, immutable paper-job records, a focused repository, and explicit
-application submission that creates queued rows without executing them.
+Milestone 27 is in progress. Sprint 148 added one explicit selected-job runner,
+conditional operational transitions, and queued-only manual cancellation while
+keeping workflow execution outside product-database transactions.
 
-Sprints 138 through 147 are complete. The next sprint is:
+Sprints 138 through 148 are complete. The next sprint is:
 
 ```text
-Sprint 148 — Simple Local Paper Job Runner and Manual Control
+Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
 ```
 
 The approved productization sequence is:
@@ -224,7 +224,9 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - explicit SQLite and Alembic migration ownership
   - compact rebuildable artifact index
   - strict durable paper-run request snapshots
-  - immutable queued paper-job records and explicit submission/read services
+  - immutable paper-job records and explicit submission/read services
+  - conditional queued/running/terminal operational transitions
+  - one selected-job local runner and queued-only manual cancellation
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -293,9 +295,25 @@ UUID, unique normalized run ID, approved status value, and UTC timestamps.
 Duplicate run IDs are explicit conflicts rather than idempotent success. The
 snapshot is future runner input, not a completed artifact payload or result.
 Submission performs validation and canonical serialization before one database
-transaction, then creates only a `queued` row. No runner, status transition,
-retry, recovery, error, result reference, worker, scheduler, or automatic
-migration exists yet.
+transaction, then creates only a `queued` row. Sprint 147 itself added no
+runner, status transition, retry, recovery, error, result reference, worker,
+scheduler, or automatic migration.
+
+Sprint 148 keeps the migration chain unchanged and adds exactly four legal
+status transitions: `queued -> running`, `queued -> canceled`,
+`running -> succeeded`, and `running -> failed`. One explicit runner preflights
+the two reserved paper output files, conditionally claims one caller-selected
+queued job, commits that claim, executes the shared request-driven paper
+workflow outside any database transaction, and records success or an expected
+failure in a separate transaction. Manual cancellation applies only to queued
+jobs. Successful artifact and result-summary files remain authoritative; no
+result reference, result payload, or error detail is stored in SQLite.
+
+There is no automatic queue scan, worker loop, poller, scheduler, retry,
+idempotency design, interrupted-job recovery, partial-file cleanup, running-job
+cancellation, durable-job API endpoint, or startup runner. Interrupted jobs may
+remain `running`, and partial output may remain after an expected failure;
+Sprint 149 owns recovery, idempotency, and persisted error audit.
 
 `create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
 
