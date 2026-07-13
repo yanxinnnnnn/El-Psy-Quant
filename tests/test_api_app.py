@@ -212,12 +212,12 @@ def test_production_routes_include_no_artifact_or_runtime_behavior() -> None:
     paths = set(create_app().openapi()["paths"])
 
     assert "/api/v1/health" in paths
+    assert "/api/v1/paper-runs" in paths
     assert "/health" not in paths
     assert not any(
         path.startswith(
             (
                 "/api/v1/artifacts",
-                "/api/v1/paper-runs",
                 "/api/v1/lifecycle",
                 "/api/v1/jobs",
                 "/api/v1/brokers",

@@ -139,7 +139,7 @@ Critical ownership decisions:
 | S139 | Strategy Catalog and Detail Read Services. **Complete.** |
 | S140 | Research and Backtest Artifact Inspection Services. **Complete.** |
 | S141 | Governance, Report, and Lifecycle Evidence Inspection Services. **Complete.** |
-| S142 | Paper Run Application Command Boundary |
+| S142 | Paper Run Application Command Boundary. **Complete.** |
 | S143 | Lifecycle Proposal and Human Review Application Commands |
 | S144 | Milestone 26 Closeout |
 
@@ -251,7 +251,7 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 ## Current Next Step
 
 ```text
-Sprint 142 — Paper Run Application Command Boundary
+Sprint 143 — Lifecycle Proposal and Human Review Application Commands
 ```
 
-Sprint 141 added bounded, read-only inspection of the three completed top-level decision, report, and strategy-review workflow manifest contracts. Saved JSON is reconstructed through existing domain factories; safe artifact keys are separate from manifest IDs, and references remain unresolved pointers. No chain or state inference, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior was added.
+Sprint 142 added one synchronous in-memory paper-run command over explicit caller-supplied starting and ending states, orders, and fills. Existing paper factories and `run_paper_trading_request(...)` remain authoritative. The command returns a normalized artifact without generating orders, applying fills to derive state, accepting paths, persisting outputs, or creating durable jobs, status, idempotency, retry, cancellation, recovery, broker, QMT, live, or capital behavior.
