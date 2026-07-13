@@ -2,7 +2,9 @@
 
 ## Status
 
-In progress. Sprints 138 through 143 are complete.
+Complete.
+
+Milestone 26 was completed through Sprints 138–144.
 
 ## Objective
 
@@ -20,7 +22,7 @@ Browser
 
 Milestone 26 remains a modular monolith. Existing research, backtesting, paper, governance, report, and lifecycle modules remain authoritative. Existing local artifact files remain authoritative for completed outputs.
 
-## Sprint Sequence
+## Completed Sprint Sequence
 
 | Sprint | Status | Deliverable |
 |---:|---|---|
@@ -30,7 +32,7 @@ Milestone 26 remains a modular monolith. Existing research, backtesting, paper, 
 | S141 | Complete | Governance, report, and lifecycle evidence inspection services. |
 | S142 | Complete | Paper run application command boundary. |
 | S143 | Complete | Lifecycle proposal and human review application commands. |
-| S144 | Planned | Milestone 26 closeout. |
+| S144 | Complete | Milestone 26 closeout. |
 
 ## Sprint 138 Foundation
 
@@ -55,7 +57,7 @@ uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
 
 Milestone 26 does not add a product database, repositories, background workers, durable jobs, Web UI, authentication, broad CORS, arbitrary filesystem access, microservices, distributed infrastructure, broker or QMT integration, live execution, automatic lifecycle transitions, automatic strategy approval, or capital allocation.
 
-API handlers must remain thin. The application layer must not duplicate financial calculations, paper execution semantics, comparison logic, governance validation, lifecycle validation, or human-control rules.
+API handlers remain thin. The application layer does not duplicate financial calculations, paper execution semantics, comparison logic, governance validation, lifecycle validation, or human-control rules.
 
 ## Sprint 139 Strategy Reads
 
@@ -123,8 +125,72 @@ An approved record requires a separate caller-supplied resulting snapshot matchi
 
 No artifact, proposal, record, timeline, status, or current-state view is persisted. The commands add no registry, database, job, queue, worker, filesystem access, paper workflow, broker, QMT, live, real-money, or capital behavior.
 
-## Next Step
+## Sprint 144 Closeout
+
+Sprint 144 verifies the completed application-service boundary and makes no runtime change.
+
+The closeout confirms:
+
+- all planned M26 read and command boundaries exist
+- request IDs, explicit schemas, and stable sanitized errors remain consistent
+- API routes remain thin and versioned
+- existing domain factories remain authoritative
+- configured artifact roots remain server-owned and bounded
+- evidence pointers remain unresolved
+- paper and lifecycle commands remain synchronous, in-memory, and non-persistent
+- no database, durable job control, Web UI, broker, QMT, live execution, or capital behavior was introduced
+
+See:
 
 ```text
-Sprint 144 — Milestone 26 Closeout
+docs/sprints/sprint-144-milestone-26-closeout.md
+```
+
+## Exit Criteria Verification
+
+Milestone 26 is complete because:
+
+- a deterministic local FastAPI application boundary exists
+- explicit API request and response schemas exist
+- stable sanitized errors and server-owned request IDs exist
+- built-in strategies are inspectable through deterministic read models
+- configured research artifacts and saved metrics are inspectable safely
+- configured governance, report, and lifecycle manifests are inspectable safely
+- existing explicit-input paper behavior is available through a thin synchronous command
+- lifecycle proposals and human review records use existing strategy-review contracts
+- existing domain and artifact ownership remains unchanged
+- no product persistence, durable job control, background worker, Web UI, broker integration, or live behavior exists
+
+## Preserved Boundaries
+
+Milestone 26 did not introduce:
+
+- SQLite, SQLAlchemy, migrations, repositories, or artifact indexes
+- durable paper-job records, status, submission, retry, recovery, cancellation, or idempotency
+- queues, workers, schedulers, or distributed infrastructure
+- an independently authoritative lifecycle `current_state`
+- automatic transitions, approvals, paper triggers, or capital decisions
+- arbitrary filesystem access or evidence resolution
+- Web UI, broad CORS, or authentication expansion
+- broker or QMT integration
+- market-data streaming, live execution, or real-money trading
+
+Existing local artifact files remain authoritative. A future lifecycle current-state view must be derived from immutable snapshots and approved human records. Future mutable paper-job operational state must remain separate from lifecycle governance.
+
+## Closeout Decision
+
+Milestone 26 is complete.
+
+The platform now has a stable local application/API boundary over selected existing capabilities. The next layer should add the smallest durable local persistence foundation needed for artifact indexing and manually controlled paper-job operation without weakening domain, artifact, lifecycle, or human-control boundaries.
+
+## Next Milestone
+
+```text
+Milestone 27 — Persistence and Paper Job Control Foundation
+```
+
+## Next Sprint
+
+```text
+Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
 ```
