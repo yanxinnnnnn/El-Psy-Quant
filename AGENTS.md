@@ -128,15 +128,23 @@ and artifact files remain payload-authoritative. It added no automatic refresh,
 API change, paper-job record or status, worker, lifecycle mutation, or Sprint
 147 behavior.
 
+Sprint 147 added a shared validation-only `PaperRunCommand` to
+`PaperRunRequest` boundary, strict canonical request codec, immutable durable
+paper-job record, constrained `paper_jobs` table, caller-owned repository, and
+explicit submit/get/list services. Submission creates only one queued row;
+duplicate run IDs conflict. The existing synchronous API remains unchanged and
+database-free. It added no runner, status transition, retry, recovery,
+idempotency design, error/result persistence, API route, or Sprint 148 behavior.
+
 The next sprint is:
 
 ```text
-Sprint 147 — Durable Paper Job Record and Submission Foundation
+Sprint 148 — Simple Local Paper Job Runner and Manual Control
 ```
 
-Sprint 147 may add only the durable paper-job record and submission behavior
+Sprint 148 may add only the simple local runner and manual-control behavior
 defined by its authoritative issue. Paper-job operational state must remain
-separate from lifecycle governance and artifact payload authority.
+separate from lifecycle governance and completed artifact authority.
 
 Approved productization sequence:
 

@@ -11,6 +11,7 @@ from el_psy_quant.paper import (
     PaperAccountState,
     PaperFill,
     PaperOrderRecord,
+    PaperRunRequest,
     PaperTradingArtifact,
     create_paper_account_state,
     create_paper_fill,
@@ -279,8 +280,10 @@ def _require_nested_command_types(command: PaperRunCommand) -> None:
         raise PaperRunInvalidError()
 
 
-def execute_paper_run(*, command: PaperRunCommand) -> PaperRunCommandResult:
-    """Execute one explicit paper run synchronously and only in memory."""
+def create_paper_run_request_from_command(
+    *, command: PaperRunCommand
+) -> PaperRunRequest:
+    """Validate and normalize a paper-run command without executing it."""
     if type(command) is not PaperRunCommand:
         raise PaperRunInvalidError()
     _require_nested_command_types(command)
@@ -289,7 +292,7 @@ def execute_paper_run(*, command: PaperRunCommand) -> PaperRunCommandResult:
         ending_state = _account_state(command.ending_account_state)
         orders = tuple(_order(order) for order in command.orders)
         fills = tuple(_fill(fill) for fill in command.fills)
-        request = create_paper_run_request(
+        return create_paper_run_request(
             run_id=command.run_id,  # type: ignore[arg-type]
             created_timestamp=command.created_timestamp,
             starting_account_state=starting_state,
@@ -297,6 +300,14 @@ def execute_paper_run(*, command: PaperRunCommand) -> PaperRunCommandResult:
             orders=orders,
             fills=fills,
         )
+    except ValueError as exc:
+        raise PaperRunInvalidError() from exc
+
+
+def execute_paper_run(*, command: PaperRunCommand) -> PaperRunCommandResult:
+    """Execute one explicit paper run synchronously and only in memory."""
+    request = create_paper_run_request_from_command(command=command)
+    try:
         artifact = run_paper_trading_request(request)
     except ValueError as exc:
         raise PaperRunInvalidError() from exc

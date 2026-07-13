@@ -100,7 +100,8 @@ def test_imports_do_not_create_the_configured_database(tmp_path: Path) -> None:
         [
             sys.executable,
             "-c",
-            "import el_psy_quant; import el_psy_quant.persistence",
+            "import el_psy_quant; import el_psy_quant.persistence; "
+            "import el_psy_quant.application; import el_psy_quant.api.app",
         ],
         cwd=tmp_path,
         env=environment,
@@ -132,13 +133,21 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
     assert set(persistence.__all__) == {
         "ArtifactIndexEntry",
         "ArtifactIndexRepository",
+        "PaperJobRecord",
+        "PaperJobRepository",
+        "PreparedPaperRunRequest",
         "ProductDatabaseConfig",
         "ProductPersistenceBase",
         "SqlAlchemyArtifactIndexRepository",
+        "SqlAlchemyPaperJobRepository",
         "create_artifact_index_entry",
         "create_product_database_engine",
         "create_product_session_factory",
+        "create_queued_paper_job_record",
+        "deserialize_paper_run_request",
+        "prepare_paper_run_request_for_persistence",
         "resolve_product_database_config",
+        "serialize_paper_run_request",
     }
     assert not hasattr(persistence, "Repository")
     assert not hasattr(persistence, "JobStatus")

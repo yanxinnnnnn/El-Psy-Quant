@@ -149,7 +149,7 @@ Critical ownership decisions:
 |---:|---|
 | S145 | SQLite and SQLAlchemy Product Persistence Foundation. **Complete.** |
 | S146 | Artifact Index and Product Repository Foundation. **Complete.** |
-| S147 | Durable Paper Job Record and Submission Foundation |
+| S147 | Durable Paper Job Record and Submission Foundation. **Complete.** |
 | S148 | Simple Local Paper Job Runner and Manual Control |
 | S149 | Job Recovery, Idempotency, and Error Audit Foundation |
 | S150 | Durable Job API and Result Reference Integration |
@@ -314,13 +314,30 @@ It did not copy payloads or absolute roots into SQLite and added no automatic
 refresh, API endpoint, paper-job record, job status, worker, retry, recovery,
 idempotency, lifecycle mutation, Web UI, broker, QMT, live, or capital behavior.
 
+Sprint 147 established:
+
+- one shared validation-only command-to-domain request boundary used by the
+  existing synchronous execution command
+- one strict canonical `PaperRunRequest` codec and immutable paper-job record
+- one constrained `paper_jobs` table and `0003_paper_jobs` migration
+- one caller-owned repository with add, exact reads, deterministic list, and
+  supported-status filtering
+- explicit submission that validates and serializes before transactionally
+  creating one queued row
+- unique durable run IDs with explicit conflicts rather than idempotent success
+
+The durable request snapshot is operational input, not completed artifact
+authority. Sprint 147 added no runner, status transition, retry, recovery,
+idempotency key, error/result persistence, API endpoint, Web UI, broker, QMT,
+live, or capital behavior. The existing synchronous paper-run API remains
+unchanged and database-free.
+
 ## Current Next Step
 
 ```text
-Sprint 147 — Durable Paper Job Record and Submission Foundation
+Sprint 148 — Simple Local Paper Job Runner and Manual Control
 ```
 
-Sprint 147 should add only the durable paper-job record and submission
-foundation defined by its issue. Operational job state must remain separate
-from strategy lifecycle governance and must reference, not replace,
-authoritative artifact files.
+Sprint 148 should add only the simple local paper-job runner and manual-control
+foundation defined by its issue. It must preserve request, artifact, lifecycle,
+and transaction ownership boundaries.

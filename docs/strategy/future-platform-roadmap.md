@@ -223,7 +223,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 ## Phase 4 — Founder Paper Trading Productization
 
 Status: Milestones 25 and 26 complete; Milestone 27 is in progress through
-Sprint 146.
+Sprint 147.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -497,8 +497,8 @@ Sprint sequence:
 
 ```text
 S145 — SQLite and SQLAlchemy Product Persistence Foundation — Complete
-S146 — Artifact Index and Product Repository Foundation
-S147 — Durable Paper Job Record and Submission Foundation
+S146 — Artifact Index and Product Repository Foundation — Complete
+S147 — Durable Paper Job Record and Submission Foundation — Complete
 S148 — Simple Local Paper Job Runner and Manual Control
 S149 — Job Recovery, Idempotency, and Error Audit Foundation
 S150 — Durable Job API and Result Reference Integration
@@ -774,15 +774,24 @@ no complete payload, absolute root, job state, or lifecycle current state. No
 API, automatic refresh, paper job, worker, broker, QMT, live, or capital behavior
 was added.
 
+Sprint 147 added a strict canonical durable request codec, immutable paper-job
+record, constrained `paper_jobs` table, caller-owned repository, and explicit
+submit/get/list services. Submission creates one queued row only after request
+validation and serialization. Duplicate run IDs are conflicts. The snapshot is
+durable operational input rather than completed artifact authority. No runner,
+status transition, retry, recovery, error/result persistence, API endpoint, Web
+UI, broker, QMT, live, or capital behavior was added. The existing synchronous
+paper-run API remains database-free.
+
 ## Current Next Step
 
 ```text
-Sprint 147 — Durable Paper Job Record and Submission Foundation
+Sprint 148 — Simple Local Paper Job Runner and Manual Control
 ```
 
-Sprint 147 should add the smallest durable paper-job record and submission
+Sprint 148 should add the smallest simple local runner and manual-control
 foundation while keeping operational job state separate from lifecycle
-governance and retaining artifact files as payload authority.
+governance and retaining artifact files as completed-output authority.
 
 ## One-Line Strategy
 

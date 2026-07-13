@@ -65,8 +65,18 @@ from el_psy_quant.application.paper_runs import (
     PaperRunInvalidError,
     PaperSessionSummaryView,
     PaperTradingArtifactView,
+    create_paper_run_request_from_command,
     execute_paper_run,
 )
+from el_psy_quant.application.paper_jobs import (
+    PaperJobConflictError,
+    PaperJobNotFoundError,
+    get_paper_job,
+    get_paper_job_by_run_id,
+    list_paper_jobs,
+    submit_paper_job,
+)
+from el_psy_quant.persistence import PaperJobRecord
 from el_psy_quant.application.strategy_catalog import (
     StrategyDetail,
     StrategyNotFoundError,
@@ -96,6 +106,9 @@ __all__ = [
     "PaperAccountStateView",
     "PaperFillCommandInput",
     "PaperFillView",
+    "PaperJobConflictError",
+    "PaperJobNotFoundError",
+    "PaperJobRecord",
     "PaperOrderCommandInput",
     "PaperOrderView",
     "PaperPositionChangeView",
@@ -131,13 +144,18 @@ __all__ = [
     "get_indexed_artifact",
     "get_evidence_manifest_detail",
     "create_lifecycle_transition_proposal",
+    "create_paper_run_request_from_command",
     "execute_paper_run",
     "get_strategy_detail",
     "get_research_run_detail",
+    "get_paper_job",
+    "get_paper_job_by_run_id",
     "list_research_runs",
     "list_indexed_artifacts",
+    "list_paper_jobs",
     "list_evidence_manifests",
     "list_strategies",
     "record_lifecycle_transition_review",
     "refresh_artifact_index",
+    "submit_paper_job",
 ]

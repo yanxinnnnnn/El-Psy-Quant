@@ -24,6 +24,7 @@ from el_psy_quant.application import (
     PaperRunInvalidError,
     PaperSessionSummaryView,
     PaperTradingArtifactView,
+    create_paper_run_request_from_command,
     execute_paper_run,
 )
 from el_psy_quant.strategies.moving_average import MovingAverageCrossoverStrategy
@@ -161,6 +162,23 @@ def test_execution_uses_all_public_factories_and_only_run_boundary(monkeypatch) 
 
     assert {name: calls.count(name) for name in expected_counts} == expected_counts
     assert calls[-1] == "run_paper_trading_request"
+
+
+def test_shared_validation_normalizes_without_executing(monkeypatch) -> None:
+    def forbidden(*args, **kwargs):
+        del args, kwargs
+        raise AssertionError("validation must not execute")
+
+    monkeypatch.setattr(service, "run_paper_trading_request", forbidden)
+
+    request = create_paper_run_request_from_command(command=_command())
+
+    assert request.run_id == "paper-run-001"
+    assert tuple(order.order_id for order in request.orders) == (
+        "order-002",
+        "order-001",
+    )
+    assert tuple(fill.symbol for fill in request.fills) == ("MSFT", "AAPL")
 
 
 def test_normalized_result_preserves_explicit_order_and_domain_position_order() -> None:
@@ -314,6 +332,10 @@ def test_public_application_exports_are_exact_types() -> None:
     )
     assert all(getattr(application, item.__name__) is item for item in expected)
     assert application.execute_paper_run is execute_paper_run
+    assert (
+        application.create_paper_run_request_from_command
+        is create_paper_run_request_from_command
+    )
 
 
 def test_command_has_no_io_config_strategy_network_or_persistence_side_effects(

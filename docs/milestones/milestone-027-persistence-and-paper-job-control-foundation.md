@@ -4,7 +4,7 @@
 
 In Progress.
 
-Sprints 145 and 146 are complete. Sprint 147 is next.
+Sprints 145, 146, and 147 are complete. Sprint 148 is next.
 
 ## Objective
 
@@ -30,8 +30,8 @@ UI, distributed queue, broker adapter, QMT, live execution, or capital behavior.
 |---:|---|---|
 | S145 | Complete | SQLite and SQLAlchemy Product Persistence Foundation. |
 | S146 | Complete | Artifact Index and Product Repository Foundation. |
-| S147 | Next | Durable Paper Job Record and Submission Foundation. |
-| S148 | Planned | Simple Local Paper Job Runner and Manual Control. |
+| S147 | Complete | Durable Paper Job Record and Submission Foundation. |
+| S148 | Next | Simple Local Paper Job Runner and Manual Control. |
 | S149 | Planned | Job Recovery, Idempotency, and Error Audit Foundation. |
 | S150 | Planned | Durable Job API and Result Reference Integration. |
 | S151 | Planned | Milestone 27 Closeout. |
@@ -86,6 +86,32 @@ Index rows contain only schema version, artifact type, artifact key, root type,
 POSIX relative path, and normalized source ID. They contain no complete payload,
 absolute root, job state, lifecycle state, order, fill, or authentication data.
 
+## Sprint 147 Foundation
+
+Sprint 147 provides:
+
+- one validation-only `PaperRunCommand -> PaperRunRequest` boundary reused by
+  synchronous execution and durable submission
+- one strict deterministic request snapshot codec that reconstructs existing
+  domain objects and preserves order/fill sequence
+- one immutable paper-job record with canonical UUID, unique normalized run ID,
+  approved status vocabulary, validated request, and UTC timestamps
+- one `paper_jobs` table containing only the approved operational-input columns
+- one focused caller-owned repository with add/get/get-by-run/list behavior
+- one explicit application submission transaction that creates only queued rows
+- explicit duplicate-run conflict and not-found application errors
+
+The migration chain is exactly:
+
+```text
+0001_product_baseline -> 0002_artifact_index -> 0003_paper_jobs
+```
+
+The request snapshot is durable operational input for a future runner, not a
+completed artifact payload. Artifact files remain completed-output authority.
+No job runner, status transition, retry, recovery, idempotency key, error/result
+column, result reference, worker, scheduler, or API integration exists yet.
+
 ## Authority Boundaries
 
 Existing local artifact files remain authoritative for completed research,
@@ -97,14 +123,15 @@ Lifecycle current state remains a future derived read model from immutable
 snapshots and approved human transition records. It must not become an
 independently authoritative mutable field.
 
-Future paper-job state is mutable operational state and remains separate from
-lifecycle governance.
+Paper-job status is mutable operational state and remains separate from
+lifecycle governance. Sprint 147 creates only its initial queued state.
 
-## Sprint 145–146 Non-Goals
+## Sprint 145–147 Non-Goals
 
-Through Sprint 146, Milestone 27 adds no:
+Through Sprint 147, Milestone 27 adds no:
 
-- durable paper job, job state, worker, retry, recovery, or idempotency behavior
+- paper-job execution, worker, transition, retry, recovery, or idempotency design
+- persisted job error or result information
 - new or database-backed API endpoint
 - request-scoped database dependency
 - Web UI, Docker Compose, authentication, microservice, or distributed system
@@ -120,5 +147,5 @@ quality gate passes without introducing distributed or live-trading behavior.
 ## Next Sprint
 
 ```text
-Sprint 147 — Durable Paper Job Record and Submission Foundation
+Sprint 148 — Simple Local Paper Job Runner and Manual Control
 ```
