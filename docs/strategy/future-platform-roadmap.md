@@ -31,6 +31,8 @@ idea
   -> strategy decision governance
   -> report artifact
   -> lifecycle governance
+  -> application/API boundary
+  -> product persistence and job control
   -> founder product workspace
   -> portfolio-level review
   -> execution-risk governance
@@ -220,7 +222,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Milestone 25 complete; Milestone 26 in progress through Sprint 143.
+Status: Milestones 25 and 26 complete; Milestone 27 is next and planned.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -354,17 +356,32 @@ The UI must not directly access:
 
 ### API Baseline
 
-M26 should establish:
+Milestone 26 established:
 
-- a versioned local API initially under `/api/v1`
+- a versioned local API under `/api/v1`
 - explicit schemas instead of leaked internal Python objects
-- stable error responses
-- request IDs and job IDs where applicable
+- stable sanitized error responses
+- server-owned request IDs
 - synchronous read operations
 - thin application commands over existing local domain behavior
 - no product database requirement
 - no background worker requirement
 - no broker behavior
+
+Milestone 26 production endpoints at closeout:
+
+```text
+GET  /api/v1/health
+GET  /api/v1/strategies
+GET  /api/v1/strategies/{strategy_name}
+GET  /api/v1/research-runs
+GET  /api/v1/research-runs/{experiment_slug}/{run_id}
+GET  /api/v1/evidence-manifests
+GET  /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
+POST /api/v1/paper-runs
+POST /api/v1/lifecycle-transition-proposals
+POST /api/v1/lifecycle-transition-records
+```
 
 Long-running paper execution should move behind durable local job control in M27 rather than blocking Web requests indefinitely.
 
@@ -429,7 +446,7 @@ M25 is documentation-only. It does not implement FastAPI endpoints, database mod
 
 ### Milestone 26 — Paper Trading Application Service Foundation
 
-Status: In progress. Sprints 138 through 143 are complete.
+Status: Complete.
 
 Sprint sequence:
 
@@ -440,17 +457,36 @@ S140 — Research and Backtest Artifact Inspection Services — Complete
 S141 — Governance, Report, and Lifecycle Evidence Inspection Services — Complete
 S142 — Paper Run Application Command Boundary — Complete
 S143 — Lifecycle Proposal and Human Review Application Commands — Complete
-S144 — Milestone 26 Closeout
+S144 — Milestone 26 Closeout — Complete
 ```
 
-Exit criteria:
+M26 delivered:
 
-- a small local FastAPI application boundary exists
-- explicit API schemas and stable errors exist
-- strategies and existing artifacts are inspectable through application services
-- existing paper-run behavior is available through a thin command boundary
-- lifecycle proposals and human review records use existing domain contracts
-- no product database, background worker, Web UI, broker integration, or live behavior exists
+- deterministic local FastAPI application construction
+- a versioned `/api/v1` boundary
+- server-owned request IDs and stable sanitized errors
+- explicit request and response schemas
+- deterministic strategy catalog reads
+- bounded configured research-run and saved-metrics inspection
+- bounded configured governance, report, and lifecycle manifest inspection
+- a synchronous in-memory explicit-input paper-run command
+- synchronous stateless lifecycle proposal and human-review commands
+
+M26 preserved:
+
+- existing domain modules as quantitative and governance authority
+- existing local artifact files as completed-output authority
+- unresolved evidence pointers
+- non-executing lifecycle proposals and human review records
+- no independently authoritative lifecycle current-state field
+- no product database, durable job, worker, Web UI, broker, QMT, live, or capital behavior
+
+See:
+
+```text
+docs/milestones/milestone-026-paper-trading-application-service-foundation.md
+docs/sprints/sprint-144-milestone-26-closeout.md
+```
 
 ### Milestone 27 — Persistence and Paper Job Control Foundation
 
@@ -725,10 +761,10 @@ real-time dashboard complexity
 ## Current Next Step
 
 ```text
-Sprint 144 — Milestone 26 Closeout
+Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
 ```
 
-Sprint 143 added synchronous stateless lifecycle proposal and human-review application commands. Complete caller-supplied proposals and records are reconstructed in memory through existing strategy-review factories; evidence pointers remain unresolved, approved results require a separate matching snapshot, and approval never executes a transition or makes state current. Nothing is persisted, and no timeline, status, paper workflow, broker, QMT, live, or capital behavior is added.
+Sprint 144 closed Milestone 26 after verifying the complete local application/API boundary and its guardrails. Milestone 27 remains planned until Sprint 145 begins. The first M27 sprint should establish a minimal explicit SQLite and SQLAlchemy foundation without prematurely adding artifact indexes, durable paper jobs, workers, job APIs, Web UI, broker, QMT, live, or capital behavior.
 
 ## One-Line Strategy
 
