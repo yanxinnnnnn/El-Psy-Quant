@@ -43,10 +43,10 @@ The current milestone is:
 Milestone 26 — Paper Trading Application Service Foundation
 ```
 
-Sprints 138 through 142 are complete. The next implementation sprint is:
+Sprints 138 through 143 are complete. The next sprint is:
 
 ```text
-Sprint 143 — Lifecycle Proposal and Human Review Application Commands
+Sprint 144 — Milestone 26 Closeout
 ```
 
 The approved productization sequence is:
@@ -294,6 +294,17 @@ POST /api/v1/paper-runs
 ```
 
 The request supplies explicit starting and ending account states, orders, and fills. Existing paper domain factories and `run_paper_trading_request(...)` remain authoritative; the command does not generate orders, apply fills to derive state, or reconcile the caller's ending state. The normalized artifact is returned in memory without accepting a file path or writing an artifact or result summary. Repeated caller-supplied `run_id` values are independent because no durable job, status, idempotency, retry, cancellation, recovery, repository, or database exists in Sprint 142. The endpoint adds no configured-paper execution, broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation.
+
+The synchronous lifecycle governance commands are available through:
+
+```text
+POST /api/v1/lifecycle-transition-proposals
+POST /api/v1/lifecycle-transition-records
+```
+
+Both endpoints are stateless and in memory. The proposal command reconstructs the caller-supplied source snapshot and unresolved evidence pointers through existing strategy-review factories. The review command carries and reconstructs the complete proposal because no proposal repository or lookup exists. An approved record requires a separate caller-supplied resulting snapshot matching the proposal strategy and target state; rejected and deferred records prohibit one.
+
+Approval is governance evidence only. Neither command applies a transition, mutates a snapshot, makes a snapshot globally current, resolves evidence, triggers paper or strategy execution, or persists an artifact, proposal, record, timeline, or status. Repeated caller-supplied IDs remain independent because no registry, database, durable job, broker, QMT, live, or capital behavior exists in Sprint 143.
 
 ## Minimal Research Pipeline Example
 

@@ -140,7 +140,7 @@ Critical ownership decisions:
 | S140 | Research and Backtest Artifact Inspection Services. **Complete.** |
 | S141 | Governance, Report, and Lifecycle Evidence Inspection Services. **Complete.** |
 | S142 | Paper Run Application Command Boundary. **Complete.** |
-| S143 | Lifecycle Proposal and Human Review Application Commands |
+| S143 | Lifecycle Proposal and Human Review Application Commands. **Complete.** |
 | S144 | Milestone 26 Closeout |
 
 ### M27 Sprint Sequence
@@ -251,7 +251,7 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 ## Current Next Step
 
 ```text
-Sprint 143 — Lifecycle Proposal and Human Review Application Commands
+Sprint 144 — Milestone 26 Closeout
 ```
 
-Sprint 142 added one synchronous in-memory paper-run command over explicit caller-supplied starting and ending states, orders, and fills. Existing paper factories and `run_paper_trading_request(...)` remain authoritative. The command returns a normalized artifact without generating orders, applying fills to derive state, accepting paths, persisting outputs, or creating durable jobs, status, idempotency, retry, cancellation, recovery, broker, QMT, live, or capital behavior.
+Sprint 143 added synchronous stateless lifecycle proposal and human-review commands through two versioned POST endpoints. Both reconstruct complete caller-supplied inputs through the existing strategy-review factories. Evidence remains unresolved, approved records require a separate matching resulting snapshot, approval does not execute a transition or make any snapshot current, and no artifact, proposal, record, timeline, status, database, job, paper workflow, broker, QMT, live, or capital behavior is added.

@@ -220,7 +220,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Milestone 25 complete; Milestone 26 in progress through Sprint 142.
+Status: Milestone 25 complete; Milestone 26 in progress through Sprint 143.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -429,7 +429,7 @@ M25 is documentation-only. It does not implement FastAPI endpoints, database mod
 
 ### Milestone 26 — Paper Trading Application Service Foundation
 
-Status: In progress. Sprints 138 through 142 are complete.
+Status: In progress. Sprints 138 through 143 are complete.
 
 Sprint sequence:
 
@@ -439,7 +439,7 @@ S139 — Strategy Catalog and Detail Read Services — Complete
 S140 — Research and Backtest Artifact Inspection Services — Complete
 S141 — Governance, Report, and Lifecycle Evidence Inspection Services — Complete
 S142 — Paper Run Application Command Boundary — Complete
-S143 — Lifecycle Proposal and Human Review Application Commands
+S143 — Lifecycle Proposal and Human Review Application Commands — Complete
 S144 — Milestone 26 Closeout
 ```
 
@@ -725,10 +725,10 @@ real-time dashboard complexity
 ## Current Next Step
 
 ```text
-Sprint 143 — Lifecycle Proposal and Human Review Application Commands
+Sprint 144 — Milestone 26 Closeout
 ```
 
-Sprint 142 added a synchronous in-memory paper-run command over explicit caller-supplied starting and ending states, orders, and fills. Existing domain factories and `run_paper_trading_request(...)` remain authoritative. The command does not generate orders, apply fills to derive state, accept paths, persist outputs, create durable jobs or status, run configured-paper workflows, call brokers or QMT, imply live readiness, or allocate capital.
+Sprint 143 added synchronous stateless lifecycle proposal and human-review application commands. Complete caller-supplied proposals and records are reconstructed in memory through existing strategy-review factories; evidence pointers remain unresolved, approved results require a separate matching snapshot, and approval never executes a transition or makes state current. Nothing is persisted, and no timeline, status, paper workflow, broker, QMT, live, or capital behavior is added.
 
 ## One-Line Strategy
 
