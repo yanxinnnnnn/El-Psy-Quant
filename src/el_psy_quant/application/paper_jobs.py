@@ -49,7 +49,7 @@ def submit_paper_job(
 ) -> PaperJobRecord:
     """Validate and durably enqueue one job without executing it."""
     request = create_paper_run_request_from_command(command=command)
-    serialize_paper_run_request(request)
+    request_payload = serialize_paper_run_request(request)
     job = create_queued_paper_job_record(
         job_id=_new_job_id(),
         request=request,
@@ -57,7 +57,10 @@ def submit_paper_job(
     )
     try:
         with session_factory.begin() as session:
-            return SqlAlchemyPaperJobRepository(session=session).add(job=job)
+            return SqlAlchemyPaperJobRepository(session=session).add(
+                job=job,
+                request_payload=request_payload,
+            )
     except IntegrityError as exc:
         raise PaperJobConflictError() from exc
 

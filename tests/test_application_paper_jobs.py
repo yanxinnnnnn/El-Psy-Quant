@@ -7,9 +7,11 @@ from pathlib import Path
 import pytest
 from alembic import command as alembic_command
 from alembic.config import Config
+from sqlalchemy import select
 
 import el_psy_quant.application.paper_jobs as service
 import el_psy_quant.application.paper_runs as paper_run_service
+import el_psy_quant.persistence.paper_job_repository as repository_module
 from el_psy_quant.application import (
     PaperAccountStateCommandInput,
     PaperFillCommandInput,
@@ -30,6 +32,7 @@ from el_psy_quant.persistence import (
     resolve_product_database_config,
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
+from el_psy_quant.persistence.paper_job_model import PaperJobRow
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 JOB_ID = "12345678-1234-4abc-8def-1234567890ab"
@@ -122,22 +125,41 @@ def test_validation_and_serialization_finish_before_transaction(
 ) -> None:
     _deterministic_identity(monkeypatch)
     events: list[str] = []
+    transaction_started = False
+    prepared_payload: str | None = None
     original_serialize = service.serialize_paper_run_request
 
     def tracked_serialize(request):
+        nonlocal prepared_payload
+        if transaction_started:
+            raise AssertionError("request serialization occurred after begin()")
         events.append("serialize")
-        return original_serialize(request)
+        prepared_payload = original_serialize(request)
+        return prepared_payload
 
     class TrackingFactory:
         def begin(self):
+            nonlocal transaction_started
             events.append("begin")
+            transaction_started = True
             return session_factory.begin()
 
     monkeypatch.setattr(service, "serialize_paper_run_request", tracked_serialize)
+    monkeypatch.setattr(
+        repository_module,
+        "serialize_paper_run_request",
+        tracked_serialize,
+        raising=False,
+    )
 
     submit_paper_job(session_factory=TrackingFactory(), command=_command())  # type: ignore[arg-type]
 
     assert events == ["serialize", "begin"]
+    with session_factory() as session:
+        stored_payload = session.scalar(
+            select(PaperJobRow.request_payload).where(PaperJobRow.job_id == JOB_ID)
+        )
+    assert stored_payload == prepared_payload
 
 
 def test_duplicate_run_is_explicit_conflict_not_idempotent_success(
@@ -187,8 +209,8 @@ def test_database_failure_rolls_back_fully(
     _deterministic_identity(monkeypatch)
     original = service.SqlAlchemyPaperJobRepository.add
 
-    def fail_after_flush(self, *, job):
-        original(self, job=job)
+    def fail_after_flush(self, *, job, request_payload):
+        original(self, job=job, request_payload=request_payload)
         raise RuntimeError("database write failed")
 
     monkeypatch.setattr(service.SqlAlchemyPaperJobRepository, "add", fail_after_flush)
