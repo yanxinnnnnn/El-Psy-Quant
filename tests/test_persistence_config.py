@@ -126,12 +126,16 @@ def test_existing_api_remains_usable_without_database_configuration(
     assert "product_database" not in application.state._state
 
 
-def test_persistence_package_exports_only_the_small_foundation() -> None:
+def test_persistence_package_exports_only_the_approved_foundation() -> None:
     import el_psy_quant.persistence as persistence  # noqa: PLC0415
 
     assert set(persistence.__all__) == {
+        "ArtifactIndexEntry",
+        "ArtifactIndexRepository",
         "ProductDatabaseConfig",
         "ProductPersistenceBase",
+        "SqlAlchemyArtifactIndexRepository",
+        "create_artifact_index_entry",
         "create_product_database_engine",
         "create_product_session_factory",
         "resolve_product_database_config",

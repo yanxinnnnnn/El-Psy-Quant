@@ -13,8 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–26 are complete. **Milestone 27 — Persistence and Paper Job
 Control Foundation** is in progress.
 
-The latest completed sprint is **Sprint 145 — SQLite and SQLAlchemy Product
-Persistence Foundation**.
+The latest completed sprint is **Sprint 146 — Artifact Index and Product
+Repository Foundation**.
 
 Milestone 26 established a thin local application and versioned API boundary over selected existing capabilities:
 
@@ -38,14 +38,14 @@ Key ownership decisions remain:
 
 ## Current Direction
 
-Milestone 27 is in progress. Sprint 145 established one explicitly configured
-local SQLite database path, a SQLAlchemy 2.x engine and session foundation, and
-an Alembic empty baseline without adding business tables or API integration.
+Milestone 27 is in progress. Sprint 146 added a compact, rebuildable SQLite
+index for supported research and evidence manifests, a focused repository, and
+explicit transactional refresh and database-only read services.
 
-Sprints 138 through 145 are complete. The next sprint is:
+Sprints 138 through 146 are complete. The next sprint is:
 
 ```text
-Sprint 146 — Artifact Index and Product Repository Foundation
+Sprint 147 — Durable Paper Job Record and Submission Foundation
 ```
 
 The approved productization sequence is:
@@ -252,14 +252,35 @@ $env:EL_PSY_QUANT_PRODUCT_DATABASE_PATH="C:\path\to\el-psy-quant-product.sqlite3
 uv run alembic upgrade head
 ```
 
-Sprint 145 supports one local SQLite file only. SQLAlchemy provides lazy engine
-and caller-owned session construction, while Alembic owns production schema
-migrations. Configuration resolution, imports, engine construction, and
-`create_app()` do not open or migrate the database. No artifact index, product
-repository, durable paper job, mutable paper-job state, or database-backed API
-exists yet. Existing artifact files remain authoritative, lifecycle current
-state remains a future derived read model, and paper-job operational state will
-remain separate from lifecycle governance.
+Sprint 146 keeps one local SQLite file and adds only
+`artifact_index_entries`. Each immutable row stores schema version, supported
+artifact type, safe artifact key, root type, POSIX relative manifest path, and
+the normalized source manifest ID. Refresh explicitly calls the existing
+authoritative research/evidence list readers before replacing supplied roots in
+one transaction; omitted roots remain untouched and an empty supplied root is
+cleared. Repository-backed reads never open artifact files. Complete payloads
+and absolute roots are not copied into SQLite. There is no automatic refresh,
+API change, durable paper job, mutable lifecycle state, worker, or scheduler.
+
+Example explicit composition after `uv run alembic upgrade head`:
+
+```python
+from el_psy_quant.application import list_indexed_artifacts, refresh_artifact_index
+from el_psy_quant.persistence import (
+    create_product_database_engine,
+    create_product_session_factory,
+    resolve_product_database_config,
+)
+
+engine = create_product_database_engine(config=resolve_product_database_config())
+sessions = create_product_session_factory(engine=engine)
+refresh_artifact_index(
+    session_factory=sessions,
+    research_artifact_root=r"C:\path\to\experiment-outputs",
+    evidence_artifact_root=r"C:\path\to\evidence-artifacts",
+)
+entries = list_indexed_artifacts(session_factory=sessions)
+```
 
 `create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
 

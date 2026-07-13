@@ -223,7 +223,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 ## Phase 4 — Founder Paper Trading Productization
 
 Status: Milestones 25 and 26 complete; Milestone 27 is in progress through
-Sprint 145.
+Sprint 146.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -766,16 +766,23 @@ durable paper job, mutable paper-job state, API database dependency, lifecycle
 current-state store, Web UI, broker, QMT, live, or capital behavior was added.
 Existing artifact files remain authoritative.
 
+Sprint 146 added one compact, rebuildable artifact index for the existing
+research-run and three evidence-manifest layouts. Its repository keeps
+transactions caller-owned; explicit refresh discovers all supplied roots before
+one atomic replacement transaction; read services query only SQLite. Rows store
+no complete payload, absolute root, job state, or lifecycle current state. No
+API, automatic refresh, paper job, worker, broker, QMT, live, or capital behavior
+was added.
+
 ## Current Next Step
 
 ```text
-Sprint 146 — Artifact Index and Product Repository Foundation
+Sprint 147 — Durable Paper Job Record and Submission Foundation
 ```
 
-Sprint 146 should add the smallest explicit artifact index and product
-repository boundary without copying complete artifact payloads into SQLite.
-Paper-job operational state remains separate from lifecycle governance and is
-deferred to later M27 sprints.
+Sprint 147 should add the smallest durable paper-job record and submission
+foundation while keeping operational job state separate from lifecycle
+governance and retaining artifact files as payload authority.
 
 ## One-Line Strategy
 

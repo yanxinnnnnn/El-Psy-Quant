@@ -1,5 +1,12 @@
 """Thin application-service read and command boundaries."""
 
+from el_psy_quant.application.artifact_index import (
+    ArtifactIndexRefreshResult,
+    ArtifactIndexNotFoundError,
+    get_indexed_artifact,
+    list_indexed_artifacts,
+    refresh_artifact_index,
+)
 from el_psy_quant.application.lifecycle_commands import (
     LifecycleTransitionProposalCommand,
     LifecycleTransitionProposalCommandResult,
@@ -70,6 +77,7 @@ from el_psy_quant.application.strategy_catalog import (
 )
 
 __all__ = [
+    "ArtifactIndexRefreshResult",
     "SUPPORTED_EVIDENCE_MANIFEST_TYPES",
     "EvidenceArtifactInvalidError",
     "EvidenceArtifactRootUnavailableError",
@@ -77,6 +85,7 @@ __all__ = [
     "EvidenceManifestNotFoundError",
     "EvidenceManifestReference",
     "EvidenceManifestSummary",
+    "ArtifactIndexNotFoundError",
     "LifecycleTransitionProposalCommand",
     "LifecycleTransitionProposalCommandResult",
     "LifecycleTransitionProposalInvalidError",
@@ -119,13 +128,16 @@ __all__ = [
     "StrategyReviewEvidenceReferenceView",
     "StrategySummary",
     "StrategyReviewWorkflowManifestDetail",
+    "get_indexed_artifact",
     "get_evidence_manifest_detail",
     "create_lifecycle_transition_proposal",
     "execute_paper_run",
     "get_strategy_detail",
     "get_research_run_detail",
     "list_research_runs",
+    "list_indexed_artifacts",
     "list_evidence_manifests",
     "list_strategies",
     "record_lifecycle_transition_review",
+    "refresh_artifact_index",
 ]

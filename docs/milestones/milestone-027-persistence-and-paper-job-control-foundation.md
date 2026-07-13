@@ -4,7 +4,7 @@
 
 In Progress.
 
-Sprint 145 is complete. Sprint 146 is next.
+Sprints 145 and 146 are complete. Sprint 147 is next.
 
 ## Objective
 
@@ -29,8 +29,8 @@ UI, distributed queue, broker adapter, QMT, live execution, or capital behavior.
 | Sprint | Status | Deliverable |
 |---:|---|---|
 | S145 | Complete | SQLite and SQLAlchemy Product Persistence Foundation. |
-| S146 | Next | Artifact Index and Product Repository Foundation. |
-| S147 | Planned | Durable Paper Job Record and Submission Foundation. |
+| S146 | Complete | Artifact Index and Product Repository Foundation. |
+| S147 | Next | Durable Paper Job Record and Submission Foundation. |
 | S148 | Planned | Simple Local Paper Job Runner and Manual Control. |
 | S149 | Planned | Job Recovery, Idempotency, and Error Audit Foundation. |
 | S150 | Planned | Durable Job API and Result Reference Integration. |
@@ -59,6 +59,33 @@ uv run alembic upgrade head
 Configuration resolution, imports, engine construction, and FastAPI application
 construction do not create or migrate the database.
 
+## Sprint 146 Foundation
+
+Sprint 146 provides:
+
+- one compact immutable index contract for research-run, strategy-decision,
+  report-artifact, and strategy-review workflow manifests
+- one `artifact_index_entries` table with logical-identity, locator, supported
+  type/root, schema-version, and type-to-root constraints
+- one focused SQLAlchemy repository whose session and transaction remain
+  caller-owned
+- root-isolated replacement, stale cleanup, deterministic exact/filter reads,
+  empty-root clearing, and idempotent refresh behavior
+- explicit refresh using only `list_research_runs(...)` and
+  `list_evidence_manifests(...)`, with discovery before one multi-root database
+  transaction
+- repository-backed reads that do not reopen authoritative files
+
+The migration chain is exactly:
+
+```text
+0001_product_baseline -> 0002_artifact_index
+```
+
+Index rows contain only schema version, artifact type, artifact key, root type,
+POSIX relative path, and normalized source ID. They contain no complete payload,
+absolute root, job state, lifecycle state, order, fill, or authentication data.
+
 ## Authority Boundaries
 
 Existing local artifact files remain authoritative for completed research,
@@ -73,12 +100,10 @@ independently authoritative mutable field.
 Future paper-job state is mutable operational state and remains separate from
 lifecycle governance.
 
-## Sprint 145 Non-Goals
+## Sprint 145–146 Non-Goals
 
-Sprint 145 adds no:
+Through Sprint 146, Milestone 27 adds no:
 
-- artifact index or product repository
-- product business table
 - durable paper job, job state, worker, retry, recovery, or idempotency behavior
 - new or database-backed API endpoint
 - request-scoped database dependency
@@ -95,5 +120,5 @@ quality gate passes without introducing distributed or live-trading behavior.
 ## Next Sprint
 
 ```text
-Sprint 146 — Artifact Index and Product Repository Foundation
+Sprint 147 — Durable Paper Job Record and Submission Foundation
 ```

@@ -120,16 +120,23 @@ lazy SQLite SQLAlchemy engine construction, caller-owned session factories, and
 an intentionally empty Alembic baseline. It added no artifact index, product
 repository, business table, durable job, worker, or API database dependency.
 
+Sprint 146 added one compact `artifact_index_entries` table, an immutable index
+entry contract, a caller-transaction-owned repository, and explicit atomic
+refresh plus database-only read services for the supported research and
+evidence manifest layouts. Existing list readers remain discovery-authoritative
+and artifact files remain payload-authoritative. It added no automatic refresh,
+API change, paper-job record or status, worker, lifecycle mutation, or Sprint
+147 behavior.
+
 The next sprint is:
 
 ```text
-Sprint 146 — Artifact Index and Product Repository Foundation
+Sprint 147 — Durable Paper Job Record and Submission Foundation
 ```
 
-Sprint 146 may add the first explicit artifact index and product repository
-boundary. It must keep complete artifact payloads in their existing files and
-must not begin durable paper-job behavior unless its issue explicitly requires
-it.
+Sprint 147 may add only the durable paper-job record and submission behavior
+defined by its authoritative issue. Paper-job operational state must remain
+separate from lifecycle governance and artifact payload authority.
 
 Approved productization sequence:
 
