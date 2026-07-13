@@ -16,7 +16,7 @@ from el_psy_quant.persistence import (
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-HEAD_REVISION = "0002_artifact_index"
+ARTIFACT_INDEX_REVISION = "0002_artifact_index"
 BASELINE_REVISION = "0001_product_baseline"
 
 
@@ -42,8 +42,10 @@ def _current_revision(database_path: Path) -> str | None:
 def test_revision_is_directly_after_unchanged_baseline() -> None:
     scripts = ScriptDirectory.from_config(_alembic_config())
 
-    assert scripts.get_heads() == [HEAD_REVISION]
-    assert scripts.get_revision(HEAD_REVISION).down_revision == BASELINE_REVISION
+    assert (
+        scripts.get_revision(ARTIFACT_INDEX_REVISION).down_revision
+        == BASELINE_REVISION
+    )
     assert scripts.get_revision(BASELINE_REVISION).down_revision is None
 
 
@@ -59,9 +61,9 @@ def test_upgrade_creates_exact_table_and_constraints(
     if starting_revision != "base":
         command.upgrade(config, starting_revision)
 
-    command.upgrade(config, "head")
+    command.upgrade(config, ARTIFACT_INDEX_REVISION)
 
-    assert _current_revision(database_path) == HEAD_REVISION
+    assert _current_revision(database_path) == ARTIFACT_INDEX_REVISION
     engine = _engine(database_path)
     try:
         inspector = inspect(engine)
@@ -111,7 +113,7 @@ def test_downgrade_removes_only_artifact_index(
     database_path = tmp_path / "product.sqlite3"
     monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(database_path))
     config = _alembic_config()
-    command.upgrade(config, "head")
+    command.upgrade(config, ARTIFACT_INDEX_REVISION)
 
     command.downgrade(config, BASELINE_REVISION)
 

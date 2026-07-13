@@ -13,8 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–26 are complete. **Milestone 27 — Persistence and Paper Job
 Control Foundation** is in progress.
 
-The latest completed sprint is **Sprint 146 — Artifact Index and Product
-Repository Foundation**.
+The latest completed sprint is **Sprint 147 — Durable Paper Job Record and
+Submission Foundation**.
 
 Milestone 26 established a thin local application and versioned API boundary over selected existing capabilities:
 
@@ -38,14 +38,14 @@ Key ownership decisions remain:
 
 ## Current Direction
 
-Milestone 27 is in progress. Sprint 146 added a compact, rebuildable SQLite
-index for supported research and evidence manifests, a focused repository, and
-explicit transactional refresh and database-only read services.
+Milestone 27 is in progress. Sprint 147 added strict durable paper-run request
+snapshots, immutable paper-job records, a focused repository, and explicit
+application submission that creates queued rows without executing them.
 
-Sprints 138 through 146 are complete. The next sprint is:
+Sprints 138 through 147 are complete. The next sprint is:
 
 ```text
-Sprint 147 — Durable Paper Job Record and Submission Foundation
+Sprint 148 — Simple Local Paper Job Runner and Manual Control
 ```
 
 The approved productization sequence is:
@@ -220,6 +220,11 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - bounded evidence-manifest inspection
   - synchronous in-memory paper-run command
   - synchronous stateless lifecycle proposal and human-review commands
+- Local product persistence foundation:
+  - explicit SQLite and Alembic migration ownership
+  - compact rebuildable artifact index
+  - strict durable paper-run request snapshots
+  - immutable queued paper-job records and explicit submission/read services
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -282,6 +287,16 @@ refresh_artifact_index(
 entries = list_indexed_artifacts(session_factory=sessions)
 ```
 
+Sprint 147 adds only the `paper_jobs` durable operational-input table. A queued
+row stores a canonical validated `PaperRunRequest` snapshot, application-owned
+UUID, unique normalized run ID, approved status value, and UTC timestamps.
+Duplicate run IDs are explicit conflicts rather than idempotent success. The
+snapshot is future runner input, not a completed artifact payload or result.
+Submission performs validation and canonical serialization before one database
+transaction, then creates only a `queued` row. No runner, status transition,
+retry, recovery, error, result reference, worker, scheduler, or automatic
+migration exists yet.
+
 `create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
 
 The built-in strategy catalog is available through:
@@ -340,7 +355,7 @@ The synchronous paper-run command is available through:
 POST /api/v1/paper-runs
 ```
 
-The request supplies explicit starting and ending account states, orders, and fills. Existing paper domain factories and `run_paper_trading_request(...)` remain authoritative; the command does not generate orders, apply fills to derive state, or reconcile the caller's ending state. The normalized artifact is returned in memory without accepting a file path or writing an artifact or result summary. Repeated caller-supplied `run_id` values are independent because no durable job, status, idempotency, retry, cancellation, recovery, repository, or database exists in Milestone 26. The endpoint adds no configured-paper execution, broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation.
+The request supplies explicit starting and ending account states, orders, and fills. Existing paper domain factories and `run_paper_trading_request(...)` remain authoritative; the command does not generate orders, apply fills to derive state, or reconcile the caller's ending state. The normalized artifact is returned in memory without accepting a file path or writing an artifact or result summary. Repeated caller-supplied `run_id` values remain independent because this endpoint is unchanged and is not wired to the Sprint 147 durable submission service or product database. The endpoint adds no configured-paper execution, broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation.
 
 The synchronous lifecycle governance commands are available through:
 

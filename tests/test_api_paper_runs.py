@@ -1,6 +1,7 @@
 """Tests for the versioned synchronous paper-run command endpoint."""
 
 from uuid import UUID
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,6 +10,7 @@ from el_psy_quant.api.app import create_app
 from el_psy_quant.api.middleware import REQUEST_ID_HEADER
 from el_psy_quant.api.paper_run_schemas import PaperRunCommandResponse
 from el_psy_quant.api.schemas import ApiErrorResponse
+from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 
 
 def _payload() -> dict[str, object]:
@@ -184,6 +186,19 @@ def test_repeated_run_id_is_independent_and_not_a_durable_job_id() -> None:
     assert first.status_code == second.status_code == 200
     assert first.json() == second.json()
     assert first.headers[REQUEST_ID_HEADER] != second.headers[REQUEST_ID_HEADER]
+
+
+def test_synchronous_endpoint_remains_database_free(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    database_path = tmp_path / "product.sqlite3"
+    monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(database_path))
+
+    response = TestClient(create_app()).post("/api/v1/paper-runs", json=_payload())
+
+    assert response.status_code == 200
+    assert not database_path.exists()
 
 
 def test_domain_invalid_request_has_sanitized_stable_422() -> None:
