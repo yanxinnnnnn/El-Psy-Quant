@@ -42,7 +42,7 @@ def test_fresh_database_upgrades_to_empty_baseline(
     database_path = tmp_path / "product.sqlite3"
     monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(database_path))
 
-    command.upgrade(_alembic_config(), "head")
+    command.upgrade(_alembic_config(), BASELINE_REVISION)
 
     assert database_path.exists()
     assert _current_revision(database_path) == BASELINE_REVISION
@@ -55,10 +55,9 @@ def test_fresh_database_upgrades_to_empty_baseline(
         engine.dispose()
 
 
-def test_baseline_revision_is_the_only_migration_head() -> None:
+def test_baseline_revision_remains_unchanged() -> None:
     scripts = ScriptDirectory.from_config(_alembic_config())
 
-    assert scripts.get_heads() == [BASELINE_REVISION]
     assert scripts.get_revision(BASELINE_REVISION).down_revision is None
 
 
@@ -72,7 +71,7 @@ def test_offline_upgrade_generates_sql_without_creating_database(
     alembic_config = _alembic_config()
     alembic_config.output_buffer = output
 
-    command.upgrade(alembic_config, "head", sql=True)
+    command.upgrade(alembic_config, BASELINE_REVISION, sql=True)
 
     generated_sql = output.getvalue()
     assert "CREATE TABLE alembic_version" in generated_sql
@@ -87,7 +86,7 @@ def test_baseline_downgrades_deterministically_to_base(
     database_path = tmp_path / "product.sqlite3"
     monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(database_path))
     alembic_config = _alembic_config()
-    command.upgrade(alembic_config, "head")
+    command.upgrade(alembic_config, BASELINE_REVISION)
 
     command.downgrade(alembic_config, "base")
 
@@ -111,6 +110,6 @@ def test_migration_configuration_is_independent_of_working_directory(
     monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(database_path))
     monkeypatch.chdir(other_working_directory)
 
-    command.upgrade(_alembic_config(), "head")
+    command.upgrade(_alembic_config(), BASELINE_REVISION)
 
     assert _current_revision(database_path) == BASELINE_REVISION

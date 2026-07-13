@@ -148,7 +148,7 @@ Critical ownership decisions:
 | Sprint | Deliverable |
 |---:|---|
 | S145 | SQLite and SQLAlchemy Product Persistence Foundation. **Complete.** |
-| S146 | Artifact Index and Product Repository Foundation |
+| S146 | Artifact Index and Product Repository Foundation. **Complete.** |
 | S147 | Durable Paper Job Record and Submission Foundation |
 | S148 | Simple Local Paper Job Runner and Manual Control |
 | S149 | Job Recovery, Idempotency, and Error Audit Foundation |
@@ -301,13 +301,26 @@ It did not add artifact indexes, product repositories, durable paper jobs,
 workers, new APIs, lifecycle current-state storage, Web UI, broker, QMT, live,
 or capital behavior. Existing artifact files remain authoritative.
 
+Sprint 146 established:
+
+- one immutable six-field index entry for exactly four supported manifest types
+- one constrained `artifact_index_entries` table and `0002_artifact_index`
+  migration directly after the unchanged Sprint 145 baseline
+- root-isolated replacement with stale cleanup under caller-owned transactions
+- explicit multi-root refresh using only existing authoritative list readers
+- database-only exact and filtered index reads with no artifact payload access
+
+It did not copy payloads or absolute roots into SQLite and added no automatic
+refresh, API endpoint, paper-job record, job status, worker, retry, recovery,
+idempotency, lifecycle mutation, Web UI, broker, QMT, live, or capital behavior.
+
 ## Current Next Step
 
 ```text
-Sprint 146 — Artifact Index and Product Repository Foundation
+Sprint 147 — Durable Paper Job Record and Submission Foundation
 ```
 
-Sprint 146 should build only the first explicit artifact index and repository
-boundary on the shared Sprint 145 persistence foundation. Complete artifact
-payloads must remain in their existing authoritative files, and durable paper
-job behavior remains for later M27 sprints.
+Sprint 147 should add only the durable paper-job record and submission
+foundation defined by its issue. Operational job state must remain separate
+from strategy lifecycle governance and must reference, not replace,
+authoritative artifact files.

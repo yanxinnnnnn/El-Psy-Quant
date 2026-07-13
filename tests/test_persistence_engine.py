@@ -29,8 +29,8 @@ def test_engine_targets_configured_file_without_creating_it(tmp_path: Path) -> N
     engine.dispose()
 
 
-def test_declarative_metadata_contains_no_business_tables() -> None:
-    assert dict(ProductPersistenceBase.metadata.tables) == {}
+def test_declarative_metadata_contains_only_the_artifact_index() -> None:
+    assert set(ProductPersistenceBase.metadata.tables) == {"artifact_index_entries"}
 
 
 def test_foreign_keys_are_enabled_on_independent_connections(
