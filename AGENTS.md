@@ -70,7 +70,7 @@ docs/strategy/future-platform-roadmap.md
 
 ## Completed Foundations
 
-Milestones 18–25 are complete:
+Milestones 18–26 are complete:
 
 ```text
 M18 — Paper Trading Workflow Integration Foundation
@@ -81,44 +81,54 @@ M22 — Decision Governance Foundation
 M23 — Report Artifact Foundation
 M24 — Strategy Review Workflow Foundation
 M25 — Paper Trading Productization Planning
+M26 — Paper Trading Application Service Foundation
 ```
 
 Milestone 24 delivered explicit, immutable, human-controlled strategy lifecycle governance without runtime lifecycle execution.
 
-Milestone 25 then defined how productization wraps those completed domain capabilities without replacing or weakening their boundaries.
+Milestone 25 defined how productization wraps completed domain capabilities without replacing or weakening their boundaries.
+
+Milestone 26 then established a thin local FastAPI application and versioned API boundary over selected existing capabilities. It delivered deterministic strategy reads, bounded artifact inspection, synchronous in-memory paper execution, and stateless lifecycle proposal/review commands while preserving domain and artifact authority.
 
 ## Current Focus
 
-The current milestone is:
+The next milestone is:
 
 ```text
-Milestone 26 — Paper Trading Application Service Foundation
+Milestone 27 — Persistence and Paper Job Control Foundation
 ```
 
-Sprint 138 added the local FastAPI application factory, `/api/v1` boundary, process-health endpoint, server-owned request IDs, and stable sanitized error envelopes. It adds no application services, persistence, background jobs, Web UI, broker, QMT, live, or real-money behavior.
+Milestone 26 is complete. Its final production endpoint surface includes:
 
-Sprint 139 added a deterministic built-in strategy catalog read service and the versioned strategy list/detail endpoints. Catalog order follows `supported_strategy_names()`, and parameter metadata is descriptive only; existing configuration and domain validation remain authoritative. It adds no execution, experiment discovery, artifact inspection, ranking, lifecycle state, persistence, paper commands, UI, broker, QMT, live, or real-money behavior.
+```text
+GET  /api/v1/health
+GET  /api/v1/strategies
+GET  /api/v1/strategies/{strategy_name}
+GET  /api/v1/research-runs
+GET  /api/v1/research-runs/{experiment_slug}/{run_id}
+GET  /api/v1/evidence-manifests
+GET  /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
+POST /api/v1/paper-runs
+POST /api/v1/lifecycle-transition-proposals
+POST /api/v1/lifecycle-transition-records
+```
 
-Sprint 140 added bounded read-only inspection for configured research-run manifests and saved metrics under `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT`. List reads manifests only; detail reads one manifest plus its safely contained metrics reference. No arbitrary HTTP path, recomputation, comparison, governance, paper, lifecycle, persistence, background work, UI, broker, QMT, live, or real-money behavior was added.
-
-Sprint 141 added bounded read-only inspection for saved strategy-decision, report-artifact, and strategy-review workflow manifests under `EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT`. Existing domain factories remain authoritative, artifact keys are safe file selectors rather than manifest IDs, and compact references are never resolved. No chain inference, lifecycle state derivation, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior was added.
-
-Sprint 142 added a synchronous in-memory paper-run application command and `POST /api/v1/paper-runs`. Callers supply explicit starting and ending states, orders, and fills; existing paper factories and `run_paper_trading_request(...)` remain authoritative. The command does not generate orders, apply fills to derive state, accept paths, persist artifacts, create durable jobs or status, execute configured-paper workflows, or add broker, QMT, live, or capital behavior.
-
-Sprint 143 added synchronous, stateless, in-memory lifecycle proposal and human review commands plus the two versioned POST endpoints. Both reconstruct complete caller-supplied inputs through the existing strategy-review factories; evidence remains unresolved, approved records require a separate matching caller-supplied resulting snapshot, and approval remains governance evidence rather than transition execution. No snapshot becomes current and no proposal, record, artifact, timeline, or status is persisted.
+Milestone 26 added no product database, repository layer, durable job, worker, scheduler, queue, idempotency registry, Web UI, broker, QMT, live, or capital behavior.
 
 The next sprint is:
 
 ```text
-Sprint 144 — Milestone 26 Closeout
+Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
 ```
+
+Sprint 145 must establish the smallest explicit local persistence foundation for later product repositories and durable paper-job control. It must not index artifacts prematurely, create paper jobs, add workers or job APIs, introduce Web UI, duplicate complete artifact payloads, create an independently authoritative lifecycle current-state field, or add broker/QMT/live behavior unless the issue explicitly requires it.
 
 Approved productization sequence:
 
 ```text
 M25 — S137      Paper Trading Productization Planning
-M26 — S138-S144 Paper Trading Application Service Foundation
-M27 — S145-S151 Persistence and Paper Job Control Foundation
+M26 — S138-S144 Paper Trading Application Service Foundation — Complete
+M27 — S145-S151 Persistence and Paper Job Control Foundation — Planned
 M28 — S152-S159 Founder Paper Trading Web Workspace
 M29 — S160-S165 Product Feedback and Hardening
 M30 —           Portfolio-Level Decision Review Foundation
@@ -248,7 +258,7 @@ The UI must not directly access:
 - Use a versioned local API, initially under `/api/v1`.
 - Use explicit API schemas instead of leaking internal Python objects.
 - Provide stable error responses and request or job IDs where applicable.
-- Keep M26 free of product database and background-worker requirements.
+- M26 completed without product database or background-worker requirements.
 - Move long-running paper execution behind durable local job control in M27.
 - Bind to loopback by default.
 - Require authentication for non-loopback exposure.
