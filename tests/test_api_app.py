@@ -208,7 +208,7 @@ def test_api_package_exposes_only_the_application_boundary() -> None:
     assert all(not hasattr(api, name) for name in forbidden)
 
 
-def test_production_routes_include_no_artifact_or_runtime_behavior() -> None:
+def test_production_routes_include_no_job_broker_or_runtime_behavior() -> None:
     paths = set(create_app().openapi()["paths"])
 
     assert "/api/v1/health" in paths
@@ -218,7 +218,6 @@ def test_production_routes_include_no_artifact_or_runtime_behavior() -> None:
         path.startswith(
             (
                 "/api/v1/artifacts",
-                "/api/v1/lifecycle",
                 "/api/v1/jobs",
                 "/api/v1/brokers",
             )

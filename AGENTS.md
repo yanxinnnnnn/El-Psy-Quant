@@ -105,10 +105,12 @@ Sprint 141 added bounded read-only inspection for saved strategy-decision, repor
 
 Sprint 142 added a synchronous in-memory paper-run application command and `POST /api/v1/paper-runs`. Callers supply explicit starting and ending states, orders, and fills; existing paper factories and `run_paper_trading_request(...)` remain authoritative. The command does not generate orders, apply fills to derive state, accept paths, persist artifacts, create durable jobs or status, execute configured-paper workflows, or add broker, QMT, live, or capital behavior.
 
+Sprint 143 added synchronous, stateless, in-memory lifecycle proposal and human review commands plus the two versioned POST endpoints. Both reconstruct complete caller-supplied inputs through the existing strategy-review factories; evidence remains unresolved, approved records require a separate matching caller-supplied resulting snapshot, and approval remains governance evidence rather than transition execution. No snapshot becomes current and no proposal, record, artifact, timeline, or status is persisted.
+
 The next sprint is:
 
 ```text
-Sprint 143 — Lifecycle Proposal and Human Review Application Commands
+Sprint 144 — Milestone 26 Closeout
 ```
 
 Approved productization sequence:

@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Sprints 138 through 142 are complete.
+In progress. Sprints 138 through 143 are complete.
 
 ## Objective
 
@@ -29,7 +29,7 @@ Milestone 26 remains a modular monolith. Existing research, backtesting, paper, 
 | S140 | Complete | Research and backtest artifact inspection services. |
 | S141 | Complete | Governance, report, and lifecycle evidence inspection services. |
 | S142 | Complete | Paper run application command boundary. |
-| S143 | Planned | Lifecycle proposal and human review application commands. |
+| S143 | Complete | Lifecycle proposal and human review application commands. |
 | S144 | Planned | Milestone 26 closeout. |
 
 ## Sprint 138 Foundation
@@ -108,8 +108,23 @@ The caller supplies explicit starting and ending paper account states, orders, a
 
 The response is the normalized in-memory artifact. The command does not generate orders, apply fills to derive or reconcile ending state, accept any path, execute configured-paper workflows, persist artifacts or result summaries, or create durable jobs, status, idempotency, retries, cancellation, recovery, repositories, or databases. `run_id` remains caller-supplied domain identity rather than a durable job ID. No broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation is implied.
 
+## Sprint 143 Lifecycle Governance Commands
+
+Sprint 143 adds exactly two synchronous command endpoints:
+
+```text
+POST /api/v1/lifecycle-transition-proposals
+POST /api/v1/lifecycle-transition-records
+```
+
+Both commands are stateless and in memory. The application layer reconstructs source and resulting snapshots, evidence pointers, proposals, and review records only through the existing strategy-review domain factories. The review request carries the complete proposal because no repository, persisted resource, or ID lookup exists. Evidence references remain unresolved pointers and are never inspected.
+
+An approved record requires a separate caller-supplied resulting snapshot matching the proposal strategy and target state. Approval is governance evidence only: it does not execute or apply a transition, mutate a snapshot, make any snapshot globally current, trigger paper or strategy behavior, or imply broker/live readiness. Rejected and deferred records prohibit a resulting snapshot.
+
+No artifact, proposal, record, timeline, status, or current-state view is persisted. The commands add no registry, database, job, queue, worker, filesystem access, paper workflow, broker, QMT, live, real-money, or capital behavior.
+
 ## Next Step
 
 ```text
-Sprint 143 — Lifecycle Proposal and Human Review Application Commands
+Sprint 144 — Milestone 26 Closeout
 ```
