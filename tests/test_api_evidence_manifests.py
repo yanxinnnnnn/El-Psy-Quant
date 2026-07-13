@@ -228,6 +228,40 @@ def test_invalid_or_missing_selection_has_stable_404(tmp_path: Path, path: str) 
     _assert_request_id(response)
 
 
+def test_detail_endpoint_requires_exact_case_and_sanitizes_mismatch(
+    tmp_path: Path, monkeypatch
+) -> None:
+    exact_path = _write(tmp_path, "strategy_decision_manifest", "Key")
+    original_resolve = Path.resolve
+
+    def case_insensitive_resolve(path: Path, strict: bool = False) -> Path:
+        if path.name == "key.json":
+            return exact_path
+        return original_resolve(path, strict=strict)
+
+    monkeypatch.setattr(Path, "resolve", case_insensitive_resolve)
+    client = TestClient(create_app(evidence_artifact_root=tmp_path))
+
+    mismatch = client.get(
+        "/api/v1/evidence-manifests/strategy_decision_manifest/key"
+    )
+    assert mismatch.status_code == 404
+    assert mismatch.json()["error"] == {
+        "code": "evidence_manifest_not_found",
+        "message": "Evidence manifest not found",
+    }
+    assert "Key" not in mismatch.text
+    assert str(tmp_path) not in mismatch.text
+    _assert_request_id(mismatch)
+
+    exact = client.get(
+        "/api/v1/evidence-manifests/strategy_decision_manifest/Key"
+    )
+    assert exact.status_code == 200
+    assert exact.json()["artifact_key"] == "Key"
+    _assert_request_id(exact)
+
+
 def test_malformed_artifact_has_sanitized_422_and_request_id(tmp_path: Path) -> None:
     path = tmp_path / "strategy-decisions" / "secret.json"
     path.parent.mkdir()

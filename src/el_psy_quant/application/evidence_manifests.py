@@ -213,13 +213,21 @@ def _category_directory(root: Path, manifest_type: EvidenceManifestType) -> Path
 
 
 def _safe_selected_file(category: Path, artifact_key: str) -> Path:
-    path = category / f"{artifact_key}.json"
+    expected_name = f"{artifact_key}.json"
     try:
+        path = next(
+            (entry for entry in category.iterdir() if entry.name == expected_name),
+            None,
+        )
+        if path is None:
+            raise _not_found()
         if path.is_symlink():
             raise _invalid()
         canonical = path.resolve(strict=True)
         if not canonical.is_file() or not canonical.is_relative_to(category):
             raise _invalid()
+    except EvidenceManifestNotFoundError:
+        raise
     except EvidenceArtifactInvalidError:
         raise
     except FileNotFoundError as exc:

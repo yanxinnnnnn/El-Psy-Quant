@@ -384,6 +384,34 @@ def test_missing_exact_file_is_not_found(tmp_path: Path) -> None:
         )
 
 
+def test_detail_selection_requires_exact_case_even_if_resolve_does_not(
+    tmp_path: Path, monkeypatch
+) -> None:
+    exact_path = _write(tmp_path, "strategy_decision_manifest", "Key")
+    original_resolve = Path.resolve
+
+    def case_insensitive_resolve(path: Path, strict: bool = False) -> Path:
+        if path.name == "key.json":
+            return exact_path
+        return original_resolve(path, strict=strict)
+
+    monkeypatch.setattr(Path, "resolve", case_insensitive_resolve)
+
+    with pytest.raises(EvidenceManifestNotFoundError):
+        get_evidence_manifest_detail(
+            artifact_root=tmp_path,
+            manifest_type="strategy_decision_manifest",
+            artifact_key="key",
+        )
+
+    detail = get_evidence_manifest_detail(
+        artifact_root=tmp_path,
+        manifest_type="strategy_decision_manifest",
+        artifact_key="Key",
+    )
+    assert detail.artifact_key == "Key"
+
+
 def test_reads_only_manifests_without_writes_network_or_reference_resolution(
     tmp_path: Path, monkeypatch
 ) -> None:
