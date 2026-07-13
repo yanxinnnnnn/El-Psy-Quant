@@ -10,50 +10,49 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 
 ## Current Milestone Status
 
-Milestones 1–25 are complete.
+Milestones 1–26 are complete.
 
-The latest completed milestone is **Milestone 25 — Paper Trading Productization Planning**.
+The latest completed milestone is **Milestone 26 — Paper Trading Application Service Foundation**.
 
-Milestone 25 defined the staged founder product architecture:
+Milestone 26 established a thin local application and versioned API boundary over selected existing capabilities:
 
 ```text
 Browser
-  -> React/Next.js founder workspace
+  -> future React/Next.js founder workspace
   -> FastAPI application API
   -> thin application services / use cases
   -> existing El-Psy-Quant domain modules and artifact readers
-  -> SQLite product repositories and simple local job runner
 ```
 
-Key ownership decisions:
+Key ownership decisions remain:
 
 - existing domain modules remain authoritative for quantitative and governance rules
-- API handlers and UI code must not duplicate domain logic
+- API handlers and future UI code must not duplicate domain logic
 - existing local artifact files remain authoritative
-- SQLite stores product indexes, references, jobs, operational status, and other product metadata rather than silently duplicating full artifact payloads
+- SQLite will store product indexes, references, jobs, operational status, and other product metadata rather than silently duplicating full artifact payloads
 - lifecycle current state is a derived read model from immutable snapshots and approved human records, not an independently authoritative mutable field
 - paper job status is separate mutable operational state
-- the browser uses the API and never directly accesses SQLite, artifact directories, Python modules, QMT, MiniQMT, or a broker
+- the browser will use the API and never directly access SQLite, artifact directories, Python modules, QMT, MiniQMT, or a broker
 
 ## Current Direction
 
-The current milestone is:
+The next milestone is:
 
 ```text
-Milestone 26 — Paper Trading Application Service Foundation
+Milestone 27 — Persistence and Paper Job Control Foundation
 ```
 
-Sprints 138 through 143 are complete. The next sprint is:
+Sprints 138 through 144 are complete. The next sprint is:
 
 ```text
-Sprint 144 — Milestone 26 Closeout
+Sprint 145 — SQLite and SQLAlchemy Product Persistence Foundation
 ```
 
 The approved productization sequence is:
 
 ```text
 M25 — Paper Trading Productization Planning                 S137      Complete
-M26 — Paper Trading Application Service Foundation          S138-S144 In progress
+M26 — Paper Trading Application Service Foundation          S138-S144 Complete
 M27 — Persistence and Paper Job Control Foundation          S145-S151 Planned
 M28 — Founder Paper Trading Web Workspace                   S152-S159 Planned
 M29 — Product Feedback and Hardening                        S160-S165 Planned
@@ -211,6 +210,16 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - deterministic transition proposals
   - human-controlled transition records
   - compact workflow references and manifests
+- Local application-service and API foundation:
+  - deterministic FastAPI application factory
+  - versioned `/api/v1` routes
+  - server-owned request IDs
+  - stable sanitized errors
+  - strategy catalog list/detail reads
+  - bounded research-run and metrics inspection
+  - bounded evidence-manifest inspection
+  - synchronous in-memory paper-run command
+  - synchronous stateless lifecycle proposal and human-review commands
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -235,7 +244,7 @@ Run the local application API on loopback only:
 uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-`create_app()` provides independent FastAPI instances, and all Sprint 138 routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
+`create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
 
 The built-in strategy catalog is available through:
 
@@ -293,7 +302,7 @@ The synchronous paper-run command is available through:
 POST /api/v1/paper-runs
 ```
 
-The request supplies explicit starting and ending account states, orders, and fills. Existing paper domain factories and `run_paper_trading_request(...)` remain authoritative; the command does not generate orders, apply fills to derive state, or reconcile the caller's ending state. The normalized artifact is returned in memory without accepting a file path or writing an artifact or result summary. Repeated caller-supplied `run_id` values are independent because no durable job, status, idempotency, retry, cancellation, recovery, repository, or database exists in Sprint 142. The endpoint adds no configured-paper execution, broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation.
+The request supplies explicit starting and ending account states, orders, and fills. Existing paper domain factories and `run_paper_trading_request(...)` remain authoritative; the command does not generate orders, apply fills to derive state, or reconcile the caller's ending state. The normalized artifact is returned in memory without accepting a file path or writing an artifact or result summary. Repeated caller-supplied `run_id` values are independent because no durable job, status, idempotency, retry, cancellation, recovery, repository, or database exists in Milestone 26. The endpoint adds no configured-paper execution, broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation.
 
 The synchronous lifecycle governance commands are available through:
 
@@ -304,7 +313,7 @@ POST /api/v1/lifecycle-transition-records
 
 Both endpoints are stateless and in memory. The proposal command reconstructs the caller-supplied source snapshot and unresolved evidence pointers through existing strategy-review factories. The review command carries and reconstructs the complete proposal because no proposal repository or lookup exists. An approved record requires a separate caller-supplied resulting snapshot matching the proposal strategy and target state; rejected and deferred records prohibit one.
 
-Approval is governance evidence only. Neither command applies a transition, mutates a snapshot, makes a snapshot globally current, resolves evidence, triggers paper or strategy execution, or persists an artifact, proposal, record, timeline, or status. Repeated caller-supplied IDs remain independent because no registry, database, durable job, broker, QMT, live, or capital behavior exists in Sprint 143.
+Approval is governance evidence only. Neither command applies a transition, mutates a snapshot, makes a snapshot globally current, resolves evidence, triggers paper or strategy execution, or persists an artifact, proposal, record, timeline, or status. Repeated caller-supplied IDs remain independent because no registry, database, durable job, broker, QMT, live, or capital behavior exists in Milestone 26.
 
 ## Minimal Research Pipeline Example
 
@@ -362,12 +371,17 @@ A lifecycle state snapshot is an explicit declaration, not stored mutable state.
 
 Productization wraps existing domain capabilities rather than rewriting them. Product persistence must not become a competing source of artifact truth, and operational paper-job state must remain separate from human-controlled strategy lifecycle governance.
 
+### Milestone 26 — Paper Trading Application Service Foundation
+
+The local API exposes selected existing reads and commands without changing domain or artifact ownership. It remains stateless for product operations: no database, durable job control, Web UI, broker, QMT, live, or capital behavior was introduced.
+
 ## Module Overview
 
 ```text
 el_psy_quant/
   cli.py         # Thin argparse entrypoint for local configured experiments
   api/           # Local FastAPI factory, versioned routes, request IDs, and errors
+  application/   # Thin product read and command boundaries over existing domains
   comparison.py  # Compare existing metrics from saved local experiment runs
   configured_paper.py # Configured local paper workflow runner
   configured_paper_references.py # Configured paper metadata and manifest references
