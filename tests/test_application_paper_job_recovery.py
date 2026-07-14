@@ -28,7 +28,9 @@ from el_psy_quant.application import (
 from el_psy_quant.configured_paper import run_paper_workflow_request
 from el_psy_quant.outputs import create_configured_paper_run_output_paths
 from el_psy_quant.persistence import (
+    SqlAlchemyPaperJobAttemptRepository,
     SqlAlchemyPaperJobRepository,
+    create_running_paper_job_attempt,
     create_product_database_engine,
     create_product_session_factory,
     resolve_product_database_config,
@@ -367,6 +369,94 @@ def test_legacy_running_job_without_attempt_gets_one_synthetic_attempt(
     assert result.attempt.attempt_number == 1
     assert result.attempt.started_timestamp == running.updated_timestamp
     assert result.attempt.status == "interrupted"
+
+
+def test_recovery_rejects_existing_terminal_attempt_without_synthetic_result(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    running = _running(session_factory, monkeypatch)
+    with session_factory.begin() as session:
+        attempts = SqlAlchemyPaperJobAttemptRepository(session=session)
+        active = attempts.get_running_for_job(job_id=running.job_id)
+        assert active is not None
+        completed = attempts.complete_attempt(
+            attempt_id=active.attempt_id,
+            status="interrupted",
+            completed_timestamp=NOW,
+            error_code="interrupted_without_output",
+        )
+        assert completed is not None
+    before = list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=running.job_id,
+    )
+    monkeypatch.setattr(
+        service,
+        "_new_attempt_id",
+        lambda: (_ for _ in ()).throw(AssertionError("synthetic attempt created")),
+    )
+
+    with pytest.raises(PaperJobStateConflictError):
+        recover_interrupted_paper_job(
+            session_factory=session_factory,
+            job_id=running.job_id,
+            run_dir=tmp_path,
+            stale_before=NOW,
+        )
+
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=running.job_id,
+    ).status == "running"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=running.job_id,
+    ) == before
+    assert len(before) == 1
+    assert before[0].status == "interrupted"
+
+
+def test_recovery_rejects_multiple_running_attempts_without_modifying_them(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    running = _running(session_factory, monkeypatch)
+    with session_factory.begin() as session:
+        attempts = SqlAlchemyPaperJobAttemptRepository(session=session)
+        attempts.start_attempt(
+            attempt=create_running_paper_job_attempt(
+                attempt_id="00000000-0000-4000-8000-000000000099",
+                job_id=running.job_id,
+                attempt_number=2,
+                started_timestamp=NOW,
+            )
+        )
+    before = list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=running.job_id,
+    )
+
+    with pytest.raises(PaperJobStateConflictError):
+        recover_interrupted_paper_job(
+            session_factory=session_factory,
+            job_id=running.job_id,
+            run_dir=tmp_path,
+            stale_before=NOW,
+        )
+
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=running.job_id,
+    ).status == "running"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=running.job_id,
+    ) == before
+    assert len(before) == 2
+    assert all(attempt.status == "running" for attempt in before)
 
 
 def _failed_job(session_factory, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

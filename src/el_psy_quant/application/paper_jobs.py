@@ -552,8 +552,13 @@ def _finalize_recovery(
         if job is None:
             _raise_transition_conflict(repository=jobs, job_id=observed_job.job_id)
         attempts = SqlAlchemyPaperJobAttemptRepository(session=session)
-        running_attempt = attempts.get_running_for_job(job_id=observed_job.job_id)
-        if running_attempt is None:
+        existing_attempts = attempts.list_for_job(job_id=observed_job.job_id)
+        running_attempts = tuple(
+            attempt for attempt in existing_attempts if attempt.status == "running"
+        )
+        if len(running_attempts) == 1:
+            running_attempt = running_attempts[0]
+        elif not existing_attempts:
             running_attempt = attempts.start_attempt(
                 attempt=create_running_paper_job_attempt(
                     attempt_id=_new_attempt_id(),
@@ -564,6 +569,8 @@ def _finalize_recovery(
                     started_timestamp=observed_job.updated_timestamp,
                 )
             )
+        else:
+            raise PaperJobStateConflictError()
         completed_attempt = attempts.complete_attempt(
             attempt_id=running_attempt.attempt_id,
             status=attempt_status,
