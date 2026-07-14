@@ -66,11 +66,13 @@ The browser never receives the backend origin. It calls only:
 /api/backend/api/v1/...
 ```
 
-The transparent rewrite removes `/api/backend` and sends the remaining
-versioned path to the validated loopback origin. It adds no route handler,
-payload transformation, cache, retry, polling, persistence, authorization, or
-business logic. FastAPI CORS remains unchanged. Development and production
-Next.js commands bind to `127.0.0.1` by default.
+The transparent rewrite matches only `/api/backend/api/v1/:path*` and forwards
+to `<validated-origin>/api/v1/:path*`. Paths such as `/api/backend/docs`,
+`/api/backend/openapi.json`, and future unversioned backend routes are not
+proxied. The rewrite adds no route handler, payload transformation, cache,
+retry, polling, persistence, authorization, or business logic. FastAPI CORS
+remains unchanged. Development and production Next.js commands bind to
+`127.0.0.1` by default.
 
 Local startup uses two terminals:
 
