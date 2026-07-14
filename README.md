@@ -13,8 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–26 are complete. **Milestone 27 — Persistence and Paper Job
 Control Foundation** is in progress.
 
-The latest completed sprint is **Sprint 149 — Job Recovery, Idempotency, and
-Error Audit Foundation**.
+The latest completed sprint is **Sprint 150 — Durable Job API and Result
+Reference Integration**.
 
 Milestone 26 established a thin local application and versioned API boundary over selected existing capabilities:
 
@@ -38,14 +38,14 @@ Key ownership decisions remain:
 
 ## Current Direction
 
-Milestone 27 is in progress. Sprint 149 added replay-safe keyed submission,
-compact attempt and sanitized-error audit, explicit interrupted-job recovery,
-and failed-job retry while keeping output files authoritative.
+Milestone 27 is in progress. Sprint 150 added the versioned durable paper-job
+API, one selected-job post-response execution hook, compact result references,
+and safe authoritative result reads while keeping output files authoritative.
 
-Sprints 138 through 149 are complete. The next sprint is:
+Sprints 138 through 150 are complete. The next sprint is:
 
 ```text
-Sprint 150 — Durable Job API and Result Reference Integration
+Sprint 151 — Milestone 27 Closeout
 ```
 
 The approved productization sequence is:
@@ -229,6 +229,8 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - one selected-job local runner and queued-only manual cancellation
   - replay-safe keyed submission and compact execution-attempt audit
   - explicit interrupted-job recovery and failed-job retry
+  - compact job-owned result references and safe authoritative result reads
+  - versioned durable job submission, status, attempts, control, and result API
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -327,10 +329,49 @@ codes. Explicit manual recovery reconciles a running job against authoritative
 outputs without rewriting them, including legacy Sprint 148 jobs without
 attempts. Explicit retry requeues only a failed job after clean-output preflight.
 
-There is still no automatic scan, worker loop, polling, scheduler, background
-execution, automatic retry/recovery, cleanup, durable result reference,
-durable-job API endpoint, request-scoped database dependency, or startup runner.
-Sprint 150 owns API and result-reference integration.
+Through Sprint 149 there was no automatic scan, background execution, durable
+result reference, or durable-job API endpoint. Sprint 150 adds only the focused
+API/product-root integration described below.
+
+Sprint 150 advances the migration head to
+`0005_paper_job_result_references`, adding only one compact job-owned result
+registry. Configure the already-migrated database and an existing server-owned
+paper root explicitly:
+
+```powershell
+$env:EL_PSY_QUANT_PRODUCT_DATABASE_PATH="C:\path\to\product.sqlite3"
+$env:EL_PSY_QUANT_PAPER_ARTIFACT_ROOT="C:\path\to\paper-artifacts"
+uv run alembic upgrade head
+```
+
+API-owned successful outputs use exactly:
+
+```text
+<paper-root>/jobs/<job-id>/paper/paper_run_artifact.json
+<paper-root>/jobs/<job-id>/paper/paper_run_result_summary.json
+```
+
+The durable API is available through:
+
+```text
+POST /api/v1/paper-jobs
+GET  /api/v1/paper-jobs
+GET  /api/v1/paper-jobs/{job_id}
+GET  /api/v1/paper-jobs/{job_id}/attempts
+POST /api/v1/paper-jobs/{job_id}/run
+POST /api/v1/paper-jobs/{job_id}/cancel
+POST /api/v1/paper-jobs/{job_id}/retry
+POST /api/v1/paper-jobs/{job_id}/recover
+GET  /api/v1/paper-jobs/{job_id}/result
+```
+
+Submission only creates or replays a queued job. `/run` schedules one selected
+job as a FastAPI post-response task; it is not a worker, scan, poller,
+scheduler, or distributed queue. Result references store compact relative
+pointers only, and every result read reopens and validates the authoritative
+files without exposing filesystem paths. The synchronous
+`POST /api/v1/paper-runs` endpoint remains unchanged and database-free. Sprint
+150 adds no Web UI, authentication, broker, QMT, live, or capital behavior.
 
 `create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
 

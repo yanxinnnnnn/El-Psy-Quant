@@ -3,7 +3,7 @@
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 from el_psy_quant.paper import (
     PAPER_RUN_REQUEST_SCHEMA_VERSION,
@@ -17,6 +17,8 @@ from el_psy_quant.paper import (
     create_paper_fill,
     create_paper_order_record,
     create_paper_run_request,
+    create_paper_trading_artifact,
+    create_paper_trading_session_summary,
     run_paper_trading_request,
 )
 
@@ -257,7 +259,12 @@ def _session_view(artifact: PaperTradingArtifact) -> PaperSessionSummaryView:
     )
 
 
-def _artifact_view(artifact: PaperTradingArtifact) -> PaperTradingArtifactView:
+def create_paper_trading_artifact_view(
+    artifact: PaperTradingArtifact,
+) -> PaperTradingArtifactView:
+    """Translate one validated domain artifact into an immutable product view."""
+    if type(artifact) is not PaperTradingArtifact:
+        raise ValueError("artifact must be a PaperTradingArtifact")
     return PaperTradingArtifactView(
         schema_version=PAPER_TRADING_ARTIFACT_SCHEMA_VERSION,
         created_timestamp=artifact.created_timestamp.isoformat(),
@@ -267,6 +274,103 @@ def _artifact_view(artifact: PaperTradingArtifact) -> PaperTradingArtifactView:
         fills=tuple(_fill_view(fill) for fill in artifact.fills),
         session_summary=_session_view(artifact),
     )
+
+
+def _exact_mapping(value: object, fields: set[str]) -> dict[str, Any]:
+    if type(value) is not dict or set(value) != fields:
+        raise ValueError("paper trading artifact payload is invalid")
+    return cast(dict[str, Any], value)
+
+
+def _payload_account(value: object) -> PaperAccountState:
+    payload = _exact_mapping(
+        value,
+        {"timestamp", "starting_cash", "current_cash", "positions"},
+    )
+    if type(payload["positions"]) is not list:
+        raise ValueError("paper trading artifact payload is invalid")
+    positions: dict[str, object] = {}
+    for value in payload["positions"]:
+        position = _exact_mapping(value, {"symbol", "quantity"})
+        symbol = position["symbol"]
+        if type(symbol) is not str or symbol in positions:
+            raise ValueError("paper trading artifact payload is invalid")
+        positions[symbol] = position["quantity"]
+    return create_paper_account_state(
+        timestamp=payload["timestamp"],
+        starting_cash=payload["starting_cash"],  # type: ignore[arg-type]
+        current_cash=payload["current_cash"],  # type: ignore[arg-type]
+        positions=positions,  # type: ignore[arg-type]
+    )
+
+
+def _payload_orders(value: object) -> tuple[PaperOrderRecord, ...]:
+    if type(value) is not list:
+        raise ValueError("paper trading artifact payload is invalid")
+    return tuple(
+        create_paper_order_record(
+            **_exact_mapping(
+                item,
+                {"order_id", "timestamp", "symbol", "side", "quantity", "status"},
+            )
+        )
+        for item in value
+    )
+
+
+def _payload_fills(value: object) -> tuple[PaperFill, ...]:
+    if type(value) is not list:
+        raise ValueError("paper trading artifact payload is invalid")
+    fills: list[PaperFill] = []
+    for item in value:
+        if type(item) is not dict or set(item) not in (
+            {"timestamp", "symbol", "side", "quantity", "price"},
+            {"timestamp", "symbol", "side", "quantity", "price", "order_id"},
+        ):
+            raise ValueError("paper trading artifact payload is invalid")
+        fills.append(create_paper_fill(**cast(dict[str, Any], item)))
+    return tuple(fills)
+
+
+def paper_trading_artifact_view_from_payload(
+    payload: object,
+) -> PaperTradingArtifactView:
+    """Strictly reconstruct an authoritative file payload into a product view."""
+    root = _exact_mapping(
+        payload,
+        {
+            "schema_version",
+            "created_timestamp",
+            "starting_account_state",
+            "ending_account_state",
+            "orders",
+            "fills",
+            "session_summary",
+        },
+    )
+    if root["schema_version"] != PAPER_TRADING_ARTIFACT_SCHEMA_VERSION:
+        raise ValueError("paper trading artifact payload is invalid")
+    starting = _payload_account(root["starting_account_state"])
+    ending = _payload_account(root["ending_account_state"])
+    orders = _payload_orders(root["orders"])
+    fills = _payload_fills(root["fills"])
+    session = create_paper_trading_session_summary(
+        starting_account_state=starting,
+        ending_account_state=ending,
+        orders=orders,
+        fills=fills,
+    )
+    artifact = create_paper_trading_artifact(
+        created_timestamp=root["created_timestamp"],
+        starting_account_state=starting,
+        ending_account_state=ending,
+        orders=orders,
+        fills=fills,
+        session_summary=session,
+    )
+    if artifact.to_dict() != root:
+        raise ValueError("paper trading artifact payload is invalid")
+    return create_paper_trading_artifact_view(artifact)
 
 
 def _require_nested_command_types(command: PaperRunCommand) -> None:
@@ -314,5 +418,5 @@ def execute_paper_run(*, command: PaperRunCommand) -> PaperRunCommandResult:
     return PaperRunCommandResult(
         run_id=request.run_id,
         request_schema_version=PAPER_RUN_REQUEST_SCHEMA_VERSION,
-        artifact=_artifact_view(artifact),
+        artifact=create_paper_trading_artifact_view(artifact),
     )

@@ -33,6 +33,7 @@ def test_declarative_metadata_contains_only_approved_product_tables() -> None:
     assert set(ProductPersistenceBase.metadata.tables) == {
         "artifact_index_entries",
         "paper_job_attempts",
+        "paper_job_result_references",
         "paper_job_submission_keys",
         "paper_jobs",
     }

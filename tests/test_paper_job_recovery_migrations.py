@@ -50,7 +50,7 @@ def test_upgrade_adds_exact_recovery_audit_tables(
     if starting_revision != "base":
         command.upgrade(config, starting_revision)
 
-    command.upgrade(config, "head")
+    command.upgrade(config, RECOVERY_AUDIT_REVISION)
 
     assert _current(database_path) == RECOVERY_AUDIT_REVISION
     engine = _engine(database_path)
