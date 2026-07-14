@@ -1,13 +1,17 @@
 """HTTP tests for the Sprint 150 durable paper-job boundary."""
 
+from datetime import timedelta
 from pathlib import Path
 from threading import Event
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.migration import MigrationContext
 from fastapi.testclient import TestClient
+from sqlalchemy import inspect
+from sqlalchemy.orm import Session, sessionmaker
 
 from el_psy_quant.api.app import create_app
 from el_psy_quant.api.middleware import REQUEST_ID_HEADER
@@ -15,9 +19,23 @@ from el_psy_quant.api.paper_job_schemas import (
     PaperJobResponse,
     PaperJobResultResponse,
 )
+from el_psy_quant.api.paper_run_schemas import PaperRunCommandRequest
+from el_psy_quant.api.routes.paper_runs import paper_run_command_from_request
+from el_psy_quant.application import submit_paper_job
+from el_psy_quant.persistence import (
+    PaperJobAttemptRecord,
+    PaperJobRecord,
+    SqlAlchemyPaperJobAttemptRepository,
+    SqlAlchemyPaperJobRepository,
+    create_product_database_engine,
+    create_product_session_factory,
+    create_running_paper_job_attempt,
+    resolve_product_database_config,
+)
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+RECOVERY_AUDIT_REVISION = "0004_paper_job_recovery_audit"
 
 
 def _payload(run_id: str = "paper-run-001") -> dict[str, object]:
@@ -54,12 +72,121 @@ def configured_app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     )
 
 
+@pytest.fixture
+def revision_0004_environment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    database_path = tmp_path / "product.sqlite3"
+    paper_root = tmp_path / "paper-root"
+    paper_root.mkdir()
+    monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(database_path))
+    command.upgrade(
+        Config(str(PROJECT_ROOT / "alembic.ini")),
+        RECOVERY_AUDIT_REVISION,
+    )
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=database_path)
+    )
+    session_factory = create_product_session_factory(engine=engine)
+    try:
+        yield (
+            create_app(
+                product_database_path=database_path,
+                paper_artifact_root=paper_root,
+            ),
+            engine,
+            session_factory,
+            paper_root,
+        )
+    finally:
+        engine.dispose()
+
+
 def _assert_error(response, status: int, code: str) -> None:
-    assert response.status_code == status
+    assert response.status_code == status, response.text
     payload = response.json()
     assert payload["error"]["code"] == code
     request_id = response.headers[REQUEST_ID_HEADER]
     assert str(UUID(request_id)) == request_id == payload["request_id"]
+
+
+def _submit_direct(
+    session_factory: sessionmaker[Session],
+    *,
+    run_id: str,
+) -> PaperJobRecord:
+    request = PaperRunCommandRequest.model_validate(_payload(run_id))
+    return submit_paper_job(
+        session_factory=session_factory,
+        command=paper_run_command_from_request(request),
+    )
+
+
+def _transition_direct(
+    session_factory: sessionmaker[Session],
+    *,
+    job: PaperJobRecord,
+    target_status: str,
+) -> tuple[PaperJobRecord, tuple[PaperJobAttemptRecord, ...]]:
+    running_timestamp = job.updated_timestamp
+    with session_factory.begin() as session:
+        jobs = SqlAlchemyPaperJobRepository(session=session)
+        running = jobs.transition_status(
+            job_id=job.job_id,
+            expected_status="queued",
+            target_status="running",
+            updated_timestamp=running_timestamp,
+        )
+        assert running is not None
+        attempts = SqlAlchemyPaperJobAttemptRepository(session=session)
+        attempt = attempts.start_attempt(
+            attempt=create_running_paper_job_attempt(
+                attempt_id=str(uuid4()),
+                job_id=job.job_id,
+                attempt_number=1,
+                started_timestamp=running_timestamp,
+            )
+        )
+        if target_status == "failed":
+            failed_timestamp = running_timestamp
+            failed = jobs.transition_status(
+                job_id=job.job_id,
+                expected_status="running",
+                target_status="failed",
+                updated_timestamp=failed_timestamp,
+            )
+            assert failed is not None
+            completed = attempts.complete_attempt(
+                attempt_id=attempt.attempt_id,
+                status="failed",
+                completed_timestamp=failed_timestamp,
+                error_code="workflow_validation_failed",
+            )
+            assert completed is not None
+            return failed, (completed,)
+        assert target_status == "running"
+        return running, (attempt,)
+
+
+def _durable_state(
+    session_factory: sessionmaker[Session],
+    *,
+    job_id: str,
+) -> tuple[PaperJobRecord, tuple[PaperJobAttemptRecord, ...]]:
+    with session_factory() as session:
+        job = SqlAlchemyPaperJobRepository(session=session).get(job_id=job_id)
+        assert job is not None
+        attempts = SqlAlchemyPaperJobAttemptRepository(
+            session=session
+        ).list_for_job(job_id=job_id)
+    return job, attempts
+
+
+def _assert_0004_schema_unchanged(engine) -> None:
+    with engine.connect() as connection:
+        assert (
+            MigrationContext.configure(connection).get_current_revision()
+            == RECOVERY_AUDIT_REVISION
+        )
+    assert "paper_job_result_references" not in inspect(engine).get_table_names()
 
 
 def test_submission_replay_list_detail_run_attempts_and_result(configured_app) -> None:
@@ -245,6 +372,101 @@ def test_unmigrated_database_is_sanitized_and_existing_sync_route_is_independent
 
     _assert_error(durable, 503, "product_database_unavailable")
     assert synchronous.status_code == 200
+
+
+def test_revision_0004_submission_is_rejected_before_any_durable_write(
+    revision_0004_environment,
+) -> None:
+    app, engine, _session_factory, _paper_root = revision_0004_environment
+
+    with TestClient(app) as client:
+        durable = client.post(
+            "/api/v1/paper-jobs",
+            json=_payload(),
+            headers={"Idempotency-Key": "preflight-key"},
+        )
+        synchronous = client.post(
+            "/api/v1/paper-runs",
+            json=_payload("synchronous-run"),
+        )
+
+    _assert_error(durable, 503, "product_database_unavailable")
+    assert synchronous.status_code == 200
+    with engine.connect() as connection:
+        assert connection.exec_driver_sql("SELECT COUNT(*) FROM paper_jobs").scalar() == 0
+        assert (
+            connection.exec_driver_sql(
+                "SELECT COUNT(*) FROM paper_job_submission_keys"
+            ).scalar()
+            == 0
+        )
+    _assert_0004_schema_unchanged(engine)
+
+
+def test_revision_0004_cancel_is_rejected_before_queued_job_changes(
+    revision_0004_environment,
+) -> None:
+    app, engine, session_factory, _paper_root = revision_0004_environment
+    queued = _submit_direct(session_factory, run_id="queued-cancel-run")
+    before = _durable_state(session_factory, job_id=queued.job_id)
+
+    with TestClient(app) as client:
+        response = client.post(f"/api/v1/paper-jobs/{queued.job_id}/cancel")
+
+    _assert_error(response, 503, "product_database_unavailable")
+    assert _durable_state(session_factory, job_id=queued.job_id) == before
+    assert before[0].status == "queued"
+    _assert_0004_schema_unchanged(engine)
+
+
+def test_revision_0004_retry_is_rejected_before_failed_job_changes(
+    revision_0004_environment,
+) -> None:
+    app, engine, session_factory, paper_root = revision_0004_environment
+    queued = _submit_direct(session_factory, run_id="failed-retry-run")
+    failed, _attempts = _transition_direct(
+        session_factory,
+        job=queued,
+        target_status="failed",
+    )
+    (paper_root / "jobs" / failed.job_id / "paper").mkdir(parents=True)
+    before = _durable_state(session_factory, job_id=failed.job_id)
+
+    with TestClient(app) as client:
+        response = client.post(f"/api/v1/paper-jobs/{failed.job_id}/retry")
+
+    _assert_error(response, 503, "product_database_unavailable")
+    assert _durable_state(session_factory, job_id=failed.job_id) == before
+    assert before[0].status == "failed"
+    assert before[1][0].status == "failed"
+    _assert_0004_schema_unchanged(engine)
+
+
+def test_revision_0004_recovery_is_rejected_before_running_state_changes(
+    revision_0004_environment,
+) -> None:
+    app, engine, session_factory, paper_root = revision_0004_environment
+    queued = _submit_direct(session_factory, run_id="running-recovery-run")
+    running, _attempts = _transition_direct(
+        session_factory,
+        job=queued,
+        target_status="running",
+    )
+    (paper_root / "jobs" / running.job_id / "paper").mkdir(parents=True)
+    before = _durable_state(session_factory, job_id=running.job_id)
+    stale_before = (running.updated_timestamp + timedelta(seconds=1)).isoformat()
+
+    with TestClient(app) as client:
+        response = client.post(
+            f"/api/v1/paper-jobs/{running.job_id}/recover",
+            json={"stale_before": stale_before},
+        )
+
+    _assert_error(response, 503, "product_database_unavailable")
+    assert _durable_state(session_factory, job_id=running.job_id) == before
+    assert before[0].status == "running"
+    assert before[1][0].status == "running"
+    _assert_0004_schema_unchanged(engine)
 
 
 def test_application_owned_engine_is_disposed_on_shutdown(
