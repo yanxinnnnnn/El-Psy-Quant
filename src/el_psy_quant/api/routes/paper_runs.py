@@ -30,6 +30,7 @@ from el_psy_quant.application import (
     PaperRunCommand,
     PaperRunCommandResult,
     PaperRunInvalidError,
+    PaperTradingArtifactView,
     execute_paper_run,
 )
 
@@ -104,54 +105,48 @@ def _fill_response(fill: PaperFillView) -> PaperFillResponse:
     )
 
 
-def _result_response(result: PaperRunCommandResult) -> PaperRunCommandResponse:
-    artifact = result.artifact
+def paper_trading_artifact_response(
+    artifact: PaperTradingArtifactView,
+) -> PaperTradingArtifactResponse:
+    """Map one explicit product artifact view to the shared API schema."""
     summary = artifact.session_summary
-    return PaperRunCommandResponse(
-        run_id=result.run_id,
-        request_schema_version=result.request_schema_version,
-        artifact=PaperTradingArtifactResponse(
-            schema_version=artifact.schema_version,
-            created_timestamp=artifact.created_timestamp,
-            starting_account_state=_account_response(
-                artifact.starting_account_state
-            ),
-            ending_account_state=_account_response(artifact.ending_account_state),
-            orders=[_order_response(order) for order in artifact.orders],
-            fills=[_fill_response(fill) for fill in artifact.fills],
-            session_summary=PaperSessionSummaryResponse(
-                session_start_timestamp=summary.session_start_timestamp,
-                session_end_timestamp=summary.session_end_timestamp,
-                starting_cash=summary.starting_cash,
-                ending_cash=summary.ending_cash,
-                cash_change=summary.cash_change,
-                starting_positions=[
-                    _position_response(position)
-                    for position in summary.starting_positions
-                ],
-                ending_positions=[
-                    _position_response(position) for position in summary.ending_positions
-                ],
-                position_changes=[
-                    PaperPositionChangeResponse(
-                        symbol=change.symbol,
-                        starting_quantity=change.starting_quantity,
-                        ending_quantity=change.ending_quantity,
-                        quantity_change=change.quantity_change,
-                    )
-                    for change in summary.position_changes
-                ],
-                order_count=summary.order_count,
-                fill_count=summary.fill_count,
-            ),
+    return PaperTradingArtifactResponse(
+        schema_version=artifact.schema_version,
+        created_timestamp=artifact.created_timestamp,
+        starting_account_state=_account_response(artifact.starting_account_state),
+        ending_account_state=_account_response(artifact.ending_account_state),
+        orders=[_order_response(order) for order in artifact.orders],
+        fills=[_fill_response(fill) for fill in artifact.fills],
+        session_summary=PaperSessionSummaryResponse(
+            session_start_timestamp=summary.session_start_timestamp,
+            session_end_timestamp=summary.session_end_timestamp,
+            starting_cash=summary.starting_cash,
+            ending_cash=summary.ending_cash,
+            cash_change=summary.cash_change,
+            starting_positions=[
+                _position_response(position) for position in summary.starting_positions
+            ],
+            ending_positions=[
+                _position_response(position) for position in summary.ending_positions
+            ],
+            position_changes=[
+                PaperPositionChangeResponse(
+                    symbol=change.symbol,
+                    starting_quantity=change.starting_quantity,
+                    ending_quantity=change.ending_quantity,
+                    quantity_change=change.quantity_change,
+                )
+                for change in summary.position_changes
+            ],
+            order_count=summary.order_count,
+            fill_count=summary.fill_count,
         ),
     )
 
 
-@router.post("", response_model=PaperRunCommandResponse)
-async def post_paper_run(request: PaperRunCommandRequest) -> PaperRunCommandResponse:
-    """Execute one explicit paper run synchronously and only in memory."""
-    command = PaperRunCommand(
+def paper_run_command_from_request(request: PaperRunCommandRequest) -> PaperRunCommand:
+    """Translate the shared HTTP request schema into one application command."""
+    return PaperRunCommand(
         run_id=request.run_id,
         created_timestamp=request.created_timestamp,
         starting_account_state=_account_command(request.starting_account_state),
@@ -159,6 +154,20 @@ async def post_paper_run(request: PaperRunCommandRequest) -> PaperRunCommandResp
         orders=tuple(_order_command(order) for order in request.orders),
         fills=tuple(_fill_command(fill) for fill in request.fills),
     )
+
+
+def _result_response(result: PaperRunCommandResult) -> PaperRunCommandResponse:
+    return PaperRunCommandResponse(
+        run_id=result.run_id,
+        request_schema_version=result.request_schema_version,
+        artifact=paper_trading_artifact_response(result.artifact),
+    )
+
+
+@router.post("", response_model=PaperRunCommandResponse)
+async def post_paper_run(request: PaperRunCommandRequest) -> PaperRunCommandResponse:
+    """Execute one explicit paper run synchronously and only in memory."""
+    command = paper_run_command_from_request(request)
     try:
         result = execute_paper_run(command=command)
     except PaperRunInvalidError as exc:

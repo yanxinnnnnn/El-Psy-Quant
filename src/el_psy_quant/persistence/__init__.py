@@ -18,6 +18,14 @@ from el_psy_quant.persistence.paper_job_repository import (
     PaperJobRepository,
     SqlAlchemyPaperJobRepository,
 )
+from el_psy_quant.persistence.paper_job_result_reference_repository import (
+    PaperJobResultReferenceRepository,
+    SqlAlchemyPaperJobResultReferenceRepository,
+)
+from el_psy_quant.persistence.paper_job_result_references import (
+    PaperJobResultReference,
+    create_paper_job_result_reference,
+)
 from el_psy_quant.persistence.paper_job_attempt_repository import (
     PaperJobAttemptRepository,
     SqlAlchemyPaperJobAttemptRepository,
@@ -60,6 +68,8 @@ __all__ = [
     "PaperJobAttemptStatus",
     "PaperJobErrorCode",
     "PaperJobRepository",
+    "PaperJobResultReference",
+    "PaperJobResultReferenceRepository",
     "PaperJobStatus",
     "PaperJobSubmissionKeyRecord",
     "PaperJobSubmissionKeyRepository",
@@ -69,6 +79,7 @@ __all__ = [
     "SqlAlchemyArtifactIndexRepository",
     "SqlAlchemyPaperJobAttemptRepository",
     "SqlAlchemyPaperJobRepository",
+    "SqlAlchemyPaperJobResultReferenceRepository",
     "SqlAlchemyPaperJobSubmissionKeyRepository",
     "complete_paper_job_attempt",
     "create_artifact_index_entry",
@@ -76,6 +87,7 @@ __all__ = [
     "create_product_session_factory",
     "create_queued_paper_job_record",
     "create_paper_job_submission_key_record",
+    "create_paper_job_result_reference",
     "create_running_paper_job_attempt",
     "deserialize_paper_run_request",
     "digest_prepared_paper_run_request",

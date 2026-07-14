@@ -152,8 +152,8 @@ Critical ownership decisions:
 | S147 | Durable Paper Job Record and Submission Foundation. **Complete.** |
 | S148 | Simple Local Paper Job Runner and Manual Control. **Complete.** |
 | S149 | Job Recovery, Idempotency, and Error Audit Foundation. **Complete.** |
-| S150 | Durable Job API and Result Reference Integration |
-| S151 | Milestone 27 Closeout |
+| S150 | Durable Job API and Result Reference Integration. **Complete.** |
+| S151 | Milestone 27 Closeout. **Next.** |
 
 ### M28 Sprint Sequence
 
@@ -364,11 +364,31 @@ Recovery and retry remain manual. No worker, scan, polling, cleanup, result
 reference, API, lifecycle mutation, broker, QMT, live, or capital behavior was
 added.
 
+Sprint 150 established:
+
+- migration head `0005_paper_job_result_references` with one compact
+  job-owned result-reference table
+- atomic succeeded job, attempt, and result-reference finalization for
+  API-owned execution and valid-output recovery
+- one configured existing paper root with the fixed
+  `jobs/<job-id>/paper/` server-owned layout
+- versioned durable submission, bounded job and attempt reads, explicit run,
+  cancel, retry, recover, and path-free result endpoints
+- one selected-job post-response task with no scan, worker loop, polling,
+  scheduler, or distributed queue
+- strict result reads that close the database session before reopening and
+  validating the authoritative artifact and result-summary files
+
+Submission does not execute automatically. Compact result references do not
+copy result payloads into SQLite, and the existing synchronous
+`POST /api/v1/paper-runs` remains unchanged and database-free. Sprint 150 adds
+no Web UI, authentication, broker, QMT, live, or capital behavior.
+
 ## Current Next Step
 
 ```text
-Sprint 150 — Durable Job API and Result Reference Integration
+Sprint 151 — Milestone 27 Closeout
 ```
 
-Sprint 150 should add only durable-job API and result-reference integration
-while preserving Sprint 149's manual control and artifact authority.
+Sprint 151 is the documentation and verification closeout for Milestone 27.
+This Sprint 150 implementation does not begin that work.

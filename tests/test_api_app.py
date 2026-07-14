@@ -35,6 +35,10 @@ def test_application_has_no_startup_or_shutdown_dependencies() -> None:
     assert application.state._state == {
         "research_artifact_root": None,
         "evidence_artifact_root": None,
+        "product_database_path": None,
+        "paper_artifact_root": None,
+        "product_database_engine": None,
+        "product_session_factory": None,
     }
 
 
@@ -208,17 +212,17 @@ def test_api_package_exposes_only_the_application_boundary() -> None:
     assert all(not hasattr(api, name) for name in forbidden)
 
 
-def test_production_routes_include_no_job_broker_or_runtime_behavior() -> None:
+def test_production_routes_include_durable_jobs_but_no_broker_behavior() -> None:
     paths = set(create_app().openapi()["paths"])
 
     assert "/api/v1/health" in paths
     assert "/api/v1/paper-runs" in paths
+    assert "/api/v1/paper-jobs" in paths
     assert "/health" not in paths
     assert not any(
         path.startswith(
             (
                 "/api/v1/artifacts",
-                "/api/v1/jobs",
                 "/api/v1/brokers",
             )
         )

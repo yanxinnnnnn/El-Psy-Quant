@@ -124,7 +124,8 @@ def test_existing_api_remains_usable_without_database_configuration(
 
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert "product_database" not in application.state._state
+    assert application.state.product_database_path is None
+    assert application.state.product_session_factory is None
 
 
 def test_persistence_package_exports_only_the_approved_foundation() -> None:
@@ -139,6 +140,8 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "PaperJobAttemptStatus",
         "PaperJobErrorCode",
         "PaperJobRepository",
+        "PaperJobResultReference",
+        "PaperJobResultReferenceRepository",
         "PaperJobStatus",
         "PaperJobSubmissionKeyRecord",
         "PaperJobSubmissionKeyRepository",
@@ -148,6 +151,7 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "SqlAlchemyArtifactIndexRepository",
         "SqlAlchemyPaperJobAttemptRepository",
         "SqlAlchemyPaperJobRepository",
+        "SqlAlchemyPaperJobResultReferenceRepository",
         "SqlAlchemyPaperJobSubmissionKeyRepository",
         "complete_paper_job_attempt",
         "create_artifact_index_entry",
@@ -155,6 +159,7 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "create_product_session_factory",
         "create_queued_paper_job_record",
         "create_paper_job_submission_key_record",
+        "create_paper_job_result_reference",
         "create_running_paper_job_attempt",
         "deserialize_paper_run_request",
         "digest_prepared_paper_run_request",

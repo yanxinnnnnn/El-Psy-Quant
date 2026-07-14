@@ -39,7 +39,9 @@ class PaperJobRepository(Protocol):
 
     def get_by_run_id(self, *, run_id: str) -> PaperJobRecord | None: ...
 
-    def list(self, *, status: str | None = None) -> tuple[PaperJobRecord, ...]: ...
+    def list(
+        self, *, status: str | None = None, limit: int | None = None
+    ) -> tuple[PaperJobRecord, ...]: ...
 
     def transition_status(
         self,
@@ -129,8 +131,12 @@ class SqlAlchemyPaperJobRepository:
         )
         return None if row is None else _job_from_row(row)
 
-    def list(self, *, status: str | None = None) -> tuple[PaperJobRecord, ...]:
+    def list(
+        self, *, status: str | None = None, limit: int | None = None
+    ) -> tuple[PaperJobRecord, ...]:
         """List jobs deterministically by submission time then job identity."""
+        if limit is not None and (type(limit) is not int or limit < 1):
+            raise ValueError("limit must be a positive integer")
         statement = select(PaperJobRow)
         if status is not None:
             statement = statement.where(PaperJobRow.status == _status(status))
@@ -138,6 +144,8 @@ class SqlAlchemyPaperJobRepository:
             PaperJobRow.submitted_timestamp,
             PaperJobRow.job_id,
         )
+        if limit is not None:
+            statement = statement.limit(limit)
         return tuple(
             _job_from_row(row) for row in self._session.scalars(statement).all()
         )

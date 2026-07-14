@@ -223,7 +223,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 ## Phase 4 — Founder Paper Trading Productization
 
 Status: Milestones 25 and 26 complete; Milestone 27 is in progress through
-Sprint 149.
+Sprint 150.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -501,8 +501,8 @@ S146 — Artifact Index and Product Repository Foundation — Complete
 S147 — Durable Paper Job Record and Submission Foundation — Complete
 S148 — Simple Local Paper Job Runner and Manual Control — Complete
 S149 — Job Recovery, Idempotency, and Error Audit Foundation — Complete
-S150 — Durable Job API and Result Reference Integration
-S151 — Milestone 27 Closeout
+S150 — Durable Job API and Result Reference Integration — Complete
+S151 — Milestone 27 Closeout — Next
 ```
 
 Exit criteria:
@@ -811,15 +811,30 @@ supports legacy running jobs without attempts. Sprint 149 added no automatic
 scan, worker, polling, retry loop, cleanup, result reference, durable-job API,
 Web UI, lifecycle mutation, broker, QMT, live, or capital behavior.
 
+Sprint 150 added migration `0005_paper_job_result_references`, one compact
+job-owned pointer registry, atomic reference creation with successful job and
+attempt completion, and safe result reads that keep the database session closed
+while authoritative files are opened. API-owned outputs use the configured
+`EL_PSY_QUANT_PAPER_ARTIFACT_ROOT` under the exact
+`jobs/<job-id>/paper/` layout.
+
+The versioned durable-job API now supports submission, bounded status and
+attempt inspection, explicit one-job run, queued cancellation, failed retry,
+interrupted recovery, and path-free result reads. Submission does not execute.
+`/run` schedules one selected post-response task; it is not a worker, scanner,
+poller, scheduler, or distributed queue. Result references contain no completed
+payload, and the existing synchronous `/api/v1/paper-runs` command remains
+unchanged. Sprint 150 added no Web UI, authentication, broker, QMT, live, or
+capital behavior.
+
 ## Current Next Step
 
 ```text
-Sprint 150 — Durable Job API and Result Reference Integration
+Sprint 151 — Milestone 27 Closeout
 ```
 
-Sprint 150 should add only durable-job API and result-reference integration
-while preserving Sprint 149 replay, audit, recovery, transaction, and
-artifact-authority boundaries.
+Sprint 151 should close Milestone 27 through verification and documentation.
+Sprint 150 does not begin that closeout.
 
 ## One-Line Strategy
 

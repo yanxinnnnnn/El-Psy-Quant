@@ -4,7 +4,7 @@
 
 In Progress.
 
-Sprints 145 through 149 are complete. Sprint 150 is next.
+Sprints 145 through 150 are complete. Sprint 151 is next.
 
 ## Objective
 
@@ -33,8 +33,8 @@ UI, distributed queue, broker adapter, QMT, live execution, or capital behavior.
 | S147 | Complete | Durable Paper Job Record and Submission Foundation. |
 | S148 | Complete | Simple Local Paper Job Runner and Manual Control. |
 | S149 | Complete | Job Recovery, Idempotency, and Error Audit Foundation. |
-| S150 | Next | Durable Job API and Result Reference Integration. |
-| S151 | Planned | Milestone 27 Closeout. |
+| S150 | Complete | Durable Job API and Result Reference Integration. |
+| S151 | Next | Milestone 27 Closeout. |
 
 ## Sprint 145 Foundation
 
@@ -178,18 +178,48 @@ Output files remain authoritative. Keyed submission is replay-safe durable
 creation, not exactly-once execution. Recovery and retry are manual and never
 rewrite or delete output files.
 
-## Sprint 145–149 Non-Goals
+## Sprint 150 Foundation
 
-Through Sprint 149, Milestone 27 adds no:
+Sprint 150 provides:
 
-- automatic job scanning, worker loop, polling, scheduler, background task, or
-  startup execution
+- migration `0005_paper_job_result_references` with exactly one compact
+  job-owned result-reference table
+- atomic succeeded job, succeeded attempt, and result-reference creation for
+  API-owned normal execution and valid-output recovery
+- `EL_PSY_QUANT_PAPER_ARTIFACT_ROOT` and the fixed server-owned
+  `jobs/<job-id>/paper/` output layout
+- durable `/api/v1/paper-jobs` submission, bounded list/detail, attempt, run,
+  cancel, retry, recover, and result routes
+- one selected-job FastAPI post-response task with the Sprint 149 conditional
+  claim and attempt audit remaining authoritative
+- strict authoritative artifact and result-summary reads after the database
+  session is closed, with no filesystem locator in the returned view
+
+The database migration remains an explicit operator action:
+
+```powershell
+$env:EL_PSY_QUANT_PRODUCT_DATABASE_PATH="C:\path\to\product.sqlite3"
+$env:EL_PSY_QUANT_PAPER_ARTIFACT_ROOT="C:\path\to\paper-artifacts"
+uv run alembic upgrade head
+```
+
+Submission creates or replays only a queued job. `/run` handles one selected
+job after the response and is not a worker or queue scanner. Result references
+are compact pointers; the two files remain completed-output authority. The
+existing synchronous `POST /api/v1/paper-runs` remains unchanged and
+database-free.
+
+## Sprint 145–150 Non-Goals
+
+Through Sprint 150, Milestone 27 adds no:
+
+- automatic job scanning, worker loop, polling, scheduler, persistent worker,
+  or startup execution
 - automatic retry/recovery or exactly-once execution design
-- raw persisted job errors, result payloads, or result-reference information
+- raw persisted job errors or completed result payloads
 - partial-output cleanup, deletion, relocation, or rewriting
 - running-job cancellation, pause, or resume
-- new or database-backed API endpoint
-- request-scoped database dependency
+- request-scoped SQLAlchemy `Session`
 - Web UI, Docker Compose, authentication, microservice, or distributed system
 - broker, QMT, live execution, real-money trading, or capital allocation
 
@@ -203,5 +233,5 @@ quality gate passes without introducing distributed or live-trading behavior.
 ## Next Sprint
 
 ```text
-Sprint 150 — Durable Job API and Result Reference Integration
+Sprint 151 — Milestone 27 Closeout
 ```

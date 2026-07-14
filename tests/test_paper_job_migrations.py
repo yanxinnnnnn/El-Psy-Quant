@@ -20,6 +20,7 @@ BASELINE_REVISION = "0001_product_baseline"
 ARTIFACT_INDEX_REVISION = "0002_artifact_index"
 PAPER_JOBS_REVISION = "0003_paper_jobs"
 RECOVERY_AUDIT_REVISION = "0004_paper_job_recovery_audit"
+RESULT_REFERENCE_REVISION = "0005_paper_job_result_references"
 
 
 def _config() -> Config:
@@ -44,7 +45,10 @@ def _current(database_path: Path) -> str | None:
 def test_exact_migration_chain() -> None:
     scripts = ScriptDirectory.from_config(_config())
 
-    assert scripts.get_heads() == [RECOVERY_AUDIT_REVISION]
+    assert scripts.get_heads() == [RESULT_REFERENCE_REVISION]
+    assert scripts.get_revision(RESULT_REFERENCE_REVISION).down_revision == (
+        RECOVERY_AUDIT_REVISION
+    )
     assert scripts.get_revision(RECOVERY_AUDIT_REVISION).down_revision == (
         PAPER_JOBS_REVISION
     )
