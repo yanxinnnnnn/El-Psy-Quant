@@ -222,8 +222,8 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Milestones 25 and 26 complete; Milestone 27 is in progress through
-Sprint 150.
+Status: Milestones 25 through 27 complete; Milestone 28 is in progress after
+the Sprint 151 closeout.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -330,7 +330,7 @@ A transition proposal remains non-executing. A human review record remains gover
 
 Paper job status is mutable operational state and remains separate from strategy lifecycle governance.
 
-M27 may define durable local states equivalent to:
+M27 defines the durable local states:
 
 ```text
 queued
@@ -384,11 +384,11 @@ POST /api/v1/lifecycle-transition-proposals
 POST /api/v1/lifecycle-transition-records
 ```
 
-Long-running paper execution should move behind durable local job control in M27 rather than blocking Web requests indefinitely.
+Milestone 27 moved selected paper execution behind durable local job control without introducing a persistent worker or distributed queue.
 
 ### Persistence and Job-Control Baseline
 
-M27 should establish:
+M27 established:
 
 - SQLite product persistence
 - SQLAlchemy repository boundaries
@@ -491,7 +491,7 @@ docs/sprints/sprint-144-milestone-26-closeout.md
 
 ### Milestone 27 — Persistence and Paper Job Control Foundation
 
-Status: In Progress.
+Status: Complete.
 
 Sprint sequence:
 
@@ -502,7 +502,7 @@ S147 — Durable Paper Job Record and Submission Foundation — Complete
 S148 — Simple Local Paper Job Runner and Manual Control — Complete
 S149 — Job Recovery, Idempotency, and Error Audit Foundation — Complete
 S150 — Durable Job API and Result Reference Integration — Complete
-S151 — Milestone 27 Closeout — Next
+S151 — Milestone 27 Closeout — Complete
 ```
 
 Exit criteria:
@@ -516,12 +516,12 @@ Exit criteria:
 
 ### Milestone 28 — Founder Paper Trading Web Workspace
 
-Status: Planned.
+Status: In Progress.
 
 Sprint sequence:
 
 ```text
-S152 — Next.js Workspace Shell and API Client Foundation
+S152 — Next.js Workspace Shell and API Client Foundation — Next
 S153 — Strategy List, Detail, Research, and Backtest Views
 S154 — Governance Evidence and Report Artifact Views
 S155 — Paper Run Launch and Status Workspace
@@ -827,14 +827,27 @@ payload, and the existing synchronous `/api/v1/paper-runs` command remains
 unchanged. Sprint 150 added no Web UI, authentication, broker, QMT, live, or
 capital behavior.
 
+Sprint 151 verified the complete M27 migration chain, authority boundaries,
+transaction semantics, recovery and idempotency behavior, result-reference
+integration, API surface, and preserved non-goals. It changed documentation only
+and closed Milestone 27.
+
+See:
+
+```text
+docs/milestones/milestone-027-persistence-and-paper-job-control-foundation.md
+docs/sprints/sprint-151-milestone-27-closeout.md
+```
+
 ## Current Next Step
 
 ```text
-Sprint 151 — Milestone 27 Closeout
+Sprint 152 — Next.js Workspace Shell and API Client Foundation
 ```
 
-Sprint 151 should close Milestone 27 through verification and documentation.
-Sprint 150 does not begin that closeout.
+Sprint 152 begins the smallest local Next.js workspace shell and typed API-client
+foundation. The browser must consume the versioned API and must not directly
+access SQLite, artifact directories, Python modules, QMT, MiniQMT, or a broker.
 
 ## One-Line Strategy
 

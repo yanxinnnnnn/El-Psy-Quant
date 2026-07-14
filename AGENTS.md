@@ -70,7 +70,7 @@ docs/strategy/future-platform-roadmap.md
 
 ## Completed Foundations
 
-Milestones 18–26 are complete:
+Milestones 18–27 are complete:
 
 ```text
 M18 — Paper Trading Workflow Integration Foundation
@@ -82,6 +82,7 @@ M23 — Report Artifact Foundation
 M24 — Strategy Review Workflow Foundation
 M25 — Paper Trading Productization Planning
 M26 — Paper Trading Application Service Foundation
+M27 — Persistence and Paper Job Control Foundation
 ```
 
 Milestone 24 delivered explicit, immutable, human-controlled strategy lifecycle governance without runtime lifecycle execution.
@@ -90,12 +91,14 @@ Milestone 25 defined how productization wraps completed domain capabilities with
 
 Milestone 26 then established a thin local FastAPI application and versioned API boundary over selected existing capabilities. It delivered deterministic strategy reads, bounded artifact inspection, synchronous in-memory paper execution, and stateless lifecycle proposal/review commands while preserving domain and artifact authority.
 
+Milestone 27 added explicit local SQLite and Alembic ownership, a compact artifact index, durable paper-job requests and operational state, replay-safe submission, attempt audit, manual recovery and retry, compact result references, and durable job API control while preserving completed-file authority.
+
 ## Current Focus
 
 The current milestone is:
 
 ```text
-Milestone 27 — Persistence and Paper Job Control Foundation
+Milestone 28 — Founder Paper Trading Web Workspace
 ```
 
 Milestone 26 is complete. Its final production endpoint surface includes:
@@ -152,26 +155,37 @@ keys now provide digest-bound replay-safe submission without claiming
 exactly-once execution. New runner claims create compact attempt audit; expected
 failures persist only approved sanitized codes. Interrupted-job recovery and
 failed-job retry are explicit manual services that never rewrite authoritative
-outputs. It added no result reference, API route, worker, polling, automatic
-recovery, or Sprint 150 behavior.
+outputs.
+
+Sprint 150 added migration `0005_paper_job_result_references`, one compact
+job-owned result-reference registry, fixed server-owned paper output paths,
+atomic API-owned job/attempt/reference completion, strict authoritative result
+reads, and the durable `/api/v1/paper-jobs` API. Durable routes reject missing,
+unavailable, or pre-0005 databases before mutation. Submission remains
+non-executing, and `/run` schedules only one selected post-response callback.
+
+Sprint 151 closed Milestone 27 through documentation and verification only. No
+runtime, schema, migration, dependency, test, worker, or Web implementation was
+added.
 
 The next sprint is:
 
 ```text
-Sprint 150 — Durable Job API and Result Reference Integration
+Sprint 152 — Next.js Workspace Shell and API Client Foundation
 ```
 
-Sprint 150 may add only the durable-job API and result-reference integration
-defined by its authoritative issue. It must preserve Sprint 149 replay,
-attempt-audit, manual-recovery, file-authority, and transaction boundaries.
+Sprint 152 may establish only the smallest local Next.js workspace shell,
+navigation, configuration, and typed API-client foundation. The browser must use
+the API and must not directly access SQLite, artifact files, Python modules,
+QMT, MiniQMT, or a broker.
 
 Approved productization sequence:
 
 ```text
 M25 — S137      Paper Trading Productization Planning
 M26 — S138-S144 Paper Trading Application Service Foundation — Complete
-M27 — S145-S151 Persistence and Paper Job Control Foundation — In Progress
-M28 — S152-S159 Founder Paper Trading Web Workspace
+M27 — S145-S151 Persistence and Paper Job Control Foundation — Complete
+M28 — S152-S159 Founder Paper Trading Web Workspace — In Progress
 M29 — S160-S165 Product Feedback and Hardening
 M30 —           Portfolio-Level Decision Review Foundation
 ```
@@ -270,7 +284,7 @@ A transition proposal remains non-executing. A human review record remains gover
 
 Paper job status is mutable operational state and must remain separate from strategy lifecycle governance.
 
-M27 may define durable local states equivalent to:
+M27 defines the durable local states:
 
 ```text
 queued
@@ -301,7 +315,8 @@ The UI must not directly access:
 - Use explicit API schemas instead of leaking internal Python objects.
 - Provide stable error responses and request or job IDs where applicable.
 - M26 completed without product database or background-worker requirements.
-- Move long-running paper execution behind durable local job control in M27.
+- M27 completed durable local paper-job control with selected-job post-response execution.
+- M28 UI code must consume the API and must not own backend operational semantics.
 - Bind to loopback by default.
 - Require authentication for non-loopback exposure.
 - Avoid broad CORS and keep same-origin defaults.

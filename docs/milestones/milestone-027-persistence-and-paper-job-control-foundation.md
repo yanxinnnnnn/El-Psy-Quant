@@ -2,9 +2,9 @@
 
 ## Status
 
-In Progress.
+Complete.
 
-Sprints 145 through 150 are complete. Sprint 151 is next.
+Sprints 145 through 151 are complete.
 
 ## Objective
 
@@ -34,7 +34,7 @@ UI, distributed queue, broker adapter, QMT, live execution, or capital behavior.
 | S148 | Complete | Simple Local Paper Job Runner and Manual Control. |
 | S149 | Complete | Job Recovery, Idempotency, and Error Audit Foundation. |
 | S150 | Complete | Durable Job API and Result Reference Integration. |
-| S151 | Next | Milestone 27 Closeout. |
+| S151 | Complete | Milestone 27 Closeout. |
 
 ## Sprint 145 Foundation
 
@@ -147,18 +147,18 @@ failure until an explicit Sprint 149 recovery or retry command is applied.
 ## Authority Boundaries
 
 Existing local artifact files remain authoritative for completed research,
-paper, comparison, governance, report, and lifecycle outputs. SQLite may later
-store indexes, explicit references, jobs, and operational metadata, but it must
-not silently copy complete artifact payloads.
+paper, comparison, governance, report, and lifecycle outputs. SQLite stores
+indexes, explicit references, jobs, and operational metadata, but it does not
+silently copy complete artifact payloads.
 
 Lifecycle current state remains a future derived read model from immutable
-snapshots and approved human transition records. It must not become an
-independently authoritative mutable field.
+snapshots and approved human transition records. It is not an independently
+authoritative mutable field.
 
 Paper-job status is mutable operational state and remains separate from
-lifecycle governance. Submission creates only the initial queued state. Sprint
-148 introduced four operational paths; Sprint 149 adds only running-to-queued
-recovery and failed-to-queued manual retry.
+lifecycle governance. Submission creates the initial queued state, while later
+transitions, recovery, retry, and cancellation remain explicit operational
+commands.
 
 ## Sprint 149 Foundation
 
@@ -194,6 +194,8 @@ Sprint 150 provides:
   claim and attempt audit remaining authoritative
 - strict authoritative artifact and result-summary reads after the database
   session is closed, with no filesystem locator in the returned view
+- a read-only request-time schema preflight that rejects missing, empty,
+  unavailable, or pre-0005 product databases before any durable mutation
 
 The database migration remains an explicit operator action:
 
@@ -209,29 +211,65 @@ are compact pointers; the two files remain completed-output authority. The
 existing synchronous `POST /api/v1/paper-runs` remains unchanged and
 database-free.
 
-## Sprint 145–150 Non-Goals
+## Exit Criteria Verification
 
-Through Sprint 150, Milestone 27 adds no:
+Milestone 27 exit criteria are satisfied because:
 
-- automatic job scanning, worker loop, polling, scheduler, persistent worker,
+- product metadata and paper jobs are durable and inspectable
+- the migration chain is explicit through `0005_paper_job_result_references`
+- artifact-index rows and result references remain compact metadata
+- exact request snapshots remain durable operational input rather than completed
+  result payloads
+- duplicate-run conflicts and digest-bound idempotent replay are explicit
+- claims, attempts, and terminal job updates use bounded atomic transactions
+- workflow execution and authoritative file access occur outside long-lived
+  database sessions
+- interrupted-job recovery and failed-job retry are explicit manual controls
+- API-owned success and valid-output recovery atomically create one compact
+  result reference
+- result reads reopen and strictly validate authoritative files
+- HTTP requests neither accept nor expose arbitrary filesystem paths
+- pre-0005 databases are rejected before durable writes begin
+- the complete quality gate passed for each implementation sprint
+- no distributed or live-trading behavior was introduced
+
+## Preserved Guardrails
+
+Milestone 27 did not add:
+
+- automatic job scanning, worker loops, polling, scheduling, persistent workers,
   or startup execution
-- automatic retry/recovery or exactly-once execution design
-- raw persisted job errors or completed result payloads
+- automatic retry/recovery or an exactly-once execution claim
+- raw persisted exception messages, tracebacks, or completed result payloads
 - partial-output cleanup, deletion, relocation, or rewriting
 - running-job cancellation, pause, or resume
-- request-scoped SQLAlchemy `Session`
-- Web UI, Docker Compose, authentication, microservice, or distributed system
+- request-scoped SQLAlchemy `Session` ownership in route handlers
+- a Web UI, Docker Compose, authentication, users, or tenants
+- microservices or distributed infrastructure
 - broker, QMT, live execution, real-money trading, or capital allocation
 
-## Exit Criteria
+## Closeout Decision
 
-Milestone 27 will be complete only after product metadata and paper jobs are
-durable and inspectable, local job control has explicit recovery and
-idempotency behavior, artifact links preserve file authority, and the complete
-quality gate passes without introducing distributed or live-trading behavior.
+Milestone 27 is complete.
+
+The platform now has the durable local persistence and manually controlled
+paper-job foundation needed by the Founder product. The next justified layer is
+the first local Founder Web workspace over the existing versioned API. That UI
+must consume the API rather than directly accessing SQLite, artifact files, or
+Python domain modules.
+
+## Next Milestone
+
+```text
+Milestone 28 — Founder Paper Trading Web Workspace
+```
 
 ## Next Sprint
 
 ```text
-Sprint 151 — Milestone 27 Closeout
+Sprint 152 — Next.js Workspace Shell and API Client Foundation
 ```
+
+Sprint 152 should establish only the smallest local Next.js workspace shell and
+typed API-client foundation. It must not duplicate domain logic, bypass the API,
+or introduce broker, QMT, live, capital, multi-tenant, or distributed behavior.
