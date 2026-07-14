@@ -223,7 +223,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 ## Phase 4 — Founder Paper Trading Productization
 
 Status: Milestones 25 through 27 complete; Milestone 28 is in progress after
-the Sprint 151 closeout.
+the Sprint 152 workspace-foundation delivery.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -521,8 +521,8 @@ Status: In Progress.
 Sprint sequence:
 
 ```text
-S152 — Next.js Workspace Shell and API Client Foundation — Next
-S153 — Strategy List, Detail, Research, and Backtest Views
+S152 — Next.js Workspace Shell and API Client Foundation — Complete
+S153 — Strategy List, Detail, Research, and Backtest Views — Next
 S154 — Governance Evidence and Report Artifact Views
 S155 — Paper Run Launch and Status Workspace
 S156 — Equity, Positions, Orders, and Fills Views
@@ -842,12 +842,15 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 152 — Next.js Workspace Shell and API Client Foundation
+Sprint 153 — Strategy List, Detail, Research, and Backtest Views
 ```
 
-Sprint 152 begins the smallest local Next.js workspace shell and typed API-client
-foundation. The browser must consume the versioned API and must not directly
-access SQLite, artifact directories, Python modules, QMT, MiniQMT, or a broker.
+Sprint 152 established the smallest local Next.js workspace shell, strict
+loopback same-origin transport, deterministic OpenAPI-derived TypeScript
+contract, typed process-health client, and frontend quality gate. Sprint 153 may
+add the first strategy and research inspection views while the browser continues
+to consume only the versioned API and never directly accesses SQLite, artifact
+directories, Python modules, QMT, MiniQMT, or a broker.
 
 ## One-Line Strategy
 

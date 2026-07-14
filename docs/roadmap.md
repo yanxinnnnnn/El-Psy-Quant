@@ -159,8 +159,8 @@ Critical ownership decisions:
 
 | Sprint | Deliverable |
 |---:|---|
-| S152 | Next.js Workspace Shell and API Client Foundation. **Next.** |
-| S153 | Strategy List, Detail, Research, and Backtest Views |
+| S152 | Next.js Workspace Shell and API Client Foundation. **Complete.** |
+| S153 | Strategy List, Detail, Research, and Backtest Views. **Next.** |
 | S154 | Governance Evidence and Report Artifact Views |
 | S155 | Paper Run Launch and Status Workspace |
 | S156 | Equity, Positions, Orders, and Fills Views |
@@ -399,10 +399,12 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 152 — Next.js Workspace Shell and API Client Foundation
+Sprint 153 — Strategy List, Detail, Research, and Backtest Views
 ```
 
-Sprint 152 begins Milestone 28 with only the smallest local workspace shell,
-navigation, configuration, and typed API-client foundation. It must consume the
-versioned API and must not duplicate backend domain behavior or access SQLite or
-artifact directories directly.
+Sprint 152 established the local Next.js workspace shell, explicit future-only
+navigation, loopback-only same-origin API transport, deterministic generated
+OpenAPI contract, typed health client, and unified frontend quality gate without
+adding business pages. Sprint 153 is the first strategy and research inspection
+workspace and must continue to consume the versioned API without duplicating
+backend domain behavior or accessing SQLite or artifact directories directly.

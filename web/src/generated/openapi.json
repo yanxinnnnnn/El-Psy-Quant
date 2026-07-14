@@ -1,0 +1,3107 @@
+{
+  "components": {
+    "schemas": {
+      "EvidenceManifestListResponse": {
+        "properties": {
+          "manifests": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceManifestSummaryResponse"
+            },
+            "title": "Manifests",
+            "type": "array"
+          }
+        },
+        "required": [
+          "manifests"
+        ],
+        "title": "EvidenceManifestListResponse",
+        "type": "object"
+      },
+      "EvidenceManifestReferenceResponse": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "reference_id": {
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "reference_type": {
+            "title": "Reference Type",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "reference_type",
+          "reference_id",
+          "label",
+          "description"
+        ],
+        "title": "EvidenceManifestReferenceResponse",
+        "type": "object"
+      },
+      "EvidenceManifestSummaryResponse": {
+        "properties": {
+          "artifact_key": {
+            "title": "Artifact Key",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "created_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created Timestamp"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "manifest_id": {
+            "title": "Manifest Id",
+            "type": "string"
+          },
+          "manifest_type": {
+            "enum": [
+              "strategy_decision_manifest",
+              "report_artifact_manifest",
+              "strategy_review_workflow_manifest"
+            ],
+            "title": "Manifest Type",
+            "type": "string"
+          },
+          "reference_count": {
+            "title": "Reference Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "manifest_type",
+          "artifact_key",
+          "manifest_id",
+          "reference_count",
+          "created_by",
+          "created_timestamp",
+          "label",
+          "description"
+        ],
+        "title": "EvidenceManifestSummaryResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "description": "Local application-process health response.",
+        "properties": {
+          "api_version": {
+            "const": "v1",
+            "title": "Api Version",
+            "type": "string"
+          },
+          "service": {
+            "const": "el-psy-quant",
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "api_version"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "LifecycleTransitionProposalCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_references": {
+            "items": {
+              "$ref": "#/components/schemas/StrategyReviewEvidenceReferenceCommandRequest"
+            },
+            "title": "Evidence References",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "proposal_id": {
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "requested_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested By"
+          },
+          "requested_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Timestamp"
+          },
+          "source_snapshot": {
+            "$ref": "#/components/schemas/StrategyLifecycleStateSnapshotCommandRequest"
+          },
+          "target_state": {
+            "title": "Target State",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "source_snapshot",
+          "target_state",
+          "rationale",
+          "evidence_references",
+          "notes",
+          "warnings"
+        ],
+        "title": "LifecycleTransitionProposalCommandRequest",
+        "type": "object"
+      },
+      "LifecycleTransitionProposalCommandResponse": {
+        "properties": {
+          "proposal": {
+            "$ref": "#/components/schemas/StrategyLifecycleTransitionProposalResponse"
+          }
+        },
+        "required": [
+          "proposal"
+        ],
+        "title": "LifecycleTransitionProposalCommandResponse",
+        "type": "object"
+      },
+      "LifecycleTransitionReviewCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/LifecycleTransitionProposalCommandRequest"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "resulting_snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StrategyLifecycleStateSnapshotCommandRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "review_outcome": {
+            "title": "Review Outcome",
+            "type": "string"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "reviewed_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed Timestamp"
+          },
+          "transition_record_id": {
+            "title": "Transition Record Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "transition_record_id",
+          "proposal",
+          "review_outcome",
+          "rationale",
+          "notes",
+          "warnings"
+        ],
+        "title": "LifecycleTransitionReviewCommandRequest",
+        "type": "object"
+      },
+      "LifecycleTransitionReviewCommandResponse": {
+        "properties": {
+          "transition_record": {
+            "$ref": "#/components/schemas/StrategyLifecycleTransitionRecordResponse"
+          }
+        },
+        "required": [
+          "transition_record"
+        ],
+        "title": "LifecycleTransitionReviewCommandResponse",
+        "type": "object"
+      },
+      "PaperAccountStateCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "current_cash": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Current Cash"
+          },
+          "positions": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "title": "Positions",
+            "type": "object"
+          },
+          "starting_cash": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Starting Cash"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "starting_cash",
+          "current_cash",
+          "positions"
+        ],
+        "title": "PaperAccountStateCommandRequest",
+        "type": "object"
+      },
+      "PaperAccountStateResponse": {
+        "properties": {
+          "current_cash": {
+            "title": "Current Cash",
+            "type": "number"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/PaperPositionResponse"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "starting_cash": {
+            "title": "Starting Cash",
+            "type": "number"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "starting_cash",
+          "current_cash",
+          "positions"
+        ],
+        "title": "PaperAccountStateResponse",
+        "type": "object"
+      },
+      "PaperFillCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Price"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "symbol",
+          "side",
+          "quantity",
+          "price"
+        ],
+        "title": "PaperFillCommandRequest",
+        "type": "object"
+      },
+      "PaperFillResponse": {
+        "properties": {
+          "order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "price": {
+            "title": "Price",
+            "type": "number"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "number"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "symbol",
+          "side",
+          "quantity",
+          "price",
+          "order_id"
+        ],
+        "title": "PaperFillResponse",
+        "type": "object"
+      },
+      "PaperJobAttemptResponse": {
+        "properties": {
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "attempt_number": {
+            "title": "Attempt Number",
+            "type": "integer"
+          },
+          "completed_timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed Timestamp"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "workflow_validation_failed",
+                  "output_conflict",
+                  "filesystem_io_failed",
+                  "interrupted_without_output",
+                  "partial_output_detected",
+                  "invalid_output_detected"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "started_timestamp": {
+            "format": "date-time",
+            "title": "Started Timestamp",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "succeeded",
+              "failed",
+              "interrupted"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "attempt_number",
+          "status",
+          "started_timestamp",
+          "completed_timestamp",
+          "error_code"
+        ],
+        "title": "PaperJobAttemptResponse",
+        "type": "object"
+      },
+      "PaperJobRecoveryRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "stale_before": {
+            "format": "date-time",
+            "title": "Stale Before",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stale_before"
+        ],
+        "title": "PaperJobRecoveryRequest",
+        "type": "object"
+      },
+      "PaperJobResponse": {
+        "properties": {
+          "attempt_count": {
+            "title": "Attempt Count",
+            "type": "integer"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "latest_attempt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaperJobAttemptResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result_available": {
+            "title": "Result Available",
+            "type": "boolean"
+          },
+          "result_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Url"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "canceled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_timestamp": {
+            "format": "date-time",
+            "title": "Submitted Timestamp",
+            "type": "string"
+          },
+          "updated_timestamp": {
+            "format": "date-time",
+            "title": "Updated Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "run_id",
+          "status",
+          "submitted_timestamp",
+          "updated_timestamp",
+          "attempt_count",
+          "latest_attempt",
+          "result_available",
+          "result_url"
+        ],
+        "title": "PaperJobResponse",
+        "type": "object"
+      },
+      "PaperJobResultAuditResponse": {
+        "properties": {
+          "cash_change": {
+            "title": "Cash Change",
+            "type": "number"
+          },
+          "created_timestamp": {
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "ending_cash": {
+            "title": "Ending Cash",
+            "type": "number"
+          },
+          "ending_position_count": {
+            "title": "Ending Position Count",
+            "type": "integer"
+          },
+          "fill_count": {
+            "title": "Fill Count",
+            "type": "integer"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "position_change_count": {
+            "title": "Position Change Count",
+            "type": "integer"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_end_timestamp": {
+            "title": "Session End Timestamp",
+            "type": "string"
+          },
+          "session_start_timestamp": {
+            "title": "Session Start Timestamp",
+            "type": "string"
+          },
+          "starting_cash": {
+            "title": "Starting Cash",
+            "type": "number"
+          },
+          "starting_position_count": {
+            "title": "Starting Position Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "created_timestamp",
+          "session_start_timestamp",
+          "session_end_timestamp",
+          "starting_cash",
+          "ending_cash",
+          "cash_change",
+          "order_count",
+          "fill_count",
+          "starting_position_count",
+          "ending_position_count",
+          "position_change_count"
+        ],
+        "title": "PaperJobResultAuditResponse",
+        "type": "object"
+      },
+      "PaperJobResultReferenceResponse": {
+        "properties": {
+          "artifact_schema_version": {
+            "const": 1,
+            "title": "Artifact Schema Version",
+            "type": "integer"
+          },
+          "created_timestamp": {
+            "format": "date-time",
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "record_schema_version": {
+            "const": 1,
+            "title": "Record Schema Version",
+            "type": "integer"
+          },
+          "result_summary_schema_version": {
+            "const": 1,
+            "title": "Result Summary Schema Version",
+            "type": "integer"
+          },
+          "root_type": {
+            "const": "paper",
+            "title": "Root Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "record_schema_version",
+          "root_type",
+          "artifact_schema_version",
+          "result_summary_schema_version",
+          "created_timestamp"
+        ],
+        "title": "PaperJobResultReferenceResponse",
+        "type": "object"
+      },
+      "PaperJobResultResponse": {
+        "properties": {
+          "artifact": {
+            "$ref": "#/components/schemas/PaperTradingArtifactResponse"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "result_reference": {
+            "$ref": "#/components/schemas/PaperJobResultReferenceResponse"
+          },
+          "result_summary": {
+            "$ref": "#/components/schemas/PaperJobResultSummaryResponse"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "run_id",
+          "result_reference",
+          "artifact",
+          "result_summary"
+        ],
+        "title": "PaperJobResultResponse",
+        "type": "object"
+      },
+      "PaperJobResultSummaryResponse": {
+        "properties": {
+          "artifact_created_timestamp": {
+            "title": "Artifact Created Timestamp",
+            "type": "string"
+          },
+          "artifact_schema_version": {
+            "const": 1,
+            "title": "Artifact Schema Version",
+            "type": "integer"
+          },
+          "audit": {
+            "$ref": "#/components/schemas/PaperJobResultAuditResponse"
+          },
+          "request_created_timestamp": {
+            "title": "Request Created Timestamp",
+            "type": "string"
+          },
+          "request_schema_version": {
+            "const": 1,
+            "title": "Request Schema Version",
+            "type": "integer"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "run_id",
+          "request_schema_version",
+          "request_created_timestamp",
+          "artifact_schema_version",
+          "artifact_created_timestamp",
+          "audit"
+        ],
+        "title": "PaperJobResultSummaryResponse",
+        "type": "object"
+      },
+      "PaperOrderCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "timestamp",
+          "symbol",
+          "side",
+          "quantity",
+          "status"
+        ],
+        "title": "PaperOrderCommandRequest",
+        "type": "object"
+      },
+      "PaperOrderResponse": {
+        "properties": {
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "number"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "timestamp",
+          "symbol",
+          "side",
+          "quantity",
+          "status"
+        ],
+        "title": "PaperOrderResponse",
+        "type": "object"
+      },
+      "PaperPositionChangeResponse": {
+        "properties": {
+          "ending_quantity": {
+            "title": "Ending Quantity",
+            "type": "number"
+          },
+          "quantity_change": {
+            "title": "Quantity Change",
+            "type": "number"
+          },
+          "starting_quantity": {
+            "title": "Starting Quantity",
+            "type": "number"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "starting_quantity",
+          "ending_quantity",
+          "quantity_change"
+        ],
+        "title": "PaperPositionChangeResponse",
+        "type": "object"
+      },
+      "PaperPositionResponse": {
+        "properties": {
+          "quantity": {
+            "title": "Quantity",
+            "type": "number"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "quantity"
+        ],
+        "title": "PaperPositionResponse",
+        "type": "object"
+      },
+      "PaperRunCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "created_timestamp": {
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "ending_account_state": {
+            "$ref": "#/components/schemas/PaperAccountStateCommandRequest"
+          },
+          "fills": {
+            "items": {
+              "$ref": "#/components/schemas/PaperFillCommandRequest"
+            },
+            "title": "Fills",
+            "type": "array"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/PaperOrderCommandRequest"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "starting_account_state": {
+            "$ref": "#/components/schemas/PaperAccountStateCommandRequest"
+          }
+        },
+        "required": [
+          "run_id",
+          "created_timestamp",
+          "starting_account_state",
+          "ending_account_state",
+          "orders",
+          "fills"
+        ],
+        "title": "PaperRunCommandRequest",
+        "type": "object"
+      },
+      "PaperRunCommandResponse": {
+        "properties": {
+          "artifact": {
+            "$ref": "#/components/schemas/PaperTradingArtifactResponse"
+          },
+          "request_schema_version": {
+            "const": 1,
+            "title": "Request Schema Version",
+            "type": "integer"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "request_schema_version",
+          "artifact"
+        ],
+        "title": "PaperRunCommandResponse",
+        "type": "object"
+      },
+      "PaperSessionSummaryResponse": {
+        "properties": {
+          "cash_change": {
+            "title": "Cash Change",
+            "type": "number"
+          },
+          "ending_cash": {
+            "title": "Ending Cash",
+            "type": "number"
+          },
+          "ending_positions": {
+            "items": {
+              "$ref": "#/components/schemas/PaperPositionResponse"
+            },
+            "title": "Ending Positions",
+            "type": "array"
+          },
+          "fill_count": {
+            "title": "Fill Count",
+            "type": "integer"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "position_changes": {
+            "items": {
+              "$ref": "#/components/schemas/PaperPositionChangeResponse"
+            },
+            "title": "Position Changes",
+            "type": "array"
+          },
+          "session_end_timestamp": {
+            "title": "Session End Timestamp",
+            "type": "string"
+          },
+          "session_start_timestamp": {
+            "title": "Session Start Timestamp",
+            "type": "string"
+          },
+          "starting_cash": {
+            "title": "Starting Cash",
+            "type": "number"
+          },
+          "starting_positions": {
+            "items": {
+              "$ref": "#/components/schemas/PaperPositionResponse"
+            },
+            "title": "Starting Positions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "session_start_timestamp",
+          "session_end_timestamp",
+          "starting_cash",
+          "ending_cash",
+          "cash_change",
+          "starting_positions",
+          "ending_positions",
+          "position_changes",
+          "order_count",
+          "fill_count"
+        ],
+        "title": "PaperSessionSummaryResponse",
+        "type": "object"
+      },
+      "PaperTradingArtifactResponse": {
+        "properties": {
+          "created_timestamp": {
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "ending_account_state": {
+            "$ref": "#/components/schemas/PaperAccountStateResponse"
+          },
+          "fills": {
+            "items": {
+              "$ref": "#/components/schemas/PaperFillResponse"
+            },
+            "title": "Fills",
+            "type": "array"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/PaperOrderResponse"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_summary": {
+            "$ref": "#/components/schemas/PaperSessionSummaryResponse"
+          },
+          "starting_account_state": {
+            "$ref": "#/components/schemas/PaperAccountStateResponse"
+          }
+        },
+        "required": [
+          "schema_version",
+          "created_timestamp",
+          "starting_account_state",
+          "ending_account_state",
+          "orders",
+          "fills",
+          "session_summary"
+        ],
+        "title": "PaperTradingArtifactResponse",
+        "type": "object"
+      },
+      "ReportArtifactManifestDetailResponse": {
+        "properties": {
+          "artifact_key": {
+            "title": "Artifact Key",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "created_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created Timestamp"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "manifest_id": {
+            "title": "Manifest Id",
+            "type": "string"
+          },
+          "manifest_type": {
+            "const": "report_artifact_manifest",
+            "title": "Manifest Type",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceManifestReferenceResponse"
+            },
+            "title": "References",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "manifest_type",
+          "artifact_key",
+          "schema_version",
+          "manifest_id",
+          "references",
+          "label",
+          "description",
+          "created_by",
+          "created_timestamp",
+          "notes"
+        ],
+        "title": "ReportArtifactManifestDetailResponse",
+        "type": "object"
+      },
+      "ResearchArtifactReferencesResponse": {
+        "properties": {
+          "config": {
+            "title": "Config",
+            "type": "string"
+          },
+          "logs_dir": {
+            "title": "Logs Dir",
+            "type": "string"
+          },
+          "metadata": {
+            "title": "Metadata",
+            "type": "string"
+          },
+          "metrics": {
+            "title": "Metrics",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "config",
+          "metadata",
+          "summary",
+          "metrics",
+          "logs_dir"
+        ],
+        "title": "ResearchArtifactReferencesResponse",
+        "type": "object"
+      },
+      "ResearchMetricRecordResponse": {
+        "properties": {
+          "annualized_volatility": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annualized Volatility"
+          },
+          "cagr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cagr"
+          },
+          "final_equity": {
+            "title": "Final Equity",
+            "type": "number"
+          },
+          "initial_equity": {
+            "title": "Initial Equity",
+            "type": "number"
+          },
+          "max_drawdown": {
+            "title": "Max Drawdown",
+            "type": "number"
+          },
+          "periods": {
+            "title": "Periods",
+            "type": "number"
+          },
+          "sharpe_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sharpe Ratio"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "total_return": {
+            "title": "Total Return",
+            "type": "number"
+          }
+        },
+        "required": [
+          "symbol",
+          "initial_equity",
+          "final_equity",
+          "total_return",
+          "max_drawdown",
+          "periods",
+          "cagr",
+          "annualized_volatility",
+          "sharpe_ratio"
+        ],
+        "title": "ResearchMetricRecordResponse",
+        "type": "object"
+      },
+      "ResearchRunDataResponse": {
+        "properties": {
+          "source": {
+            "enum": [
+              "csv",
+              "cache"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source",
+          "symbols"
+        ],
+        "title": "ResearchRunDataResponse",
+        "type": "object"
+      },
+      "ResearchRunDetailResponse": {
+        "properties": {
+          "artifacts": {
+            "$ref": "#/components/schemas/ResearchArtifactReferencesResponse"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ResearchRunDataResponse"
+          },
+          "evaluation": {
+            "$ref": "#/components/schemas/ResearchRunEvaluationResponse"
+          },
+          "experiment_name": {
+            "title": "Experiment Name",
+            "type": "string"
+          },
+          "experiment_slug": {
+            "title": "Experiment Slug",
+            "type": "string"
+          },
+          "manifest_schema_version": {
+            "const": 1,
+            "title": "Manifest Schema Version",
+            "type": "integer"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchMetricRecordResponse"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "metrics_schema_version": {
+            "const": 1,
+            "title": "Metrics Schema Version",
+            "type": "integer"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ResearchRunParametersResponse"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "strategy": {
+            "title": "Strategy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "manifest_schema_version",
+          "metrics_schema_version",
+          "experiment_slug",
+          "run_id",
+          "experiment_name",
+          "strategy",
+          "data",
+          "parameters",
+          "evaluation",
+          "artifacts",
+          "metrics"
+        ],
+        "title": "ResearchRunDetailResponse",
+        "type": "object"
+      },
+      "ResearchRunEvaluationResponse": {
+        "properties": {
+          "annual_risk_free_rate": {
+            "title": "Annual Risk Free Rate",
+            "type": "number"
+          },
+          "periods_per_year": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Periods Per Year"
+          }
+        },
+        "required": [
+          "periods_per_year",
+          "annual_risk_free_rate"
+        ],
+        "title": "ResearchRunEvaluationResponse",
+        "type": "object"
+      },
+      "ResearchRunListResponse": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchRunSummaryResponse"
+            },
+            "title": "Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "runs"
+        ],
+        "title": "ResearchRunListResponse",
+        "type": "object"
+      },
+      "ResearchRunParametersResponse": {
+        "properties": {
+          "fast_window": {
+            "title": "Fast Window",
+            "type": "integer"
+          },
+          "initial_capital": {
+            "title": "Initial Capital",
+            "type": "number"
+          },
+          "slippage_rate": {
+            "title": "Slippage Rate",
+            "type": "number"
+          },
+          "slow_window": {
+            "title": "Slow Window",
+            "type": "integer"
+          },
+          "transaction_cost_rate": {
+            "title": "Transaction Cost Rate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "fast_window",
+          "slow_window",
+          "initial_capital",
+          "transaction_cost_rate",
+          "slippage_rate"
+        ],
+        "title": "ResearchRunParametersResponse",
+        "type": "object"
+      },
+      "ResearchRunSummaryResponse": {
+        "properties": {
+          "data_source": {
+            "enum": [
+              "csv",
+              "cache"
+            ],
+            "title": "Data Source",
+            "type": "string"
+          },
+          "experiment_name": {
+            "title": "Experiment Name",
+            "type": "string"
+          },
+          "experiment_slug": {
+            "title": "Experiment Slug",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "strategy": {
+            "title": "Strategy",
+            "type": "string"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "experiment_slug",
+          "run_id",
+          "experiment_name",
+          "strategy",
+          "data_source",
+          "symbols"
+        ],
+        "title": "ResearchRunSummaryResponse",
+        "type": "object"
+      },
+      "StrategyDecisionManifestDetailResponse": {
+        "properties": {
+          "artifact_key": {
+            "title": "Artifact Key",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "created_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created Timestamp"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "manifest_id": {
+            "title": "Manifest Id",
+            "type": "string"
+          },
+          "manifest_type": {
+            "const": "strategy_decision_manifest",
+            "title": "Manifest Type",
+            "type": "string"
+          },
+          "record_references": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceManifestReferenceResponse"
+            },
+            "title": "Record References",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "summary_references": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceManifestReferenceResponse"
+            },
+            "title": "Summary References",
+            "type": "array"
+          }
+        },
+        "required": [
+          "manifest_type",
+          "artifact_key",
+          "schema_version",
+          "manifest_id",
+          "summary_references",
+          "record_references",
+          "created_by",
+          "created_timestamp",
+          "description"
+        ],
+        "title": "StrategyDecisionManifestDetailResponse",
+        "type": "object"
+      },
+      "StrategyDetailResponse": {
+        "description": "Built-in strategy detail response.",
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/StrategyParameterResponse"
+            },
+            "title": "Parameters",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "display_name",
+          "description",
+          "parameters"
+        ],
+        "title": "StrategyDetailResponse",
+        "type": "object"
+      },
+      "StrategyLifecycleStateSnapshotCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "declared_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared By"
+          },
+          "declared_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Timestamp"
+          },
+          "lifecycle_state": {
+            "title": "Lifecycle State",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "strategy_id": {
+            "title": "Strategy Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "strategy_id",
+          "lifecycle_state",
+          "rationale",
+          "notes",
+          "warnings"
+        ],
+        "title": "StrategyLifecycleStateSnapshotCommandRequest",
+        "type": "object"
+      },
+      "StrategyLifecycleStateSnapshotResponse": {
+        "properties": {
+          "declared_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared By"
+          },
+          "declared_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Timestamp"
+          },
+          "lifecycle_state": {
+            "title": "Lifecycle State",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "strategy_id": {
+            "title": "Strategy Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "snapshot_id",
+          "strategy_id",
+          "lifecycle_state",
+          "rationale",
+          "declared_by",
+          "declared_timestamp",
+          "notes",
+          "warnings"
+        ],
+        "title": "StrategyLifecycleStateSnapshotResponse",
+        "type": "object"
+      },
+      "StrategyLifecycleTransitionProposalResponse": {
+        "properties": {
+          "evidence_references": {
+            "items": {
+              "$ref": "#/components/schemas/StrategyReviewEvidenceReferenceResponse"
+            },
+            "title": "Evidence References",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "proposal_id": {
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "requested_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested By"
+          },
+          "requested_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Timestamp"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_snapshot": {
+            "$ref": "#/components/schemas/StrategyLifecycleStateSnapshotResponse"
+          },
+          "target_state": {
+            "title": "Target State",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "proposal_id",
+          "source_snapshot",
+          "target_state",
+          "rationale",
+          "evidence_references",
+          "requested_by",
+          "requested_timestamp",
+          "notes",
+          "warnings"
+        ],
+        "title": "StrategyLifecycleTransitionProposalResponse",
+        "type": "object"
+      },
+      "StrategyLifecycleTransitionRecordResponse": {
+        "properties": {
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/StrategyLifecycleTransitionProposalResponse"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "resulting_snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StrategyLifecycleStateSnapshotResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "review_outcome": {
+            "title": "Review Outcome",
+            "type": "string"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "reviewed_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed Timestamp"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "transition_record_id": {
+            "title": "Transition Record Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "transition_record_id",
+          "proposal",
+          "review_outcome",
+          "rationale",
+          "resulting_snapshot",
+          "reviewed_by",
+          "reviewed_timestamp",
+          "notes",
+          "warnings"
+        ],
+        "title": "StrategyLifecycleTransitionRecordResponse",
+        "type": "object"
+      },
+      "StrategyListResponse": {
+        "description": "Deterministically ordered built-in strategy list.",
+        "properties": {
+          "strategies": {
+            "items": {
+              "$ref": "#/components/schemas/StrategySummaryResponse"
+            },
+            "title": "Strategies",
+            "type": "array"
+          }
+        },
+        "required": [
+          "strategies"
+        ],
+        "title": "StrategyListResponse",
+        "type": "object"
+      },
+      "StrategyParameterResponse": {
+        "description": "Descriptive strategy parameter metadata.",
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "value_type": {
+            "enum": [
+              "integer",
+              "number"
+            ],
+            "title": "Value Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value_type",
+          "required",
+          "default"
+        ],
+        "title": "StrategyParameterResponse",
+        "type": "object"
+      },
+      "StrategyReviewEvidenceReferenceCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "reference_id": {
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "reference_type": {
+            "title": "Reference Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_type",
+          "reference_id"
+        ],
+        "title": "StrategyReviewEvidenceReferenceCommandRequest",
+        "type": "object"
+      },
+      "StrategyReviewEvidenceReferenceResponse": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "reference_id": {
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "reference_type": {
+            "title": "Reference Type",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "reference_type",
+          "reference_id",
+          "label",
+          "description"
+        ],
+        "title": "StrategyReviewEvidenceReferenceResponse",
+        "type": "object"
+      },
+      "StrategyReviewWorkflowManifestDetailResponse": {
+        "properties": {
+          "artifact_key": {
+            "title": "Artifact Key",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "created_timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created Timestamp"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "manifest_id": {
+            "title": "Manifest Id",
+            "type": "string"
+          },
+          "manifest_type": {
+            "const": "strategy_review_workflow_manifest",
+            "title": "Manifest Type",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "state_snapshot_references": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceManifestReferenceResponse"
+            },
+            "title": "State Snapshot References",
+            "type": "array"
+          },
+          "transition_proposal_references": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceManifestReferenceResponse"
+            },
+            "title": "Transition Proposal References",
+            "type": "array"
+          },
+          "transition_record_references": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceManifestReferenceResponse"
+            },
+            "title": "Transition Record References",
+            "type": "array"
+          }
+        },
+        "required": [
+          "manifest_type",
+          "artifact_key",
+          "schema_version",
+          "manifest_id",
+          "state_snapshot_references",
+          "transition_proposal_references",
+          "transition_record_references",
+          "created_by",
+          "created_timestamp",
+          "description"
+        ],
+        "title": "StrategyReviewWorkflowManifestDetailResponse",
+        "type": "object"
+      },
+      "StrategySummaryResponse": {
+        "description": "Built-in strategy list item.",
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "display_name",
+          "description"
+        ],
+        "title": "StrategySummaryResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "el-psy-quant",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/evidence-manifests": {
+      "get": {
+        "description": "List direct validated evidence manifests in fixed category order.",
+        "operationId": "get_evidence_manifests_api_v1_evidence_manifests_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceManifestListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Evidence Manifests"
+      }
+    },
+    "/api/v1/evidence-manifests/{manifest_type}/{artifact_key}": {
+      "get": {
+        "description": "Read one exact evidence manifest without resolving its references.",
+        "operationId": "get_evidence_manifest_api_v1_evidence_manifests__manifest_type___artifact_key__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "manifest_type",
+            "required": true,
+            "schema": {
+              "title": "Manifest Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "artifact_key",
+            "required": true,
+            "schema": {
+              "title": "Artifact Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "discriminator": {
+                    "mapping": {
+                      "report_artifact_manifest": "#/components/schemas/ReportArtifactManifestDetailResponse",
+                      "strategy_decision_manifest": "#/components/schemas/StrategyDecisionManifestDetailResponse",
+                      "strategy_review_workflow_manifest": "#/components/schemas/StrategyReviewWorkflowManifestDetailResponse"
+                    },
+                    "propertyName": "manifest_type"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/StrategyDecisionManifestDetailResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ReportArtifactManifestDetailResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/StrategyReviewWorkflowManifestDetailResponse"
+                    }
+                  ],
+                  "title": "Response Get Evidence Manifest Api V1 Evidence Manifests  Manifest Type   Artifact Key  Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Evidence Manifest"
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "description": "Report only that the local API process can serve a request.",
+        "operationId": "get_health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Health"
+      }
+    },
+    "/api/v1/lifecycle-transition-proposals": {
+      "post": {
+        "description": "Create one normalized, non-executing lifecycle proposal in memory.",
+        "operationId": "post_lifecycle_transition_proposal_api_v1_lifecycle_transition_proposals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LifecycleTransitionProposalCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleTransitionProposalCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Lifecycle Transition Proposal"
+      }
+    },
+    "/api/v1/lifecycle-transition-records": {
+      "post": {
+        "description": "Record one human review outcome as non-executing governance evidence.",
+        "operationId": "post_lifecycle_transition_record_api_v1_lifecycle_transition_records_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LifecycleTransitionReviewCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleTransitionReviewCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Lifecycle Transition Record"
+      }
+    },
+    "/api/v1/paper-jobs": {
+      "get": {
+        "description": "Return a bounded deterministic database-only job list.",
+        "operationId": "get_paper_jobs_api_v1_paper_jobs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "queued",
+                    "running",
+                    "succeeded",
+                    "failed",
+                    "canceled"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaperJobResponse"
+                  },
+                  "title": "Response Get Paper Jobs Api V1 Paper Jobs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Paper Jobs"
+      },
+      "post": {
+        "description": "Durably submit or exactly replay one queued paper job without execution.",
+        "operationId": "post_paper_job_api_v1_paper_jobs_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperRunCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Job"
+      }
+    },
+    "/api/v1/paper-jobs/{job_id}": {
+      "get": {
+        "operationId": "get_paper_job_detail_api_v1_paper_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Paper Job Detail"
+      }
+    },
+    "/api/v1/paper-jobs/{job_id}/attempts": {
+      "get": {
+        "operationId": "get_paper_job_attempts_api_v1_paper_jobs__job_id__attempts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaperJobAttemptResponse"
+                  },
+                  "title": "Response Get Paper Job Attempts Api V1 Paper Jobs  Job Id  Attempts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Paper Job Attempts"
+      }
+    },
+    "/api/v1/paper-jobs/{job_id}/cancel": {
+      "post": {
+        "operationId": "cancel_paper_job_route_api_v1_paper_jobs__job_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Paper Job Route"
+      }
+    },
+    "/api/v1/paper-jobs/{job_id}/recover": {
+      "post": {
+        "operationId": "recover_paper_job_route_api_v1_paper_jobs__job_id__recover_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperJobRecoveryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recover Paper Job Route"
+      }
+    },
+    "/api/v1/paper-jobs/{job_id}/result": {
+      "get": {
+        "operationId": "get_paper_job_result_api_v1_paper_jobs__job_id__result_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperJobResultResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Paper Job Result"
+      }
+    },
+    "/api/v1/paper-jobs/{job_id}/retry": {
+      "post": {
+        "operationId": "retry_paper_job_route_api_v1_paper_jobs__job_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry Paper Job Route"
+      }
+    },
+    "/api/v1/paper-jobs/{job_id}/run": {
+      "post": {
+        "operationId": "run_paper_job_api_v1_paper_jobs__job_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Paper Job"
+      }
+    },
+    "/api/v1/paper-runs": {
+      "post": {
+        "description": "Execute one explicit paper run synchronously and only in memory.",
+        "operationId": "post_paper_run_api_v1_paper_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperRunCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRunCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Run"
+      }
+    },
+    "/api/v1/research-runs": {
+      "get": {
+        "description": "List direct configured research runs from their manifests only.",
+        "operationId": "get_research_runs_api_v1_research_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchRunListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Research Runs"
+      }
+    },
+    "/api/v1/research-runs/{experiment_slug}/{run_id}": {
+      "get": {
+        "description": "Read one fixed manifest and its safely referenced metrics artifact.",
+        "operationId": "get_research_run_api_v1_research_runs__experiment_slug___run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "experiment_slug",
+            "required": true,
+            "schema": {
+              "title": "Experiment Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchRunDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Research Run"
+      }
+    },
+    "/api/v1/strategies": {
+      "get": {
+        "description": "List descriptive metadata for built-in supported strategies.",
+        "operationId": "get_strategies_api_v1_strategies_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrategyListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Strategies"
+      }
+    },
+    "/api/v1/strategies/{strategy_name}": {
+      "get": {
+        "description": "Return descriptive metadata for one exact built-in strategy name.",
+        "operationId": "get_strategy_api_v1_strategies__strategy_name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "strategy_name",
+            "required": true,
+            "schema": {
+              "title": "Strategy Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrategyDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Strategy"
+      }
+    }
+  }
+}

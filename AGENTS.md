@@ -168,16 +168,23 @@ Sprint 151 closed Milestone 27 through documentation and verification only. No
 runtime, schema, migration, dependency, test, worker, or Web implementation was
 added.
 
+Sprint 152 added the focused `web/` Next.js 16 application, responsive Founder
+workspace shell, explicit future-only navigation, loopback-restricted
+`EL_PSY_QUANT_API_ORIGIN` validation, fixed same-origin `/api/backend` rewrite,
+deterministic FastAPI OpenAPI export, generated TypeScript types, typed health
+client, and frontend quality-gate/CI integration. It added no S153–S159 business
+page, authentication, Docker Compose, broker, QMT, live, or distributed behavior.
+
 The next sprint is:
 
 ```text
-Sprint 152 — Next.js Workspace Shell and API Client Foundation
+Sprint 153 — Strategy List, Detail, Research, and Backtest Views
 ```
 
-Sprint 152 may establish only the smallest local Next.js workspace shell,
-navigation, configuration, and typed API-client foundation. The browser must use
-the API and must not directly access SQLite, artifact files, Python modules,
-QMT, MiniQMT, or a broker.
+Sprint 153 may add only the strategy list/detail and research/backtest inspection
+views defined by its authoritative issue. It must preserve the Sprint 152
+same-origin transport, generated-contract, error, navigation, and frontend
+quality-gate boundaries.
 
 Approved productization sequence:
 
