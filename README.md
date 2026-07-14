@@ -13,14 +13,15 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–27 are complete. **Milestone 28 — Founder Paper Trading Web
 Workspace** is in progress.
 
-The latest completed sprint is **Sprint 151 — Milestone 27 Closeout**.
+The latest completed sprint is **Sprint 152 — Next.js Workspace Shell and API
+Client Foundation**.
 
 Milestone 27 established durable local product persistence and manually controlled
 paper-job operations beneath the existing versioned application API:
 
 ```text
 Browser
-  -> future React/Next.js founder workspace
+  -> local React/Next.js founder workspace
   -> FastAPI application API
   -> thin application services / use cases
   -> existing El-Psy-Quant domain modules and artifact readers
@@ -44,11 +45,11 @@ state, replay-safe submission, attempt audit, manual recovery and retry, compact
 result references, and a versioned durable-job API while keeping completed files
 authoritative.
 
-Milestone 28 now begins the first Founder-facing local Web workspace. Sprints 138
-through 151 are complete. The next sprint is:
+Milestone 28 now has its first Founder-facing local Web workspace foundation.
+Sprints 138 through 152 are complete. The next sprint is:
 
 ```text
-Sprint 152 — Next.js Workspace Shell and API Client Foundation
+Sprint 153 — Strategy List, Detail, Research, and Backtest Views
 ```
 
 The approved productization sequence is:
@@ -234,16 +235,24 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - explicit interrupted-job recovery and failed-job retry
   - compact job-owned result references and safe authoritative result reads
   - versioned durable job submission, status, attempts, control, and result API
+- Local Founder Web foundation:
+  - strict TypeScript Next.js 16 App Router application under `web/`
+  - responsive accessible workspace shell with Overview as the only enabled page
+  - loopback-only server configuration and fixed same-origin `/api/backend` rewrite
+  - deterministic FastAPI OpenAPI snapshot and generated TypeScript API types
+  - typed health client with bounded errors, request IDs, visible failure, and retry
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
 
 ## Quick Start
 
-Install [uv](https://docs.astral.sh/uv/), then install the project and development dependencies:
+Install [uv](https://docs.astral.sh/uv/) and Node.js 24 LTS, then install the
+Python and frontend dependencies:
 
 ```bash
 uv sync
+npm --prefix web ci
 ```
 
 Run the complete quality gate used by GitHub Actions:
@@ -257,6 +266,33 @@ Run the local application API on loopback only:
 ```bash
 uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
 ```
+
+In another terminal, optionally configure a loopback API origin and start the
+local Web workspace. The default is `http://127.0.0.1:8000`; configuration
+changes require restarting the Next.js process.
+
+```powershell
+$env:EL_PSY_QUANT_API_ORIGIN="http://127.0.0.1:8000"
+npm --prefix web run dev
+```
+
+The browser calls only `/api/backend/api/v1/...`; Next.js transparently rewrites
+that fixed same-origin path to the configured FastAPI origin. The origin is
+server-only, accepts only `http` or `https` loopback origins, and cannot contain
+credentials, paths, queries, or fragments. FastAPI CORS remains unchanged.
+
+Regenerate or freshness-check the canonical OpenAPI snapshot and derived
+TypeScript types without starting either server:
+
+```bash
+npm --prefix web run contracts:generate
+npm --prefix web run contracts:check
+```
+
+Sprint 152 implements only the workspace shell and process-health connection.
+Business pages, authentication, Docker Compose, broker/QMT, live behavior, and
+distributed infrastructure remain deferred. Sprint 153 adds the first strategy
+and research business views.
 
 Initialize or upgrade the local product database only through an explicit
 operator action. The parent directory must already exist:

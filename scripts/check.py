@@ -6,11 +6,14 @@ import shlex
 import subprocess
 import sys
 
+NPM_EXECUTABLE = "npm.cmd" if sys.platform == "win32" else "npm"
+
 CHECKS = (
     ("uv", "run", "pytest"),
     ("uv", "run", "ruff", "check", "."),
     ("uv", "run", "python", "-c", "import el_psy_quant"),
     ("uv", "run", "el-psy-quant", "--help"),
+    (NPM_EXECUTABLE, "--prefix", "web", "run", "check"),
 )
 
 

@@ -4,3 +4,11 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
+.tooling/
+web/node_modules/
+web/.next/
+web/coverage/
+web/.eslintcache
+web/*.tsbuildinfo
+web/.env*
+!web/.env.example
