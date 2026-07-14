@@ -2,22 +2,26 @@
 
 from __future__ import annotations
 
-from datetime import timezone
+from datetime import datetime, timezone
 from typing import Protocol
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from el_psy_quant.paper import PAPER_RUN_REQUEST_SCHEMA_VERSION
 from el_psy_quant.persistence.paper_job_model import PaperJobRow
 from el_psy_quant.persistence.paper_jobs import (
     PaperJobRecord,
+    PaperJobStatus,
     PreparedPaperRunRequest,
     _job_id,
     _prepared_payload_for_request,
     _run_id,
     _status,
+    _utc_timestamp,
+    _validate_paper_job_status_transition,
     deserialize_paper_run_request,
+    transition_paper_job_record,
 )
 
 
@@ -36,6 +40,15 @@ class PaperJobRepository(Protocol):
     def get_by_run_id(self, *, run_id: str) -> PaperJobRecord | None: ...
 
     def list(self, *, status: str | None = None) -> tuple[PaperJobRecord, ...]: ...
+
+    def transition_status(
+        self,
+        *,
+        job_id: str,
+        expected_status: PaperJobStatus,
+        target_status: PaperJobStatus,
+        updated_timestamp: datetime,
+    ) -> PaperJobRecord | None: ...
 
 
 def _job_from_row(row: PaperJobRow) -> PaperJobRecord:
@@ -127,3 +140,49 @@ class SqlAlchemyPaperJobRepository:
         return tuple(
             _job_from_row(row) for row in self._session.scalars(statement).all()
         )
+
+    def transition_status(
+        self,
+        *,
+        job_id: str,
+        expected_status: PaperJobStatus,
+        target_status: PaperJobStatus,
+        updated_timestamp: datetime,
+    ) -> PaperJobRecord | None:
+        """Conditionally apply one approved status transition and flush it."""
+        validated_job_id = _job_id(job_id)
+        validated_expected = _status(expected_status)
+        validated_target = _status(target_status)
+        _validate_paper_job_status_transition(
+            validated_expected,
+            validated_target,
+        )
+        validated_timestamp = _utc_timestamp(
+            updated_timestamp,
+            field_name="updated_timestamp",
+        )
+        row = self._session.scalar(
+            update(PaperJobRow)
+            .where(
+                PaperJobRow.job_id == validated_job_id,
+                PaperJobRow.status == validated_expected,
+                PaperJobRow.updated_timestamp <= validated_timestamp,
+            )
+            .values(
+                status=validated_target,
+                updated_timestamp=validated_timestamp,
+            )
+            .returning(PaperJobRow)
+            .execution_options(synchronize_session=False)
+        )
+        if row is None:
+            current = self.get(job_id=validated_job_id)
+            if current is not None and current.status == validated_expected:
+                transition_paper_job_record(
+                    job=current,
+                    target_status=validated_target,
+                    updated_timestamp=validated_timestamp,
+                )
+            return None
+        self._session.flush()
+        return _job_from_row(row)

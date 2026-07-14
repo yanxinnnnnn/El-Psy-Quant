@@ -5,10 +5,16 @@ from pathlib import Path
 
 import pytest
 
-from el_psy_quant.config import load_experiment_config
+import el_psy_quant.configured_paper as configured_module
+from el_psy_quant.config import (
+    create_paper_run_request_from_config,
+    load_experiment_config,
+)
 from el_psy_quant.configured_paper import (
     ConfiguredPaperWorkflowRunResult,
+    PaperWorkflowRunResult,
     run_configured_paper_workflow,
+    run_paper_workflow_request,
 )
 from el_psy_quant.outputs import create_configured_paper_run_output_paths
 from el_psy_quant.paper import (
@@ -159,6 +165,28 @@ def test_configured_paper_workflow_writes_deterministic_json(
     json.dumps(summary_payload, allow_nan=False)
 
 
+def test_configured_paper_workflow_retains_overwrite_compatibility(
+    tmp_path: Path,
+) -> None:
+    config = load_experiment_config(
+        write_config(tmp_path, valid_config_with_paper_run())
+    )
+    run_dir = tmp_path / "run-1"
+    run_dir.mkdir()
+    first = run_configured_paper_workflow(config=config, run_dir=run_dir)
+    first.paper_run_artifact_path.write_text("stale-artifact", encoding="utf-8")
+    first.paper_run_result_summary_path.write_text("stale-summary", encoding="utf-8")
+
+    second = run_configured_paper_workflow(config=config, run_dir=run_dir)
+
+    assert json.loads(second.paper_run_artifact_path.read_text(encoding="utf-8")) == (
+        create_paper_trading_artifact_file_payload(second.artifact)
+    )
+    assert json.loads(
+        second.paper_run_result_summary_path.read_text(encoding="utf-8")
+    ) == second.result_summary.to_dict()
+
+
 def test_configured_paper_workflow_creates_only_paper_output_directory(
     tmp_path: Path,
 ) -> None:
@@ -228,3 +256,104 @@ def test_configured_paper_api_is_importable() -> None:
         is ConfiguredPaperWorkflowRunResult
     )
     assert configured_paper.run_configured_paper_workflow is run_configured_paper_workflow
+    assert configured_paper.PaperWorkflowRunResult is PaperWorkflowRunResult
+    assert configured_paper.run_paper_workflow_request is run_paper_workflow_request
+
+
+def test_request_driven_workflow_writes_only_exact_existing_outputs(
+    tmp_path: Path,
+) -> None:
+    config = load_experiment_config(
+        write_config(tmp_path, valid_config_with_paper_run())
+    )
+    assert config.paper_run is not None
+    request = create_paper_run_request_from_config(config.paper_run)
+    run_dir = tmp_path / "request-run"
+    run_dir.mkdir()
+    expected_paths = create_configured_paper_run_output_paths(run_dir=run_dir)
+
+    result = run_paper_workflow_request(request=request, run_dir=run_dir)
+
+    assert isinstance(result, PaperWorkflowRunResult)
+    assert result.request is request
+    assert isinstance(result.artifact, PaperTradingArtifact)
+    assert isinstance(result.result_summary, PaperRunResultSummary)
+    assert result.result_summary.request is request
+    assert result.result_summary.artifact is result.artifact
+    assert result.paper_run_artifact_path == expected_paths.paper_run_artifact_path
+    assert (
+        result.paper_run_result_summary_path
+        == expected_paths.paper_run_result_summary_path
+    )
+    assert sorted(path.relative_to(run_dir).as_posix() for path in run_dir.rglob("*")) == [
+        "paper",
+        "paper/paper_run_artifact.json",
+        "paper/paper_run_result_summary.json",
+    ]
+
+
+def test_exclusive_request_workflow_never_overwrites_existing_summary(
+    tmp_path: Path,
+) -> None:
+    config = load_experiment_config(
+        write_config(tmp_path, valid_config_with_paper_run())
+    )
+    assert config.paper_run is not None
+    request = create_paper_run_request_from_config(config.paper_run)
+    run_dir = tmp_path / "request-run"
+    run_dir.mkdir()
+    paths = create_configured_paper_run_output_paths(run_dir=run_dir)
+    paths.paper_run_result_summary_path.parent.mkdir()
+    existing_summary = b"existing-authoritative-summary"
+    paths.paper_run_result_summary_path.write_bytes(existing_summary)
+
+    with pytest.raises(FileExistsError):
+        run_paper_workflow_request(
+            request=request,
+            run_dir=run_dir,
+            output_write_mode="exclusive",
+        )
+
+    assert paths.paper_run_result_summary_path.read_bytes() == existing_summary
+    assert paths.paper_run_artifact_path.is_file()
+
+
+def test_configured_runner_delegates_to_request_driven_workflow(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = load_experiment_config(
+        write_config(tmp_path, valid_config_with_paper_run())
+    )
+    run_dir = tmp_path / "configured-run"
+    run_dir.mkdir()
+    calls = []
+    original = configured_module.run_paper_workflow_request
+
+    def tracked(*, request, run_dir):
+        calls.append((request, run_dir))
+        return original(request=request, run_dir=run_dir)
+
+    monkeypatch.setattr(configured_module, "run_paper_workflow_request", tracked)
+
+    result = run_configured_paper_workflow(config=config, run_dir=run_dir)
+
+    assert calls == [(result.request, run_dir)]
+    assert isinstance(result, ConfiguredPaperWorkflowRunResult)
+
+
+@pytest.mark.parametrize("invalid_request", (object(), None))
+def test_request_driven_workflow_requires_exact_request(
+    tmp_path: Path,
+    invalid_request: object,
+) -> None:
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+
+    with pytest.raises(ValueError, match="PaperRunRequest"):
+        run_paper_workflow_request(
+            request=invalid_request,  # type: ignore[arg-type]
+            run_dir=run_dir,
+        )
+
+    assert list(run_dir.iterdir()) == []

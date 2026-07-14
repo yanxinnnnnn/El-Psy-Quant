@@ -254,21 +254,21 @@ def test_get_list_filter_and_explicit_not_found(
         )
 
 
-def test_application_surface_has_no_runner_transition_result_or_api_behavior() -> None:
+def test_application_surface_has_only_explicit_sprint_148_job_control() -> None:
     from el_psy_quant import application
 
     assert application.submit_paper_job is submit_paper_job
     assert application.get_paper_job is get_paper_job
     assert application.list_paper_jobs is list_paper_jobs
+    assert callable(application.run_paper_job_once)
+    assert callable(application.cancel_paper_job)
     forbidden = {
-        "run_paper_job",
         "claim_paper_job",
         "update_paper_job_status",
-        "cancel_paper_job",
         "retry_paper_job",
-        "PaperJobResult",
-        "PaperJobError",
         "PaperJobWorker",
+        "recover_paper_job",
+        "claim_next_paper_job",
     }
     assert all(not hasattr(application, name) for name in forbidden)
 

@@ -4,7 +4,7 @@
 
 In Progress.
 
-Sprints 145, 146, and 147 are complete. Sprint 148 is next.
+Sprints 145, 146, 147, and 148 are complete. Sprint 149 is next.
 
 ## Objective
 
@@ -31,8 +31,8 @@ UI, distributed queue, broker adapter, QMT, live execution, or capital behavior.
 | S145 | Complete | SQLite and SQLAlchemy Product Persistence Foundation. |
 | S146 | Complete | Artifact Index and Product Repository Foundation. |
 | S147 | Complete | Durable Paper Job Record and Submission Foundation. |
-| S148 | Next | Simple Local Paper Job Runner and Manual Control. |
-| S149 | Planned | Job Recovery, Idempotency, and Error Audit Foundation. |
+| S148 | Complete | Simple Local Paper Job Runner and Manual Control. |
+| S149 | Next | Job Recovery, Idempotency, and Error Audit Foundation. |
 | S150 | Planned | Durable Job API and Result Reference Integration. |
 | S151 | Planned | Milestone 27 Closeout. |
 
@@ -109,8 +109,40 @@ The migration chain is exactly:
 
 The request snapshot is durable operational input for a future runner, not a
 completed artifact payload. Artifact files remain completed-output authority.
-No job runner, status transition, retry, recovery, idempotency key, error/result
-column, result reference, worker, scheduler, or API integration exists yet.
+Sprint 147 itself added no job runner, status transition, retry, recovery,
+idempotency key, error/result column, result reference, worker, scheduler, or
+API integration.
+
+## Sprint 148 Foundation
+
+Sprint 148 provides:
+
+- one shared request-driven paper workflow reused by configured execution
+- one immutable centralized transition contract with exactly:
+  `queued -> running`, `queued -> canceled`, `running -> succeeded`, and
+  `running -> failed`
+- one conditional repository transition constrained by job ID and expected
+  status under caller-owned transactions
+- output preflight that rejects existing reserved files before claim
+- one explicit runner that claims one caller-selected queued job once, commits
+  before execution, and finalizes in a separate transaction
+- workflow execution and authoritative file persistence outside any product
+  database transaction or long-lived session
+- expected local execution or persistence failure recording as `failed` without
+  persisted error details
+- queued-only manual cancellation
+
+The migration chain remains exactly:
+
+```text
+0001_product_baseline -> 0002_artifact_index -> 0003_paper_jobs
+```
+
+Successful completed outputs remain the existing paper artifact and result
+summary files. SQLite stores no result payload or reference. The explicit
+runner does not scan, loop, poll, retry, recover, or start automatically.
+Interrupted jobs may remain `running`, and partial output may remain after a
+failure. Sprint 149 owns recovery, idempotency, and error audit.
 
 ## Authority Boundaries
 
@@ -124,14 +156,19 @@ snapshots and approved human transition records. It must not become an
 independently authoritative mutable field.
 
 Paper-job status is mutable operational state and remains separate from
-lifecycle governance. Sprint 147 creates only its initial queued state.
+lifecycle governance. Submission creates only the initial queued state; Sprint
+148 transitions it only through the four approved operational paths.
 
-## Sprint 145–147 Non-Goals
+## Sprint 145–148 Non-Goals
 
-Through Sprint 147, Milestone 27 adds no:
+Through Sprint 148, Milestone 27 adds no:
 
-- paper-job execution, worker, transition, retry, recovery, or idempotency design
-- persisted job error or result information
+- automatic job scanning, worker loop, polling, scheduler, background task, or
+  startup execution
+- retry, interrupted-job recovery, idempotency, or exactly-once design
+- persisted job error, result payload, or result-reference information
+- partial-output cleanup or reconciliation
+- running-job cancellation, pause, or resume
 - new or database-backed API endpoint
 - request-scoped database dependency
 - Web UI, Docker Compose, authentication, microservice, or distributed system
@@ -147,5 +184,5 @@ quality gate passes without introducing distributed or live-trading behavior.
 ## Next Sprint
 
 ```text
-Sprint 148 — Simple Local Paper Job Runner and Manual Control
+Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
 ```
