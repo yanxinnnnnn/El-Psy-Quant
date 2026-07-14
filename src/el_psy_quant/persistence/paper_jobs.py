@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal, TypeAlias, cast
@@ -40,6 +41,8 @@ _LEGAL_PAPER_JOB_TRANSITIONS: frozenset[tuple[PaperJobStatus, PaperJobStatus]] =
             ("queued", "canceled"),
             ("running", "succeeded"),
             ("running", "failed"),
+            ("running", "queued"),
+            ("failed", "queued"),
         }
     )
 )
@@ -230,6 +233,21 @@ def prepare_paper_run_request_for_persistence(
     object.__setattr__(prepared, "_canonical_payload", canonical_payload)
     object.__setattr__(prepared, "_validation_token", _PREPARED_REQUEST_TOKEN)
     return prepared
+
+
+def digest_prepared_paper_run_request(
+    prepared_request: PreparedPaperRunRequest,
+) -> str:
+    """Digest the exact codec-prepared canonical UTF-8 request payload."""
+    if (
+        type(prepared_request) is not PreparedPaperRunRequest
+        or getattr(prepared_request, "_validation_token", None)
+        is not _PREPARED_REQUEST_TOKEN
+    ):
+        raise ValueError("prepared request must come from the strict codec factory")
+    return hashlib.sha256(
+        prepared_request._canonical_payload.encode("utf-8")
+    ).hexdigest()
 
 
 def _prepared_payload_for_request(

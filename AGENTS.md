@@ -146,15 +146,24 @@ authoritative files. Existing artifact files remain completed-output authority.
 It added no migration, recovery, retry,
 idempotency, persisted error detail, result reference, API route, or worker.
 
+Sprint 149 added migration `0004_paper_job_recovery_audit` with exactly the
+`paper_job_submission_keys` and `paper_job_attempts` tables. Explicit caller
+keys now provide digest-bound replay-safe submission without claiming
+exactly-once execution. New runner claims create compact attempt audit; expected
+failures persist only approved sanitized codes. Interrupted-job recovery and
+failed-job retry are explicit manual services that never rewrite authoritative
+outputs. It added no result reference, API route, worker, polling, automatic
+recovery, or Sprint 150 behavior.
+
 The next sprint is:
 
 ```text
-Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
+Sprint 150 — Durable Job API and Result Reference Integration
 ```
 
-Sprint 149 may add only the recovery, idempotency, and error-audit behavior
-defined by its authoritative issue. It must not weaken the Sprint 148
-single-job, file-authority, transaction, or lifecycle-separation boundaries.
+Sprint 150 may add only the durable-job API and result-reference integration
+defined by its authoritative issue. It must preserve Sprint 149 replay,
+attempt-audit, manual-recovery, file-authority, and transaction boundaries.
 
 Approved productization sequence:
 

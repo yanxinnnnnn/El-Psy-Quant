@@ -254,7 +254,7 @@ def test_get_list_filter_and_explicit_not_found(
         )
 
 
-def test_application_surface_has_only_explicit_sprint_148_job_control() -> None:
+def test_application_surface_has_only_explicit_sprint_149_job_control() -> None:
     from el_psy_quant import application
 
     assert application.submit_paper_job is submit_paper_job
@@ -262,13 +262,17 @@ def test_application_surface_has_only_explicit_sprint_148_job_control() -> None:
     assert application.list_paper_jobs is list_paper_jobs
     assert callable(application.run_paper_job_once)
     assert callable(application.cancel_paper_job)
+    assert callable(application.recover_interrupted_paper_job)
+    assert callable(application.retry_failed_paper_job)
+    assert callable(application.get_paper_job_by_idempotency_key)
+    assert callable(application.list_paper_job_attempts)
     forbidden = {
         "claim_paper_job",
         "update_paper_job_status",
-        "retry_paper_job",
         "PaperJobWorker",
-        "recover_paper_job",
         "claim_next_paper_job",
+        "scan_stale_paper_jobs",
+        "start_paper_job_worker",
     }
     assert all(not hasattr(application, name) for name in forbidden)
 

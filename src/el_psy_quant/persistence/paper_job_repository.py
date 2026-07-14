@@ -48,6 +48,7 @@ class PaperJobRepository(Protocol):
         expected_status: PaperJobStatus,
         target_status: PaperJobStatus,
         updated_timestamp: datetime,
+        expected_updated_timestamp: datetime | None = None,
     ) -> PaperJobRecord | None: ...
 
 
@@ -148,6 +149,7 @@ class SqlAlchemyPaperJobRepository:
         expected_status: PaperJobStatus,
         target_status: PaperJobStatus,
         updated_timestamp: datetime,
+        expected_updated_timestamp: datetime | None = None,
     ) -> PaperJobRecord | None:
         """Conditionally apply one approved status transition and flush it."""
         validated_job_id = _job_id(job_id)
@@ -161,13 +163,26 @@ class SqlAlchemyPaperJobRepository:
             updated_timestamp,
             field_name="updated_timestamp",
         )
+        validated_expected_timestamp = (
+            None
+            if expected_updated_timestamp is None
+            else _utc_timestamp(
+                expected_updated_timestamp,
+                field_name="expected_updated_timestamp",
+            )
+        )
+        conditions = [
+            PaperJobRow.job_id == validated_job_id,
+            PaperJobRow.status == validated_expected,
+            PaperJobRow.updated_timestamp <= validated_timestamp,
+        ]
+        if validated_expected_timestamp is not None:
+            conditions.append(
+                PaperJobRow.updated_timestamp == validated_expected_timestamp
+            )
         row = self._session.scalar(
             update(PaperJobRow)
-            .where(
-                PaperJobRow.job_id == validated_job_id,
-                PaperJobRow.status == validated_expected,
-                PaperJobRow.updated_timestamp <= validated_timestamp,
-            )
+            .where(*conditions)
             .values(
                 status=validated_target,
                 updated_timestamp=validated_timestamp,

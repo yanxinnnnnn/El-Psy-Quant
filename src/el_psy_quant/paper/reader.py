@@ -62,7 +62,7 @@ def read_paper_trading_artifact_file(
         payload: Any = json.loads(
             path.read_text(encoding=PAPER_TRADING_ARTIFACT_FILE_ENCODING)
         )
-    except json.JSONDecodeError as exc:
+    except (json.JSONDecodeError, UnicodeError) as exc:
         raise ValueError("source_path must contain valid JSON") from exc
 
     return validate_paper_trading_artifact_file_payload(payload)

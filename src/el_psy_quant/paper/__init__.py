@@ -46,6 +46,12 @@ from el_psy_quant.paper.run_result import (
     PaperRunResultSummary,
     create_paper_run_result_summary,
 )
+from el_psy_quant.paper.run_result_reader import (
+    ValidatedPaperRunResultSummary,
+    read_paper_run_result_summary_file,
+    validate_paper_run_recovery_consistency,
+    validate_paper_run_result_summary_payload,
+)
 from el_psy_quant.paper.session import (
     PaperTradingSessionSummary,
     create_paper_trading_session_summary,
@@ -68,6 +74,7 @@ __all__ = [
     "PaperTradingArtifact",
     "PaperTradingArtifactAuditSummary",
     "PaperTradingSessionSummary",
+    "ValidatedPaperRunResultSummary",
     "apply_paper_fills",
     "create_paper_account_state",
     "create_paper_fill",
@@ -81,7 +88,10 @@ __all__ = [
     "create_paper_trading_session_summary",
     "persist_paper_run_artifact",
     "read_paper_trading_artifact_file",
+    "read_paper_run_result_summary_file",
     "run_paper_trading_request",
     "validate_paper_trading_artifact_file_payload",
+    "validate_paper_run_recovery_consistency",
+    "validate_paper_run_result_summary_payload",
     "write_paper_trading_artifact_file",
 ]

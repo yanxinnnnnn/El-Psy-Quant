@@ -13,8 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–26 are complete. **Milestone 27 — Persistence and Paper Job
 Control Foundation** is in progress.
 
-The latest completed sprint is **Sprint 148 — Simple Local Paper Job Runner and
-Manual Control**.
+The latest completed sprint is **Sprint 149 — Job Recovery, Idempotency, and
+Error Audit Foundation**.
 
 Milestone 26 established a thin local application and versioned API boundary over selected existing capabilities:
 
@@ -38,14 +38,14 @@ Key ownership decisions remain:
 
 ## Current Direction
 
-Milestone 27 is in progress. Sprint 148 added one explicit selected-job runner,
-conditional operational transitions, and queued-only manual cancellation while
-keeping workflow execution outside product-database transactions.
+Milestone 27 is in progress. Sprint 149 added replay-safe keyed submission,
+compact attempt and sanitized-error audit, explicit interrupted-job recovery,
+and failed-job retry while keeping output files authoritative.
 
-Sprints 138 through 148 are complete. The next sprint is:
+Sprints 138 through 149 are complete. The next sprint is:
 
 ```text
-Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
+Sprint 150 — Durable Job API and Result Reference Integration
 ```
 
 The approved productization sequence is:
@@ -227,6 +227,8 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - immutable paper-job records and explicit submission/read services
   - conditional queued/running/terminal operational transitions
   - one selected-job local runner and queued-only manual cancellation
+  - replay-safe keyed submission and compact execution-attempt audit
+  - explicit interrupted-job recovery and failed-job retry
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -312,11 +314,23 @@ overwrite behavior. Manual cancellation applies only to queued jobs. Successful
 artifact and result-summary files remain authoritative; no result reference,
 result payload, or error detail is stored in SQLite.
 
-There is no automatic queue scan, worker loop, poller, scheduler, retry,
-idempotency design, interrupted-job recovery, partial-file cleanup, running-job
-cancellation, durable-job API endpoint, or startup runner. Interrupted jobs may
-remain `running`, and partial output may remain after an expected failure;
-Sprint 149 owns recovery, idempotency, and persisted error audit.
+Sprint 149 advances the migration head to
+`0004_paper_job_recovery_audit`, adding only submission-key mappings and
+execution attempts. Optional caller keys bind the exact canonical request
+SHA-256 digest to one durable job: exact replay returns that job in any status,
+while a changed request conflicts. Durable creation is replay-safe; workflow
+execution is not claimed to be exactly once.
+
+Every new runner claim atomically starts a numbered attempt, and job/attempt
+completion commits together. Expected failures store only approved sanitized
+codes. Explicit manual recovery reconciles a running job against authoritative
+outputs without rewriting them, including legacy Sprint 148 jobs without
+attempts. Explicit retry requeues only a failed job after clean-output preflight.
+
+There is still no automatic scan, worker loop, polling, scheduler, background
+execution, automatic retry/recovery, cleanup, durable result reference,
+durable-job API endpoint, request-scoped database dependency, or startup runner.
+Sprint 150 owns API and result-reference integration.
 
 `create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
 
