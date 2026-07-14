@@ -74,7 +74,8 @@ ensures only one explicit claim or cancellation can win for a queued job.
    claiming or creating the paper directory
 3. conditionally claim `queued -> running` in one short committed transaction
 4. execute and persist the shared workflow with no open product-database
-   transaction or session
+   transaction or session, using atomic exclusive creation for both reserved
+   durable output files
 5. conditionally record `running -> succeeded` in a new short transaction
 
 Missing jobs are explicit not-found failures. Non-queued jobs and concurrent
@@ -85,6 +86,13 @@ Expected local domain or filesystem failures conditionally record
 `running -> failed`, then raise a stable sanitized error chained from the
 original exception. No error code, message, traceback, attempt, or retry data is
 persisted. Programming and database failures are not broadly swallowed.
+
+The preflight remains an early conflict check, while exclusive creation at each
+actual durable write boundary provides the no-clobber guarantee. If another
+writer creates a reserved output after preflight, that file is preserved and
+the claimed job follows the expected execution-failure path to `failed`. The
+configured synchronous runner retains its existing overwrite behavior through
+the same request-driven workflow.
 
 If execution stops after claim, the job may remain running. If output writing
 fails partway through, partial files remain. Sprint 148 performs no automatic
@@ -132,9 +140,10 @@ side-effect free.
 
 Focused tests cover shared workflow reuse, every legal and illegal transition,
 repository transaction ownership and conditional races, output preflight,
-successful selected-job execution, expected and unexpected failures, partial
-output retention, queued-only cancellation, unchanged migration schema, and API
-regressions.
+post-preflight output-race no-clobber behavior, successful selected-job
+execution, expected and unexpected failures, partial output retention,
+configured-runner overwrite compatibility, queued-only cancellation, unchanged
+migration schema, and API regressions.
 
 The complete quality gate is:
 

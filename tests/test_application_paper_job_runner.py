@@ -104,11 +104,17 @@ def test_selected_job_runs_once_to_succeeded_and_leaves_other_job_queued(
     run_dir = tmp_path / "run-output"
     run_dir.mkdir()
     captured_requests = []
+    captured_write_modes = []
     original = service.run_paper_workflow_request
 
-    def tracked(*, request, run_dir):
+    def tracked(*, request, run_dir, output_write_mode):
         captured_requests.append(request)
-        return original(request=request, run_dir=run_dir)
+        captured_write_modes.append(output_write_mode)
+        return original(
+            request=request,
+            run_dir=run_dir,
+            output_write_mode=output_write_mode,
+        )
 
     monkeypatch.setattr(service, "run_paper_workflow_request", tracked)
 
@@ -125,6 +131,7 @@ def test_selected_job_runs_once_to_succeeded_and_leaves_other_job_queued(
     assert [request.to_dict() for request in captured_requests] == [
         selected.request.to_dict()
     ]
+    assert captured_write_modes == ["exclusive"]
     assert get_paper_job(
         session_factory=session_factory, job_id=selected.job_id
     ) == result.job
@@ -172,11 +179,16 @@ def test_execution_occurs_after_claim_commit_with_no_open_service_transaction(
                 finally:
                     active_transactions -= 1
 
-    def tracked_workflow(*, request, run_dir):
+    def tracked_workflow(*, request, run_dir, output_write_mode):
         assert active_transactions == 0
+        assert output_write_mode == "exclusive"
         with session_factory() as independent_session:
             assert not independent_session.in_transaction()
-        return original_workflow(request=request, run_dir=run_dir)
+        return original_workflow(
+            request=request,
+            run_dir=run_dir,
+            output_write_mode=output_write_mode,
+        )
 
     monkeypatch.setattr(
         service,
@@ -233,6 +245,46 @@ def test_preflight_failure_leaves_job_queued_and_never_overwrites(
         assert reserved_path.read_text(encoding="utf-8") == "do-not-overwrite"
 
 
+def test_post_preflight_output_race_preserves_file_and_marks_job_failed(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    run_dir = tmp_path / "run-output"
+    run_dir.mkdir()
+    paths = create_configured_paper_run_output_paths(run_dir=run_dir)
+    raced_content = b"authoritative-racer-output"
+    original_workflow = service.run_paper_workflow_request
+
+    def inject_race(*, request, run_dir, output_write_mode):
+        assert output_write_mode == "exclusive"
+        paths.paper_run_artifact_path.parent.mkdir()
+        paths.paper_run_artifact_path.write_bytes(raced_content)
+        return original_workflow(
+            request=request,
+            run_dir=run_dir,
+            output_write_mode=output_write_mode,
+        )
+
+    monkeypatch.setattr(service, "run_paper_workflow_request", inject_race)
+
+    with pytest.raises(PaperJobExecutionError) as raised:
+        run_paper_job_once(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            run_dir=run_dir,
+        )
+
+    assert isinstance(raised.value.__cause__, FileExistsError)
+    assert paths.paper_run_artifact_path.read_bytes() == raced_content
+    assert not paths.paper_run_result_summary_path.exists()
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ).status == "failed"
+
+
 def test_non_directory_preflight_leaves_job_queued(
     session_factory,
     tmp_path: Path,
@@ -264,9 +316,9 @@ def test_expected_execution_failure_is_sanitized_and_marks_failed(
     run_dir.mkdir()
     calls = 0
 
-    def fail(*, request, run_dir):
+    def fail(*, request, run_dir, output_write_mode):
         nonlocal calls
-        del request, run_dir
+        del request, run_dir, output_write_mode
         calls += 1
         raise failure
 
@@ -302,8 +354,8 @@ def test_partial_output_is_preserved_when_expected_persistence_failure_occurs(
     run_dir.mkdir()
     partial_path = run_dir / "paper" / "paper_run_artifact.json"
 
-    def partial_failure(*, request, run_dir):
-        del request
+    def partial_failure(*, request, run_dir, output_write_mode):
+        del request, output_write_mode
         paper_dir = run_dir / "paper"
         paper_dir.mkdir()
         partial_path.write_text("partial", encoding="utf-8")
@@ -333,8 +385,8 @@ def test_programming_error_is_not_swallowed_and_job_remains_running(
     run_dir = tmp_path / "run-output"
     run_dir.mkdir()
 
-    def programming_failure(*, request, run_dir):
-        del request, run_dir
+    def programming_failure(*, request, run_dir, output_write_mode):
+        del request, run_dir, output_write_mode
         raise RuntimeError("programming failure")
 
     monkeypatch.setattr(service, "run_paper_workflow_request", programming_failure)

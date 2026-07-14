@@ -153,6 +153,7 @@ def run_paper_job_once(
         workflow = run_paper_workflow_request(
             request=running_job.request,
             run_dir=validated_run_dir,
+            output_write_mode="exclusive",
         )
     except (ValueError, OSError) as exc:
         _transition_job(

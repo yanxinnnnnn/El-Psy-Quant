@@ -140,8 +140,10 @@ Sprint 148 added a shared request-driven paper workflow, the four explicit
 operational transitions, conditional caller-owned repository updates, one
 explicit selected-job runner, and queued-only manual cancellation. The runner
 claims and commits before executing outside database transactions, then records
-success or expected failure in a separate transaction. Existing artifact files
-remain completed-output authority. It added no migration, recovery, retry,
+success or expected failure in a separate transaction. Durable output writes
+use atomic exclusive creation after preflight so concurrent jobs cannot clobber
+authoritative files. Existing artifact files remain completed-output authority.
+It added no migration, recovery, retry,
 idempotency, persisted error detail, result reference, API route, or worker.
 
 The next sprint is:

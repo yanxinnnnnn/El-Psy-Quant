@@ -121,6 +121,46 @@ def test_persisted_content_matches_file_contract_payload(tmp_path) -> None:
     )
 
 
+def test_exclusive_persistence_never_overwrites_existing_file(tmp_path) -> None:
+    destination = tmp_path / "paper-run-artifact.json"
+    existing_content = b"existing-authoritative-output"
+    destination.write_bytes(existing_content)
+
+    with pytest.raises(FileExistsError):
+        persist_paper_run_artifact(
+            make_artifact(),
+            destination,
+            write_mode="exclusive",
+        )
+
+    assert destination.read_bytes() == existing_content
+
+
+def test_default_persistence_retains_overwrite_compatibility(tmp_path) -> None:
+    destination = tmp_path / "paper-run-artifact.json"
+    destination.write_text("old-content", encoding="utf-8")
+
+    persist_paper_run_artifact(make_artifact(), destination)
+
+    assert json.loads(destination.read_text(encoding="utf-8")) == (
+        create_paper_trading_artifact_file_payload(make_artifact())
+    )
+
+
+def test_persistence_rejects_unknown_write_mode_without_touching_file(tmp_path) -> None:
+    destination = tmp_path / "paper-run-artifact.json"
+    destination.write_text("unchanged", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="write_mode"):
+        persist_paper_run_artifact(
+            make_artifact(),
+            destination,
+            write_mode="unknown",  # type: ignore[arg-type]
+        )
+
+    assert destination.read_text(encoding="utf-8") == "unchanged"
+
+
 def test_persist_paper_run_artifact_returns_path_for_string_input(tmp_path) -> None:
     artifact = make_artifact()
     destination = tmp_path / "paper-run-artifact.json"

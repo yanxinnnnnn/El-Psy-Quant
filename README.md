@@ -305,9 +305,12 @@ status transitions: `queued -> running`, `queued -> canceled`,
 the two reserved paper output files, conditionally claims one caller-selected
 queued job, commits that claim, executes the shared request-driven paper
 workflow outside any database transaction, and records success or an expected
-failure in a separate transaction. Manual cancellation applies only to queued
-jobs. Successful artifact and result-summary files remain authoritative; no
-result reference, result payload, or error detail is stored in SQLite.
+failure in a separate transaction. Durable writes use atomic exclusive creation,
+so an output created after preflight is preserved and the claimed job fails
+without clobbering it. The configured synchronous runner retains its existing
+overwrite behavior. Manual cancellation applies only to queued jobs. Successful
+artifact and result-summary files remain authoritative; no result reference,
+result payload, or error detail is stored in SQLite.
 
 There is no automatic queue scan, worker loop, poller, scheduler, retry,
 idempotency design, interrupted-job recovery, partial-file cleanup, running-job

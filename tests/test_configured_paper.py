@@ -165,6 +165,28 @@ def test_configured_paper_workflow_writes_deterministic_json(
     json.dumps(summary_payload, allow_nan=False)
 
 
+def test_configured_paper_workflow_retains_overwrite_compatibility(
+    tmp_path: Path,
+) -> None:
+    config = load_experiment_config(
+        write_config(tmp_path, valid_config_with_paper_run())
+    )
+    run_dir = tmp_path / "run-1"
+    run_dir.mkdir()
+    first = run_configured_paper_workflow(config=config, run_dir=run_dir)
+    first.paper_run_artifact_path.write_text("stale-artifact", encoding="utf-8")
+    first.paper_run_result_summary_path.write_text("stale-summary", encoding="utf-8")
+
+    second = run_configured_paper_workflow(config=config, run_dir=run_dir)
+
+    assert json.loads(second.paper_run_artifact_path.read_text(encoding="utf-8")) == (
+        create_paper_trading_artifact_file_payload(second.artifact)
+    )
+    assert json.loads(
+        second.paper_run_result_summary_path.read_text(encoding="utf-8")
+    ) == second.result_summary.to_dict()
+
+
 def test_configured_paper_workflow_creates_only_paper_output_directory(
     tmp_path: Path,
 ) -> None:
@@ -268,6 +290,32 @@ def test_request_driven_workflow_writes_only_exact_existing_outputs(
         "paper/paper_run_artifact.json",
         "paper/paper_run_result_summary.json",
     ]
+
+
+def test_exclusive_request_workflow_never_overwrites_existing_summary(
+    tmp_path: Path,
+) -> None:
+    config = load_experiment_config(
+        write_config(tmp_path, valid_config_with_paper_run())
+    )
+    assert config.paper_run is not None
+    request = create_paper_run_request_from_config(config.paper_run)
+    run_dir = tmp_path / "request-run"
+    run_dir.mkdir()
+    paths = create_configured_paper_run_output_paths(run_dir=run_dir)
+    paths.paper_run_result_summary_path.parent.mkdir()
+    existing_summary = b"existing-authoritative-summary"
+    paths.paper_run_result_summary_path.write_bytes(existing_summary)
+
+    with pytest.raises(FileExistsError):
+        run_paper_workflow_request(
+            request=request,
+            run_dir=run_dir,
+            output_write_mode="exclusive",
+        )
+
+    assert paths.paper_run_result_summary_path.read_bytes() == existing_summary
+    assert paths.paper_run_artifact_path.is_file()
 
 
 def test_configured_runner_delegates_to_request_driven_workflow(

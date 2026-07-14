@@ -3,6 +3,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal, TypeAlias
 
 from el_psy_quant.config import (
     ExperimentConfig,
@@ -20,6 +21,8 @@ from el_psy_quant.paper import (
     run_paper_trading_request,
 )
 from el_psy_quant.paper.file_contract import PAPER_TRADING_ARTIFACT_FILE_ENCODING
+
+PaperWorkflowOutputWriteMode: TypeAlias = Literal["overwrite", "exclusive"]
 
 
 @dataclass(frozen=True)
@@ -62,22 +65,37 @@ def _validate_existing_run_dir(run_dir: str | Path) -> Path:
 def _write_result_summary_file(
     summary: PaperRunResultSummary,
     destination_path: Path,
+    *,
+    output_write_mode: PaperWorkflowOutputWriteMode,
 ) -> Path:
     document = json.dumps(summary.to_dict(), indent=2, allow_nan=False) + "\n"
-    destination_path.write_bytes(
-        document.encode(PAPER_TRADING_ARTIFACT_FILE_ENCODING)
-    )
+    encoded_document = document.encode(PAPER_TRADING_ARTIFACT_FILE_ENCODING)
+    if output_write_mode == "overwrite":
+        destination_path.write_bytes(encoded_document)
+    else:
+        with destination_path.open("xb") as destination:
+            destination.write(encoded_document)
     return destination_path
+
+
+def _validate_output_write_mode(
+    output_write_mode: PaperWorkflowOutputWriteMode,
+) -> PaperWorkflowOutputWriteMode:
+    if output_write_mode not in ("overwrite", "exclusive"):
+        raise ValueError("output_write_mode must be overwrite or exclusive")
+    return output_write_mode
 
 
 def run_paper_workflow_request(
     *,
     request: PaperRunRequest,
     run_dir: str | Path,
+    output_write_mode: PaperWorkflowOutputWriteMode = "overwrite",
 ) -> PaperWorkflowRunResult:
     """Execute and persist one explicit request-driven paper workflow."""
     if type(request) is not PaperRunRequest:
         raise ValueError("request must be a PaperRunRequest")
+    validated_write_mode = _validate_output_write_mode(output_write_mode)
     validated_run_dir = _validate_existing_run_dir(run_dir)
     paths = create_configured_paper_run_output_paths(run_dir=validated_run_dir)
 
@@ -88,6 +106,7 @@ def run_paper_workflow_request(
     artifact_path = persist_paper_run_artifact(
         artifact,
         paths.paper_run_artifact_path,
+        write_mode=validated_write_mode,
     )
     artifact_payload = create_paper_trading_artifact_file_payload(artifact)
     audit_summary = create_paper_trading_artifact_audit_summary(artifact_payload)
@@ -100,6 +119,7 @@ def run_paper_workflow_request(
     result_summary_path = _write_result_summary_file(
         result_summary,
         paths.paper_run_result_summary_path,
+        output_write_mode=validated_write_mode,
     )
 
     return PaperWorkflowRunResult(
