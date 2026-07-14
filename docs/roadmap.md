@@ -58,8 +58,8 @@ flowchart LR
 | M24 — Strategy Review Workflow Foundation | S130-136 | Complete | Human-controlled lifecycle governance. | States, proposals, transition records, references, manifests, and guardrails are explicit without runtime lifecycle execution. |
 | M25 — Paper Trading Productization Planning | S137 | Complete | Founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
 | M26 — Paper Trading Application Service Foundation | S138-144 | Complete | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
-| M27 — Persistence and Paper Job Control Foundation | S145-151 | In Progress | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
-| M28 — Founder Paper Trading Web Workspace | S152-159 | Planned | Deliver the first usable Founder Web MVP. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary. |
+| M27 — Persistence and Paper Job Control Foundation | S145-151 | Complete | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
+| M28 — Founder Paper Trading Web Workspace | S152-159 | In Progress | Deliver the first usable Founder Web MVP. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary. |
 | M29 — Product Feedback and Hardening | S160-165 | Planned | Improve usability and reliability from real usage. | Founder feedback is incorporated and the local product is reliable enough for daily use. |
 | M30 — Portfolio-Level Decision Review Foundation | TBD | Deferred | Resume portfolio-level strategy review. | Portfolio impact and concentration are included in human decisions. |
 
@@ -153,13 +153,13 @@ Critical ownership decisions:
 | S148 | Simple Local Paper Job Runner and Manual Control. **Complete.** |
 | S149 | Job Recovery, Idempotency, and Error Audit Foundation. **Complete.** |
 | S150 | Durable Job API and Result Reference Integration. **Complete.** |
-| S151 | Milestone 27 Closeout. **Next.** |
+| S151 | Milestone 27 Closeout. **Complete.** |
 
 ### M28 Sprint Sequence
 
 | Sprint | Deliverable |
 |---:|---|
-| S152 | Next.js Workspace Shell and API Client Foundation |
+| S152 | Next.js Workspace Shell and API Client Foundation. **Next.** |
 | S153 | Strategy List, Detail, Research, and Backtest Views |
 | S154 | Governance Evidence and Report Artifact Views |
 | S155 | Paper Run Launch and Status Workspace |
@@ -287,7 +287,7 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 13. Broker-specific concerns must remain behind adapters.
 14. Real capital requires separate risk, operational, and live-readiness governance.
 
-## Milestone 27 Progress
+## Completed Milestone 27 — Persistence and Paper Job Control Foundation
 
 Sprint 145 established:
 
@@ -384,11 +384,25 @@ copy result payloads into SQLite, and the existing synchronous
 `POST /api/v1/paper-runs` remains unchanged and database-free. Sprint 150 adds
 no Web UI, authentication, broker, QMT, live, or capital behavior.
 
+Sprint 151 verified the complete M27 migration, transaction, recovery,
+idempotency, result-reference, artifact-authority, and browser-boundary contracts
+and closed the milestone without changing runtime code, schemas, dependencies,
+or test behavior.
+
+See:
+
+```text
+docs/milestones/milestone-027-persistence-and-paper-job-control-foundation.md
+docs/sprints/sprint-151-milestone-27-closeout.md
+```
+
 ## Current Next Step
 
 ```text
-Sprint 151 — Milestone 27 Closeout
+Sprint 152 — Next.js Workspace Shell and API Client Foundation
 ```
 
-Sprint 151 is the documentation and verification closeout for Milestone 27.
-This Sprint 150 implementation does not begin that work.
+Sprint 152 begins Milestone 28 with only the smallest local workspace shell,
+navigation, configuration, and typed API-client foundation. It must consume the
+versioned API and must not duplicate backend domain behavior or access SQLite or
+artifact directories directly.
