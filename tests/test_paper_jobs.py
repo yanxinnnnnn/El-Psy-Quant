@@ -277,6 +277,8 @@ def test_product_record_rejects_invalid_identity_state_and_time(
         ("queued", "canceled"),
         ("running", "succeeded"),
         ("running", "failed"),
+        ("running", "queued"),
+        ("failed", "queued"),
     ),
 )
 def test_transition_contract_allows_only_approved_immutable_changes(
@@ -323,6 +325,8 @@ def test_transition_contract_allows_only_approved_immutable_changes(
             ("queued", "canceled"),
             ("running", "succeeded"),
             ("running", "failed"),
+            ("running", "queued"),
+            ("failed", "queued"),
         }
     ),
 )

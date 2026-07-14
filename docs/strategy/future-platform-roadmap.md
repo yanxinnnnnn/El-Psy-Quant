@@ -223,7 +223,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 ## Phase 4 — Founder Paper Trading Productization
 
 Status: Milestones 25 and 26 complete; Milestone 27 is in progress through
-Sprint 148.
+Sprint 149.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -500,7 +500,7 @@ S145 — SQLite and SQLAlchemy Product Persistence Foundation — Complete
 S146 — Artifact Index and Product Repository Foundation — Complete
 S147 — Durable Paper Job Record and Submission Foundation — Complete
 S148 — Simple Local Paper Job Runner and Manual Control — Complete
-S149 — Job Recovery, Idempotency, and Error Audit Foundation
+S149 — Job Recovery, Idempotency, and Error Audit Foundation — Complete
 S150 — Durable Job API and Result Reference Integration
 S151 — Milestone 27 Closeout
 ```
@@ -797,16 +797,29 @@ recovery, idempotency, error audit, partial-output cleanup, running-job
 cancellation, durable-job API, Web UI, broker, QMT, live, or capital behavior.
 Interrupted jobs may remain running and partial output may remain after failure.
 
+Sprint 149 added exactly two compact operational tables at migration head
+`0004_paper_job_recovery_audit`: caller submission-key mappings and numbered
+execution attempts. Exact keyed replay returns the original job for the same
+canonical request digest; mismatched replay conflicts. This is replay-safe
+durable creation, not exactly-once execution. New runner claims and terminal
+updates atomically pair job and attempt state, and expected failures persist only
+approved sanitized codes.
+
+Interrupted-job recovery and failed-job retry are explicit manual commands.
+Recovery validates authoritative output files without rewriting them and
+supports legacy running jobs without attempts. Sprint 149 added no automatic
+scan, worker, polling, retry loop, cleanup, result reference, durable-job API,
+Web UI, lifecycle mutation, broker, QMT, live, or capital behavior.
+
 ## Current Next Step
 
 ```text
-Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
+Sprint 150 — Durable Job API and Result Reference Integration
 ```
 
-Sprint 149 should add the smallest explicit recovery, idempotency, and
-error-audit foundation while preserving the Sprint 148 single-job runner,
-transaction boundaries, artifact authority, and separation from lifecycle
-governance.
+Sprint 150 should add only durable-job API and result-reference integration
+while preserving Sprint 149 replay, audit, recovery, transaction, and
+artifact-authority boundaries.
 
 ## One-Line Strategy
 

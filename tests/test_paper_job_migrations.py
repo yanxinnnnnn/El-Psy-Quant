@@ -19,6 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 BASELINE_REVISION = "0001_product_baseline"
 ARTIFACT_INDEX_REVISION = "0002_artifact_index"
 PAPER_JOBS_REVISION = "0003_paper_jobs"
+RECOVERY_AUDIT_REVISION = "0004_paper_job_recovery_audit"
 
 
 def _config() -> Config:
@@ -43,7 +44,10 @@ def _current(database_path: Path) -> str | None:
 def test_exact_migration_chain() -> None:
     scripts = ScriptDirectory.from_config(_config())
 
-    assert scripts.get_heads() == [PAPER_JOBS_REVISION]
+    assert scripts.get_heads() == [RECOVERY_AUDIT_REVISION]
+    assert scripts.get_revision(RECOVERY_AUDIT_REVISION).down_revision == (
+        PAPER_JOBS_REVISION
+    )
     assert scripts.get_revision(PAPER_JOBS_REVISION).down_revision == (
         ARTIFACT_INDEX_REVISION
     )
@@ -65,7 +69,7 @@ def test_upgrade_creates_only_approved_tables_and_exact_paper_job_schema(
     if starting_revision != "base":
         command.upgrade(config, starting_revision)
 
-    command.upgrade(config, "head")
+    command.upgrade(config, PAPER_JOBS_REVISION)
 
     assert _current(database_path) == PAPER_JOBS_REVISION
     engine = _engine(database_path)

@@ -151,7 +151,7 @@ Critical ownership decisions:
 | S146 | Artifact Index and Product Repository Foundation. **Complete.** |
 | S147 | Durable Paper Job Record and Submission Foundation. **Complete.** |
 | S148 | Simple Local Paper Job Runner and Manual Control. **Complete.** |
-| S149 | Job Recovery, Idempotency, and Error Audit Foundation |
+| S149 | Job Recovery, Idempotency, and Error Audit Foundation. **Complete.** |
 | S150 | Durable Job API and Result Reference Integration |
 | S151 | Milestone 27 Closeout |
 
@@ -350,12 +350,25 @@ idempotency, error audit, partial-output cleanup, running-job cancellation, API
 endpoint, Web UI, broker, QMT, live, or capital behavior. Interrupted jobs may
 remain running and partial output may remain after failure.
 
+Sprint 149 established:
+
+- migration head `0004_paper_job_recovery_audit` with exactly submission-key
+  and execution-attempt tables
+- optional caller-key replay using the exact canonical request SHA-256 digest
+- atomic job/attempt claim and completion with sanitized error codes
+- explicit interrupted-job reconciliation, including legacy running jobs
+- explicit failed-job requeue after clean-output preflight
+
+Keyed submission is replay-safe durable creation, not exactly-once execution.
+Recovery and retry remain manual. No worker, scan, polling, cleanup, result
+reference, API, lifecycle mutation, broker, QMT, live, or capital behavior was
+added.
+
 ## Current Next Step
 
 ```text
-Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
+Sprint 150 — Durable Job API and Result Reference Integration
 ```
 
-Sprint 149 should add only the explicitly designed recovery, idempotency, and
-error-audit foundation while preserving Sprint 148's selected-job execution,
-file authority, transaction ownership, and lifecycle-separation boundaries.
+Sprint 150 should add only durable-job API and result-reference integration
+while preserving Sprint 149's manual control and artifact authority.

@@ -4,7 +4,7 @@
 
 In Progress.
 
-Sprints 145, 146, 147, and 148 are complete. Sprint 149 is next.
+Sprints 145 through 149 are complete. Sprint 150 is next.
 
 ## Objective
 
@@ -32,8 +32,8 @@ UI, distributed queue, broker adapter, QMT, live execution, or capital behavior.
 | S146 | Complete | Artifact Index and Product Repository Foundation. |
 | S147 | Complete | Durable Paper Job Record and Submission Foundation. |
 | S148 | Complete | Simple Local Paper Job Runner and Manual Control. |
-| S149 | Next | Job Recovery, Idempotency, and Error Audit Foundation. |
-| S150 | Planned | Durable Job API and Result Reference Integration. |
+| S149 | Complete | Job Recovery, Idempotency, and Error Audit Foundation. |
+| S150 | Next | Durable Job API and Result Reference Integration. |
 | S151 | Planned | Milestone 27 Closeout. |
 
 ## Sprint 145 Foundation
@@ -142,7 +142,7 @@ Successful completed outputs remain the existing paper artifact and result
 summary files. SQLite stores no result payload or reference. The explicit
 runner does not scan, loop, poll, retry, recover, or start automatically.
 Interrupted jobs may remain `running`, and partial output may remain after a
-failure. Sprint 149 owns recovery, idempotency, and error audit.
+failure until an explicit Sprint 149 recovery or retry command is applied.
 
 ## Authority Boundaries
 
@@ -156,18 +156,37 @@ snapshots and approved human transition records. It must not become an
 independently authoritative mutable field.
 
 Paper-job status is mutable operational state and remains separate from
-lifecycle governance. Submission creates only the initial queued state; Sprint
-148 transitions it only through the four approved operational paths.
+lifecycle governance. Submission creates only the initial queued state. Sprint
+148 introduced four operational paths; Sprint 149 adds only running-to-queued
+recovery and failed-to-queued manual retry.
 
-## Sprint 145–148 Non-Goals
+## Sprint 149 Foundation
 
-Through Sprint 148, Milestone 27 adds no:
+Sprint 149 provides:
+
+- migration `0004_paper_job_recovery_audit` with exactly
+  `paper_job_submission_keys` and `paper_job_attempts`
+- optional caller keys bound to the exact canonical request SHA-256 digest,
+  with exact replay and explicit mismatched-replay conflict
+- compact immutable numbered attempts and approved sanitized error codes
+- atomic job/attempt claim and completion under caller-owned transactions
+- a strict result-summary reader and cross-file consistency validator
+- explicit manual recovery, including legacy running jobs without attempts
+- explicit failed-job retry after clean-output preflight
+
+Output files remain authoritative. Keyed submission is replay-safe durable
+creation, not exactly-once execution. Recovery and retry are manual and never
+rewrite or delete output files.
+
+## Sprint 145–149 Non-Goals
+
+Through Sprint 149, Milestone 27 adds no:
 
 - automatic job scanning, worker loop, polling, scheduler, background task, or
   startup execution
-- retry, interrupted-job recovery, idempotency, or exactly-once design
-- persisted job error, result payload, or result-reference information
-- partial-output cleanup or reconciliation
+- automatic retry/recovery or exactly-once execution design
+- raw persisted job errors, result payloads, or result-reference information
+- partial-output cleanup, deletion, relocation, or rewriting
 - running-job cancellation, pause, or resume
 - new or database-backed API endpoint
 - request-scoped database dependency
@@ -184,5 +203,5 @@ quality gate passes without introducing distributed or live-trading behavior.
 ## Next Sprint
 
 ```text
-Sprint 149 — Job Recovery, Idempotency, and Error Audit Foundation
+Sprint 150 — Durable Job API and Result Reference Integration
 ```
