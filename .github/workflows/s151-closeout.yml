@@ -1,0 +1,43 @@
+name: Apply Sprint 151 closeout documentation
+
+on:
+  push:
+    branches:
+      - cto/sprint-151-milestone-27-closeout
+
+permissions:
+  contents: write
+
+jobs:
+  closeout:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cto/sprint-151-milestone-27-closeout
+          fetch-depth: 0
+      - name: Apply approved closeout changes
+        run: |
+          python .github/s151_patch_readme.py
+          python .github/s151_patch_agents.py
+          python .github/s151_patch_roadmap.py
+          python .github/s151_patch_future.py
+          python .github/s151_write_sprint.py
+          rm .github/s151_patch_readme.py
+          rm .github/s151_patch_agents.py
+          rm .github/s151_patch_roadmap.py
+          rm .github/s151_patch_future.py
+          rm .github/s151_write_sprint.py
+          rm .github/workflows/s151-closeout.yml
+      - name: Verify final documentation-only diff
+        run: |
+          git diff --name-only
+          test -z "$(git diff --name-only | grep -Ev '^(README.md|AGENTS.md|docs/|\.github/)' || true)"
+      - name: Commit closeout documentation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md AGENTS.md docs .github
+          git commit -m "docs: close milestone 27"
+          git push origin HEAD:cto/sprint-151-milestone-27-closeout
