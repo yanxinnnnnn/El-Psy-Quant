@@ -8,12 +8,12 @@ export default function OverviewPage() {
     <WorkspaceShell>
       <div className="overview">
         <section className="overview-hero" aria-labelledby="overview-title">
-          <p className="eyebrow">Overview · Sprint 156</p>
+          <p className="eyebrow">Overview · Sprint 157</p>
           <h1 id="overview-title">A calm control surface for reviewable paper workflows.</h1>
           <p className="overview-hero__summary">
-            The workspace now adds immutable completed paper-result inspection to
-            deliberate job operations and backend-owned strategy, research,
-            governance, and report inspection.
+            The workspace now adds explicit ordered paper-result comparison to
+            immutable result inspection, deliberate job operations, and backend-owned
+            strategy, research, governance, and report inspection.
           </p>
           <div className="overview-actions">
             <Link className="primary-link" href="/strategies">Browse strategies</Link>
@@ -21,6 +21,7 @@ export default function OverviewPage() {
             <Link className="text-link" href="/evidence-manifests">Inspect governance evidence</Link>
             <Link className="text-link" href="/paper-jobs">Operate paper jobs</Link>
             <Link className="text-link" href="/portfolio-records">Inspect portfolio records</Link>
+            <Link className="text-link" href="/comparisons">Compare paper results</Link>
           </div>
         </section>
 
@@ -44,13 +45,14 @@ export default function OverviewPage() {
         <section className="coming-next" aria-labelledby="coming-next-title">
           <div>
             <p className="eyebrow">Next planned workspace</p>
-            <h2 id="coming-next-title">Paper run comparison</h2>
+            <h2 id="coming-next-title">Lifecycle proposal and review</h2>
           </div>
           <p>
-            Sprint 157 is the next planned workspace. Sprint 156 displays authoritative
-            cash and quantity records without inventing marked-to-market equity or polling.
+            Sprint 158 is the next planned workspace. Sprint 157 compares only
+            backend-provided facts in explicit selected order without ranking,
+            cross-run calculations, or polling.
           </p>
-          <span className="sprint-chip">S157</span>
+          <span className="sprint-chip">S158</span>
         </section>
       </div>
     </WorkspaceShell>

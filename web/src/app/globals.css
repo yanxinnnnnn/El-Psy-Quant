@@ -987,6 +987,111 @@ tbody th {
   border-radius: 0.8rem;
 }
 
+.comparison-primary-loading,
+.comparison-query-error {
+  max-width: none;
+  margin-bottom: 1.5rem;
+}
+
+.comparison-chooser,
+.comparison-results {
+  margin-top: 2rem;
+}
+
+.comparison-chooser > .section-heading,
+.comparison-results > .section-heading {
+  margin-bottom: 1rem;
+}
+
+.selected-count {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.comparison-candidate-select {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.comparison-candidate-select input {
+  width: 1.15rem;
+  min-height: 1.15rem;
+  margin-top: 0.15rem;
+}
+
+.comparison-candidate-select label {
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.comparison-candidate-select input:disabled + label {
+  color: var(--ink-muted);
+}
+
+.comparison-run-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.comparison-run-card {
+  min-width: 0;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  box-shadow: var(--shadow);
+}
+
+.comparison-run-card h3 {
+  margin: 0.4rem 0 0.8rem;
+  overflow-wrap: anywhere;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.comparison-run-card .compact-definitions {
+  grid-template-columns: 1fr;
+}
+
+.comparison-run-card .record-card__actions {
+  margin-top: 1.2rem;
+}
+
+.comparison-run-card--error {
+  border-color: rgb(140 61 56 / 35%);
+}
+
+.comparison-matrix table {
+  min-width: max(42rem, 100%);
+}
+
+.comparison-matrix th:not(:first-child),
+.comparison-matrix td:not(:first-child) {
+  min-width: 13rem;
+  overflow-wrap: anywhere;
+}
+
+.comparison-position-run {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.comparison-position-run h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
 .filter-bar label,
 .form-grid label,
 .repeatable-row label,

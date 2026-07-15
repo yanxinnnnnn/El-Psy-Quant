@@ -66,7 +66,10 @@ export function PortfolioRecordListView() {
             the backend marks available.
           </p>
         </div>
-        <Link className="text-link" href="/paper-jobs">Back to paper jobs</Link>
+        <div className="record-card__actions">
+          <Link className="primary-link" href="/comparisons">Compare paper results</Link>
+          <Link className="text-link" href="/paper-jobs">Back to paper jobs</Link>
+        </div>
       </header>
 
       <form

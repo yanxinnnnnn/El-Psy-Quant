@@ -164,8 +164,8 @@ Critical ownership decisions:
 | S154 | Governance Evidence and Report Artifact Views. **Complete.** |
 | S155 | Paper Run Launch and Status Workspace. **Complete.** |
 | S156 | Equity, Positions, Orders, and Fills Views. **Complete.** |
-| S157 | Paper Run Comparison Workspace. **Next.** |
-| S158 | Lifecycle Proposal, Human Review, and Timeline Workspace |
+| S157 | Paper Run Comparison Workspace. **Complete.** |
+| S158 | Lifecycle Proposal, Human Review, and Timeline Workspace. **Next.** |
 | S159 | Minimal Authentication, Docker Compose, and End-to-End MVP Closeout |
 
 ### M29 Sprint Sequence
@@ -399,15 +399,16 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 157 — Paper Run Comparison Workspace
+Sprint 158 — Lifecycle Proposal, Human Review, and Timeline Workspace
 ```
 
-Sprint 156 delivered the two portfolio-record route families through the fixed
-same-origin API boundary. It reads only succeeded job metadata and exact
-authoritative results, preserves backend order and duplicates, displays supplied
-cash, quantity, change, count, reference, summary, and audit fields, and does not
-invent marked-to-market equity or other financial calculations. Result links
-depend only on backend-owned availability, `result_url` is never followed, and
-refresh remains manual. Sprint 157 is the next bounded Founder workspace and
-must preserve the generated-contract, artifact-authority, bounded-error,
-accessibility, manual-refresh, and unified quality-gate boundaries.
+Sprint 157 delivered one `/comparisons` route with explicit two-to-four-run
+selection encoded as repeated ordered `job_id` parameters. It consumes only the
+existing succeeded-job list and exact result endpoints, preserves partial
+success and per-run failures, and keeps refresh and retry manual. Account cash,
+session summaries, audits, positions, and backend-provided position changes are
+juxtaposed without cross-run calculations, ranking, recommendations, full
+order/fill alignment, or M21 comparison-artifact construction. Sprint 158 is
+the next bounded Founder workspace and must preserve the generated-contract,
+artifact-authority, bounded-error, accessibility, manual-refresh, and unified
+quality-gate boundaries.
