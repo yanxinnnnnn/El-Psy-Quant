@@ -162,8 +162,8 @@ Critical ownership decisions:
 | S152 | Next.js Workspace Shell and API Client Foundation. **Complete.** |
 | S153 | Strategy List, Detail, Research, and Backtest Views. **Complete.** |
 | S154 | Governance Evidence and Report Artifact Views. **Complete.** |
-| S155 | Paper Run Launch and Status Workspace. **Next.** |
-| S156 | Equity, Positions, Orders, and Fills Views |
+| S155 | Paper Run Launch and Status Workspace. **Complete.** |
+| S156 | Equity, Positions, Orders, and Fills Views. **Next.** |
 | S157 | Paper Run Comparison Workspace |
 | S158 | Lifecycle Proposal, Human Review, and Timeline Workspace |
 | S159 | Minimal Authentication, Docker Compose, and End-to-End MVP Closeout |
@@ -399,14 +399,15 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 155 — Paper Run Launch and Status Workspace
+Sprint 156 — Equity, Positions, Orders, and Fills Views
 ```
 
-Sprint 154 delivered `/evidence-manifests` and
-`/evidence-manifests/[manifestType]/[artifactKey]` through the existing fixed
-same-origin API boundary. It displays the three backend-discriminated governance
-and report variants, preserves reference-group order and duplicates, keeps
-references unresolved and non-downloadable, and distinguishes empty configured
-roots from unavailable or invalid artifacts. Sprint 155 is the next bounded
-Founder workspace and must preserve the generated-contract, artifact-authority,
-bounded-error, accessibility, and unified quality-gate boundaries.
+Sprint 155 delivered the three paper-job route families through the fixed
+same-origin API boundary. It keeps submission separate from Run, uses generated
+request and 202 Accepted types, supports exact optional idempotency, renders
+backend-owned job/attempt state, and offers only status-appropriate confirmed
+manual controls. Recovery uses explicit UTC input; refresh is manual; loaded job
+data survives attempt and mutation failures; and result contents remain
+deferred. Sprint 156 is the next bounded Founder workspace and must preserve the
+generated-contract, artifact-authority, bounded-error, accessibility, and
+unified quality-gate boundaries.

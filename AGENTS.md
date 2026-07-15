@@ -193,14 +193,26 @@ approval state, or access files directly. It preserved backend, OpenAPI,
 same-origin transport, artifact authority, bounded errors, accessibility, and
 the unified quality gate. It added no paper controls or S155–S159 behavior.
 
+Sprint 155 added exactly the durable paper-job list, structured queued-job
+submission, exact job/attempt detail, and status-dependent confirmed Run,
+Cancel, Retry, and Recover controls under `/paper-jobs`. Submission and Run
+remain separate; optional idempotency is exact; Run consumes the generated 202
+Accepted response; Retry only requeues; Recover requires explicit UTC input;
+and refresh is manual with no polling or command chaining. The UI shows only
+backend-owned result availability and does not call the result endpoint. It
+preserved same-origin transport, generated contracts, artifact authority,
+bounded errors, accessibility, and the unified quality gate. It added no
+equity, position, order, fill, comparison, lifecycle, authentication, broker,
+QMT, live, or S156–S159 behavior.
+
 The next sprint is:
 
 ```text
-Sprint 155 — Paper Run Launch and Status Workspace
+Sprint 156 — Equity, Positions, Orders, and Fills Views
 ```
 
-Sprint 155 may add only the paper-run launch and status workspace defined by its
-future authoritative issue. It must preserve the Sprint 152–154 same-origin
+Sprint 156 may add only the result-inspection workspace defined by its future
+authoritative issue. It must preserve the Sprint 152–155 same-origin
 transport, generated-contract, bounded-error, route-family navigation,
 artifact-authority, accessibility, and frontend quality-gate boundaries.
 

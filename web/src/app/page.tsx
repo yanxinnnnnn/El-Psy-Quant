@@ -8,23 +8,18 @@ export default function OverviewPage() {
     <WorkspaceShell>
       <div className="overview">
         <section className="overview-hero" aria-labelledby="overview-title">
-          <p className="eyebrow">Overview · Sprint 154</p>
+          <p className="eyebrow">Overview · Sprint 155</p>
           <h1 id="overview-title">A calm control surface for reviewable paper workflows.</h1>
           <p className="overview-hero__summary">
-            The workspace now supports backend-owned strategy, research, governance, and
-            report-manifest inspection while keeping execution, artifacts, and domain meaning
-            outside the browser.
+            The workspace now adds deliberate durable paper-job submission, status,
+            attempt audit, and manual controls to backend-owned strategy, research,
+            governance, and report inspection.
           </p>
           <div className="overview-actions">
-            <Link className="primary-link" href="/strategies">
-              Browse strategies
-            </Link>
-            <Link className="text-link" href="/research-runs">
-              Inspect research runs
-            </Link>
-            <Link className="text-link" href="/evidence-manifests">
-              Inspect governance evidence
-            </Link>
+            <Link className="primary-link" href="/strategies">Browse strategies</Link>
+            <Link className="text-link" href="/research-runs">Inspect research runs</Link>
+            <Link className="text-link" href="/evidence-manifests">Inspect governance evidence</Link>
+            <Link className="text-link" href="/paper-jobs">Operate paper jobs</Link>
           </div>
         </section>
 
@@ -39,7 +34,7 @@ export default function OverviewPage() {
             </p>
             <dl className="boundary-list">
               <div><dt>Mode</dt><dd>Founder-only · Local</dd></div>
-              <div><dt>Execution</dt><dd>Paper trading only</dd></div>
+              <div><dt>Execution</dt><dd>Explicit paper commands only</dd></div>
               <div><dt>Connection</dt><dd>Same-origin API gateway</dd></div>
             </dl>
           </section>
@@ -48,13 +43,13 @@ export default function OverviewPage() {
         <section className="coming-next" aria-labelledby="coming-next-title">
           <div>
             <p className="eyebrow">Next planned workspace</p>
-            <h2 id="coming-next-title">Paper run launch and status</h2>
+            <h2 id="coming-next-title">Equity, positions, orders, and fills</h2>
           </div>
           <p>
-            Sprint 155 will add deliberate paper-run launch and status views. Those future
-            routes and controls are not introduced in this sprint.
+            Sprint 156 will add authoritative result inspection. Sprint 155 shows only
+            backend result availability and never opens result contents or polls job status.
           </p>
-          <span className="sprint-chip">S155</span>
+          <span className="sprint-chip">S156</span>
         </section>
       </div>
     </WorkspaceShell>

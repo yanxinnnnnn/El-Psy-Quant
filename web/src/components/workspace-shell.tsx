@@ -29,7 +29,7 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
           <WorkspaceNavigation />
           <div className="sidebar-note">
             <p>Milestone 28</p>
-            <span>Research and governance inspection</span>
+            <span>Review and explicit paper operations</span>
           </div>
         </aside>
 
