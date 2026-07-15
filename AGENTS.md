@@ -175,16 +175,26 @@ deterministic FastAPI OpenAPI export, generated TypeScript types, typed health
 client, and frontend quality-gate/CI integration. It added no S153–S159 business
 page, authentication, Docker Compose, broker, QMT, live, or distributed behavior.
 
+Sprint 153 added exactly four Founder-facing strategy and research routes,
+endpoint-specific generated-contract clients, route-aware navigation, bounded
+loading/empty/error/not-found states, read-only saved metric and artifact-reference
+inspection, and responsive semantic tables. It preserved backend, domain,
+artifact, same-origin transport, OpenAPI generation, and unified quality-gate
+authority. It added no execution, metric recomputation, chart, ranking,
+governance/report, paper-job, authentication, broker, QMT, live, or S154–S159
+behavior.
+
 The next sprint is:
 
 ```text
-Sprint 153 — Strategy List, Detail, Research, and Backtest Views
+Sprint 154 — Governance Evidence and Report Artifact Views
 ```
 
-Sprint 153 may add only the strategy list/detail and research/backtest inspection
-views defined by its authoritative issue. It must preserve the Sprint 152
-same-origin transport, generated-contract, error, navigation, and frontend
-quality-gate boundaries.
+Sprint 154 may add only the governance evidence and report-artifact views defined
+by its future authoritative issue. It must preserve the Sprint 152–153
+same-origin transport, generated-contract, bounded-error, route-family navigation,
+artifact-authority, presentation-only formatting, and frontend quality-gate
+boundaries.
 
 Approved productization sequence:
 
