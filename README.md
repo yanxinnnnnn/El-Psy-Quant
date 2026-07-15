@@ -13,8 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–27 are complete. **Milestone 28 — Founder Paper Trading Web
 Workspace** is in progress.
 
-The latest completed sprint is **Sprint 152 — Next.js Workspace Shell and API
-Client Foundation**.
+The latest completed sprint is **Sprint 153 — Strategy List, Detail, Research,
+and Backtest Views**.
 
 Milestone 27 established durable local product persistence and manually controlled
 paper-job operations beneath the existing versioned application API:
@@ -45,11 +45,11 @@ state, replay-safe submission, attempt audit, manual recovery and retry, compact
 result references, and a versioned durable-job API while keeping completed files
 authoritative.
 
-Milestone 28 now has its first Founder-facing local Web workspace foundation.
-Sprints 138 through 152 are complete. The next sprint is:
+Milestone 28 now has its first Founder-facing strategy and research business
+workspace. Sprints 138 through 153 are complete. The next sprint is:
 
 ```text
-Sprint 153 — Strategy List, Detail, Research, and Backtest Views
+Sprint 154 — Governance Evidence and Report Artifact Views
 ```
 
 The approved productization sequence is:
@@ -237,10 +237,13 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - versioned durable job submission, status, attempts, control, and result API
 - Local Founder Web foundation:
   - strict TypeScript Next.js 16 App Router application under `web/`
-  - responsive accessible workspace shell with Overview as the only enabled page
+  - responsive accessible workspace shell with Overview and Strategies/Research enabled
   - loopback-only server configuration and fixed same-origin `/api/backend` rewrite
   - deterministic FastAPI OpenAPI snapshot and generated TypeScript API types
   - typed health client with bounded errors, request IDs, visible failure, and retry
+  - strategy list and exact-name detail routes with descriptive read-only parameters
+  - configured research-run list and detail routes with saved per-symbol metrics
+  - explicit loading, empty, bounded failure, not-found, and manual retry states
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
 - GitHub Actions CI and local quality gate in `scripts/check.py`.
@@ -289,10 +292,28 @@ npm --prefix web run contracts:generate
 npm --prefix web run contracts:check
 ```
 
-Sprint 152 implements only the workspace shell and process-health connection.
-Business pages, authentication, Docker Compose, broker/QMT, live behavior, and
-distributed infrastructure remain deferred. Sprint 153 adds the first strategy
-and research business views.
+The delivered Web business routes are:
+
+```text
+/strategies
+/strategies/[strategyName]
+/research-runs
+/research-runs/[experimentSlug]/[runId]
+```
+
+Research inspection requires `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT` on the
+FastAPI server. A successfully configured empty root is shown as an empty list;
+an unset, missing, unreadable, or invalid root is shown as a bounded API error
+with its request ID. The UI displays API-supplied saved metrics without
+recomputing, aggregating, ranking, or scoring them. Artifact references are
+read-only text and are not download links. No chart is rendered because the
+current endpoint exposes no authoritative time series.
+
+The browser continues to call only `/api/backend/api/v1/...`, and all success
+types continue to derive from the checked-in FastAPI OpenAPI contract.
+Governance/report pages, paper controls, authentication, Docker Compose,
+broker/QMT, live behavior, and distributed infrastructure remain deferred.
+Sprint 154 is the next planned workspace.
 
 Initialize or upgrade the local product database only through an explicit
 operator action. The parent directory must already exist:

@@ -160,8 +160,8 @@ Critical ownership decisions:
 | Sprint | Deliverable |
 |---:|---|
 | S152 | Next.js Workspace Shell and API Client Foundation. **Complete.** |
-| S153 | Strategy List, Detail, Research, and Backtest Views. **Next.** |
-| S154 | Governance Evidence and Report Artifact Views |
+| S153 | Strategy List, Detail, Research, and Backtest Views. **Complete.** |
+| S154 | Governance Evidence and Report Artifact Views. **Next.** |
 | S155 | Paper Run Launch and Status Workspace |
 | S156 | Equity, Positions, Orders, and Fills Views |
 | S157 | Paper Run Comparison Workspace |
@@ -399,12 +399,15 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 153 — Strategy List, Detail, Research, and Backtest Views
+Sprint 154 — Governance Evidence and Report Artifact Views
 ```
 
-Sprint 152 established the local Next.js workspace shell, explicit future-only
-navigation, loopback-only same-origin API transport, deterministic generated
-OpenAPI contract, typed health client, and unified frontend quality gate without
-adding business pages. Sprint 153 is the first strategy and research inspection
-workspace and must continue to consume the versioned API without duplicating
-backend domain behavior or accessing SQLite or artifact directories directly.
+Sprint 153 delivered `/strategies`, `/strategies/[strategyName]`,
+`/research-runs`, and `/research-runs/[experimentSlug]/[runId]` through the
+existing fixed same-origin API boundary. It displays exact strategy metadata,
+configured run manifests, read-only artifact references, and saved per-symbol
+metrics without execution, recomputation, aggregation, ranking, scoring, or
+fabricated time series. Empty configured research roots remain distinct from
+unavailable or invalid roots. Sprint 154 is the next bounded Founder workspace
+and must preserve the generated-contract, artifact-authority, and unified
+quality-gate boundaries.

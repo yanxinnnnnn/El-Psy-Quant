@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { workspaceDestinations } from "@/navigation";
+import { WorkspaceNavigation } from "@/components/workspace-navigation";
 
 export function WorkspaceShell({ children }: { children: ReactNode }) {
   return (
@@ -26,29 +26,10 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
 
       <div className="workspace-body">
         <aside className="workspace-sidebar">
-          <nav aria-label="Founder workspace">
-            <p className="navigation-label">Workspace</p>
-            <ul className="navigation-list">
-              {workspaceDestinations.map((destination) => (
-                <li key={destination.label}>
-                  {destination.available && destination.href ? (
-                    <a className="navigation-item navigation-item--active" href={destination.href}>
-                      <span>{destination.label}</span>
-                      <span className="navigation-state">Current</span>
-                    </a>
-                  ) : (
-                    <span className="navigation-item navigation-item--future" aria-disabled="true">
-                      <span>{destination.label}</span>
-                      <span className="navigation-state">{destination.sprint}</span>
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <WorkspaceNavigation />
           <div className="sidebar-note">
             <p>Milestone 28</p>
-            <span>Workspace foundation</span>
+            <span>Strategy and research inspection</span>
           </div>
         </aside>
 
