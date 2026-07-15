@@ -61,25 +61,44 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
   const [mutation, setMutation] = useState<MutationState>({ status: "idle" });
   const [staleBefore, setStaleBefore] = useState("");
   const [recoveryFieldError, setRecoveryFieldError] = useState<string | null>(null);
+  const [runRefreshRequired, setRunRefreshRequired] = useState(false);
+  const [runRefreshSequence, setRunRefreshSequence] = useState<number | null>(null);
   const pendingRef = useRef(false);
-  const job = mutationJob ?? (jobResource.state.status === "success" ? jobResource.state.data : null);
+  const runRefreshSatisfied = runRefreshRequired
+    && runRefreshSequence !== null
+    && jobResource.state.status === "success"
+    && jobResource.state.sequence === runRefreshSequence;
+  const runRefreshLocked = runRefreshRequired && !runRefreshSatisfied;
+  const refreshedRunJob = runRefreshSatisfied && jobResource.state.status === "success"
+    ? jobResource.state.data
+    : null;
+  const job = refreshedRunJob ?? mutationJob ?? (jobResource.state.status === "success" ? jobResource.state.data : null);
 
   function refresh() {
-    setMutationJob(null);
+    if (runRefreshLocked) {
+      setRunRefreshSequence(jobResource.retry());
+    } else {
+      setRunRefreshRequired(false);
+      setRunRefreshSequence(null);
+      setMutationJob(null);
+      jobResource.retry();
+    }
     setMutation({ status: "idle" });
-    jobResource.retry();
     attemptsResource.retry();
   }
 
   function confirm(action: JobAction) {
+    if (pendingRef.current || runRefreshLocked || mutation.status === "confirming" || mutation.status === "pending") {
+      return;
+    }
     setRecoveryFieldError(null);
     setMutation({ status: "confirming", action });
   }
 
   function execute(action: JobAction) {
-    if (pendingRef.current) return;
+    if (pendingRef.current || runRefreshLocked) return;
     if (action === "recover" && !isExplicitUtcTimestamp(staleBefore)) {
-      setRecoveryFieldError("Enter an exact timezone-aware UTC timestamp ending in Z or ±00:00.");
+      setRecoveryFieldError("Enter a full UTC date and time ending in Z or +00:00.");
       return;
     }
     pendingRef.current = true;
@@ -91,6 +110,13 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
     else request = recoverPaperJob(jobId, { stale_before: staleBefore });
     void request.then((result) => {
       setMutationJob(result.data);
+      if (action === "run") {
+        setRunRefreshRequired(true);
+        setRunRefreshSequence(null);
+      } else {
+        setRunRefreshRequired(false);
+        setRunRefreshSequence(null);
+      }
       setMutation({ status: "success", action, message: actionSuccessMessage(action, result.data), requestId: result.requestId });
     }).catch((error: unknown) => {
       if (error instanceof ApiClientError) {
@@ -129,7 +155,7 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
           </header>
 
           <section className="content-panel" aria-labelledby="job-status-title">
-            <div className="section-heading"><div><p className="eyebrow">Last successful backend representation</p><h2 id="job-status-title">Job status</h2></div><span className={`job-status job-status--${job.status}`}>{job.status}</span></div>
+            <div className="section-heading"><div><p className="eyebrow">{runRefreshLocked ? "Accepted Run response · Awaiting manual refresh" : "Last successful backend representation"}</p><h2 id="job-status-title">Job status</h2></div><span className={`job-status job-status--${job.status}`}>{job.status}</span></div>
             <dl className="definition-grid definition-grid--wide">
               <div><dt>Job ID</dt><dd>{job.job_id}</dd></div>
               <div><dt>Run ID</dt><dd>{job.run_id}</dd></div>
@@ -145,13 +171,20 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
               <div><dt>Result available</dt><dd>{job.result_available ? "Yes" : "No"}</dd></div>
               <div><dt>Detailed result inspection</dt><dd>Deferred to Sprint 156</dd></div>
             </dl>
+            {runRefreshLocked ? <p className="neutral-note" role="status"><strong>Displayed job state is stale.</strong> Refresh status is required before another action can be selected.</p> : null}
             <p className="neutral-note">The backend may own an internal result reference. This workspace does not open it, link to it, or infer availability from job status.</p>
           </section>
 
           <section className="content-panel" aria-labelledby="manual-controls-title">
             <p className="eyebrow">No automatic chaining or polling</p>
             <h2 id="manual-controls-title">Manual controls</h2>
-            {allowedActions(job.status).length === 0 ? <p className="reference-empty">No mutating control is available for a {job.status} job.</p> : <div className="control-actions">{allowedActions(job.status).map((action) => <button className={action === "cancel" ? "danger-button" : "primary-button"} type="button" key={action} onClick={() => confirm(action)}>{actionLabels[action]}</button>)}</div>}
+            {runRefreshLocked ? (
+              <p className="reference-empty">Run was accepted, not completed. Use Refresh status before selecting any mutation.</p>
+            ) : mutation.status === "confirming" || mutation.status === "pending" ? null : allowedActions(job.status).length === 0 ? (
+              <p className="reference-empty">No mutating control is available for a {job.status} job.</p>
+            ) : (
+              <div className="control-actions">{allowedActions(job.status).map((action) => <button className={action === "cancel" ? "danger-button" : "primary-button"} type="button" key={action} onClick={() => confirm(action)}>{actionLabels[action]}</button>)}</div>
+            )}
 
             {(mutation.status === "confirming" || mutation.status === "pending") ? (
               <div className="confirmation-panel" role="group" aria-labelledby="confirmation-title">

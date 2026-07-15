@@ -39,6 +39,16 @@ type FillRow = {
 };
 type FieldErrors = Record<string, string>;
 
+const decimalTransportPattern = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+
+function parseNumericTransportValue(value: string): number | null {
+  if (!decimalTransportPattern.test(value)) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 const blankAccount = (): AccountInput => ({
   timestamp: "",
   startingCash: "",
@@ -151,70 +161,99 @@ export function PaperJobSubmissionView() {
 
   function buildRequest(): PaperJobSubmissionRequest | null {
     const nextErrors: FieldErrors = {};
+    const numericValues = new Map<string, number>();
     const required = (name: string, value: string): string => {
       if (value.length === 0) nextErrors[name] = "This transport field is required.";
       return value;
     };
-    const numeric = (name: string, value: string): number => {
-      if (value.length === 0) {
-        nextErrors[name] = "Enter a finite number.";
-        return 0;
+    const validateNumeric = (name: string, value: string) => {
+      const parsed = parseNumericTransportValue(value);
+      if (parsed === null) {
+        nextErrors[name] = "Enter a finite decimal number.";
+        return;
       }
-      const parsed = Number(value);
-      if (!Number.isFinite(parsed)) nextErrors[name] = "Enter a finite number.";
-      return parsed;
+      numericValues.set(name, parsed);
     };
-    const account = (prefix: "starting" | "ending", input: AccountInput) => {
+    const validateAccount = (prefix: "starting" | "ending", input: AccountInput) => {
       const symbols = new Set<string>();
-      let positionsValid = true;
       input.positions.forEach((position, index) => {
         const symbolName = `${prefix}-position-${index}-symbol`;
         const quantityName = `${prefix}-position-${index}-quantity`;
         if (position.symbol.length === 0) {
           nextErrors[symbolName] = "Position symbol is required.";
-          positionsValid = false;
         } else if (symbols.has(position.symbol)) {
           nextErrors[symbolName] = "Duplicate position symbols are not allowed in one account state.";
-          positionsValid = false;
         }
         symbols.add(position.symbol);
-        numeric(quantityName, position.quantity);
-        if (nextErrors[quantityName]) positionsValid = false;
+        validateNumeric(quantityName, position.quantity);
       });
-      const positions = positionsValid
-        ? Object.fromEntries(input.positions.map((row, index) => [row.symbol, numeric(`${prefix}-position-${index}-quantity`, row.quantity)]))
-        : {};
-      return {
-        timestamp: required(`${prefix}-timestamp`, input.timestamp),
-        starting_cash: numeric(`${prefix}-startingCash`, input.startingCash),
-        current_cash: numeric(`${prefix}-currentCash`, input.currentCash),
-        positions,
-      };
+      required(`${prefix}-timestamp`, input.timestamp);
+      validateNumeric(`${prefix}-startingCash`, input.startingCash);
+      validateNumeric(`${prefix}-currentCash`, input.currentCash);
     };
-    const request: PaperJobSubmissionRequest = {
-      run_id: required("run-id", runId),
-      created_timestamp: required("created-timestamp", createdTimestamp),
+
+    required("run-id", runId);
+    required("created-timestamp", createdTimestamp);
+    validateAccount("starting", starting);
+    validateAccount("ending", ending);
+    orders.forEach((order, index) => {
+      required(`order-${index}-orderId`, order.orderId);
+      required(`order-${index}-timestamp`, order.timestamp);
+      required(`order-${index}-symbol`, order.symbol);
+      required(`order-${index}-side`, order.side);
+      validateNumeric(`order-${index}-quantity`, order.quantity);
+      required(`order-${index}-status`, order.status);
+    });
+    fills.forEach((fill, index) => {
+      required(`fill-${index}-timestamp`, fill.timestamp);
+      required(`fill-${index}-symbol`, fill.symbol);
+      required(`fill-${index}-side`, fill.side);
+      validateNumeric(`fill-${index}-quantity`, fill.quantity);
+      validateNumeric(`fill-${index}-price`, fill.price);
+    });
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      return null;
+    }
+
+    const numeric = (name: string): number => {
+      const value = numericValues.get(name);
+      if (value === undefined) {
+        throw new Error(`Missing validated numeric transport field: ${name}`);
+      }
+      return value;
+    };
+    const account = (prefix: "starting" | "ending", input: AccountInput) => ({
+      timestamp: input.timestamp,
+      starting_cash: numeric(`${prefix}-startingCash`),
+      current_cash: numeric(`${prefix}-currentCash`),
+      positions: Object.fromEntries(input.positions.map((row, index) => [
+        row.symbol,
+        numeric(`${prefix}-position-${index}-quantity`),
+      ])),
+    });
+    return {
+      run_id: runId,
+      created_timestamp: createdTimestamp,
       starting_account_state: account("starting", starting),
       ending_account_state: account("ending", ending),
       orders: orders.map((order, index) => ({
-        order_id: required(`order-${index}-orderId`, order.orderId),
-        timestamp: required(`order-${index}-timestamp`, order.timestamp),
-        symbol: required(`order-${index}-symbol`, order.symbol),
-        side: required(`order-${index}-side`, order.side),
-        quantity: numeric(`order-${index}-quantity`, order.quantity),
-        status: required(`order-${index}-status`, order.status),
+        order_id: order.orderId,
+        timestamp: order.timestamp,
+        symbol: order.symbol,
+        side: order.side,
+        quantity: numeric(`order-${index}-quantity`),
+        status: order.status,
       })),
       fills: fills.map((fill, index) => ({
-        timestamp: required(`fill-${index}-timestamp`, fill.timestamp),
-        symbol: required(`fill-${index}-symbol`, fill.symbol),
-        side: required(`fill-${index}-side`, fill.side),
-        quantity: numeric(`fill-${index}-quantity`, fill.quantity),
-        price: numeric(`fill-${index}-price`, fill.price),
+        timestamp: fill.timestamp,
+        symbol: fill.symbol,
+        side: fill.side,
+        quantity: numeric(`fill-${index}-quantity`),
+        price: numeric(`fill-${index}-price`),
         order_id: fill.orderId.length === 0 ? null : fill.orderId,
       })),
     };
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0 ? request : null;
   }
 
   return (

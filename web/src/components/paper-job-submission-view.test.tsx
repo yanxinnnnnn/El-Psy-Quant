@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -44,6 +44,19 @@ async function fillBaseFields(user: ReturnType<typeof userEvent.setup>) {
   await user.type(within(ending).getByLabelText("Current cash"), "900");
 }
 
+function setBaseFields() {
+  fireEvent.change(screen.getByLabelText("Run ID"), { target: { value: "run-155" } });
+  fireEvent.change(screen.getByLabelText("Created timestamp"), { target: { value: "2026-07-15T10:00:00Z" } });
+  const starting = screen.getByRole("group", { name: "Starting account state" });
+  fireEvent.change(within(starting).getByLabelText("Timestamp"), { target: { value: "2026-07-15T10:00:00Z" } });
+  fireEvent.change(within(starting).getByLabelText("Starting cash"), { target: { value: "1000.5" } });
+  fireEvent.change(within(starting).getByLabelText("Current cash"), { target: { value: "1000.5" } });
+  const ending = screen.getByRole("group", { name: "Ending account state" });
+  fireEvent.change(within(ending).getByLabelText("Timestamp"), { target: { value: "2026-07-15T11:00:00Z" } });
+  fireEvent.change(within(ending).getByLabelText("Starting cash"), { target: { value: "1000.5" } });
+  fireEvent.change(within(ending).getByLabelText("Current cash"), { target: { value: "900" } });
+}
+
 describe("PaperJobSubmissionView", () => {
   it("starts blank without fabricated positions, orders, fills, or raw JSON", () => {
     render(<PaperJobSubmissionView />);
@@ -75,12 +88,89 @@ describe("PaperJobSubmissionView", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
+  it("rejects whitespace-only starting cash without sending a request", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobSubmissionView />);
+    setBaseFields();
+    const starting = screen.getByRole("group", { name: "Starting account state" });
+    fireEvent.change(within(starting).getByLabelText("Starting cash"), { target: { value: "   " } });
+
+    await user.click(screen.getByRole("button", { name: "Submit queued job" }));
+
+    expect(await within(starting).findByText("Enter a finite decimal number.")).toBeVisible();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("rejects whitespace-only position quantity without sending a request", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobSubmissionView />);
+    setBaseFields();
+    const starting = screen.getByRole("group", { name: "Starting account state" });
+    await user.click(within(starting).getByRole("button", { name: "Add position" }));
+    fireEvent.change(within(starting).getByLabelText("Symbol"), { target: { value: "AAPL" } });
+    fireEvent.change(within(starting).getByLabelText("Quantity"), { target: { value: " \t " } });
+
+    await user.click(screen.getByRole("button", { name: "Submit queued job" }));
+
+    expect(await within(starting).findByText("Enter a finite decimal number.")).toBeVisible();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("rejects whitespace-only order and fill numeric fields without sending a request", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobSubmissionView />);
+    setBaseFields();
+    const orders = screen.getByRole("group", { name: "Orders" });
+    await user.click(within(orders).getByRole("button", { name: "Add order" }));
+    const orderRow = within(orders).getByText("Order 1").closest("div") as HTMLElement;
+    for (const [label, value] of [["Order ID", "order-a"], ["Timestamp", "2026-07-15T10:00:00Z"], ["Symbol", "AAPL"], ["Side", "buy"], ["Status", "submitted"]]) {
+      fireEvent.change(within(orderRow).getByLabelText(label), { target: { value } });
+    }
+    fireEvent.change(within(orderRow).getByLabelText("Quantity"), { target: { value: "   " } });
+
+    const fills = screen.getByRole("group", { name: "Fills" });
+    await user.click(within(fills).getByRole("button", { name: "Add fill" }));
+    const fillRow = within(fills).getByText("Fill 1").closest("div") as HTMLElement;
+    for (const [label, value] of [["Timestamp", "2026-07-15T10:01:00Z"], ["Symbol", "AAPL"], ["Side", "buy"]]) {
+      fireEvent.change(within(fillRow).getByLabelText(label), { target: { value } });
+    }
+    fireEvent.change(within(fillRow).getByLabelText("Quantity"), { target: { value: "\t" } });
+    fireEvent.change(within(fillRow).getByLabelText("Price"), { target: { value: " " } });
+
+    await user.click(screen.getByRole("button", { name: "Submit queued job" }));
+
+    expect(await screen.findAllByText("Enter a finite decimal number.")).toHaveLength(3);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each(["Infinity", "NaN", "0x10", "0b10", "1e3"])("rejects unsupported numeric syntax %s", async (value) => {
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobSubmissionView />);
+    setBaseFields();
+    const starting = screen.getByRole("group", { name: "Starting account state" });
+    fireEvent.change(within(starting).getByLabelText("Starting cash"), { target: { value } });
+
+    await user.click(screen.getByRole("button", { name: "Submit queued job" }));
+
+    expect(await within(starting).findByText("Enter a finite decimal number.")).toBeVisible();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("converts finite numbers, preserves row order, sends null fill order ID, and never runs", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(queuedJob));
     vi.stubGlobal("fetch", fetcher);
     const user = userEvent.setup();
     render(<PaperJobSubmissionView />);
     await fillBaseFields(user);
+    fireEvent.change(within(screen.getByRole("group", { name: "Ending account state" })).getByLabelText("Current cash"), { target: { value: "-900.25" } });
     await user.type(screen.getByLabelText(/Idempotency key/), "founder-key-155");
 
     const orders = screen.getByRole("group", { name: "Orders" });
@@ -93,7 +183,7 @@ describe("PaperJobSubmissionView", () => {
       await user.type(within(row as HTMLElement).getByLabelText("Timestamp"), `2026-07-15T10:0${index}:00Z`);
       await user.type(within(row as HTMLElement).getByLabelText("Symbol"), "AAPL");
       await user.type(within(row as HTMLElement).getByLabelText("Side"), "buy");
-      await user.type(within(row as HTMLElement).getByLabelText("Quantity"), String(index + 1));
+      await user.type(within(row as HTMLElement).getByLabelText("Quantity"), index === 0 ? "1" : "-2");
       await user.type(within(row as HTMLElement).getByLabelText("Status"), "submitted");
     }
     const fills = screen.getByRole("group", { name: "Fills" });
@@ -103,8 +193,8 @@ describe("PaperJobSubmissionView", () => {
     await user.type(within(fillRow as HTMLElement).getByLabelText("Timestamp"), "2026-07-15T10:05:00Z");
     await user.type(within(fillRow as HTMLElement).getByLabelText("Symbol"), "AAPL");
     await user.type(within(fillRow as HTMLElement).getByLabelText("Side"), "buy");
-    await user.type(within(fillRow as HTMLElement).getByLabelText("Quantity"), "1.5");
-    await user.type(within(fillRow as HTMLElement).getByLabelText("Price"), "123.45");
+    await user.type(within(fillRow as HTMLElement).getByLabelText("Quantity"), ".5");
+    await user.type(within(fillRow as HTMLElement).getByLabelText("Price"), "-123.45");
 
     await user.click(screen.getByRole("button", { name: "Submit queued job" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith(`/paper-jobs/${queuedJob.job_id}`));
@@ -113,8 +203,10 @@ describe("PaperJobSubmissionView", () => {
     const init = fetcher.mock.calls[0][1] as RequestInit;
     const payload = JSON.parse(String(init.body));
     expect(payload.starting_account_state.starting_cash).toBe(1000.5);
+    expect(payload.ending_account_state.current_cash).toBe(-900.25);
     expect(payload.orders.map((order: { order_id: string }) => order.order_id)).toEqual(["order-a", "order-b"]);
-    expect(payload.fills[0]).toMatchObject({ quantity: 1.5, price: 123.45, order_id: null });
+    expect(payload.orders.map((order: { quantity: number }) => order.quantity)).toEqual([1, -2]);
+    expect(payload.fills[0]).toMatchObject({ quantity: 0.5, price: -123.45, order_id: null });
     expect(init.headers).toMatchObject({ "Idempotency-Key": "founder-key-155" });
     expect(String(fetcher.mock.calls[0][0])).not.toContain("/run");
   }, 20_000);

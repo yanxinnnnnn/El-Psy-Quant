@@ -83,12 +83,36 @@ describe("PaperJobDetailView", () => {
     expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 
-  it("confirms Run, accepts 202 without claiming completion, and waits for manual refresh", async () => {
+  it("locks every mutation after accepted Run until Refresh reloads detail and attempts", async () => {
+    const runningAttempt = {
+      attempt_id: "attempt-running",
+      attempt_number: 1,
+      status: "running",
+      started_timestamp: "2026-07-15T10:01:00Z",
+      completed_timestamp: null,
+      error_code: null,
+    };
+    const runningJob = {
+      ...baseJob,
+      status: "running",
+      updated_timestamp: "2026-07-15T10:01:00Z",
+      attempt_count: 1,
+      latest_attempt: runningAttempt,
+    };
+    let detailReads = 0;
+    let attemptsReads = 0;
+    let resolveRun: ((value: Response) => void) | undefined;
     const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
       const url = String(input);
-      if (url.endsWith("/attempts")) return Promise.resolve(response([]));
-      if (init?.method === "POST") return Promise.resolve(response(baseJob, 202));
-      return Promise.resolve(response(baseJob));
+      if (url.endsWith("/attempts")) {
+        attemptsReads += 1;
+        return Promise.resolve(response(attemptsReads === 1 ? [] : [runningAttempt]));
+      }
+      if (init?.method === "POST") {
+        return new Promise((resolve) => { resolveRun = resolve; });
+      }
+      detailReads += 1;
+      return Promise.resolve(response(detailReads === 1 ? baseJob : runningJob));
     });
     vi.stubGlobal("fetch", fetcher);
     const user = userEvent.setup();
@@ -97,10 +121,31 @@ describe("PaperJobDetailView", () => {
     await user.click(screen.getByRole("button", { name: "Run" }));
     expect(screen.getByRole("heading", { name: "Confirm Run for run-155" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Confirm Run" }));
+    const pending = await screen.findByRole("button", { name: "Run pending…" });
+    expect(pending).toBeDisabled();
+    await user.click(pending);
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+    resolveRun?.(response(baseJob, 202));
     expect(await screen.findByText(/Execution was accepted, not completed/)).toBeVisible();
-    expect(fetcher).toHaveBeenCalledTimes(3);
     expect(fetcher.mock.calls[2][0]).toBe(`/api/backend/api/v1/paper-jobs/${jobId}/run`);
+    expect(screen.getByText(/Displayed job state is stale/)).toBeVisible();
+    expect(screen.getByText(/Refresh status is required/)).toBeVisible();
+    for (const action of ["Run", "Cancel", "Retry", "Recover"]) {
+      expect(screen.queryByRole("button", { name: action })).not.toBeInTheDocument();
+    }
+    expect(detailReads).toBe(1);
+    expect(attemptsReads).toBe(1);
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Refresh status" })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Refresh status" }));
+
+    expect(await screen.findByRole("button", { name: "Recover" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Run" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancel" })).not.toBeInTheDocument();
+    expect(detailReads).toBe(2);
+    expect(attemptsReads).toBe(2);
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
   });
 
   it("Retry returns queued without calling Run", async () => {
@@ -122,7 +167,7 @@ describe("PaperJobDetailView", () => {
     expect(screen.getByRole("button", { name: "Run" })).toBeVisible();
   });
 
-  it("Recover rejects non-UTC input then sends the exact Founder-supplied UTC value", async () => {
+  it("Recover rejects incompatible UTC input then sends the exact Founder-supplied valid value", async () => {
     const running = { ...baseJob, status: "running" };
     const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
       const url = String(input);
@@ -136,13 +181,17 @@ describe("PaperJobDetailView", () => {
     await user.click(await screen.findByRole("button", { name: "Recover" }));
     await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T10:00:00");
     await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
-    expect(await screen.findByText(/timezone-aware UTC/)).toBeVisible();
+    expect(await screen.findByText(/full UTC date and time/)).toBeVisible();
     expect(fetcher).toHaveBeenCalledTimes(2);
     await user.clear(screen.getByLabelText("Stale before (exact UTC)"));
-    await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T10:00:00Z");
+    await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-02-30T10:00:00Z");
+    await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    await user.clear(screen.getByLabelText("Stale before (exact UTC)"));
+    await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T10:00:00.123+00:00");
     await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
     await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(3));
-    expect(JSON.parse(String((fetcher.mock.calls[2][1] as RequestInit).body))).toEqual({ stale_before: "2026-07-15T10:00:00Z" });
+    expect(JSON.parse(String((fetcher.mock.calls[2][1] as RequestInit).body))).toEqual({ stale_before: "2026-07-15T10:00:00.123+00:00" });
   });
 
   it("keeps loaded job data visible when attempts and mutation requests fail", async () => {
