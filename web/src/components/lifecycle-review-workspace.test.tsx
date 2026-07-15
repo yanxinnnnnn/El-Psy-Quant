@@ -1,0 +1,274 @@
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+
+import { LifecycleReviewWorkspace } from "@/components/lifecycle-review-workspace";
+import type {
+  LifecycleTransitionProposalResponse,
+  LifecycleTransitionReviewResponse,
+} from "@/lib/api-client";
+
+const proposalResponse: LifecycleTransitionProposalResponse = {
+  proposal: {
+    schema_version: 1,
+    proposal_id: "proposal-158",
+    source_snapshot: {
+      schema_version: 1,
+      snapshot_id: "snapshot-source",
+      strategy_id: "moving_average_crossover",
+      lifecycle_state: "research_review",
+      rationale: "Source evidence",
+      declared_by: null,
+      declared_timestamp: null,
+      notes: ["source note", "source note"],
+      warnings: [],
+    },
+    target_state: "paper_candidate",
+    rationale: "Request human review",
+    evidence_references: [
+      {
+        schema_version: 1,
+        reference_type: "strategy_decision_record",
+        reference_id: "decision-158",
+        label: "Decision evidence",
+        description: null,
+      },
+      {
+        schema_version: 1,
+        reference_type: "strategy_decision_record",
+        reference_id: "decision-158",
+        label: null,
+        description: "Duplicate pointer retained",
+      },
+    ],
+    requested_by: null,
+    requested_timestamp: null,
+    notes: [],
+    warnings: ["human review required"],
+  },
+};
+
+const resultingSnapshot = {
+  schema_version: 1 as const,
+  snapshot_id: "snapshot-result",
+  strategy_id: "moving_average_crossover",
+  lifecycle_state: "paper_candidate",
+  rationale: "Caller supplied after review",
+  declared_by: "founder",
+  declared_timestamp: "2026-07-15T11:00:00+00:00",
+  notes: [],
+  warnings: ["not execution evidence"],
+};
+
+const reviewResponse: LifecycleTransitionReviewResponse = {
+  transition_record: {
+    schema_version: 1,
+    transition_record_id: "record-158",
+    proposal: proposalResponse.proposal,
+    review_outcome: "approved",
+    rationale: "Founder recorded an explicit outcome",
+    resulting_snapshot: resultingSnapshot,
+    reviewed_by: "founder",
+    reviewed_timestamp: "2026-07-15T11:00:00+00:00",
+    notes: ["review note"],
+    warnings: [],
+  },
+};
+
+function response(body: unknown, status = 200, requestId = "request-158") {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Request-ID": requestId,
+    },
+  });
+}
+
+function fillRequiredProposal({ withEvidence = false }: { withEvidence?: boolean } = {}) {
+  const source = screen.getByRole("group", { name: "Source lifecycle snapshot" });
+  fireEvent.change(within(source).getByLabelText("Snapshot ID"), { target: { value: "snapshot-source" } });
+  fireEvent.change(within(source).getByLabelText("Strategy ID"), { target: { value: "moving_average_crossover" } });
+  fireEvent.change(within(source).getByLabelText(/^Lifecycle state/), { target: { value: "research_review" } });
+  fireEvent.change(within(source).getByLabelText("Snapshot rationale"), { target: { value: "Source evidence" } });
+  const proposal = screen.getByRole("group", { name: "Transition proposal" });
+  fireEvent.change(within(proposal).getByLabelText("Proposal ID"), { target: { value: "proposal-158" } });
+  fireEvent.change(within(proposal).getByLabelText(/^Target state/), { target: { value: "paper_candidate" } });
+  fireEvent.change(within(proposal).getByLabelText("Proposal rationale"), { target: { value: "Request human review" } });
+  if (withEvidence) {
+    const evidence = screen.getByRole("group", { name: "Evidence references" });
+    fireEvent.click(within(evidence).getByRole("button", { name: "Add evidence reference" }));
+    fireEvent.click(within(evidence).getByRole("button", { name: "Add evidence reference" }));
+    const types = within(evidence).getAllByLabelText("Reference type");
+    const ids = within(evidence).getAllByLabelText("Reference ID");
+    const labels = within(evidence).getAllByLabelText(/^Label/);
+    const descriptions = within(evidence).getAllByLabelText(/^Description/);
+    for (const index of [0, 1]) {
+      fireEvent.change(types[index], { target: { value: "strategy_decision_record" } });
+      fireEvent.change(ids[index], { target: { value: "decision-158" } });
+    }
+    fireEvent.change(labels[0], { target: { value: "Decision evidence" } });
+    fireEvent.change(descriptions[1], { target: { value: "Duplicate pointer retained" } });
+  }
+}
+
+async function submitProposal(fetcher: ReturnType<typeof vi.fn<typeof fetch>>) {
+  vi.stubGlobal("fetch", fetcher);
+  fillRequiredProposal({ withEvidence: true });
+  await userEvent.click(screen.getByRole("button", { name: "Create non-executing proposal" }));
+  await screen.findByRole("heading", { name: "Proposal response received" });
+}
+
+describe("LifecycleReviewWorkspace", () => {
+  it("starts with explicit command inputs and no fabricated proposal, review, or current state", () => {
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    render(<LifecycleReviewWorkspace />);
+
+    expect(screen.getByRole("heading", { name: "Lifecycle proposal, human review, and timeline" })).toBeVisible();
+    expect(screen.getByText("No command on this page applies a lifecycle transition.")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "No lifecycle command response yet" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Record an explicit human review" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("lets the backend reject a structurally complete proposal without recreating evidence rules", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response(
+        {
+          error: {
+            code: "lifecycle_transition_proposal_invalid",
+            message: "Lifecycle transition proposal is invalid",
+          },
+          request_id: "proposal-invalid",
+        },
+        422,
+        "proposal-invalid",
+      ),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    render(<LifecycleReviewWorkspace />);
+    fillRequiredProposal();
+
+    await userEvent.click(screen.getByRole("button", { name: "Create non-executing proposal" }));
+
+    expect(await screen.findByRole("heading", { name: "Lifecycle proposal is invalid" })).toBeVisible();
+    expect(screen.getByText("Request proposal-invalid")).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse(String((fetcher.mock.calls[0][1] as RequestInit).body));
+    expect(payload.evidence_references).toEqual([]);
+    expect(payload).toMatchObject({
+      proposal_id: "proposal-158",
+      source_snapshot: { lifecycle_state: "research_review" },
+      target_state: "paper_candidate",
+    });
+  });
+
+  it("preserves normalized evidence order and exposes an explicit human-review step", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response(proposalResponse, 200, "proposal-request"),
+    );
+    render(<LifecycleReviewWorkspace />);
+    await submitProposal(fetcher);
+
+    expect(screen.getByText("Request proposal-request")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Lifecycle proposal" })).toBeVisible();
+    expect(screen.getByText("This proposal is a request for human review. It is not approval, execution, promotion, or a current-state change.")).toBeVisible();
+    const evidence = screen.getByRole("heading", { name: "Evidence references" }).parentElement;
+    expect(evidence).not.toBeNull();
+    expect(within(evidence as HTMLElement).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(evidence as HTMLElement).getAllByText("decision-158").length).toBeGreaterThanOrEqual(2);
+    expect(within(evidence as HTMLElement).getByText("Duplicate pointer retained")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Record an explicit human review" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Lifecycle timeline" })).toBeVisible();
+    expect(screen.getByText("Requested transition to paper_candidate. Proposal creation is non-executing.")).toBeVisible();
+  });
+
+  it("records human review from the normalized proposal and does not infer execution or current state", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response(proposalResponse, 200, "proposal-request"))
+      .mockResolvedValueOnce(response(reviewResponse, 200, "review-request"));
+    render(<LifecycleReviewWorkspace />);
+    await submitProposal(fetcher);
+
+    const review = screen.getByRole("group", { name: "Human review record" });
+    fireEvent.change(within(review).getByLabelText("Transition record ID"), { target: { value: "record-158" } });
+    fireEvent.change(within(review).getByLabelText(/^Review outcome/), { target: { value: "approved" } });
+    fireEvent.change(within(review).getByLabelText(/^Reviewed by/), { target: { value: "founder" } });
+    fireEvent.change(within(review).getByLabelText(/^Reviewed timestamp/), { target: { value: "2026-07-15T11:00:00Z" } });
+    fireEvent.change(within(review).getByLabelText("Review rationale"), { target: { value: "Founder recorded an explicit outcome" } });
+    await userEvent.click(screen.getByLabelText("Include an explicit caller-supplied resulting snapshot"));
+    const resulting = screen.getByRole("group", { name: "Caller-supplied resulting snapshot" });
+    fireEvent.change(within(resulting).getByLabelText("Snapshot ID"), { target: { value: "snapshot-result" } });
+    fireEvent.change(within(resulting).getByLabelText("Strategy ID"), { target: { value: "moving_average_crossover" } });
+    fireEvent.change(within(resulting).getByLabelText(/^Lifecycle state/), { target: { value: "paper_candidate" } });
+    fireEvent.change(within(resulting).getByLabelText("Snapshot rationale"), { target: { value: "Caller supplied after review" } });
+
+    await userEvent.click(screen.getByRole("button", { name: "Record human review evidence" }));
+
+    expect(await screen.findByRole("heading", { name: "Human review response received" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Human review record" })).toBeVisible();
+    expect(screen.getByText("Recorded outcome: approved. This is governance evidence, not execution evidence.")).toBeVisible();
+    expect(screen.getByText("Returned state: paper_candidate. The workspace does not mark this snapshot current.")).toBeVisible();
+    expect(screen.getByText("This returned snapshot is immutable evidence. The workspace does not identify it as globally current or executed.")).toBeVisible();
+
+    const body = JSON.parse(String((fetcher.mock.calls[1][1] as RequestInit).body));
+    expect(body.proposal).toEqual({
+      proposal_id: "proposal-158",
+      source_snapshot: {
+        snapshot_id: "snapshot-source",
+        strategy_id: "moving_average_crossover",
+        lifecycle_state: "research_review",
+        rationale: "Source evidence",
+        declared_by: null,
+        declared_timestamp: null,
+        notes: ["source note", "source note"],
+        warnings: [],
+      },
+      target_state: "paper_candidate",
+      rationale: "Request human review",
+      evidence_references: [
+        {
+          reference_type: "strategy_decision_record",
+          reference_id: "decision-158",
+          label: "Decision evidence",
+          description: null,
+        },
+        {
+          reference_type: "strategy_decision_record",
+          reference_id: "decision-158",
+          label: null,
+          description: "Duplicate pointer retained",
+        },
+      ],
+      requested_by: null,
+      requested_timestamp: null,
+      notes: [],
+      warnings: ["human review required"],
+    });
+    expect(body.resulting_snapshot).toMatchObject({
+      snapshot_id: "snapshot-result",
+      lifecycle_state: "paper_candidate",
+    });
+    expect(JSON.stringify(body)).not.toContain("schema_version");
+  });
+
+  it("suppresses duplicate proposal submissions while one command is pending", async () => {
+    let resolveRequest: ((value: Response) => void) | undefined;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(
+      () => new Promise((resolve) => { resolveRequest = resolve; }),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    render(<LifecycleReviewWorkspace />);
+    fillRequiredProposal();
+
+    await userEvent.click(screen.getByRole("button", { name: "Create non-executing proposal" }));
+    const pending = await screen.findByRole("button", { name: "Creating proposal…" });
+    expect(pending).toBeDisabled();
+    fireEvent.click(pending);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    resolveRequest?.(response(proposalResponse));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Proposal response received" })).toBeVisible());
+  });
+});

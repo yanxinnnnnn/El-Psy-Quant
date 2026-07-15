@@ -8,12 +8,12 @@ export default function OverviewPage() {
     <WorkspaceShell>
       <div className="overview">
         <section className="overview-hero" aria-labelledby="overview-title">
-          <p className="eyebrow">Overview · Sprint 157</p>
+          <p className="eyebrow">Overview · Sprint 158</p>
           <h1 id="overview-title">A calm control surface for reviewable paper workflows.</h1>
           <p className="overview-hero__summary">
-            The workspace now adds explicit ordered paper-result comparison to
-            immutable result inspection, deliberate job operations, and backend-owned
-            strategy, research, governance, and report inspection.
+            The workspace now adds explicit lifecycle proposals, human review records,
+            and immutable in-session evidence timelines to the existing backend-owned
+            research, governance, paper, portfolio, and comparison workflows.
           </p>
           <div className="overview-actions">
             <Link className="primary-link" href="/strategies">Browse strategies</Link>
@@ -22,6 +22,7 @@ export default function OverviewPage() {
             <Link className="text-link" href="/paper-jobs">Operate paper jobs</Link>
             <Link className="text-link" href="/portfolio-records">Inspect portfolio records</Link>
             <Link className="text-link" href="/comparisons">Compare paper results</Link>
+            <Link className="text-link" href="/lifecycle-review">Review lifecycle evidence</Link>
           </div>
         </section>
 
@@ -44,15 +45,14 @@ export default function OverviewPage() {
 
         <section className="coming-next" aria-labelledby="coming-next-title">
           <div>
-            <p className="eyebrow">Next planned workspace</p>
-            <h2 id="coming-next-title">Lifecycle proposal and review</h2>
+            <p className="eyebrow">Next planned sprint</p>
+            <h2 id="coming-next-title">MVP closeout</h2>
           </div>
           <p>
-            Sprint 158 is the next planned workspace. Sprint 157 compares only
-            backend-provided facts in explicit selected order without ranking,
-            cross-run calculations, or polling.
+            Sprint 159 remains separately scoped for minimal authentication, Docker
+            Compose, and end-to-end MVP closeout. Sprint 158 adds none of that behavior.
           </p>
-          <span className="sprint-chip">S158</span>
+          <span className="sprint-chip">S159</span>
         </section>
       </div>
     </WorkspaceShell>

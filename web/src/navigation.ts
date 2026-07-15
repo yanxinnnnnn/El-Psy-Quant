@@ -37,7 +37,12 @@ export const workspaceDestinations: readonly WorkspaceDestination[] = [
     href: "/comparisons",
     available: true,
   },
-  { label: "Lifecycle Review", sprint: "S158", available: false },
+  {
+    label: "Lifecycle Review",
+    sprint: "S158",
+    href: "/lifecycle-review",
+    available: true,
+  },
 ] as const;
 
 export function isDestinationActive(
@@ -69,6 +74,9 @@ export function isDestinationActive(
   }
   if (destination.href === "/comparisons") {
     return pathname === "/comparisons";
+  }
+  if (destination.href === "/lifecycle-review") {
+    return pathname === "/lifecycle-review";
   }
   return pathname === destination.href || pathname.startsWith(`${destination.href}/`);
 }
