@@ -15,6 +15,7 @@
     "test": "vitest run",
     "contracts:generate": "uv run python ../scripts/export_openapi.py && node scripts/generate-api-types.mjs",
     "contracts:check": "uv run python ../scripts/export_openapi.py --check && node scripts/generate-api-types.mjs --check",
+    "verify:mvp": "node scripts/verify-mvp.mjs",
     "check": "npm run contracts:check && npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {

@@ -1,0 +1,53 @@
+name: el-psy-quant-mvp
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT: /data/evidence
+      EL_PSY_QUANT_FOUNDER_PASSWORD: ${EL_PSY_QUANT_FOUNDER_PASSWORD:?Set EL_PSY_QUANT_FOUNDER_PASSWORD in .env}
+      EL_PSY_QUANT_FOUNDER_USERNAME: ${EL_PSY_QUANT_FOUNDER_USERNAME:?Set EL_PSY_QUANT_FOUNDER_USERNAME in .env}
+      EL_PSY_QUANT_PAPER_ARTIFACT_ROOT: /data/paper
+      EL_PSY_QUANT_PRODUCT_DATABASE_PATH: /data/product.sqlite3
+      EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT: /data/research
+    healthcheck:
+      test: ["CMD", "python", "scripts/docker_backend_healthcheck.py"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    volumes:
+      - mvp-data:/data
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        EL_PSY_QUANT_ALLOW_COMPOSE_API_ORIGIN: "1"
+        EL_PSY_QUANT_API_ORIGIN: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      EL_PSY_QUANT_ALLOW_COMPOSE_API_ORIGIN: "1"
+      EL_PSY_QUANT_API_ORIGIN: http://backend:8000
+      EL_PSY_QUANT_FOUNDER_PASSWORD: ${EL_PSY_QUANT_FOUNDER_PASSWORD:?Set EL_PSY_QUANT_FOUNDER_PASSWORD in .env}
+      EL_PSY_QUANT_FOUNDER_USERNAME: ${EL_PSY_QUANT_FOUNDER_USERNAME:?Set EL_PSY_QUANT_FOUNDER_USERNAME in .env}
+    healthcheck:
+      test: ["CMD", "node", "/app/verify-mvp.mjs", "--health-only"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+volumes:
+  mvp-data:

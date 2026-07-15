@@ -8,6 +8,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from el_psy_quant import __version__
+from el_psy_quant.api.auth import resolve_founder_auth_config
 from el_psy_quant.api.errors import register_exception_handlers
 from el_psy_quant.api.middleware import RequestIdMiddleware
 from el_psy_quant.api.routes import api_v1_router
@@ -40,6 +41,8 @@ def create_app(
     evidence_artifact_root: str | Path | None = None,
     product_database_path: str | Path | None = None,
     paper_artifact_root: str | Path | None = None,
+    founder_username: str | None = None,
+    founder_password: str | None = None,
 ) -> FastAPI:
     """Create one independent, side-effect-free local API application."""
     configured_database_path = _configured_artifact_root(
@@ -81,6 +84,10 @@ def create_app(
     application.state.product_database_path = configured_database_path
     application.state.paper_artifact_root = _configured_artifact_root(
         PAPER_ARTIFACT_ROOT_ENV, paper_artifact_root
+    )
+    application.state.founder_auth = resolve_founder_auth_config(
+        username=founder_username,
+        password=founder_password,
     )
     application.state.product_database_engine = engine
     application.state.product_session_factory = session_factory

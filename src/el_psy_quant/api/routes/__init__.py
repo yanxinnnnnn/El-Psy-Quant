@@ -1,7 +1,8 @@
 """Versioned API route configuration."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from el_psy_quant.api.auth import require_founder_auth
 from el_psy_quant.api.routes.evidence_manifests import (
     router as evidence_manifests_router,
 )
@@ -16,7 +17,10 @@ from el_psy_quant.api.routes.strategies import router as strategies_router
 
 API_V1_PREFIX = "/api/v1"
 
-api_v1_router = APIRouter(prefix=API_V1_PREFIX)
+api_v1_router = APIRouter(
+    prefix=API_V1_PREFIX,
+    dependencies=[Depends(require_founder_auth)],
+)
 api_v1_router.include_router(evidence_manifests_router)
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(lifecycle_commands_router)

@@ -1,0 +1,7 @@
+node_modules
+.next
+coverage
+.eslintcache
+*.tsbuildinfo
+.env*
+npm-debug.log*
