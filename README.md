@@ -13,8 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–27 are complete. **Milestone 28 — Founder Paper Trading Web
 Workspace** is in progress.
 
-The latest completed sprint is **Sprint 153 — Strategy List, Detail, Research,
-and Backtest Views**.
+The latest completed sprint is **Sprint 154 — Governance Evidence and Report
+Artifact Views**.
 
 Milestone 27 established durable local product persistence and manually controlled
 paper-job operations beneath the existing versioned application API:
@@ -45,11 +45,12 @@ state, replay-safe submission, attempt audit, manual recovery and retry, compact
 result references, and a versioned durable-job API while keeping completed files
 authoritative.
 
-Milestone 28 now has its first Founder-facing strategy and research business
-workspace. Sprints 138 through 153 are complete. The next sprint is:
+Milestone 28 now has Founder-facing strategy, research, governance-evidence,
+and report-manifest inspection. Sprints 138 through 154 are complete. The next
+sprint is:
 
 ```text
-Sprint 154 — Governance Evidence and Report Artifact Views
+Sprint 155 — Paper Run Launch and Status Workspace
 ```
 
 The approved productization sequence is:
@@ -237,12 +238,14 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - versioned durable job submission, status, attempts, control, and result API
 - Local Founder Web foundation:
   - strict TypeScript Next.js 16 App Router application under `web/`
-  - responsive accessible workspace shell with Overview and Strategies/Research enabled
+  - responsive accessible workspace shell with Overview, Strategies/Research, and Governance/Reports enabled
   - loopback-only server configuration and fixed same-origin `/api/backend` rewrite
   - deterministic FastAPI OpenAPI snapshot and generated TypeScript API types
   - typed health client with bounded errors, request IDs, visible failure, and retry
   - strategy list and exact-name detail routes with descriptive read-only parameters
   - configured research-run list and detail routes with saved per-symbol metrics
+  - configured evidence-manifest list and exact type/key detail routes for all three variants
+  - ordered, duplicate-preserving, unresolved governance and report reference groups
   - explicit loading, empty, bounded failure, not-found, and manual retry states
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
@@ -299,6 +302,8 @@ The delivered Web business routes are:
 /strategies/[strategyName]
 /research-runs
 /research-runs/[experimentSlug]/[runId]
+/evidence-manifests
+/evidence-manifests/[manifestType]/[artifactKey]
 ```
 
 Research inspection requires `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT` on the
@@ -309,11 +314,19 @@ recomputing, aggregating, ranking, or scoring them. Artifact references are
 read-only text and are not download links. No chart is rendered because the
 current endpoint exposes no authoritative time series.
 
+Evidence inspection requires `EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT` on the
+FastAPI server. A successfully configured empty root is an empty state; an
+unavailable root or invalid supported artifact remains a bounded API error with
+its request ID. The three supported manifest variants retain their backend
+reference groups, order, and duplicates. References are unresolved read-only
+pointers: the Web UI does not open referenced files, render or download reports,
+or infer lifecycle state, approval, completeness, or governance meaning.
+
 The browser continues to call only `/api/backend/api/v1/...`, and all success
-types continue to derive from the checked-in FastAPI OpenAPI contract.
-Governance/report pages, paper controls, authentication, Docker Compose,
-broker/QMT, live behavior, and distributed infrastructure remain deferred.
-Sprint 154 is the next planned workspace.
+types continue to derive from the checked-in FastAPI OpenAPI contract. Paper
+controls, authentication, Docker Compose, broker/QMT, live behavior, and
+distributed infrastructure remain deferred. Sprint 155 is the next planned
+workspace.
 
 Initialize or upgrade the local product database only through an explicit
 operator action. The parent directory must already exist:

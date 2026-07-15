@@ -7,6 +7,9 @@ const STRATEGY_DETAIL_PATH = "/api/v1/strategies/{strategy_name}";
 const RESEARCH_RUNS_PATH = "/api/v1/research-runs";
 const RESEARCH_RUN_DETAIL_PATH =
   "/api/v1/research-runs/{experiment_slug}/{run_id}";
+const EVIDENCE_MANIFESTS_PATH = "/api/v1/evidence-manifests";
+const EVIDENCE_MANIFEST_DETAIL_PATH =
+  "/api/v1/evidence-manifests/{manifest_type}/{artifact_key}";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -25,6 +28,12 @@ export type StrategyDetailResponse = SuccessResponse<typeof STRATEGY_DETAIL_PATH
 export type ResearchRunListResponse = SuccessResponse<typeof RESEARCH_RUNS_PATH>;
 export type ResearchRunDetailResponse = SuccessResponse<
   typeof RESEARCH_RUN_DETAIL_PATH
+>;
+export type EvidenceManifestListResponse = SuccessResponse<
+  typeof EVIDENCE_MANIFESTS_PATH
+>;
+export type EvidenceManifestDetailResponse = SuccessResponse<
+  typeof EVIDENCE_MANIFEST_DETAIL_PATH
 >;
 
 export type ApiResult<Response> = {
@@ -95,6 +104,10 @@ function isNumber(value: unknown): value is number {
 
 function isNullableNumber(value: unknown): value is number | null {
   return value === null || isNumber(value);
+}
+
+function isNullableString(value: unknown): value is string | null {
+  return value === null || isString(value);
 }
 
 function isStringArray(value: unknown): value is string[] {
@@ -241,6 +254,93 @@ function isResearchRunDetailResponse(
   );
 }
 
+function isEvidenceManifestType(value: unknown): boolean {
+  return (
+    value === "strategy_decision_manifest" ||
+    value === "report_artifact_manifest" ||
+    value === "strategy_review_workflow_manifest"
+  );
+}
+
+function isEvidenceManifestSummary(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isEvidenceManifestType(value.manifest_type) &&
+    isString(value.artifact_key) &&
+    isString(value.manifest_id) &&
+    isNumber(value.reference_count) &&
+    isNullableString(value.created_by) &&
+    isNullableString(value.created_timestamp) &&
+    isNullableString(value.label) &&
+    isNullableString(value.description)
+  );
+}
+
+function isEvidenceManifestListResponse(
+  value: unknown,
+): value is EvidenceManifestListResponse {
+  return (
+    isObject(value) &&
+    Array.isArray(value.manifests) &&
+    value.manifests.every(isEvidenceManifestSummary)
+  );
+}
+
+function isEvidenceManifestReference(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    value.schema_version === 1 &&
+    isString(value.reference_type) &&
+    isString(value.reference_id) &&
+    isNullableString(value.label) &&
+    isNullableString(value.description)
+  );
+}
+
+function isEvidenceManifestReferenceArray(value: unknown): boolean {
+  return Array.isArray(value) && value.every(isEvidenceManifestReference);
+}
+
+function hasEvidenceManifestCommonFields(value: Record<string, unknown>): boolean {
+  return (
+    isString(value.artifact_key) &&
+    value.schema_version === 1 &&
+    isString(value.manifest_id) &&
+    isNullableString(value.created_by) &&
+    isNullableString(value.created_timestamp) &&
+    isNullableString(value.description)
+  );
+}
+
+function isEvidenceManifestDetailResponse(
+  value: unknown,
+): value is EvidenceManifestDetailResponse {
+  if (!isObject(value) || !hasEvidenceManifestCommonFields(value)) {
+    return false;
+  }
+  if (value.manifest_type === "strategy_decision_manifest") {
+    return (
+      isEvidenceManifestReferenceArray(value.summary_references) &&
+      isEvidenceManifestReferenceArray(value.record_references)
+    );
+  }
+  if (value.manifest_type === "report_artifact_manifest") {
+    return (
+      isNullableString(value.label) &&
+      isNullableString(value.notes) &&
+      isEvidenceManifestReferenceArray(value.references)
+    );
+  }
+  if (value.manifest_type === "strategy_review_workflow_manifest") {
+    return (
+      isEvidenceManifestReferenceArray(value.state_snapshot_references) &&
+      isEvidenceManifestReferenceArray(value.transition_proposal_references) &&
+      isEvidenceManifestReferenceArray(value.transition_record_references)
+    );
+  }
+  return false;
+}
+
 function publicErrorEnvelope(value: unknown): PublicErrorEnvelope | null {
   if (!isObject(value) || !isObject(value.error)) {
     return null;
@@ -374,6 +474,31 @@ export function fetchResearchRunDetail(
       encodeURIComponent(experimentSlug),
     ).replace("{run_id}", encodeURIComponent(runId)),
     validate: isResearchRunDetailResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchEvidenceManifests(
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<EvidenceManifestListResponse>> {
+  return requestJson({
+    path: EVIDENCE_MANIFESTS_PATH,
+    validate: isEvidenceManifestListResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchEvidenceManifestDetail(
+  manifestType: string,
+  artifactKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<EvidenceManifestDetailResponse>> {
+  return requestJson({
+    path: EVIDENCE_MANIFEST_DETAIL_PATH.replace(
+      "{manifest_type}",
+      encodeURIComponent(manifestType),
+    ).replace("{artifact_key}", encodeURIComponent(artifactKey)),
+    validate: isEvidenceManifestDetailResponse,
     fetchImplementation,
   });
 }

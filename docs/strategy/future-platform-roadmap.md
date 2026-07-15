@@ -523,8 +523,8 @@ Sprint sequence:
 ```text
 S152 — Next.js Workspace Shell and API Client Foundation — Complete
 S153 — Strategy List, Detail, Research, and Backtest Views — Complete
-S154 — Governance Evidence and Report Artifact Views — Next
-S155 — Paper Run Launch and Status Workspace
+S154 — Governance Evidence and Report Artifact Views — Complete
+S155 — Paper Run Launch and Status Workspace — Next
 S156 — Equity, Positions, Orders, and Fills Views
 S157 — Paper Run Comparison Workspace
 S158 — Lifecycle Proposal, Human Review, and Timeline Workspace
@@ -842,17 +842,17 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 154 — Governance Evidence and Report Artifact Views
+Sprint 155 — Paper Run Launch and Status Workspace
 ```
 
-Sprint 153 delivered the first four business routes for exact built-in strategy
-metadata and configured saved research/backtest inspection. The UI consumes
-only endpoint-specific generated-contract clients through the fixed same-origin
-rewrite, displays saved metrics rather than recomputing them, keeps artifact
-references read-only, and does not fabricate charts without an authoritative
-time series. The browser still never directly accesses SQLite, artifact
-directories, Python modules, QMT, MiniQMT, or a broker. Sprint 154 may add only
-the next governance and report inspection surface under its authoritative issue.
+Sprint 154 delivered bounded list and exact-detail inspection for the three
+existing evidence-manifest variants. The UI consumes endpoint-specific
+generated-contract clients through the fixed same-origin rewrite and preserves
+backend reference groups, order, and duplicates without resolving pointers,
+rendering or downloading reports, or inferring lifecycle state, approval, or
+completeness. The browser still never directly accesses SQLite, artifact
+directories, Python modules, QMT, MiniQMT, or a broker. Sprint 155 may add only
+the next paper-run launch and status workspace under its authoritative issue.
 
 ## One-Line Strategy
 

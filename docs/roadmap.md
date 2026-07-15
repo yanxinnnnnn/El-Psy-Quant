@@ -161,8 +161,8 @@ Critical ownership decisions:
 |---:|---|
 | S152 | Next.js Workspace Shell and API Client Foundation. **Complete.** |
 | S153 | Strategy List, Detail, Research, and Backtest Views. **Complete.** |
-| S154 | Governance Evidence and Report Artifact Views. **Next.** |
-| S155 | Paper Run Launch and Status Workspace |
+| S154 | Governance Evidence and Report Artifact Views. **Complete.** |
+| S155 | Paper Run Launch and Status Workspace. **Next.** |
 | S156 | Equity, Positions, Orders, and Fills Views |
 | S157 | Paper Run Comparison Workspace |
 | S158 | Lifecycle Proposal, Human Review, and Timeline Workspace |
@@ -399,15 +399,14 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 154 — Governance Evidence and Report Artifact Views
+Sprint 155 — Paper Run Launch and Status Workspace
 ```
 
-Sprint 153 delivered `/strategies`, `/strategies/[strategyName]`,
-`/research-runs`, and `/research-runs/[experimentSlug]/[runId]` through the
-existing fixed same-origin API boundary. It displays exact strategy metadata,
-configured run manifests, read-only artifact references, and saved per-symbol
-metrics without execution, recomputation, aggregation, ranking, scoring, or
-fabricated time series. Empty configured research roots remain distinct from
-unavailable or invalid roots. Sprint 154 is the next bounded Founder workspace
-and must preserve the generated-contract, artifact-authority, and unified
-quality-gate boundaries.
+Sprint 154 delivered `/evidence-manifests` and
+`/evidence-manifests/[manifestType]/[artifactKey]` through the existing fixed
+same-origin API boundary. It displays the three backend-discriminated governance
+and report variants, preserves reference-group order and duplicates, keeps
+references unresolved and non-downloadable, and distinguishes empty configured
+roots from unavailable or invalid artifacts. Sprint 155 is the next bounded
+Founder workspace and must preserve the generated-contract, artifact-authority,
+bounded-error, accessibility, and unified quality-gate boundaries.
