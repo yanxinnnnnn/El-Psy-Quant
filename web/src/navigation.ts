@@ -25,7 +25,12 @@ export const workspaceDestinations: readonly WorkspaceDestination[] = [
     href: "/paper-jobs",
     available: true,
   },
-  { label: "Portfolio Records", sprint: "S156", available: false },
+  {
+    label: "Portfolio Records",
+    sprint: "S156",
+    href: "/portfolio-records",
+    available: true,
+  },
   { label: "Comparisons", sprint: "S157", available: false },
   { label: "Lifecycle Review", sprint: "S158", available: false },
 ] as const;

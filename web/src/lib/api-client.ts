@@ -17,6 +17,7 @@ const PAPER_JOB_RUN_PATH = "/api/v1/paper-jobs/{job_id}/run";
 const PAPER_JOB_CANCEL_PATH = "/api/v1/paper-jobs/{job_id}/cancel";
 const PAPER_JOB_RETRY_PATH = "/api/v1/paper-jobs/{job_id}/retry";
 const PAPER_JOB_RECOVER_PATH = "/api/v1/paper-jobs/{job_id}/recover";
+const PAPER_JOB_RESULT_PATH = "/api/v1/paper-jobs/{job_id}/result";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -61,6 +62,7 @@ export type PaperJobStatus = PaperJobResponse["status"];
 export type PaperJobAttemptListResponse = SuccessResponse<
   typeof PAPER_JOB_ATTEMPTS_PATH
 >;
+export type PaperJobResultResponse = SuccessResponse<typeof PAPER_JOB_RESULT_PATH>;
 export type PaperJobSubmissionRequest = PostRequestBody<typeof PAPER_JOBS_PATH>;
 export type PaperJobRecoveryRequest = PostRequestBody<typeof PAPER_JOB_RECOVER_PATH>;
 export type PaperJobSubmissionResponse = PostSuccessResponse<
@@ -460,6 +462,151 @@ function isPaperJobAttemptListResponse(
   return Array.isArray(value) && value.every(isPaperJobAttempt);
 }
 
+function isPaperPosition(value: unknown): boolean {
+  return isObject(value) && isString(value.symbol) && isNumber(value.quantity);
+}
+
+function isPaperPositionArray(value: unknown): boolean {
+  return Array.isArray(value) && value.every(isPaperPosition);
+}
+
+function isPaperAccountState(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.timestamp) &&
+    isNumber(value.starting_cash) &&
+    isNumber(value.current_cash) &&
+    isPaperPositionArray(value.positions)
+  );
+}
+
+function isPaperOrder(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.order_id) &&
+    isString(value.timestamp) &&
+    isString(value.symbol) &&
+    isString(value.side) &&
+    isNumber(value.quantity) &&
+    isString(value.status)
+  );
+}
+
+function isPaperFill(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.timestamp) &&
+    isString(value.symbol) &&
+    isString(value.side) &&
+    isNumber(value.quantity) &&
+    isNumber(value.price) &&
+    isNullableString(value.order_id)
+  );
+}
+
+function isPaperPositionChange(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.symbol) &&
+    isNumber(value.starting_quantity) &&
+    isNumber(value.ending_quantity) &&
+    isNumber(value.quantity_change)
+  );
+}
+
+function isPaperSessionSummary(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.session_start_timestamp) &&
+    isString(value.session_end_timestamp) &&
+    isNumber(value.starting_cash) &&
+    isNumber(value.ending_cash) &&
+    isNumber(value.cash_change) &&
+    isPaperPositionArray(value.starting_positions) &&
+    isPaperPositionArray(value.ending_positions) &&
+    Array.isArray(value.position_changes) &&
+    value.position_changes.every(isPaperPositionChange) &&
+    Number.isInteger(value.order_count) &&
+    (value.order_count as number) >= 0 &&
+    Number.isInteger(value.fill_count) &&
+    (value.fill_count as number) >= 0
+  );
+}
+
+function isPaperTradingArtifact(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    value.schema_version === 1 &&
+    isString(value.created_timestamp) &&
+    isPaperAccountState(value.starting_account_state) &&
+    isPaperAccountState(value.ending_account_state) &&
+    Array.isArray(value.orders) &&
+    value.orders.every(isPaperOrder) &&
+    Array.isArray(value.fills) &&
+    value.fills.every(isPaperFill) &&
+    isPaperSessionSummary(value.session_summary)
+  );
+}
+
+function isPaperJobResultReference(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    value.record_schema_version === 1 &&
+    value.root_type === "paper" &&
+    value.artifact_schema_version === 1 &&
+    value.result_summary_schema_version === 1 &&
+    isString(value.created_timestamp)
+  );
+}
+
+function isNonNegativeInteger(value: unknown): boolean {
+  return Number.isInteger(value) && (value as number) >= 0;
+}
+
+function isPaperJobResultAudit(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    value.schema_version === 1 &&
+    isString(value.created_timestamp) &&
+    isString(value.session_start_timestamp) &&
+    isString(value.session_end_timestamp) &&
+    isNumber(value.starting_cash) &&
+    isNumber(value.ending_cash) &&
+    isNumber(value.cash_change) &&
+    isNonNegativeInteger(value.order_count) &&
+    isNonNegativeInteger(value.fill_count) &&
+    isNonNegativeInteger(value.starting_position_count) &&
+    isNonNegativeInteger(value.ending_position_count) &&
+    isNonNegativeInteger(value.position_change_count)
+  );
+}
+
+function isPaperJobResultSummary(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    value.schema_version === 1 &&
+    isString(value.run_id) &&
+    value.request_schema_version === 1 &&
+    isString(value.request_created_timestamp) &&
+    value.artifact_schema_version === 1 &&
+    isString(value.artifact_created_timestamp) &&
+    isPaperJobResultAudit(value.audit)
+  );
+}
+
+function isPaperJobResultResponse(
+  value: unknown,
+): value is PaperJobResultResponse {
+  return (
+    isObject(value) &&
+    isString(value.job_id) &&
+    isString(value.run_id) &&
+    isPaperJobResultReference(value.result_reference) &&
+    isPaperTradingArtifact(value.artifact) &&
+    isPaperJobResultSummary(value.result_summary)
+  );
+}
+
 function publicErrorEnvelope(value: unknown): PublicErrorEnvelope | null {
   if (!isObject(value) || !isObject(value.error)) {
     return null;
@@ -679,6 +826,17 @@ export function fetchPaperJobAttempts(
   return requestJson({
     path: paperJobPath(PAPER_JOB_ATTEMPTS_PATH, jobId),
     validate: isPaperJobAttemptListResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperJobResult(
+  jobId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobResultResponse>> {
+  return requestJson({
+    path: PAPER_JOB_RESULT_PATH.replace("{job_id}", encodeURIComponent(jobId)),
+    validate: isPaperJobResultResponse,
     fetchImplementation,
   });
 }

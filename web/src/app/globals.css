@@ -521,6 +521,14 @@ h2 {
   line-height: 1.6;
 }
 
+.record-card__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+  min-width: min(100%, 15rem);
+}
+
 .compact-definitions,
 .definition-grid,
 .artifact-list {
@@ -620,6 +628,32 @@ h2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.account-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.account-snapshot-grid > section,
+.subsection {
+  min-width: 0;
+  padding: 1rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+}
+
+.account-snapshot-grid h3,
+.subsection h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.subsection {
+  margin-top: 1rem;
 }
 
 .definition-grid {
@@ -1380,6 +1414,7 @@ input[aria-invalid="true"] {
   }
 
   .detail-grid,
+  .account-snapshot-grid,
   .definition-grid,
   .definition-grid--wide,
   .artifact-list,

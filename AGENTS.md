@@ -205,16 +205,28 @@ bounded errors, accessibility, and the unified quality gate. It added no
 equity, position, order, fill, comparison, lifecycle, authentication, broker,
 QMT, live, or S156–S159 behavior.
 
+Sprint 156 added exactly the succeeded paper-job result-availability list and
+authoritative result detail routes under `/portfolio-records`. The Web layer
+derives result success types from the checked-in OpenAPI contract, preserves
+every backend array and duplicate row, displays backend-provided cash changes,
+quantity changes, and counts without recomputation, and keeps account cash
+distinct from unavailable total marked-to-market equity. Paper-job detail links
+to a result only from backend-owned `result_available`; no page follows
+`result_url`. It preserved same-origin transport, artifact authority, bounded
+errors, manual refresh, accessibility, navigation, and the unified quality gate.
+It added no calculation, chart, download, comparison, lifecycle,
+authentication, broker, QMT, live, or S157–S159 behavior.
+
 The next sprint is:
 
 ```text
-Sprint 156 — Equity, Positions, Orders, and Fills Views
+Sprint 157 — Paper Run Comparison Workspace
 ```
 
-Sprint 156 may add only the result-inspection workspace defined by its future
-authoritative issue. It must preserve the Sprint 152–155 same-origin
-transport, generated-contract, bounded-error, route-family navigation,
-artifact-authority, accessibility, and frontend quality-gate boundaries.
+Sprint 157 may add only the paper-run comparison workspace defined by its future
+authoritative issue. It must preserve the Sprint 152–156 same-origin transport,
+generated-contract, bounded-error, route-family navigation, artifact-authority,
+accessibility, manual-refresh, and frontend quality-gate boundaries.
 
 Approved productization sequence:
 
