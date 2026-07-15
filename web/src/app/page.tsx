@@ -8,12 +8,12 @@ export default function OverviewPage() {
     <WorkspaceShell>
       <div className="overview">
         <section className="overview-hero" aria-labelledby="overview-title">
-          <p className="eyebrow">Overview · Sprint 153</p>
+          <p className="eyebrow">Overview · Sprint 154</p>
           <h1 id="overview-title">A calm control surface for reviewable paper workflows.</h1>
           <p className="overview-hero__summary">
-            The workspace now supports backend-owned strategy definitions and saved research
-            result inspection while keeping execution, artifacts, and calculations outside the
-            browser.
+            The workspace now supports backend-owned strategy, research, governance, and
+            report-manifest inspection while keeping execution, artifacts, and domain meaning
+            outside the browser.
           </p>
           <div className="overview-actions">
             <Link className="primary-link" href="/strategies">
@@ -21,6 +21,9 @@ export default function OverviewPage() {
             </Link>
             <Link className="text-link" href="/research-runs">
               Inspect research runs
+            </Link>
+            <Link className="text-link" href="/evidence-manifests">
+              Inspect governance evidence
             </Link>
           </div>
         </section>
@@ -45,13 +48,13 @@ export default function OverviewPage() {
         <section className="coming-next" aria-labelledby="coming-next-title">
           <div>
             <p className="eyebrow">Next planned workspace</p>
-            <h2 id="coming-next-title">Governance and reports</h2>
+            <h2 id="coming-next-title">Paper run launch and status</h2>
           </div>
           <p>
-            Sprint 154 will add bounded governance evidence and report-artifact views. Those
-            future routes and controls are not introduced in this sprint.
+            Sprint 155 will add deliberate paper-run launch and status views. Those future
+            routes and controls are not introduced in this sprint.
           </p>
-          <span className="sprint-chip">S154</span>
+          <span className="sprint-chip">S155</span>
         </section>
       </div>
     </WorkspaceShell>

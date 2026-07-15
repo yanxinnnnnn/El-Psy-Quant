@@ -13,7 +13,12 @@ export const workspaceDestinations: readonly WorkspaceDestination[] = [
     href: "/strategies",
     available: true,
   },
-  { label: "Governance and Reports", sprint: "S154", available: false },
+  {
+    label: "Governance and Reports",
+    sprint: "S154",
+    href: "/evidence-manifests",
+    available: true,
+  },
   { label: "Paper Runs", sprint: "S155", available: false },
   { label: "Portfolio Records", sprint: "S156", available: false },
   { label: "Comparisons", sprint: "S157", available: false },

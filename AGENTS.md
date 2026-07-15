@@ -184,17 +184,25 @@ authority. It added no execution, metric recomputation, chart, ranking,
 governance/report, paper-job, authentication, broker, QMT, live, or S154–S159
 behavior.
 
+Sprint 154 added the evidence-manifest list and exact type/key detail routes,
+endpoint-specific generated-contract clients, the three discriminated manifest
+views, ordered duplicate-preserving reference groups, bounded configured-root
+states, and Governance/Reports navigation. References remain unresolved text;
+the browser does not render reports, download artifacts, infer lifecycle or
+approval state, or access files directly. It preserved backend, OpenAPI,
+same-origin transport, artifact authority, bounded errors, accessibility, and
+the unified quality gate. It added no paper controls or S155–S159 behavior.
+
 The next sprint is:
 
 ```text
-Sprint 154 — Governance Evidence and Report Artifact Views
+Sprint 155 — Paper Run Launch and Status Workspace
 ```
 
-Sprint 154 may add only the governance evidence and report-artifact views defined
-by its future authoritative issue. It must preserve the Sprint 152–153
-same-origin transport, generated-contract, bounded-error, route-family navigation,
-artifact-authority, presentation-only formatting, and frontend quality-gate
-boundaries.
+Sprint 155 may add only the paper-run launch and status workspace defined by its
+future authoritative issue. It must preserve the Sprint 152–154 same-origin
+transport, generated-contract, bounded-error, route-family navigation,
+artifact-authority, accessibility, and frontend quality-gate boundaries.
 
 Approved productization sequence:
 

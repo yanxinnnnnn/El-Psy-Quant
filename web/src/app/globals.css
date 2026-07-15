@@ -533,6 +533,21 @@ h2 {
   gap: 0.7rem 1.5rem;
 }
 
+.compact-definitions--evidence {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.compact-definitions--evidence div {
+  display: block;
+  min-width: 0;
+}
+
+.compact-definitions--evidence dd {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
 .compact-definitions div {
   display: flex;
   gap: 0.45rem;
@@ -646,6 +661,39 @@ h2 {
 .artifact-list code {
   color: var(--green);
   font-size: 0.75rem;
+}
+
+.reference-list {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  margin: 1.4rem 0 0;
+  list-style: none;
+  counter-reset: reference;
+}
+
+.reference-list > li {
+  position: relative;
+  padding: 0 1rem 0 3rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  counter-increment: reference;
+}
+
+.reference-list > li::before {
+  position: absolute;
+  top: 0.85rem;
+  left: 1rem;
+  color: var(--green);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.76rem;
+  content: counter(reference) ".";
+}
+
+.reference-empty {
+  margin: 1.4rem 0 0;
+  color: var(--ink-muted);
 }
 
 .table-scroll {
@@ -989,7 +1037,8 @@ tbody th {
   .detail-grid,
   .definition-grid,
   .definition-grid--wide,
-  .artifact-list {
+  .artifact-list,
+  .compact-definitions--evidence {
     grid-template-columns: 1fr;
   }
 
