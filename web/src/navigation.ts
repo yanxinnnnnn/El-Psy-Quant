@@ -31,7 +31,12 @@ export const workspaceDestinations: readonly WorkspaceDestination[] = [
     href: "/portfolio-records",
     available: true,
   },
-  { label: "Comparisons", sprint: "S157", available: false },
+  {
+    label: "Comparisons",
+    sprint: "S157",
+    href: "/comparisons",
+    available: true,
+  },
   { label: "Lifecycle Review", sprint: "S158", available: false },
 ] as const;
 
@@ -52,6 +57,18 @@ export function isDestinationActive(
       pathname === "/research-runs" ||
       pathname.startsWith("/research-runs/")
     );
+  }
+  if (destination.href === "/paper-jobs") {
+    return pathname === "/paper-jobs" || pathname.startsWith("/paper-jobs/");
+  }
+  if (destination.href === "/portfolio-records") {
+    return (
+      pathname === "/portfolio-records" ||
+      pathname.startsWith("/portfolio-records/")
+    );
+  }
+  if (destination.href === "/comparisons") {
+    return pathname === "/comparisons";
   }
   return pathname === destination.href || pathname.startsWith(`${destination.href}/`);
 }

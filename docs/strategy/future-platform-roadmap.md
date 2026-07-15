@@ -526,8 +526,8 @@ S153 — Strategy List, Detail, Research, and Backtest Views — Complete
 S154 — Governance Evidence and Report Artifact Views — Complete
 S155 — Paper Run Launch and Status Workspace — Complete
 S156 — Equity, Positions, Orders, and Fills Views — Complete
-S157 — Paper Run Comparison Workspace — Next
-S158 — Lifecycle Proposal, Human Review, and Timeline Workspace
+S157 — Paper Run Comparison Workspace — Complete
+S158 — Lifecycle Proposal, Human Review, and Timeline Workspace — Next
 S159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
 ```
 
@@ -842,18 +842,18 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 157 — Paper Run Comparison Workspace
+Sprint 158 — Lifecycle Proposal, Human Review, and Timeline Workspace
 ```
 
-Sprint 156 delivered succeeded-result availability and exact immutable result
-inspection through endpoint-specific generated-contract clients and the fixed
-same-origin rewrite. Backend order and duplicate rows remain visible; supplied
-cash changes, quantity changes, and counts are not recomputed; account cash is
-not mislabeled as total marked-to-market equity; and no result URL, file path,
-download, calculation, chart, polling, or automatic refresh is introduced. The
+Sprint 157 delivered explicit ordered comparison of two to four existing
+authoritative paper results under `/comparisons`. The browser uses only the
+existing succeeded-job list and exact result clients, preserves independent
+partial success, and provides manual per-run retry and whole-set refresh. It
+displays account cash, session summaries, audits, positions, and backend-supplied
+position changes without derived deltas, metrics, ranking, recommendations,
+full order/fill alignment, or M21 comparison/review artifact creation. The
 browser still never directly accesses SQLite, artifact directories, Python
-modules, QMT, MiniQMT, or a broker. Sprint 157 may add only paper-run comparison
-under its future authoritative issue.
+modules, QMT, MiniQMT, or a broker. Sprint 158 is the next planned workspace.
 
 ## One-Line Strategy
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { isDestinationActive, workspaceDestinations } from "./navigation";
 
 describe("workspace navigation", () => {
-  it("enables the five delivered destinations", () => {
+  it("enables the six delivered destinations", () => {
     expect(workspaceDestinations.filter((item) => item.available)).toEqual([
       { label: "Overview", sprint: "S152", href: "/", available: true },
       {
@@ -30,19 +30,24 @@ describe("workspace navigation", () => {
         href: "/portfolio-records",
         available: true,
       },
+      {
+        label: "Comparisons",
+        sprint: "S157",
+        href: "/comparisons",
+        available: true,
+      },
     ]);
-    expect(workspaceDestinations.slice(5).every((item) => item.href === undefined)).toBe(
+    expect(workspaceDestinations.slice(6).every((item) => item.href === undefined)).toBe(
       true,
     );
   });
 
-  it("keeps S157 and S158 explicit and unavailable", () => {
-    expect(workspaceDestinations.slice(5).map(({ label, sprint, available }) => ({
+  it("keeps S158 explicit and unavailable", () => {
+    expect(workspaceDestinations.slice(6).map(({ label, sprint, available }) => ({
       label,
       sprint,
       available,
     }))).toEqual([
-      { label: "Comparisons", sprint: "S157", available: false },
       { label: "Lifecycle Review", sprint: "S158", available: false },
     ]);
   });
@@ -63,11 +68,20 @@ describe("workspace navigation", () => {
     ["/paper-jobs/123", "Paper Runs"],
     ["/portfolio-records", "Portfolio Records"],
     ["/portfolio-records/123", "Portfolio Records"],
+    ["/comparisons", "Comparisons"],
   ])("marks only the matching route family active for %s", (pathname, label) => {
     expect(
       workspaceDestinations
         .filter((destination) => isDestinationActive(destination, pathname))
         .map((destination) => destination.label),
     ).toEqual([label]);
+  });
+
+  it("does not extend the comparisons active state beyond its exact route", () => {
+    expect(
+      workspaceDestinations.filter((destination) =>
+        isDestinationActive(destination, "/comparisons/saved"),
+      ),
+    ).toEqual([]);
   });
 });

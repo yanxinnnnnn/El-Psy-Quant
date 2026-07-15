@@ -217,16 +217,31 @@ errors, manual refresh, accessibility, navigation, and the unified quality gate.
 It added no calculation, chart, download, comparison, lifecycle,
 authentication, broker, QMT, live, or S157–S159 behavior.
 
+Sprint 157 added exactly one `/comparisons` route with explicit selection of
+two to four distinct backend-available results represented by repeated ordered
+`job_id` query parameters. It consumes only the existing succeeded paper-job
+list and exact result clients, preserves selected order and partial per-run
+success, and provides individual manual retry plus one manual whole-comparison
+refresh. It juxtaposes backend-provided account cash, session summaries, audits,
+positions, and position changes without calculations, ranking, recommendation,
+full order/fill alignment, or M21 comparison/review artifact construction. It
+preserved same-origin transport, generated contracts, artifact authority,
+bounded errors, accessibility, manual refresh, and the unified quality gate. It
+added no backend, OpenAPI, database, domain, dependency, persistence, polling,
+chart, download, lifecycle, authentication, broker, QMT, live, or S158–S159
+behavior.
+
 The next sprint is:
 
 ```text
-Sprint 157 — Paper Run Comparison Workspace
+Sprint 158 — Lifecycle Proposal, Human Review, and Timeline Workspace
 ```
 
-Sprint 157 may add only the paper-run comparison workspace defined by its future
-authoritative issue. It must preserve the Sprint 152–156 same-origin transport,
-generated-contract, bounded-error, route-family navigation, artifact-authority,
-accessibility, manual-refresh, and frontend quality-gate boundaries.
+Sprint 158 may add only the lifecycle proposal, human review, and timeline
+workspace defined by its future authoritative issue. It must preserve the
+Sprint 152–157 same-origin transport, generated-contract, bounded-error,
+route-family navigation, artifact-authority, accessibility, manual-refresh, and
+frontend quality-gate boundaries.
 
 Approved productization sequence:
 

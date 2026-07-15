@@ -13,8 +13,7 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–27 are complete. **Milestone 28 — Founder Paper Trading Web
 Workspace** is in progress.
 
-The latest completed sprint is **Sprint 156 — Equity, Positions, Orders, and
-Fills Views**.
+The latest completed sprint is **Sprint 157 — Paper Run Comparison Workspace**.
 
 Milestone 27 established durable local product persistence and manually controlled
 paper-job operations beneath the existing versioned application API:
@@ -46,12 +45,12 @@ result references, and a versioned durable-job API while keeping completed files
 authoritative.
 
 Milestone 28 now has Founder-facing strategy, research, governance-evidence,
-report-manifest inspection, and explicit durable paper-job operation. Sprints
-138 through 156 are complete. The next
-sprint is:
+report-manifest inspection, explicit durable paper-job operation, immutable
+result inspection, and ordered paper-result comparison. Sprints 138 through
+157 are complete. The next sprint is:
 
 ```text
-Sprint 157 — Paper Run Comparison Workspace
+Sprint 158 — Lifecycle Proposal, Human Review, and Timeline Workspace
 ```
 
 The approved productization sequence is:
@@ -315,6 +314,7 @@ The delivered Web business routes are:
 /paper-jobs/[jobId]
 /portfolio-records
 /portfolio-records/[jobId]
+/comparisons
 ```
 
 Research inspection requires `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT` on the
@@ -348,11 +348,21 @@ marked-to-market equity or equity history. The Web UI displays backend-provided
 changes and counts without recomputation and adds no valuation, profit, return,
 exposure, download, or chart behavior.
 
+The comparison workspace reads the same succeeded-job list and exact result
+endpoints. An applied set contains two to four distinct repeated `job_id` query
+parameters whose order remains the display order. Each immutable result loads
+independently, so successful runs remain visible when another run fails and can
+be retried manually. Refresh is explicit and reloads the applied set once. The
+browser juxtaposes account-cash snapshots, session summaries, audits, positions,
+and backend-provided position changes without cross-run calculations, ranking,
+recommendations, full order/fill alignment, or M21 artifact construction. M21
+comparison facts and summaries remain explicit caller-supplied governance data.
+
 The browser continues to call only `/api/backend/api/v1/...`, and all success
 and request-body types derive from the checked-in FastAPI OpenAPI contract. It
 never accesses SQLite or artifact files directly. Authentication, Docker
 Compose, broker/QMT, live behavior, and distributed infrastructure remain
-deferred. Sprint 157 is the next planned workspace.
+deferred. Sprint 158 is the next planned workspace.
 
 Initialize or upgrade the local product database only through an explicit
 operator action. The parent directory must already exist:
