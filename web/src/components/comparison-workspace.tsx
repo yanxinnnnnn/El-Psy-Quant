@@ -33,6 +33,21 @@ function idsFromKey(key: string): string[] {
   return JSON.parse(key) as string[];
 }
 
+function reconcileSelection(
+  current: ReadonlySet<string>,
+  candidates: readonly PaperJobResponse[],
+): ReadonlySet<string> {
+  const selectableIds = new Set(
+    candidates
+      .filter((candidate) => candidate.result_available)
+      .map((candidate) => candidate.job_id),
+  );
+  const reconciled = new Set(
+    [...current].filter((jobId) => selectableIds.has(jobId)),
+  );
+  return reconciled.size === current.size ? current : reconciled;
+}
+
 function useComparisonResults(queryKey: string, valid: boolean) {
   const [batchState, setBatchState] = useState<ComparisonBatchState>({
     key: null,
@@ -227,6 +242,29 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
     [limit],
   );
   const candidates = useApiResource(candidateRequest);
+
+  useEffect(() => {
+    if (candidates.state.status !== "success") {
+      return;
+    }
+    let active = true;
+    const latestCandidates = candidates.state.data;
+    queueMicrotask(() => {
+      if (!active) {
+        return;
+      }
+      setSelected((current) => reconcileSelection(current, latestCandidates));
+    });
+    return () => {
+      active = false;
+    };
+  }, [candidates.state]);
+
+  const representedSelection =
+    candidates.state.status === "success"
+      ? reconcileSelection(selected, candidates.state.data)
+      : selected;
+
   const comparison = useComparisonResults(queryKey, comparisonValid);
   const comparisonSlots =
     comparison.batchState.key === queryKey ? comparison.batchState.slots : [];
@@ -254,7 +292,7 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
       return;
     }
     const orderedSelection = candidates.state.data
-      .filter((job) => job.result_available && selected.has(job.job_id))
+      .filter((job) => job.result_available && representedSelection.has(job.job_id))
       .map((job) => job.job_id);
     const validation = comparisonSelectionError(orderedSelection);
     if (validation !== null) {
@@ -292,7 +330,7 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
             <p className="eyebrow">Explicit selection</p>
             <h2 id="comparison-chooser-title">Succeeded paper jobs</h2>
           </div>
-          <p className="selected-count" aria-live="polite">Selected {selected.size} of 4 maximum</p>
+          <p className="selected-count" aria-live="polite">Selected {representedSelection.size} of 4 maximum</p>
         </div>
         <form
           className="filter-bar"
@@ -338,8 +376,8 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
                 key={`${job.job_id}-${index}`}
                 job={job}
                 index={index}
-                selected={selected.has(job.job_id)}
-                selectionLimitReached={selected.size >= 4}
+                selected={representedSelection.has(job.job_id)}
+                selectionLimitReached={representedSelection.size >= 4}
                 onSelectionChange={updateSelection}
               />
             ))}

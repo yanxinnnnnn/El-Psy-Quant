@@ -105,10 +105,23 @@ const auditRows = [
   { label: "Position change count", read: (result: PaperJobResultResponse) => result.result_summary.audit.position_change_count },
 ] as const;
 
+function SlotSourceLinks({ jobId }: { jobId: string }) {
+  const encodedJobId = encodeURIComponent(jobId);
+  return (
+    <div className="record-card__actions">
+      <Link className="primary-link" href={`/portfolio-records/${encodedJobId}`}>
+        Open Portfolio Record for selected job {jobId}
+      </Link>
+      <Link className="text-link" href={`/paper-jobs/${encodedJobId}`}>
+        Open Paper Job for selected job {jobId}
+      </Link>
+    </div>
+  );
+}
+
 function ResultIdentity({ slot, position }: { slot: SuccessfulSlot; position: number }) {
   const { result } = slot;
   const { artifact, result_reference: reference, result_summary: summary } = result;
-  const encodedJobId = encodeURIComponent(result.job_id);
   return (
     <article className="comparison-run-card">
       <p className="eyebrow">Comparison position {position}</p>
@@ -133,14 +146,7 @@ function ResultIdentity({ slot, position }: { slot: SuccessfulSlot; position: nu
         <div><dt>Audit schema</dt><dd>{summary.audit.schema_version}</dd></div>
         <div><dt>Audit created</dt><dd>{summary.audit.created_timestamp}</dd></div>
       </dl>
-      <div className="record-card__actions">
-        <Link className="primary-link" href={`/portfolio-records/${encodedJobId}`}>
-          Inspect full Portfolio Record for {result.job_id}
-        </Link>
-        <Link className="text-link" href={`/paper-jobs/${encodedJobId}`}>
-          Open Paper Job {result.job_id}
-        </Link>
-      </div>
+      <SlotSourceLinks jobId={slot.jobId} />
     </article>
   );
 }
@@ -250,6 +256,7 @@ export function ComparisonResults({
                 <p className="eyebrow">Comparison position {index + 1}</p>
                 <h3>Loading selected result</h3>
                 <p className="identity-line">{slot.jobId}</p>
+                <SlotSourceLinks jobId={slot.jobId} />
               </article>
             );
           }
@@ -263,6 +270,7 @@ export function ComparisonResults({
               <button className="retry-button" type="button" onClick={() => onRetry(index)}>
                 Retry result for {slot.jobId}
               </button>
+              <SlotSourceLinks jobId={slot.jobId} />
             </article>
           );
         })}

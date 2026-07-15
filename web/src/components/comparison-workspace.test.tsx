@@ -125,6 +125,106 @@ describe("ComparisonWorkspace", () => {
     expect(screen.getByLabelText("Select result job-1")).not.toBeDisabled();
   });
 
+  it("reconciles removed selections after refresh and applies exactly the latest visible API order", async () => {
+    const initial = ["a", "b", "c", "d", "e"].map((id) => job(id, `run-${id}`));
+    const refreshed = ["c", "a", "d", "e", "new"].map((id) => job(id, `run-${id}`));
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response(initial))
+      .mockResolvedValueOnce(response(refreshed));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<ComparisonWorkspace jobIds={[]} />);
+    await screen.findByRole("heading", { name: "run-a" });
+    for (const id of ["a", "b", "c"]) {
+      await user.click(screen.getByLabelText(`Select result ${id}`));
+    }
+    expect(screen.getByText("Selected 3 of 4 maximum")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Refresh candidates" }));
+    await screen.findByRole("heading", { name: "run-new" });
+    expect(screen.getByText("Selected 2 of 4 maximum")).toBeVisible();
+    expect(screen.getByLabelText("Select result c")).toBeChecked();
+    expect(screen.getByLabelText("Select result a")).toBeChecked();
+    expect(screen.getByLabelText("Select result new")).not.toBeChecked();
+
+    await user.click(screen.getByRole("button", { name: "Compare selected results" }));
+    expect(push).toHaveBeenLastCalledWith("/comparisons?job_id=c&job_id=a");
+
+    await user.click(screen.getByLabelText("Select result d"));
+    await user.click(screen.getByLabelText("Select result e"));
+    expect(screen.getByText("Selected 4 of 4 maximum")).toBeVisible();
+    expect(screen.getByLabelText(/Result new cannot be selected because four/)).toBeDisabled();
+  });
+
+  it("removes a selected job whose latest backend representation becomes unavailable", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response([job("a", "run-a"), job("b", "run-b"), job("c", "run-c")]))
+      .mockResolvedValueOnce(response([job("c", "run-c"), job("b", "run-b", false), job("a", "run-a")]));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<ComparisonWorkspace jobIds={[]} />);
+    await screen.findByRole("heading", { name: "run-a" });
+    await user.click(screen.getByLabelText("Select result a"));
+    await user.click(screen.getByLabelText("Select result b"));
+
+    await user.click(screen.getByRole("button", { name: "Refresh candidates" }));
+    await waitFor(() => expect(screen.getByText("Selected 1 of 4 maximum")).toBeVisible());
+    expect(screen.getByLabelText("Result b is unavailable and cannot be selected")).not.toBeChecked();
+    await user.click(screen.getByLabelText("Select result c"));
+    await user.click(screen.getByRole("button", { name: "Compare selected results" }));
+    expect(push).toHaveBeenLastCalledWith("/comparisons?job_id=c&job_id=a");
+  });
+
+  it("reconciles selections when a bounded limit change removes candidates", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response([job("a", "run-a"), job("b", "run-b"), job("c", "run-c")]))
+      .mockResolvedValueOnce(response([job("c", "run-c"), job("a", "run-a")]));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<ComparisonWorkspace jobIds={[]} />);
+    await screen.findByRole("heading", { name: "run-a" });
+    for (const id of ["a", "b", "c"]) {
+      await user.click(screen.getByLabelText(`Select result ${id}`));
+    }
+
+    await user.selectOptions(screen.getByLabelText("Limit"), "25");
+    await user.click(screen.getByRole("button", { name: "Apply limit" }));
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.getByText("Selected 2 of 4 maximum")).toBeVisible());
+    await user.click(screen.getByRole("button", { name: "Compare selected results" }));
+    expect(push).toHaveBeenLastCalledWith("/comparisons?job_id=c&job_id=a");
+  });
+
+  it("preserves selection through loading and failed refresh until a later success reconciles it", async () => {
+    const failedRefresh = deferred<Response>();
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response([job("a", "run-a"), job("b", "run-b")]))
+      .mockImplementationOnce(() => failedRefresh.promise)
+      .mockResolvedValueOnce(response([job("b", "run-b"), job("a", "run-a"), job("new", "run-new")]));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<ComparisonWorkspace jobIds={[]} />);
+    await screen.findByRole("heading", { name: "run-a" });
+    await user.click(screen.getByLabelText("Select result a"));
+    await user.click(screen.getByLabelText("Select result b"));
+
+    await user.click(screen.getByRole("button", { name: "Refresh candidates" }));
+    expect(screen.getByText("Selected 2 of 4 maximum")).toBeVisible();
+    failedRefresh.resolve(response({
+      error: { code: "internal_server_error", message: "Safe refresh failure" },
+      request_id: "refresh-failure",
+    }, 503));
+    expect(await screen.findByRole("heading", { name: "Comparison candidates unavailable" })).toBeVisible();
+    expect(screen.getByText("Selected 2 of 4 maximum")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    await screen.findByRole("heading", { name: "run-new" });
+    expect(screen.getByText("Selected 2 of 4 maximum")).toBeVisible();
+    expect(screen.getByLabelText("Select result new")).not.toBeChecked();
+    await user.click(screen.getByRole("button", { name: "Compare selected results" }));
+    expect(push).toHaveBeenLastCalledWith("/comparisons?job_id=b&job_id=a");
+  });
+
   it.each([
     [["only-one"]],
     [["one", ""]],
@@ -170,6 +270,39 @@ describe("ComparisonWorkspace", () => {
     ]);
   });
 
+  it("keeps independently encoded source links visible for every loading slot", async () => {
+    const firstResponse = deferred<Response>();
+    const secondResponse = deferred<Response>();
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((url) => {
+      const path = String(url);
+      if (path.includes("?status=succeeded")) return Promise.resolve(response([]));
+      return path.includes("loading%20%2F%20%3F") ? firstResponse.promise : secondResponse.promise;
+    });
+    vi.stubGlobal("fetch", fetcher);
+    render(<ComparisonWorkspace jobIds={["loading / ?", "other #value"]} />);
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(3));
+    for (const heading of screen.getAllByRole("heading", { name: "Loading selected result" })) {
+      expect(heading.closest("article")).toHaveAttribute("aria-busy", "true");
+    }
+
+    expect(screen.getByRole("link", { name: "Open Portfolio Record for selected job loading / ?" })).toHaveAttribute(
+      "href",
+      "/portfolio-records/loading%20%2F%20%3F",
+    );
+    expect(screen.getByRole("link", { name: "Open Paper Job for selected job loading / ?" })).toHaveAttribute(
+      "href",
+      "/paper-jobs/loading%20%2F%20%3F",
+    );
+    expect(screen.getByRole("link", { name: "Open Portfolio Record for selected job other #value" })).toHaveAttribute(
+      "href",
+      "/portfolio-records/other%20%23value",
+    );
+    expect(screen.getByRole("link", { name: "Open Paper Job for selected job other #value" })).toHaveAttribute(
+      "href",
+      "/paper-jobs/other%20%23value",
+    );
+  });
+
   it("suppresses a stale earlier batch when the applied comparison set changes", async () => {
     const pending = new Map<string, ReturnType<typeof deferred<Response>>>();
     for (const id of ["old-a", "old-b", "new-a", "new-b"]) pending.set(id, deferred<Response>());
@@ -195,6 +328,7 @@ describe("ComparisonWorkspace", () => {
 
   it("keeps partial success, retries one failed run, and refreshes every selected result exactly once", async () => {
     const calls = new Map<string, number>();
+    const retryResponse = deferred<Response>();
     const fetcher = vi.fn<typeof fetch>().mockImplementation((url) => {
       const path = String(url);
       if (path.includes("?status=succeeded")) return Promise.resolve(response([]));
@@ -208,7 +342,12 @@ describe("ComparisonWorkspace", () => {
           private_path: "C:\\private\\paper.json",
         }, 409, "failed-result-request"));
       }
-      return Promise.resolve(response(result(id, `run-${id}`)));
+      if (id === "job-b" && count === 2) {
+        return retryResponse.promise;
+      }
+      return Promise.resolve(response(
+        id === "job-a" ? result("mismatched-backend-job", "run-job-a") : result(id, `run-${id}`),
+      ));
     });
     vi.stubGlobal("fetch", fetcher);
     const user = userEvent.setup();
@@ -220,8 +359,18 @@ describe("ComparisonWorkspace", () => {
     expect(screen.getByText("Request failed-result-request")).toBeVisible();
     expect(screen.queryByText(/private\\paper/)).not.toBeInTheDocument();
     expect(calls).toEqual(new Map([["job-a", 1], ["job-b", 1]]));
+    expect(screen.getAllByText("mismatched-backend-job").length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: "Open Portfolio Record for selected job job-a" })).toHaveAttribute("href", "/portfolio-records/job-a");
+    expect(screen.getByRole("link", { name: "Open Paper Job for selected job job-a" })).toHaveAttribute("href", "/paper-jobs/job-a");
+    expect(screen.getByRole("link", { name: "Open Portfolio Record for selected job job-b" })).toHaveAttribute("href", "/portfolio-records/job-b");
+    expect(screen.getByRole("link", { name: "Open Paper Job for selected job job-b" })).toHaveAttribute("href", "/paper-jobs/job-b");
+    expect(screen.queryByRole("link", { name: /selected job mismatched-backend-job/ })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Retry result for job-b" }));
+    expect(await screen.findByRole("heading", { name: "Loading selected result" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open Portfolio Record for selected job job-b" })).toHaveAttribute("href", "/portfolio-records/job-b");
+    expect(screen.getByRole("link", { name: "Open Paper Job for selected job job-b" })).toHaveAttribute("href", "/paper-jobs/job-b");
+    retryResponse.resolve(response(result("job-b", "run-job-b")));
     expect(await screen.findByRole("heading", { name: "run-job-b" })).toBeVisible();
     expect(calls).toEqual(new Map([["job-a", 1], ["job-b", 2]]));
 
@@ -247,7 +396,7 @@ describe("ComparisonWorkspace", () => {
     expect(within(positions).getAllByText("DUP")).toHaveLength(2);
     const changes = screen.getByRole("table", { name: "Run 1 session-summary position changes in exact API order" });
     expect(within(changes).getAllByText("91")).toHaveLength(2);
-    expect(screen.getByRole("link", { name: "Inspect full Portfolio Record for job-a" })).toHaveAttribute("href", "/portfolio-records/job-a");
+    expect(screen.getByRole("link", { name: "Open Portfolio Record for selected job job-a" })).toHaveAttribute("href", "/portfolio-records/job-a");
     for (const forbidden of ["Orders", "Fills", "Winner", "Rank", "Recommendation", "P&L", "Return", "Exposure", "Chart"]) {
       expect(screen.queryByRole("heading", { name: forbidden })).not.toBeInTheDocument();
     }
