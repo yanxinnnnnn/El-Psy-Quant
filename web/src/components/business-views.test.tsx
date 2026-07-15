@@ -90,7 +90,13 @@ describe("StrategyListView", () => {
     vi.stubGlobal("fetch", fetcher);
 
     render(<StrategyListView />);
-    expect(screen.getByRole("status")).toHaveTextContent("Loading the built-in strategy");
+    const statusRegions = screen.getAllByRole("status");
+    expect(statusRegions).toHaveLength(1);
+    expect(statusRegions[0]).toHaveAttribute("aria-busy", "true");
+    expect(statusRegions[0]).toHaveTextContent("Loading the built-in strategy");
+    expect(screen.getByText("Loading the built-in strategy catalog…")).not.toHaveAttribute(
+      "role",
+    );
 
     await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
     resolveFetch?.(apiResponse({ strategies: [strategy] }));
@@ -213,10 +219,32 @@ describe("ResearchRunListView", () => {
     const user = userEvent.setup();
 
     render(<ResearchRunListView />);
-    expect(await screen.findByRole("heading", { name: heading })).toBeVisible();
+    const alert = await screen.findByRole("alert");
+    expect(screen.getByRole("heading", { name: heading })).toBeVisible();
+    expect(alert).toHaveTextContent("Public research error");
     expect(screen.getByText("Request header-id")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Retry" }));
     expect(await screen.findByRole("heading", { name: "My Experiment" })).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses a neutral title for network failures and still retries safely", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(new Error("C:\\private\\network detail"))
+      .mockResolvedValueOnce(apiResponse({ runs: [runSummary] }));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+
+    render(<ResearchRunListView />);
+    const alert = await screen.findByRole("alert");
+    expect(screen.getByRole("heading", { name: "Research runs unavailable" })).toBeVisible();
+    expect(alert).toHaveTextContent("The local API is unavailable.");
+    expect(alert).not.toHaveTextContent("private");
+    expect(screen.queryByText(/Request /)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByRole("heading", { name: "My Experiment" })).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });
 

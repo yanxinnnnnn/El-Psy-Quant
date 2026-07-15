@@ -6,10 +6,10 @@ export function RequestId({ value }: { value: string | null }) {
 
 export function LoadingState({ message }: { message: string }) {
   return (
-    <section className="state-panel" aria-live="polite" aria-busy="true">
+    <section className="state-panel" role="status" aria-busy="true">
       <p className="eyebrow">Loading</p>
       <h2>Retrieving backend-owned data</h2>
-      <p role="status">{message}</p>
+      <p>{message}</p>
     </section>
   );
 }

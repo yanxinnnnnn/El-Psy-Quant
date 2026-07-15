@@ -8,6 +8,16 @@ import { SectionNavigation } from "@/components/section-navigation";
 import { fetchResearchRuns } from "@/lib/api-client";
 import { useApiResource } from "@/lib/use-api-resource";
 
+function errorTitle(code: string): string {
+  if (code === "research_artifact_root_unavailable") {
+    return "Research root unavailable";
+  }
+  if (code === "research_artifact_invalid") {
+    return "Research artifacts are invalid";
+  }
+  return "Research runs unavailable";
+}
+
 export function ResearchRunListView() {
   const request = useCallback(() => fetchResearchRuns(), []);
   const { state, retry } = useApiResource(request);
@@ -28,11 +38,7 @@ export function ResearchRunListView() {
         <LoadingState message="Loading configured research-run manifests…" />
       ) : state.status === "error" ? (
         <ErrorState
-          title={
-            state.code === "research_artifact_invalid"
-              ? "Research artifacts are invalid"
-              : "Research root unavailable"
-          }
+          title={errorTitle(state.code)}
           message={state.message}
           requestId={state.requestId}
           onRetry={retry}
