@@ -165,8 +165,8 @@ Critical ownership decisions:
 | S155 | Paper Run Launch and Status Workspace. **Complete.** |
 | S156 | Equity, Positions, Orders, and Fills Views. **Complete.** |
 | S157 | Paper Run Comparison Workspace. **Complete.** |
-| S158 | Lifecycle Proposal, Human Review, and Timeline Workspace. **Next.** |
-| S159 | Minimal Authentication, Docker Compose, and End-to-End MVP Closeout |
+| S158 | Lifecycle Proposal, Human Review, and Timeline Workspace. **Complete.** |
+| S159 | Minimal Authentication, Docker Compose, and End-to-End MVP Closeout. **Next.** |
 
 ### M29 Sprint Sequence
 
@@ -399,16 +399,13 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 158 — Lifecycle Proposal, Human Review, and Timeline Workspace
+Sprint 159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
 ```
 
-Sprint 157 delivered one `/comparisons` route with explicit two-to-four-run
-selection encoded as repeated ordered `job_id` parameters. It consumes only the
-existing succeeded-job list and exact result endpoints, preserves partial
-success and per-run failures, and keeps refresh and retry manual. Account cash,
-session summaries, audits, positions, and backend-provided position changes are
-juxtaposed without cross-run calculations, ranking, recommendations, full
-order/fill alignment, or M21 comparison-artifact construction. Sprint 158 is
-the next bounded Founder workspace and must preserve the generated-contract,
-artifact-authority, bounded-error, accessibility, manual-refresh, and unified
-quality-gate boundaries.
+Sprint 158 delivered one `/lifecycle-review` route over the existing stateless
+proposal and human-review commands. It sends generated request shapes, displays
+normalized immutable responses and unresolved ordered evidence, and presents an
+in-session response timeline without recreating backend lifecycle validation or
+inferring approval, execution, promotion, or current state. Sprint 159 is the
+next separately bounded closeout sprint. Authentication and Docker Compose were
+not introduced by Sprint 158.

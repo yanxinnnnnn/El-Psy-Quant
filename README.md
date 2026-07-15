@@ -13,7 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–27 are complete. **Milestone 28 — Founder Paper Trading Web
 Workspace** is in progress.
 
-The latest completed sprint is **Sprint 157 — Paper Run Comparison Workspace**.
+The latest completed sprint is **Sprint 158 — Lifecycle Proposal, Human Review,
+and Timeline Workspace**.
 
 Milestone 27 established durable local product persistence and manually controlled
 paper-job operations beneath the existing versioned application API:
@@ -46,11 +47,12 @@ authoritative.
 
 Milestone 28 now has Founder-facing strategy, research, governance-evidence,
 report-manifest inspection, explicit durable paper-job operation, immutable
-result inspection, and ordered paper-result comparison. Sprints 138 through
-157 are complete. The next sprint is:
+result inspection, ordered paper-result comparison, and lifecycle proposal,
+human-review, and timeline inspection. Sprints 138 through 158 are complete.
+The next sprint is:
 
 ```text
-Sprint 158 — Lifecycle Proposal, Human Review, and Timeline Workspace
+Sprint 159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
 ```
 
 The approved productization sequence is:
@@ -315,6 +317,7 @@ The delivered Web business routes are:
 /portfolio-records
 /portfolio-records/[jobId]
 /comparisons
+/lifecycle-review
 ```
 
 Research inspection requires `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT` on the
@@ -358,11 +361,23 @@ and backend-provided position changes without cross-run calculations, ranking,
 recommendations, full order/fill alignment, or M21 artifact construction. M21
 comparison facts and summaries remain explicit caller-supplied governance data.
 
+The lifecycle review workspace uses only the existing synchronous
+`/api/v1/lifecycle-transition-proposals` and
+`/api/v1/lifecycle-transition-records` commands. The browser submits generated
+OpenAPI request shapes and displays normalized success responses; it does not
+hard-code lifecycle states, permitted transitions, evidence requirements,
+review outcomes, or resulting-snapshot relationships. Source snapshots,
+proposals, ordered unresolved evidence references, human review records, and
+optional caller-supplied resulting snapshots are juxtaposed in an in-session
+timeline. That timeline is not persisted and does not infer approval,
+execution, promotion, or globally current state.
+
 The browser continues to call only `/api/backend/api/v1/...`, and all success
 and request-body types derive from the checked-in FastAPI OpenAPI contract. It
 never accesses SQLite or artifact files directly. Authentication, Docker
 Compose, broker/QMT, live behavior, and distributed infrastructure remain
-deferred. Sprint 158 is the next planned workspace.
+deferred. Sprint 159 is the next planned closeout sprint; Sprint 158 adds no
+authentication or Docker Compose behavior.
 
 Initialize or upgrade the local product database only through an explicit
 operator action. The parent directory must already exist:

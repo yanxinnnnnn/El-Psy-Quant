@@ -231,17 +231,28 @@ added no backend, OpenAPI, database, domain, dependency, persistence, polling,
 chart, download, lifecycle, authentication, broker, QMT, live, or S158–S159
 behavior.
 
+Sprint 158 added exactly one `/lifecycle-review` route over the existing
+stateless lifecycle proposal and human-review POST commands. Generated OpenAPI
+request and success types remain authoritative; lifecycle states, transitions,
+evidence requirements, review outcomes, and resulting-snapshot rules remain
+backend-owned. The workspace inspects normalized immutable snapshots,
+proposals, unresolved ordered evidence references, human review records, and an
+in-session response timeline without inferring approval, execution, promotion,
+or globally current state. It added no backend, OpenAPI, database, domain,
+dependency, persistence, GET/list/current-state/apply endpoint, automatic
+transition, paper execution, capital allocation, authentication, Docker
+Compose, broker, QMT, live, or S159 behavior.
+
 The next sprint is:
 
 ```text
-Sprint 158 — Lifecycle Proposal, Human Review, and Timeline Workspace
+Sprint 159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
 ```
 
-Sprint 158 may add only the lifecycle proposal, human review, and timeline
-workspace defined by its future authoritative issue. It must preserve the
-Sprint 152–157 same-origin transport, generated-contract, bounded-error,
-route-family navigation, artifact-authority, accessibility, manual-refresh, and
-frontend quality-gate boundaries.
+Sprint 159 may add only the minimal authentication, Docker Compose, and MVP
+closeout behavior defined by its future authoritative issue. It must preserve
+the Sprint 152–158 same-origin transport, generated-contract, lifecycle and
+artifact authority, accessibility, and unified quality-gate boundaries.
 
 Approved productization sequence:
 

@@ -527,8 +527,8 @@ S154 — Governance Evidence and Report Artifact Views — Complete
 S155 — Paper Run Launch and Status Workspace — Complete
 S156 — Equity, Positions, Orders, and Fills Views — Complete
 S157 — Paper Run Comparison Workspace — Complete
-S158 — Lifecycle Proposal, Human Review, and Timeline Workspace — Next
-S159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
+S158 — Lifecycle Proposal, Human Review, and Timeline Workspace — Complete
+S159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout — Next
 ```
 
 Exit criteria:
@@ -842,18 +842,17 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 158 — Lifecycle Proposal, Human Review, and Timeline Workspace
+Sprint 159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
 ```
 
-Sprint 157 delivered explicit ordered comparison of two to four existing
-authoritative paper results under `/comparisons`. The browser uses only the
-existing succeeded-job list and exact result clients, preserves independent
-partial success, and provides manual per-run retry and whole-set refresh. It
-displays account cash, session summaries, audits, positions, and backend-supplied
-position changes without derived deltas, metrics, ranking, recommendations,
-full order/fill alignment, or M21 comparison/review artifact creation. The
-browser still never directly accesses SQLite, artifact directories, Python
-modules, QMT, MiniQMT, or a broker. Sprint 158 is the next planned workspace.
+Sprint 158 delivered one `/lifecycle-review` route using only the existing
+versioned lifecycle proposal and human-review POST commands. Generated OpenAPI
+request and response contracts remain authoritative, while backend domain
+factories continue to validate every lifecycle and human-control rule. The
+browser displays immutable snapshots, proposals, ordered unresolved evidence,
+review records, and an in-session response sequence without inferring approval,
+execution, promotion, or current state. Sprint 159 is the next separately
+bounded closeout sprint; Sprint 158 added no authentication or Docker Compose.
 
 ## One-Line Strategy
 

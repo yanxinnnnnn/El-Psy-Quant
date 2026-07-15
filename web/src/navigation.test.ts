@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { isDestinationActive, workspaceDestinations } from "./navigation";
 
 describe("workspace navigation", () => {
-  it("enables the six delivered destinations", () => {
+  it("enables the seven delivered destinations", () => {
     expect(workspaceDestinations.filter((item) => item.available)).toEqual([
       { label: "Overview", sprint: "S152", href: "/", available: true },
       {
@@ -36,20 +36,14 @@ describe("workspace navigation", () => {
         href: "/comparisons",
         available: true,
       },
+      {
+        label: "Lifecycle Review",
+        sprint: "S158",
+        href: "/lifecycle-review",
+        available: true,
+      },
     ]);
-    expect(workspaceDestinations.slice(6).every((item) => item.href === undefined)).toBe(
-      true,
-    );
-  });
-
-  it("keeps S158 explicit and unavailable", () => {
-    expect(workspaceDestinations.slice(6).map(({ label, sprint, available }) => ({
-      label,
-      sprint,
-      available,
-    }))).toEqual([
-      { label: "Lifecycle Review", sprint: "S158", available: false },
-    ]);
+    expect(workspaceDestinations.every((item) => item.href !== undefined)).toBe(true);
   });
 
   it.each([
@@ -69,6 +63,7 @@ describe("workspace navigation", () => {
     ["/portfolio-records", "Portfolio Records"],
     ["/portfolio-records/123", "Portfolio Records"],
     ["/comparisons", "Comparisons"],
+    ["/lifecycle-review", "Lifecycle Review"],
   ])("marks only the matching route family active for %s", (pathname, label) => {
     expect(
       workspaceDestinations
@@ -81,6 +76,14 @@ describe("workspace navigation", () => {
     expect(
       workspaceDestinations.filter((destination) =>
         isDestinationActive(destination, "/comparisons/saved"),
+      ),
+    ).toEqual([]);
+  });
+
+  it("does not extend the lifecycle review active state beyond its exact route", () => {
+    expect(
+      workspaceDestinations.filter((destination) =>
+        isDestinationActive(destination, "/lifecycle-review/history"),
       ),
     ).toEqual([]);
   });

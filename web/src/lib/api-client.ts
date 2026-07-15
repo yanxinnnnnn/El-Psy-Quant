@@ -18,6 +18,10 @@ const PAPER_JOB_CANCEL_PATH = "/api/v1/paper-jobs/{job_id}/cancel";
 const PAPER_JOB_RETRY_PATH = "/api/v1/paper-jobs/{job_id}/retry";
 const PAPER_JOB_RECOVER_PATH = "/api/v1/paper-jobs/{job_id}/recover";
 const PAPER_JOB_RESULT_PATH = "/api/v1/paper-jobs/{job_id}/result";
+const LIFECYCLE_TRANSITION_PROPOSALS_PATH =
+  "/api/v1/lifecycle-transition-proposals";
+const LIFECYCLE_TRANSITION_RECORDS_PATH =
+  "/api/v1/lifecycle-transition-records";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -83,6 +87,20 @@ export type PaperJobRetryResponse = PostSuccessResponse<
 >;
 export type PaperJobRecoverResponse = PostSuccessResponse<
   typeof PAPER_JOB_RECOVER_PATH,
+  200
+>;
+export type LifecycleTransitionProposalRequest = PostRequestBody<
+  typeof LIFECYCLE_TRANSITION_PROPOSALS_PATH
+>;
+export type LifecycleTransitionProposalResponse = PostSuccessResponse<
+  typeof LIFECYCLE_TRANSITION_PROPOSALS_PATH,
+  200
+>;
+export type LifecycleTransitionReviewRequest = PostRequestBody<
+  typeof LIFECYCLE_TRANSITION_RECORDS_PATH
+>;
+export type LifecycleTransitionReviewResponse = PostSuccessResponse<
+  typeof LIFECYCLE_TRANSITION_RECORDS_PATH,
   200
 >;
 
@@ -607,6 +625,77 @@ function isPaperJobResultResponse(
   );
 }
 
+function isLifecycleEvidenceReference(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    value.schema_version === 1 &&
+    isString(value.reference_type) &&
+    isString(value.reference_id) &&
+    isNullableString(value.label) &&
+    isNullableString(value.description)
+  );
+}
+
+function isLifecycleSnapshot(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    value.schema_version === 1 &&
+    isString(value.snapshot_id) &&
+    isString(value.strategy_id) &&
+    isString(value.lifecycle_state) &&
+    isString(value.rationale) &&
+    isNullableString(value.declared_by) &&
+    isNullableString(value.declared_timestamp) &&
+    isStringArray(value.notes) &&
+    isStringArray(value.warnings)
+  );
+}
+
+function isLifecycleProposal(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    value.schema_version === 1 &&
+    isString(value.proposal_id) &&
+    isLifecycleSnapshot(value.source_snapshot) &&
+    isString(value.target_state) &&
+    isString(value.rationale) &&
+    Array.isArray(value.evidence_references) &&
+    value.evidence_references.every(isLifecycleEvidenceReference) &&
+    isNullableString(value.requested_by) &&
+    isNullableString(value.requested_timestamp) &&
+    isStringArray(value.notes) &&
+    isStringArray(value.warnings)
+  );
+}
+
+function isLifecycleTransitionProposalResponse(
+  value: unknown,
+): value is LifecycleTransitionProposalResponse {
+  return isObject(value) && isLifecycleProposal(value.proposal);
+}
+
+function isLifecycleTransitionReviewResponse(
+  value: unknown,
+): value is LifecycleTransitionReviewResponse {
+  if (!isObject(value) || !isObject(value.transition_record)) {
+    return false;
+  }
+  const record = value.transition_record;
+  return (
+    record.schema_version === 1 &&
+    isString(record.transition_record_id) &&
+    isLifecycleProposal(record.proposal) &&
+    isString(record.review_outcome) &&
+    isString(record.rationale) &&
+    (record.resulting_snapshot === null ||
+      isLifecycleSnapshot(record.resulting_snapshot)) &&
+    isNullableString(record.reviewed_by) &&
+    isNullableString(record.reviewed_timestamp) &&
+    isStringArray(record.notes) &&
+    isStringArray(record.warnings)
+  );
+}
+
 function publicErrorEnvelope(value: unknown): PublicErrorEnvelope | null {
   if (!isObject(value) || !isObject(value.error)) {
     return null;
@@ -917,4 +1006,30 @@ export function recoverPaperJob(
     fetchImplementation,
     request,
   );
+}
+
+export function submitLifecycleTransitionProposal(
+  request: LifecycleTransitionProposalRequest,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<LifecycleTransitionProposalResponse>> {
+  return requestJson({
+    path: LIFECYCLE_TRANSITION_PROPOSALS_PATH,
+    method: "POST",
+    requestBody: request,
+    validate: isLifecycleTransitionProposalResponse,
+    fetchImplementation,
+  });
+}
+
+export function submitLifecycleTransitionReview(
+  request: LifecycleTransitionReviewRequest,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<LifecycleTransitionReviewResponse>> {
+  return requestJson({
+    path: LIFECYCLE_TRANSITION_RECORDS_PATH,
+    method: "POST",
+    requestBody: request,
+    validate: isLifecycleTransitionReviewResponse,
+    fetchImplementation,
+  });
 }
