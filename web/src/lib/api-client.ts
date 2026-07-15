@@ -566,7 +566,7 @@ function isNonNegativeInteger(value: unknown): boolean {
 function isPaperJobResultAudit(value: unknown): boolean {
   return (
     isObject(value) &&
-    value.schema_version === 1 &&
+    Number.isInteger(value.schema_version) &&
     isString(value.created_timestamp) &&
     isString(value.session_start_timestamp) &&
     isString(value.session_end_timestamp) &&

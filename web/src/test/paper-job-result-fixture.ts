@@ -69,7 +69,7 @@ export const paperJobResultFixture: PaperJobResultResponse = {
     artifact_schema_version: 1,
     artifact_created_timestamp: "2026-07-15T12:04:00Z",
     audit: {
-      schema_version: 1,
+      schema_version: 2,
       created_timestamp: "2026-07-15T12:04:30Z",
       session_start_timestamp: "2026-07-15T10:00:00Z",
       session_end_timestamp: "2026-07-15T12:00:00Z",

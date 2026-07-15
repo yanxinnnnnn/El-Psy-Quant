@@ -70,6 +70,7 @@ describe("PortfolioRecordDetailView", () => {
     expect(within(sessionSection as HTMLElement).getByText("42")).toBeVisible();
     const auditSection = screen.getByRole("heading", { name: "Backend result audit" }).closest("section");
     expect(auditSection).not.toBeNull();
+    expect(within(auditSection as HTMLElement).getByText("Audit schema").nextElementSibling).toHaveTextContent("2");
     for (const value of ["-92", "51", "52", "53", "54", "55"]) {
       expect(within(auditSection as HTMLElement).getByText(value)).toBeVisible();
     }
