@@ -10,6 +10,13 @@ const RESEARCH_RUN_DETAIL_PATH =
 const EVIDENCE_MANIFESTS_PATH = "/api/v1/evidence-manifests";
 const EVIDENCE_MANIFEST_DETAIL_PATH =
   "/api/v1/evidence-manifests/{manifest_type}/{artifact_key}";
+const PAPER_JOBS_PATH = "/api/v1/paper-jobs";
+const PAPER_JOB_DETAIL_PATH = "/api/v1/paper-jobs/{job_id}";
+const PAPER_JOB_ATTEMPTS_PATH = "/api/v1/paper-jobs/{job_id}/attempts";
+const PAPER_JOB_RUN_PATH = "/api/v1/paper-jobs/{job_id}/run";
+const PAPER_JOB_CANCEL_PATH = "/api/v1/paper-jobs/{job_id}/cancel";
+const PAPER_JOB_RETRY_PATH = "/api/v1/paper-jobs/{job_id}/retry";
+const PAPER_JOB_RECOVER_PATH = "/api/v1/paper-jobs/{job_id}/recover";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -21,6 +28,19 @@ type SuccessResponse<Path extends keyof paths> =
   }
     ? Response
     : never;
+
+type PostSuccessResponse<Path extends keyof paths, Status extends number> =
+  paths[Path]["post"] extends {
+    responses: Record<Status, { content: { "application/json": infer Response } }>;
+  }
+    ? Response
+    : never;
+
+type PostRequestBody<Path extends keyof paths> = paths[Path]["post"] extends {
+  requestBody: { content: { "application/json": infer Request } };
+}
+  ? Request
+  : never;
 
 export type HealthResponse = SuccessResponse<typeof HEALTH_PATH>;
 export type StrategyListResponse = SuccessResponse<typeof STRATEGIES_PATH>;
@@ -34,6 +54,34 @@ export type EvidenceManifestListResponse = SuccessResponse<
 >;
 export type EvidenceManifestDetailResponse = SuccessResponse<
   typeof EVIDENCE_MANIFEST_DETAIL_PATH
+>;
+export type PaperJobListResponse = SuccessResponse<typeof PAPER_JOBS_PATH>;
+export type PaperJobResponse = SuccessResponse<typeof PAPER_JOB_DETAIL_PATH>;
+export type PaperJobStatus = PaperJobResponse["status"];
+export type PaperJobAttemptListResponse = SuccessResponse<
+  typeof PAPER_JOB_ATTEMPTS_PATH
+>;
+export type PaperJobSubmissionRequest = PostRequestBody<typeof PAPER_JOBS_PATH>;
+export type PaperJobRecoveryRequest = PostRequestBody<typeof PAPER_JOB_RECOVER_PATH>;
+export type PaperJobSubmissionResponse = PostSuccessResponse<
+  typeof PAPER_JOBS_PATH,
+  200
+>;
+export type PaperJobRunAcceptedResponse = PostSuccessResponse<
+  typeof PAPER_JOB_RUN_PATH,
+  202
+>;
+export type PaperJobCancelResponse = PostSuccessResponse<
+  typeof PAPER_JOB_CANCEL_PATH,
+  200
+>;
+export type PaperJobRetryResponse = PostSuccessResponse<
+  typeof PAPER_JOB_RETRY_PATH,
+  200
+>;
+export type PaperJobRecoverResponse = PostSuccessResponse<
+  typeof PAPER_JOB_RECOVER_PATH,
+  200
 >;
 
 export type ApiResult<Response> = {
@@ -341,6 +389,77 @@ function isEvidenceManifestDetailResponse(
   return false;
 }
 
+function isPaperJobStatus(value: unknown): value is PaperJobStatus {
+  return (
+    value === "queued" ||
+    value === "running" ||
+    value === "succeeded" ||
+    value === "failed" ||
+    value === "canceled"
+  );
+}
+
+function isPaperJobAttemptStatus(value: unknown): boolean {
+  return (
+    value === "running" ||
+    value === "succeeded" ||
+    value === "failed" ||
+    value === "interrupted"
+  );
+}
+
+function isPaperJobErrorCode(value: unknown): boolean {
+  return (
+    value === null ||
+    value === "workflow_validation_failed" ||
+    value === "output_conflict" ||
+    value === "filesystem_io_failed" ||
+    value === "interrupted_without_output" ||
+    value === "partial_output_detected" ||
+    value === "invalid_output_detected"
+  );
+}
+
+function isPaperJobAttempt(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.attempt_id) &&
+    Number.isInteger(value.attempt_number) &&
+    (value.attempt_number as number) > 0 &&
+    isPaperJobAttemptStatus(value.status) &&
+    isString(value.started_timestamp) &&
+    isNullableString(value.completed_timestamp) &&
+    isPaperJobErrorCode(value.error_code)
+  );
+}
+
+function isPaperJobResponse(value: unknown): value is PaperJobResponse {
+  return (
+    isObject(value) &&
+    isString(value.job_id) &&
+    isString(value.run_id) &&
+    isPaperJobStatus(value.status) &&
+    isString(value.submitted_timestamp) &&
+    isString(value.updated_timestamp) &&
+    Number.isInteger(value.attempt_count) &&
+    (value.attempt_count as number) >= 0 &&
+    ((value.attempt_count === 0 && value.latest_attempt === null) ||
+      ((value.attempt_count as number) > 0 && isPaperJobAttempt(value.latest_attempt))) &&
+    ((value.result_available === true && isString(value.result_url)) ||
+      (value.result_available === false && value.result_url === null))
+  );
+}
+
+function isPaperJobListResponse(value: unknown): value is PaperJobListResponse {
+  return Array.isArray(value) && value.every(isPaperJobResponse);
+}
+
+function isPaperJobAttemptListResponse(
+  value: unknown,
+): value is PaperJobAttemptListResponse {
+  return Array.isArray(value) && value.every(isPaperJobAttempt);
+}
+
 function publicErrorEnvelope(value: unknown): PublicErrorEnvelope | null {
   if (!isObject(value) || !isObject(value.error)) {
     return null;
@@ -366,17 +485,33 @@ async function requestJson<Response>({
   path,
   validate,
   fetchImplementation,
+  method = "GET",
+  expectedStatuses = [200],
+  requestBody,
+  headers,
 }: {
   path: string;
   validate: RuntimeValidator<Response>;
   fetchImplementation: typeof fetch;
+  method?: "GET" | "POST";
+  expectedStatuses?: readonly number[];
+  requestBody?: unknown;
+  headers?: Readonly<Record<string, string>>;
 }): Promise<ApiResult<Response>> {
   let response: globalThis.Response;
   try {
+    const requestHeaders: Record<string, string> = {
+      Accept: "application/json",
+      ...headers,
+    };
+    if (requestBody !== undefined) {
+      requestHeaders["Content-Type"] = "application/json";
+    }
     response = await fetchImplementation(`${API_BASE_PATH}${path}`, {
-      method: "GET",
+      method,
       cache: "no-store",
-      headers: { Accept: "application/json" },
+      headers: requestHeaders,
+      ...(requestBody === undefined ? {} : { body: JSON.stringify(requestBody) }),
     });
   } catch {
     throw new ApiClientError({
@@ -389,7 +524,7 @@ async function requestJson<Response>({
 
   const body = await safeJson(response);
   const requestId = requestIdFrom(response);
-  if (!response.ok) {
+  if (!response.ok || !expectedStatuses.includes(response.status)) {
     const envelope = publicErrorEnvelope(body);
     if (envelope !== null) {
       throw new ApiClientError({
@@ -501,4 +636,127 @@ export function fetchEvidenceManifestDetail(
     validate: isEvidenceManifestDetailResponse,
     fetchImplementation,
   });
+}
+
+export function fetchPaperJobs(
+  filters: { status: PaperJobStatus | null; limit: number },
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobListResponse>> {
+  if (!Number.isInteger(filters.limit) || filters.limit < 1 || filters.limit > 200) {
+    throw new TypeError("Paper job limit must be an integer between 1 and 200.");
+  }
+  const query = new URLSearchParams();
+  if (filters.status !== null) {
+    query.set("status", filters.status);
+  }
+  query.set("limit", String(filters.limit));
+  return requestJson({
+    path: `${PAPER_JOBS_PATH}?${query.toString()}`,
+    validate: isPaperJobListResponse,
+    fetchImplementation,
+  });
+}
+
+function paperJobPath(template: string, jobId: string): string {
+  return template.replace("{job_id}", encodeURIComponent(jobId));
+}
+
+export function fetchPaperJobDetail(
+  jobId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobResponse>> {
+  return requestJson({
+    path: paperJobPath(PAPER_JOB_DETAIL_PATH, jobId),
+    validate: isPaperJobResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperJobAttempts(
+  jobId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobAttemptListResponse>> {
+  return requestJson({
+    path: paperJobPath(PAPER_JOB_ATTEMPTS_PATH, jobId),
+    validate: isPaperJobAttemptListResponse,
+    fetchImplementation,
+  });
+}
+
+export function submitPaperJob(
+  request: PaperJobSubmissionRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobSubmissionResponse>> {
+  const headers =
+    idempotencyKey.trim().length === 0
+      ? undefined
+      : { "Idempotency-Key": idempotencyKey };
+  return requestJson({
+    path: PAPER_JOBS_PATH,
+    method: "POST",
+    requestBody: request,
+    headers,
+    validate: isPaperJobResponse,
+    fetchImplementation,
+  });
+}
+
+function mutatePaperJob<Response extends PaperJobResponse>(
+  path: string,
+  fetchImplementation: typeof fetch,
+  body?: PaperJobRecoveryRequest,
+): Promise<ApiResult<Response>> {
+  return requestJson<Response>({
+    path,
+    method: "POST",
+    requestBody: body,
+    validate: isPaperJobResponse as RuntimeValidator<Response>,
+    fetchImplementation,
+  });
+}
+
+export function runPaperJob(
+  jobId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobRunAcceptedResponse>> {
+  return requestJson({
+    path: paperJobPath(PAPER_JOB_RUN_PATH, jobId),
+    method: "POST",
+    expectedStatuses: [202],
+    validate: isPaperJobResponse,
+    fetchImplementation,
+  });
+}
+
+export function cancelPaperJob(
+  jobId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobCancelResponse>> {
+  return mutatePaperJob<PaperJobCancelResponse>(
+    paperJobPath(PAPER_JOB_CANCEL_PATH, jobId),
+    fetchImplementation,
+  );
+}
+
+export function retryPaperJob(
+  jobId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobRetryResponse>> {
+  return mutatePaperJob<PaperJobRetryResponse>(
+    paperJobPath(PAPER_JOB_RETRY_PATH, jobId),
+    fetchImplementation,
+  );
+}
+
+export function recoverPaperJob(
+  jobId: string,
+  request: PaperJobRecoveryRequest,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperJobRecoverResponse>> {
+  return mutatePaperJob<PaperJobRecoverResponse>(
+    paperJobPath(PAPER_JOB_RECOVER_PATH, jobId),
+    fetchImplementation,
+    request,
+  );
 }

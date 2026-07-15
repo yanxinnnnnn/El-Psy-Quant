@@ -223,7 +223,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 ## Phase 4 — Founder Paper Trading Productization
 
 Status: Milestones 25 through 27 complete; Milestone 28 is in progress after
-the Sprint 153 strategy and research inspection delivery.
+the Sprint 155 paper-run launch and status workspace delivery.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -524,8 +524,8 @@ Sprint sequence:
 S152 — Next.js Workspace Shell and API Client Foundation — Complete
 S153 — Strategy List, Detail, Research, and Backtest Views — Complete
 S154 — Governance Evidence and Report Artifact Views — Complete
-S155 — Paper Run Launch and Status Workspace — Next
-S156 — Equity, Positions, Orders, and Fills Views
+S155 — Paper Run Launch and Status Workspace — Complete
+S156 — Equity, Positions, Orders, and Fills Views — Next
 S157 — Paper Run Comparison Workspace
 S158 — Lifecycle Proposal, Human Review, and Timeline Workspace
 S159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
@@ -842,17 +842,19 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 155 — Paper Run Launch and Status Workspace
+Sprint 156 — Equity, Positions, Orders, and Fills Views
 ```
 
-Sprint 154 delivered bounded list and exact-detail inspection for the three
-existing evidence-manifest variants. The UI consumes endpoint-specific
-generated-contract clients through the fixed same-origin rewrite and preserves
-backend reference groups, order, and duplicates without resolving pointers,
-rendering or downloading reports, or inferring lifecycle state, approval, or
-completeness. The browser still never directly accesses SQLite, artifact
-directories, Python modules, QMT, MiniQMT, or a broker. Sprint 155 may add only
-the next paper-run launch and status workspace under its authoritative issue.
+Sprint 155 delivered durable paper-job browsing, structured queued submission,
+exact job and attempt inspection, and explicit status-dependent controls through
+endpoint-specific generated-contract clients and the fixed same-origin rewrite.
+Submission never runs; Run is a separate 202 Accepted action; Retry only
+requeues; Recover requires explicit UTC input; and observation remains manual
+with no polling or chaining. Result availability is visible, but result contents
+and the result endpoint remain deferred. The browser still never directly
+accesses SQLite, artifact directories, Python modules, QMT, MiniQMT, or a
+broker. Sprint 156 may add only result inspection under its future authoritative
+issue.
 
 ## One-Line Strategy
 

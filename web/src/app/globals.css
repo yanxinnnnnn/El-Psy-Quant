@@ -929,6 +929,337 @@ tbody th {
   font-weight: 850;
 }
 
+.page-heading--with-action {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  max-width: none;
+}
+
+.page-heading--with-action > div {
+  max-width: 55rem;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+}
+
+.filter-bar label,
+.form-grid label,
+.repeatable-row label,
+.recovery-input {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 2.65rem;
+  padding: 0.55rem 0.7rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid #b9bdb8;
+  border-radius: 0.45rem;
+  font: inherit;
+}
+
+input:focus-visible,
+select:focus-visible,
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.danger-button:focus-visible,
+.remove-button:focus-visible {
+  outline: 3px solid rgb(29 90 73 / 24%);
+  outline-offset: 2px;
+}
+
+input[aria-invalid="true"] {
+  border-color: var(--red);
+}
+
+.primary-button,
+.secondary-button,
+.danger-button,
+.remove-button {
+  min-height: 2.65rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 780;
+}
+
+.primary-button {
+  color: white;
+  background: var(--green);
+  border: 1px solid var(--green);
+}
+
+.secondary-button {
+  color: var(--green);
+  background: var(--surface);
+  border: 1px solid var(--green);
+}
+
+.danger-button,
+.remove-button {
+  color: var(--red);
+  background: var(--surface);
+  border: 1px solid rgb(140 61 56 / 45%);
+}
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled,
+.remove-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.compact-definitions--jobs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.compact-definitions--jobs div {
+  min-width: 0;
+}
+
+.compact-definitions--jobs dd {
+  overflow-wrap: anywhere;
+}
+
+.job-status {
+  display: inline-flex;
+  padding: 0.35rem 0.55rem;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.job-status--queued,
+.job-status--running {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.job-status--succeeded {
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.job-status--failed,
+.job-status--canceled {
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.paper-job-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-section {
+  min-width: 0;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.form-section legend {
+  padding: 0 0.45rem;
+  color: var(--ink);
+  font-size: 1.35rem;
+  font-weight: 550;
+}
+
+.form-section__description,
+.repeatable-empty,
+.field-guidance,
+.neutral-note {
+  color: var(--ink-muted);
+  line-height: 1.55;
+}
+
+.form-section__description {
+  margin-top: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.field-guidance,
+.field-error {
+  font-size: 0.7rem;
+  font-weight: 550;
+}
+
+.field-error {
+  color: var(--red);
+}
+
+.optional-label {
+  font-weight: 500;
+}
+
+.repeatable-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.repeatable-heading h3,
+.repeatable-heading p {
+  margin: 0;
+}
+
+.repeatable-heading h3 {
+  font-size: 1rem;
+}
+
+.repeatable-list {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.repeatable-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(10rem, 1fr));
+  gap: 0.8rem;
+  padding: 1rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+}
+
+.repeatable-row--position {
+  grid-template-columns: minmax(6rem, auto) repeat(2, minmax(10rem, 1fr)) auto;
+  align-items: end;
+}
+
+.row-number {
+  color: var(--green);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.repeatable-row:not(.repeatable-row--position) .row-number,
+.repeatable-row:not(.repeatable-row--position) .remove-button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.submission-actions,
+.control-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.submission-actions {
+  padding: 1rem 0;
+}
+
+.submission-actions p {
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+}
+
+.form-alert,
+.mutation-notice,
+.confirmation-panel {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+}
+
+.form-alert {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.form-alert--server,
+.mutation-notice--error {
+  border-color: rgb(140 61 56 / 45%);
+}
+
+.mutation-notice,
+.confirmation-panel {
+  margin-top: 1rem;
+}
+
+.mutation-notice p,
+.confirmation-panel p {
+  margin-bottom: 0.8rem;
+  color: var(--ink-muted);
+}
+
+.mutation-notice--success {
+  background: var(--green-soft);
+}
+
+.mutation-notice--error {
+  background: var(--red-soft);
+}
+
+.confirmation-panel {
+  background: var(--surface-muted);
+}
+
+.confirmation-panel h3 {
+  margin: 0.4rem 0;
+}
+
+.recovery-input {
+  max-width: 34rem;
+  margin: 1rem 0;
+}
+
+.control-actions {
+  margin-top: 1rem;
+}
+
+.neutral-note,
+.inline-loading {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+}
+
+.attempts-table th,
+.attempts-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 @keyframes pulse {
   0%,
   100% {
@@ -976,6 +1307,20 @@ tbody th {
 
   .overview-grid {
     grid-template-columns: 1fr;
+  }
+
+  .page-heading--with-action {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .repeatable-row,
+  .repeatable-row--position {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .health-panel,
@@ -1040,6 +1385,18 @@ tbody th {
   .artifact-list,
   .compact-definitions--evidence {
     grid-template-columns: 1fr;
+  }
+
+  .form-grid,
+  .compact-definitions--jobs,
+  .repeatable-row,
+  .repeatable-row--position {
+    grid-template-columns: 1fr;
+  }
+
+  .repeatable-heading {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .definition-grid div:nth-child(odd) {
