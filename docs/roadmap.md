@@ -163,8 +163,8 @@ Critical ownership decisions:
 | S153 | Strategy List, Detail, Research, and Backtest Views. **Complete.** |
 | S154 | Governance Evidence and Report Artifact Views. **Complete.** |
 | S155 | Paper Run Launch and Status Workspace. **Complete.** |
-| S156 | Equity, Positions, Orders, and Fills Views. **Next.** |
-| S157 | Paper Run Comparison Workspace |
+| S156 | Equity, Positions, Orders, and Fills Views. **Complete.** |
+| S157 | Paper Run Comparison Workspace. **Next.** |
 | S158 | Lifecycle Proposal, Human Review, and Timeline Workspace |
 | S159 | Minimal Authentication, Docker Compose, and End-to-End MVP Closeout |
 
@@ -399,15 +399,15 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 156 — Equity, Positions, Orders, and Fills Views
+Sprint 157 — Paper Run Comparison Workspace
 ```
 
-Sprint 155 delivered the three paper-job route families through the fixed
-same-origin API boundary. It keeps submission separate from Run, uses generated
-request and 202 Accepted types, supports exact optional idempotency, renders
-backend-owned job/attempt state, and offers only status-appropriate confirmed
-manual controls. Recovery uses explicit UTC input; refresh is manual; loaded job
-data survives attempt and mutation failures; and result contents remain
-deferred. Sprint 156 is the next bounded Founder workspace and must preserve the
-generated-contract, artifact-authority, bounded-error, accessibility, and
-unified quality-gate boundaries.
+Sprint 156 delivered the two portfolio-record route families through the fixed
+same-origin API boundary. It reads only succeeded job metadata and exact
+authoritative results, preserves backend order and duplicates, displays supplied
+cash, quantity, change, count, reference, summary, and audit fields, and does not
+invent marked-to-market equity or other financial calculations. Result links
+depend only on backend-owned availability, `result_url` is never followed, and
+refresh remains manual. Sprint 157 is the next bounded Founder workspace and
+must preserve the generated-contract, artifact-authority, bounded-error,
+accessibility, manual-refresh, and unified quality-gate boundaries.

@@ -67,8 +67,25 @@ describe("PaperJobDetailView", () => {
     expect(rows[1]).toHaveTextContent("a-second");
     expect(rows[0]).toHaveTextContent("Not available");
     expect(rows[0]).toHaveTextContent("Interrupted without output (interrupted_without_output)");
-    expect(screen.getByText("Deferred to Sprint 156")).toBeVisible();
-    expect(screen.queryByRole("link", { name: /result/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Inspect portfolio record for run-155" })).toHaveAttribute(
+      "href",
+      `/portfolio-records/${jobId}`,
+    );
+    expect(fetcher.mock.calls.filter(([url]) => String(url).endsWith("/result"))).toHaveLength(0);
+  });
+
+  it("shows no result link when backend-owned availability is false", async () => {
+    const fetcher = initialFetcher({
+      ...baseJob,
+      status: "succeeded",
+      result_available: false,
+      result_url: null,
+    });
+    vi.stubGlobal("fetch", fetcher);
+    render(<PaperJobDetailView jobId={jobId} />);
+    await screen.findByRole("heading", { name: "run-155" });
+    expect(screen.getAllByText("Not available").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("link", { name: /Inspect portfolio record/ })).not.toBeInTheDocument();
     expect(fetcher.mock.calls.filter(([url]) => String(url).endsWith("/result"))).toHaveLength(0);
   });
 

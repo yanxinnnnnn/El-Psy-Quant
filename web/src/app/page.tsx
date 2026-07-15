@@ -8,11 +8,11 @@ export default function OverviewPage() {
     <WorkspaceShell>
       <div className="overview">
         <section className="overview-hero" aria-labelledby="overview-title">
-          <p className="eyebrow">Overview · Sprint 155</p>
+          <p className="eyebrow">Overview · Sprint 156</p>
           <h1 id="overview-title">A calm control surface for reviewable paper workflows.</h1>
           <p className="overview-hero__summary">
-            The workspace now adds deliberate durable paper-job submission, status,
-            attempt audit, and manual controls to backend-owned strategy, research,
+            The workspace now adds immutable completed paper-result inspection to
+            deliberate job operations and backend-owned strategy, research,
             governance, and report inspection.
           </p>
           <div className="overview-actions">
@@ -20,6 +20,7 @@ export default function OverviewPage() {
             <Link className="text-link" href="/research-runs">Inspect research runs</Link>
             <Link className="text-link" href="/evidence-manifests">Inspect governance evidence</Link>
             <Link className="text-link" href="/paper-jobs">Operate paper jobs</Link>
+            <Link className="text-link" href="/portfolio-records">Inspect portfolio records</Link>
           </div>
         </section>
 
@@ -43,13 +44,13 @@ export default function OverviewPage() {
         <section className="coming-next" aria-labelledby="coming-next-title">
           <div>
             <p className="eyebrow">Next planned workspace</p>
-            <h2 id="coming-next-title">Equity, positions, orders, and fills</h2>
+            <h2 id="coming-next-title">Paper run comparison</h2>
           </div>
           <p>
-            Sprint 156 will add authoritative result inspection. Sprint 155 shows only
-            backend result availability and never opens result contents or polls job status.
+            Sprint 157 is the next planned workspace. Sprint 156 displays authoritative
+            cash and quantity records without inventing marked-to-market equity or polling.
           </p>
-          <span className="sprint-chip">S156</span>
+          <span className="sprint-chip">S157</span>
         </section>
       </div>
     </WorkspaceShell>

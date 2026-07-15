@@ -169,10 +169,10 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
               <div><dt>Latest attempt completed</dt><dd>{job.latest_attempt?.completed_timestamp ?? "Not available"}</dd></div>
               <div><dt>Latest attempt error</dt><dd>{attemptErrorDescription(job.latest_attempt?.error_code ?? null)}</dd></div>
               <div><dt>Result available</dt><dd>{job.result_available ? "Yes" : "No"}</dd></div>
-              <div><dt>Detailed result inspection</dt><dd>Deferred to Sprint 156</dd></div>
+              <div><dt>Detailed result inspection</dt><dd>{job.result_available ? <Link className="text-link" href={`/portfolio-records/${encodeURIComponent(job.job_id)}`}>Inspect portfolio record for {job.run_id}</Link> : "Not available"}</dd></div>
             </dl>
             {runRefreshLocked ? <p className="neutral-note" role="status"><strong>Displayed job state is stale.</strong> Refresh status is required before another action can be selected.</p> : null}
-            <p className="neutral-note">The backend may own an internal result reference. This workspace does not open it, link to it, or infer availability from job status.</p>
+            <p className="neutral-note">Result inspection is offered only from the backend-owned availability flag. This page never follows the returned result URL or loads result contents automatically.</p>
           </section>
 
           <section className="content-panel" aria-labelledby="manual-controls-title">

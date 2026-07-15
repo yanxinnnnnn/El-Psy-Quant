@@ -223,7 +223,7 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 ## Phase 4 — Founder Paper Trading Productization
 
 Status: Milestones 25 through 27 complete; Milestone 28 is in progress after
-the Sprint 155 paper-run launch and status workspace delivery.
+the Sprint 156 authoritative portfolio-record workspace delivery.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -525,8 +525,8 @@ S152 — Next.js Workspace Shell and API Client Foundation — Complete
 S153 — Strategy List, Detail, Research, and Backtest Views — Complete
 S154 — Governance Evidence and Report Artifact Views — Complete
 S155 — Paper Run Launch and Status Workspace — Complete
-S156 — Equity, Positions, Orders, and Fills Views — Next
-S157 — Paper Run Comparison Workspace
+S156 — Equity, Positions, Orders, and Fills Views — Complete
+S157 — Paper Run Comparison Workspace — Next
 S158 — Lifecycle Proposal, Human Review, and Timeline Workspace
 S159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
 ```
@@ -842,19 +842,18 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 ## Current Next Step
 
 ```text
-Sprint 156 — Equity, Positions, Orders, and Fills Views
+Sprint 157 — Paper Run Comparison Workspace
 ```
 
-Sprint 155 delivered durable paper-job browsing, structured queued submission,
-exact job and attempt inspection, and explicit status-dependent controls through
-endpoint-specific generated-contract clients and the fixed same-origin rewrite.
-Submission never runs; Run is a separate 202 Accepted action; Retry only
-requeues; Recover requires explicit UTC input; and observation remains manual
-with no polling or chaining. Result availability is visible, but result contents
-and the result endpoint remain deferred. The browser still never directly
-accesses SQLite, artifact directories, Python modules, QMT, MiniQMT, or a
-broker. Sprint 156 may add only result inspection under its future authoritative
-issue.
+Sprint 156 delivered succeeded-result availability and exact immutable result
+inspection through endpoint-specific generated-contract clients and the fixed
+same-origin rewrite. Backend order and duplicate rows remain visible; supplied
+cash changes, quantity changes, and counts are not recomputed; account cash is
+not mislabeled as total marked-to-market equity; and no result URL, file path,
+download, calculation, chart, polling, or automatic refresh is introduced. The
+browser still never directly accesses SQLite, artifact directories, Python
+modules, QMT, MiniQMT, or a broker. Sprint 157 may add only paper-run comparison
+under its future authoritative issue.
 
 ## One-Line Strategy
 

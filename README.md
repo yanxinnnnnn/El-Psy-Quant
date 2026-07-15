@@ -13,8 +13,8 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–27 are complete. **Milestone 28 — Founder Paper Trading Web
 Workspace** is in progress.
 
-The latest completed sprint is **Sprint 155 — Paper Run Launch and Status
-Workspace**.
+The latest completed sprint is **Sprint 156 — Equity, Positions, Orders, and
+Fills Views**.
 
 Milestone 27 established durable local product persistence and manually controlled
 paper-job operations beneath the existing versioned application API:
@@ -47,11 +47,11 @@ authoritative.
 
 Milestone 28 now has Founder-facing strategy, research, governance-evidence,
 report-manifest inspection, and explicit durable paper-job operation. Sprints
-138 through 155 are complete. The next
+138 through 156 are complete. The next
 sprint is:
 
 ```text
-Sprint 156 — Equity, Positions, Orders, and Fills Views
+Sprint 157 — Paper Run Comparison Workspace
 ```
 
 The approved productization sequence is:
@@ -250,6 +250,8 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
   - durable paper-job list, structured queued submission, exact status, and attempt-audit routes
   - status-dependent confirmed Run, Cancel, Retry, and explicit-UTC Recover controls
   - manual-only status refresh with no polling or automatic command chaining
+  - succeeded paper-result availability and exact authoritative result inspection
+  - ordered, duplicate-preserving account, position, change, order, fill, summary, reference, and audit views
   - explicit loading, empty, bounded failure, not-found, and manual retry states
 - Basic and annualized performance metrics.
 - Buy-and-hold benchmark comparison.
@@ -311,6 +313,8 @@ The delivered Web business routes are:
 /paper-jobs
 /paper-jobs/new
 /paper-jobs/[jobId]
+/portfolio-records
+/portfolio-records/[jobId]
 ```
 
 Research inspection requires `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT` on the
@@ -329,19 +333,26 @@ reference groups, order, and duplicates. References are unresolved read-only
 pointers: the Web UI does not open referenced files, render or download reports,
 or infer lifecycle state, approval, completeness, or governance meaning.
 
-The durable paper-job Web workspace requires the explicitly migrated product
+The durable paper-job and portfolio-record workspaces require the explicitly migrated product
 database for all routes and the configured paper artifact root for Run, Retry,
 and Recover. Submission creates queued state only. Run is a separate explicit
 action whose HTTP 202 response means accepted rather than completed. Retry
 requeues without running, Recover requires a Founder-supplied timezone-aware UTC
 `stale_before`, and all later status observation is manual. The UI displays only
-backend-owned result availability; result contents remain deferred to Sprint 156.
+backend-owned result availability. The result workspace reads only succeeded-job
+metadata and the exact result endpoint, preserves API order and duplicates, and
+never follows `result_url`.
+
+Paper results currently contain account cash and quantity snapshots, not total
+marked-to-market equity or equity history. The Web UI displays backend-provided
+changes and counts without recomputation and adds no valuation, profit, return,
+exposure, download, or chart behavior.
 
 The browser continues to call only `/api/backend/api/v1/...`, and all success
 and request-body types derive from the checked-in FastAPI OpenAPI contract. It
 never accesses SQLite or artifact files directly. Authentication, Docker
 Compose, broker/QMT, live behavior, and distributed infrastructure remain
-deferred. Sprint 156 is the next planned workspace.
+deferred. Sprint 157 is the next planned workspace.
 
 Initialize or upgrade the local product database only through an explicit
 operator action. The parent directory must already exist:
