@@ -1,148 +1,171 @@
 # AGENTS.md
 
-This file defines the shared context for AI agents working on El-Psy-Quant.
+This file defines the shared context and operating rules for AI agents working on
+El-Psy-Quant.
 
 ## Project Identity
 
-El-Psy-Quant is an AI-native quantitative research and trading platform.
-
-The project is built like a startup product, not a one-off learning script.
+El-Psy-Quant is an AI-native quantitative research and trading platform built as
+a startup product, not a one-off strategy script.
 
 ## Mission
 
-Build an AI-native quant research operating system that turns trading ideas into reproducible, auditable, risk-aware decisions before any real capital is deployed.
+Build a production-ready platform that turns trading ideas into reproducible,
+auditable, risk-aware evidence and explicit human decisions before real capital
+is deployed.
 
 ## Operating Model
 
-- The human Founder makes final decisions and performs merges.
-- ChatGPT acts as CTO for milestone planning, sprint scope, architecture boundaries, Issue creation, PR review, and milestone closeout.
-- Codex acts as the implementation developer for coding sprints.
-- Documentation-only planning and closeout work may be handled directly by the CTO.
-- Codex must not merge pull requests.
-- The CTO must not merge pull requests.
-- No pull request may be merged without explicit Founder action.
+- The human Founder makes final product decisions, performs local startup
+  acceptance, and manually merges pull requests.
+- ChatGPT acts as CTO for milestone planning, architecture boundaries, Issue
+  creation, documentation-only planning/closeout work, and PR review.
+- Codex acts as implementation developer for coding sprints.
+- The CTO and Codex must not merge PRs unless the Founder explicitly requests it.
 - The GitHub Issue body is the authoritative implementation specification.
+- Implementation PR bodies must begin exactly with `Closes #<issue-number>`.
+- PRs must be Ready for review, not left as Draft.
 
 ## Engineering Principles
 
-- Use Python for the backend and domain platform.
-- Prefer modern Python packaging and tooling.
-- Use `uv` for dependency management unless the Founder decides otherwise.
-- Use a `src/` layout.
-- Use `pytest` for Python tests.
-- Use `ruff` for formatting and linting.
-- Use strict TypeScript for the Web application.
-- Use type hints for public Python functions.
-- Keep modules small and composable.
-- Avoid premature abstraction.
-- Avoid hidden network calls in tests.
-- Keep financial calculations explicit and documented.
-- Keep broker-specific behavior behind adapters.
-- Optimize for correctness, auditability, and maintainability rather than cleverness.
+- Use Python for backend/domain code and TypeScript/Next.js for the Founder Web
+  workspace.
+- Prefer `uv`, a `src/` layout, `pytest`, `ruff`, explicit type hints, and small
+  composable modules.
+- Preserve deterministic tests and avoid hidden network calls.
+- Prefer a modular monolith and local-first operation over premature distributed
+  infrastructure.
+- Keep financial calculations explicit and owned by domain modules.
+- Keep broker-specific behavior behind future adapters.
+- Do not add or modify proxy configuration in the repository.
+- Do not modify project files to accommodate a development proxy.
+- Never commit local `.env`, credentials, tokens, machine-specific paths, or
+  private endpoints.
+
+## Codex Verification Boundary
+
+Codex must complete deterministic repository verification before opening a PR:
+
+```text
+uv run python scripts/check.py
+```
+
+Codex may also run non-starting, non-network-heavy static checks when required by
+an Issue, for example:
+
+```text
+docker compose config
+docker compose -f compose.yaml -f compose.demo.yaml config
+```
+
+Codex must **not** attempt:
+
+- `docker compose build`;
+- `docker compose up`;
+- image pulls performed solely for local product acceptance;
+- container startup;
+- container-based MVP smoke verification; or
+- any equivalent Docker runtime acceptance step.
+
+Reason: Docker image dependency downloads are vulnerable to unstable local proxy
+conditions and can produce non-product timeouts.
+
+The PR must state truthfully that:
+
+- repository tests/static checks passed;
+- Docker build/start was intentionally not attempted under project policy; and
+- local Standard/Demo startup acceptance remains the Founder’s responsibility.
+
+Failure to run Docker build/start is not an implementation failure when the
+required deterministic tests and static configuration checks pass.
 
 ## Quant and Governance Principles
 
 - Never claim a strategy is profitable without evidence.
-- Avoid look-ahead bias.
-- Avoid survivorship bias where possible.
-- Distinguish research, backtesting, internal paper execution, external paper execution, and live execution.
-- Prefer reproducible experiments.
-- Risk metrics matter as much as return metrics.
-- A promotion candidate is not approval.
-- A lifecycle proposal is not execution.
-- A human approval or review record is governance evidence, not proof that runtime execution occurred.
-- Human decision authority must remain explicit.
+- Avoid look-ahead and survivorship bias where applicable.
+- Distinguish research, backtesting, Paper Trading, and future live execution.
+- Risk and audit context matter as much as return metrics.
+- A lifecycle proposal is non-executing.
+- A human review record is governance evidence, not proof that runtime execution
+  occurred.
+- Product guidance must not become strategy ranking, approval, or capital advice.
 
 ## Definition of Done
 
 A task is complete only when:
 
-- runtime behavior works locally when runtime behavior changes;
-- tests are included where appropriate;
-- README or documentation is updated when behavior changes;
-- assumptions and limitations are documented;
-- the implementation is simple enough for a human reviewer to understand;
+- scope matches the authoritative Issue;
+- deterministic tests are included where appropriate;
+- documentation matches behavior;
+- assumptions and limitations are explicit;
+- authority boundaries remain intact;
 - `uv run python scripts/check.py` passes;
-- the pull request is Ready for review, not Draft; and
-- the PR body begins with an exact manually typed `Closes #<issue-number>` line.
-
-## Long-Term Platform Direction
-
-The founder-level roadmap is maintained in:
-
-```text
-docs/strategy/future-platform-roadmap.md
-```
-
-The priority order is:
-
-```text
-trusted local workflow
-  > human-controlled governance
-  > usable Founder product
-  > portfolio-level decisions
-  > execution-risk controls
-  > broker adapters
-  > controlled live pilot
-```
+- approved static Compose checks pass where applicable;
+- the PR records that Founder Docker startup acceptance remains pending;
+- the PR is Ready for review; and
+- the PR is not merged by Codex or the CTO.
 
 ## Completed Foundations
 
-Milestones 1–28 are complete.
+Milestones 1–28 are Complete.
 
-The recent completed chain is:
-
-```text
-M18 Paper Trading Workflow Integration Foundation
-M19 Configured Paper Workflow Wiring Foundation
-M20 Research-to-Paper Promotion Foundation
-M21 Paper Run Comparison and Review Foundation
-M22 Decision Governance Foundation
-M23 Report Artifact Foundation
-M24 Strategy Review Workflow Foundation
-M25 Paper Trading Productization Planning
-M26 Paper Trading Application Service Foundation
-M27 Persistence and Paper Job Control Foundation
-M28 Founder Paper Trading Web Workspace
-```
-
-Milestone 28 delivered the first usable local Founder Web MVP, including:
-
-- the Next.js workspace shell and generated API client;
-- strategy and research inspection;
-- governance and report-manifest inspection;
-- durable paper-job submission and manual control;
-- authoritative portfolio-result inspection;
-- explicit ordered paper-result comparison;
-- lifecycle proposal and human-review commands;
-- minimal paired Founder authentication;
-- standard Docker Compose startup;
-- an isolated disposable Demo Workspace;
-- first-run guidance; and
-- a complete guided Strategy-to-Human-Decision journey.
-
-Formal records:
+The completed productization sequence is:
 
 ```text
-docs/milestones/milestone-028-founder-paper-trading-web-workspace.md
-docs/closeouts/milestone-028-founder-paper-trading-web-workspace-closeout.md
+M25 — S137      Paper Trading Productization Planning
+M26 — S138-S144 Paper Trading Application Service Foundation
+M27 — S145-S151 Persistence and Paper Job Control Foundation
+M28 — S152-S160 Founder Paper Trading Web Workspace
 ```
+
+Milestone 28 delivered:
+
+- a local Founder-only Next.js workspace;
+- versioned FastAPI application API;
+- paired minimal Founder authentication;
+- SQLite/Alembic product persistence;
+- durable manually controlled Paper Jobs;
+- authoritative result and evidence inspection;
+- explicit ordered result comparison;
+- non-executing lifecycle proposal and human-review workflows;
+- Standard Docker Compose startup;
+- isolated disposable Demo Workspace startup; and
+- one complete Strategy-to-Human-Decision Demo journey.
 
 ## Current Focus
 
-The current milestone is:
+The active milestone is:
 
 ```text
-Milestone 29 — Product Feedback and Hardening
+Milestone 29 — Product Feedback and Hardening — In Progress
 ```
 
-The next sprint is:
+The current sprint is:
 
 ```text
 Sprint 161 — Founder Feedback and Product Experience Architecture
 ```
 
-Milestone 29 uses real Founder feedback to improve product usability and daily local reliability.
+Sprint 161 is documentation-only and is implementation complete pending Founder
+review and merge. After merge, the next sprint is:
+
+```text
+Sprint 162 — Multilingual Foundation and Simplified Chinese Workspace
+```
+
+## M29 Product Outcome
+
+M29 must turn the working M28 MVP into a product reliable enough for routine
+Founder use:
+
+```text
+complete English / Simplified Chinese product
+  -> modern AI Quant Decision Workspace visual system
+  -> Founder Dashboard and workflow information architecture
+  -> understandable idempotency, retry, and recovery
+  -> actionable errors and audit information
+  -> hardened migrations, tests, and local deployment
+```
 
 Approved sequence:
 
@@ -157,197 +180,71 @@ S167 Migration, Test, and Local Deployment Hardening
 S168 Milestone 29 Closeout and M30 Handoff
 ```
 
-The multilingual foundation must precede the broad visual refresh so English and Simplified Chinese layouts both shape the visual system.
+Internationalization precedes visual-system implementation so English and
+Simplified Chinese both shape component sizing, typography, spacing, and content
+hierarchy.
 
-## Milestone 29 Product Feedback
-
-### Product Experience Refresh
-
-The current Web workspace is stable and professional, but it resembles an academic research portal or enterprise internal dashboard.
-
-The target is an **AI Quant Decision Workspace** with:
-
-- a modern neutral palette;
-- clean sans-serif typography;
-- stronger product identity;
-- improved information hierarchy;
-- clearer forms and tables;
-- purposeful data visualization;
-- a Founder Dashboard; and
-- workflow-oriented next actions.
-
-### Multilingual Product Foundation
-
-The product must support:
+## M29 Architecture Documents
 
 ```text
-en      English, default
-zh-CN   Simplified Chinese
+docs/sprints/sprint-161-founder-feedback-and-product-experience-architecture.md
+docs/product/founder-feedback-register.md
+docs/architecture/internationalization.md
+docs/product/localization-glossary.md
+docs/product/product-experience-direction.md
+docs/product/founder-dashboard-information-architecture.md
+docs/product/milestone-029-product-feedback-and-hardening-plan.md
 ```
 
-Internationalization requirements:
+Approved internationalization direction:
 
-- provide an explicit language switcher;
-- localize all Founder-facing navigation, page copy, forms, states, confirmations, accessibility labels, and stable frontend error explanations;
-- keep route paths stable unless a future requirement justifies locale-prefixed URLs;
-- preserve current path and query parameters when switching language;
-- preserve in-progress form state when practical;
-- set the HTML language correctly;
-- keep locale catalogs structurally complete and type checked;
-- fail tests or builds on missing required messages rather than silently shipping mixed-language UI;
-- preserve raw domain identifiers, API values, UUIDs, run IDs, job IDs, artifact keys, schema versions, UTC timestamps, and source payloads without translation; and
-- keep internationalization in the Web product layer rather than changing backend transport semantics.
+- locales: `en`, `zh-CN`;
+- English default/fallback;
+- no locale-prefixed URLs;
+- cookie/browser/fallback locale resolution;
+- `next-intl` implementation direction;
+- complete static catalogs;
+- frontend-owned localized explanations;
+- backend contracts remain stable and untranslated; and
+- raw IDs, states, values, timestamps, schemas, and artifact content remain
+  authoritative.
 
 ## Approved Product Architecture
 
 ```text
 Browser
-  -> React/Next.js Founder workspace
+  -> Next.js Founder workspace
   -> fixed same-origin /api/backend gateway
   -> versioned FastAPI application API
   -> thin application services / use cases
-  -> existing El-Psy-Quant domain modules and artifact readers
-  -> SQLite product repositories and simple local job runner
+  -> existing domain modules and artifact readers
+  -> SQLite product repositories and local Paper Job runner
 ```
 
-The implementation remains a modular monolith.
+Authority boundaries:
 
-Do not introduce premature microservices, Kubernetes, Kafka, Redis clusters, distributed queues, multi-tenancy, complex RBAC, cloud SaaS behavior, broad real-time dashboards, or broker integration.
+- domain modules own financial, paper, comparison, governance, and lifecycle
+  behavior;
+- completed artifact files remain payload authority;
+- SQLite stores compact metadata and operational state;
+- Paper Job state remains separate from lifecycle governance;
+- lifecycle proposals remain non-executing;
+- human review remains explicit governance evidence;
+- the browser never directly accesses SQLite, artifact roots, Python modules,
+  QMT, MiniQMT, or a broker;
+- Standard and Demo storage remain isolated; and
+- authentication and same-origin behavior remain unchanged unless an explicit
+  future Issue changes them.
 
-## Product Ownership Boundaries
+## Explicitly Deferred
 
-### Domain authority
+Do not add without a future approved milestone/Issue:
 
-Existing research, backtesting, paper, promotion, comparison, decision, report, and strategy-review modules remain authoritative for quantitative and governance behavior.
-
-The application and Web layers must not duplicate:
-
-- financial calculations;
-- paper execution semantics;
-- comparison logic;
-- governance validation;
-- lifecycle transition validation; or
-- human-control rules.
-
-FastAPI route handlers remain thin and must not become a second domain layer.
-
-### Artifact authority
-
-Existing artifact files remain authoritative for completed research, paper, comparison, governance, and report outputs.
-
-SQLite may store:
-
-- compact artifact indexes;
-- explicit references;
-- paper-job requests and operational status;
-- attempts and bounded error codes;
-- idempotency data; and
-- compact result references.
-
-SQLite must not silently copy complete artifact payloads and become a competing source of truth.
-
-Artifact paths must remain under configured local roots. Reject path traversal and arbitrary filesystem access.
-
-### Lifecycle authority
-
-Do not create an independently authoritative mutable strategy lifecycle `current_state` field.
-
-A current-state view may be derived from explicit immutable snapshots and approved human records.
-
-A transition proposal remains non-executing. A human review record remains governance evidence. Neither silently mutates lifecycle state.
-
-### Paper-job authority
-
-Paper-job status is mutable operational state and remains separate from strategy lifecycle governance.
-
-Durable local states are:
-
-```text
-queued
-running
-succeeded
-failed
-canceled
-```
-
-### Browser boundary
-
-The browser uses the Web/API boundary and must not directly access:
-
-- SQLite;
-- artifact directories;
-- Python modules;
-- Demo source files;
-- QMT;
-- MiniQMT; or
-- any broker.
-
-### Demo boundary
-
-Standard startup remains unseeded. Demo startup uses separate storage, deterministic validated records, and visible Demo identity. Demo reset must never delete standard user data.
-
-## API, Security, and Deployment Baselines
-
-- Use the versioned local API under `/api/v1`.
-- Use explicit schemas instead of leaking internal Python objects.
-- Preserve stable sanitized errors and server-owned request IDs.
-- Keep the fixed same-origin Web gateway.
-- Bind published services to loopback by default.
-- Require authentication for non-loopback exposure.
-- Avoid broad CORS.
-- Never log credentials or authentication material.
-- Support one local machine through M29.
-- Preserve standard and Demo Docker Compose storage isolation.
-- Do not add distributed infrastructure without a separate roadmap decision.
-
-## Future QMT Boundary
-
-QMT is a future execution adapter only.
-
-```text
-Browser
-  -> Web/API
-  -> broker-neutral execution command
-  -> Windows QMT agent
-  -> MiniQMT
-  -> broker
-```
-
-Future broker-neutral concepts may include:
-
-```text
-OrderIntent
-ExecutionOrder
-ExecutionFill
-AccountSnapshot
-PositionSnapshot
-BrokerOrderReference
-```
-
-Never connect the browser directly to QMT. Do not add live QMT behavior before portfolio review, execution-risk controls, operational readiness, and explicit human approval exist.
-
-## Issue and PR Requirements
-
-Every implementation Issue must define:
-
-- objective and user outcome;
-- exact scope and deliverables;
-- architecture and ownership boundaries;
-- required tests and verification;
-- documentation updates;
-- explicit non-goals; and
-- acceptance criteria.
-
-Execution rules:
-
-- Treat the Issue body as the authoritative specification.
-- Keep separate Codex prompts short and refer to the Issue.
-- Do not add or commit proxy configuration.
-- Do not modify project files for proxy setup.
-- Local temporary network configuration, when needed, must remain outside committed project files.
-- Do not submit `.env` files, credentials, secrets, private endpoints, or machine-specific paths.
-- Run `uv run python scripts/check.py` before opening a PR.
-- Open one focused PR against `main`.
-- Start the PR body with `Closes #<issue-number>`.
-- Mark the PR Ready for review.
-- Do not merge unless the Founder explicitly performs the merge.
+- broker or QMT/MiniQMT runtime integration;
+- live or real-money trading;
+- automatic strategy ranking or recommendation;
+- automatic lifecycle transition or approval;
+- capital allocation;
+- SaaS, multi-tenancy, or complex RBAC;
+- microservices, Kafka, Redis clusters, or Kubernetes; or
+- broad live-market trading-terminal behavior.
