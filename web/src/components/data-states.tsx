@@ -11,7 +11,7 @@ export function RequestId({ value }: { value: string | null }) {
 export function LoadingState({ message }: { message: string }) {
   const t = useTranslations("common");
   return (
-    <section className="state-panel" role="status" aria-busy="true">
+    <section className="state-panel state-panel--loading" role="status" aria-live="polite" aria-busy="true">
       <p className="eyebrow">{t("states.loading")}</p>
       <h2>{t("loading.title")}</h2>
       <p>{message}</p>
@@ -22,7 +22,7 @@ export function LoadingState({ message }: { message: string }) {
 export function EmptyState({ title, message }: { title: string; message: string }) {
   const t = useTranslations("common");
   return (
-    <section className="state-panel">
+    <section className="state-panel state-panel--empty">
       <p className="eyebrow">{t("states.empty")}</p>
       <h2>{title}</h2>
       <p>{message}</p>
@@ -62,7 +62,7 @@ export function ErrorState({
       <p>{presentation.recovery}</p>
       {code ? <p className="request-id">{t("errorCode", { code })}</p> : null}
       {message ? (
-        <details>
+        <details className="audit-disclosure">
           <summary>{t("backendDetail")}</summary>
           <p>{message}</p>
         </details>
@@ -70,7 +70,7 @@ export function ErrorState({
       <RequestId value={requestId} />
       <div className="state-panel__actions">
         {onRetry ? (
-          <button className="retry-button" type="button" onClick={onRetry}>
+          <button className="secondary-button" type="button" onClick={onRetry}>
             {retryLabel ?? t("actions.retry")}
           </button>
         ) : null}

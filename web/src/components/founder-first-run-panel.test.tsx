@@ -219,9 +219,11 @@ describe("FounderFirstRunPanel", () => {
     apiMocks.fetchEvidenceManifests.mockResolvedValue({ data: { manifests: [] }, requestId: "evidence" });
     apiMocks.fetchPaperJobs.mockResolvedValue({ data: [], requestId: "jobs" });
 
-    render(<FounderFirstRunPanel />);
+    render(<WorkspaceShell><FounderFirstRunPanel /></WorkspaceShell>);
 
     expect(await screen.findByRole("heading", { name: /application is running, but no workspace evidence/ })).toBeVisible();
+    expect(screen.getByRole("status", { name: "Workspace environment: paper trading" })).toHaveTextContent("Paper environment");
+    expect(screen.queryByText("Demo Workspace")).not.toBeInTheDocument();
     expect(screen.getByText(/Empty is a valid first-run state/)).toBeVisible();
     expect(screen.getByText(/never seeds data, writes artifacts, or initializes storage/)).toBeVisible();
   });

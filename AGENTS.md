@@ -143,15 +143,15 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current sprint is:
 
 ```text
-Sprint 162 — Multilingual Foundation and Simplified Chinese Workspace
+Sprint 163 — Modern Visual System Foundation
 ```
 
-Sprint 161 is complete. Sprint 162 implementation is complete in its review
-branch. Founder bilingual Standard/Demo browser acceptance and the merge decision
-remain pending. Do not begin the next sprint until both are complete:
+Sprints 161 and 162 are complete. Sprint 163 implementation is complete in its
+review branch. Founder Standard/Demo rendered visual acceptance and the merge
+decision remain pending. Do not begin the next sprint until both are complete:
 
 ```text
-Sprint 163 — Modern Visual System Foundation
+Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
 ```
 
 ## M29 Product Outcome
@@ -195,6 +195,8 @@ docs/product/localization-glossary.md
 docs/product/product-experience-direction.md
 docs/product/founder-dashboard-information-architecture.md
 docs/product/milestone-029-product-feedback-and-hardening-plan.md
+docs/product/visual-system.md
+docs/sprints/sprint-163-modern-visual-system-foundation.md
 ```
 
 Approved internationalization direction:
@@ -223,6 +225,22 @@ Implemented Sprint 162 contract:
 - frontend explanations may be localized, but raw transport, domain, artifact,
   user-entered, timestamp, ordering, duplicate, and quantitative truth is never
   translated or recomputed.
+
+Implemented Sprint 163 contract:
+
+- one Web-owned semantic token system defines the exact light palette,
+  bilingual system-font typography, spacing, radius, borders, elevation,
+  controls, focus, motion, shell dimensions, content widths, and responsive
+  thresholds;
+- the solid workspace shell, route-aware navigation, language switcher, and
+  Standard/Paper or persistent Demo identity remain visible and accessible;
+- shared actions, links, cards, panels, status badges, notices, states, tables,
+  forms, disclosures, audit details, and workflow steps cover every current
+  route and state;
+- status uses localized text plus raw values and never communicates strategy
+  profitability or execution authority; and
+- representative layout contracts cover `360px`, `768px`, and `1280px+` with
+  bounded table/navigation scrolling and reduced-motion behavior.
 
 ## Approved Product Architecture
 

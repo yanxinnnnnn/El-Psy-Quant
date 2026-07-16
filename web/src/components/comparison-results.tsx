@@ -287,7 +287,7 @@ export function ComparisonResults({
               <ComparisonErrorDetail error={slot.error} />
               <p className="identity-line">{slot.jobId}</p>
               <RequestId value={slot.error.requestId} />
-              <button className="retry-button" type="button" onClick={() => onRetry(index)}>
+              <button className="secondary-button" type="button" onClick={() => onRetry(index)}>
                 {t("retry", { jobId: slot.jobId })}
               </button>
               <SlotSourceLinks jobId={slot.jobId} />

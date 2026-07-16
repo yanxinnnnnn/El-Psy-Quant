@@ -328,7 +328,7 @@ function SnapshotEditor({
   const update = <Field extends keyof SnapshotDraft>(field: Field, value: SnapshotDraft[Field]) =>
     setDraft({ ...draft, [field]: value });
   return (
-    <fieldset className="form-section lifecycle-snapshot-form">
+    <fieldset className="form-section">
       <legend>{legend}</legend>
       <p className="form-section__description">
         {t("snapshotDescription")}
@@ -535,7 +535,7 @@ export function LifecycleReviewWorkspace() {
 
       {proposalResult ? (
         <div className="lifecycle-response-stack">
-          <div className="mutation-notice mutation-notice--success" role="status"><h2>{t("proposalResponseTitle")}</h2><p>{t("proposalResponseDescription")}</p><RequestId value={proposalResult.requestId} /></div>
+          <div className="mutation-notice mutation-notice--recorded" role="status"><h2>{t("proposalResponseTitle")}</h2><p>{t("proposalResponseDescription")}</p><RequestId value={proposalResult.requestId} /></div>
           <SnapshotInspection title={t("sourceSnapshot")} snapshot={proposalResult.data.proposal.source_snapshot} boundary={t("sourceSnapshotBoundary")} />
           <ProposalInspection proposal={proposalResult.data.proposal} />
 
@@ -569,10 +569,10 @@ export function LifecycleReviewWorkspace() {
         </div>
       ) : null}
 
-      {reviewResult ? <div className="lifecycle-response-stack"><div className="mutation-notice mutation-notice--success" role="status"><h2>{t("reviewResponseTitle")}</h2><p>{t("reviewResponseDescription")}</p><RequestId value={reviewResult.requestId} /></div><ReviewInspection response={reviewResult.data} />{reviewResult.data.transition_record.resulting_snapshot ? <SnapshotInspection title={t("callerResulting")} snapshot={reviewResult.data.transition_record.resulting_snapshot} boundary={t("resultingSnapshotBoundary")} /> : null}</div> : null}
+      {reviewResult ? <div className="lifecycle-response-stack"><div className="mutation-notice mutation-notice--recorded" role="status"><h2>{t("reviewResponseTitle")}</h2><p>{t("reviewResponseDescription")}</p><RequestId value={reviewResult.requestId} /></div><ReviewInspection response={reviewResult.data} />{reviewResult.data.transition_record.resulting_snapshot ? <SnapshotInspection title={t("callerResulting")} snapshot={reviewResult.data.transition_record.resulting_snapshot} boundary={t("resultingSnapshotBoundary")} /> : null}</div> : null}
 
       {displayedProposal ? <LifecycleTimeline proposal={displayedProposal} review={reviewResult?.data ?? null} /> : (
-        <section className="state-panel lifecycle-empty-timeline"><p className="eyebrow">{t("timelineEyebrow")}</p><h2>{t("timelineEmptyTitle")}</h2><p>{t("timelineEmptyDescription")}</p></section>
+        <section className="state-panel state-panel--empty lifecycle-empty-timeline"><p className="eyebrow">{t("timelineEyebrow")}</p><h2>{t("timelineEmptyTitle")}</h2><p>{t("timelineEmptyDescription")}</p></section>
       )}
     </div>
   );

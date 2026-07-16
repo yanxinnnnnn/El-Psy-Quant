@@ -17,7 +17,7 @@ function PortfolioRecordCard({ job }: { job: PaperJobResponse }) {
   const common = useTranslations("common.states");
   const encodedJobId = encodeURIComponent(job.job_id);
   return (
-    <li className="record-card portfolio-record-card">
+    <li className="record-card">
       <div>
         <p className="record-card__meta">{job.job_id}</p>
         <h2>{job.run_id}</h2>

@@ -21,39 +21,45 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#workspace-main">
           {t("skip")}
         </a>
-        <div className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">
-            EP
-          </span>
-          <div>
-            <p className="brand-name">El-Psy-Quant</p>
-            <p className="brand-context">{t("brandContext")}</p>
+        <div className="workspace-header__identity">
+          <div className="brand-lockup">
+            <span className="brand-mark" aria-hidden="true">
+              EP
+            </span>
+            <div>
+              <p className="brand-name">El-Psy-Quant</p>
+              <p className="brand-context">{t("brandContext")}</p>
+            </div>
           </div>
         </div>
-        {demoDescriptor ? (
-          <div
-            className="demo-identity"
-            role="status"
-            aria-label={t("demoAria")}
-          >
-            <strong>{t("demo")}</strong>
-            <span>{t("demoWarning")}</span>
-          </div>
-        ) : state.status === "loading" ? (
-          <div className="environment-pill" role="status">
-            {t("discovering")}
-          </div>
-        ) : state.status === "error" && state.code !== "demo_workspace_not_configured" ? (
-          <div className="environment-pill environment-pill--warning" role="alert">
-            {t("identityUnavailable")}
-          </div>
-        ) : (
-          <div className="environment-pill" aria-label={t("paperEnvironmentAria")}>
-            <span aria-hidden="true" />
-            {t("paperEnvironment")}
-          </div>
-        )}
-        <LanguageSwitcher />
+        <div className="workspace-header__tools">
+          {demoDescriptor ? (
+            <div
+              className="demo-identity"
+              role="status"
+              aria-label={t("demoAria")}
+            >
+              <strong>{t("demo")}</strong>
+              <span>{t("demoWarning")}</span>
+            </div>
+          ) : state.status === "loading" ? (
+            <div className="environment-pill" role="status">
+              <span aria-hidden="true" />
+              {t("discovering")}
+            </div>
+          ) : state.status === "error" && state.code !== "demo_workspace_not_configured" ? (
+            <div className="environment-pill environment-pill--warning" role="alert">
+              <span aria-hidden="true" />
+              {t("identityUnavailable")}
+            </div>
+          ) : (
+            <div className="environment-pill" role="status" aria-label={t("paperEnvironmentAria")}>
+              <span aria-hidden="true" />
+              {t("paperEnvironment")}
+            </div>
+          )}
+          <LanguageSwitcher />
+        </div>
       </header>
 
       <div className="workspace-body">

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import { LifecycleStateValue, ReviewOutcomeValue } from "@/components/domain-values";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { LocalizedTimestamp } from "@/components/localized-values";
 import type {
   LifecycleTransitionProposalResponse,
@@ -48,7 +49,7 @@ export function ProposalInspection({ proposal }: { proposal: LifecycleTransition
     <section className="lifecycle-inspection" aria-labelledby="proposal-inspection-title">
       <div className="section-heading">
         <div><p className="eyebrow">{t("latestResponse")}</p><h2 id="proposal-inspection-title">{t("proposalTitle")}</h2></div>
-        <span className="job-status job-status--queued">{t("nonExecuting")}</span>
+        <StatusBadge label={t("nonExecuting")} tone="warning" />
       </div>
       <p className="neutral-note">{t("proposalBoundary")}</p>
       <dl className="compact-definitions compact-definitions--jobs">
@@ -94,7 +95,7 @@ export function ReviewInspection({ response }: { response: LifecycleTransitionRe
     <section className="lifecycle-inspection" aria-labelledby="review-inspection-title">
       <div className="section-heading">
         <div><p className="eyebrow">{t("latestResponse")}</p><h2 id="review-inspection-title">{t("reviewTitle")}</h2></div>
-        <span className="job-status">{t("governanceEvidence")}</span>
+        <StatusBadge label={t("governanceEvidence")} tone="neutral" />
       </div>
       <p className="neutral-note">{t("reviewBoundary")}</p>
       <dl className="compact-definitions compact-definitions--jobs">

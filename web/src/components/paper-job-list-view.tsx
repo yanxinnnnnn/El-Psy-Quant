@@ -20,7 +20,7 @@ function JobCard({ job }: { job: PaperJobResponse }) {
   const t = useTranslations("paperJobs.list");
   const common = useTranslations("common.states");
   return (
-    <li className="record-card paper-job-card">
+    <li className="record-card">
       <div>
         <p className="record-card__meta">{job.job_id}</p>
         <h2>{job.run_id}</h2>

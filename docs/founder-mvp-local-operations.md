@@ -206,6 +206,43 @@ or malformed value is present, the application falls back to English. Clearing
 site data resets the preference but also clears any other browser state for that
 origin; it does not alter SQLite or artifact storage.
 
+## Sprint 163 Rendered Visual Acceptance
+
+Sprint 163 deterministic tests do not replace Founder browser review. With the
+Standard and Demo workspaces started through their documented isolated Compose
+flows, verify both `English` and `简体中文` at approximately `360px`, `768px`, and
+`1280px+`:
+
+- visit Overview and every existing Strategy, Research, Evidence, Paper Job,
+  Portfolio Record, Comparison, and Lifecycle list/detail/form route;
+- confirm the workspace header, current navigation, language switcher, and
+  Standard/Paper identity remain visible and keyboard-operable;
+- confirm Demo mode shows the persistent localized Demo label and disposable
+  example-data warning on every route;
+- exercise available loading, empty, invalid, unavailable, error, conflict,
+  pending, success, and partial-failure surfaces;
+- inspect long IDs, artifact keys, raw UTC timestamps, schemas, code, ordered
+  duplicate records, tables, and backend-detail disclosures;
+- confirm tables and tablet navigation scroll within their own containers and
+  the page itself has no horizontal overflow;
+- confirm text-bearing controls, Chinese headings, labels, badges, warnings,
+  and repeatable form rows wrap without clipping;
+- use keyboard-only navigation and inspect visible focus, named landmarks,
+  captions, labels, alerts, and disclosures;
+- enable reduced-motion preference and confirm no essential information depends
+  on animation; and
+- switch language with repeated comparison parameters and unsaved Paper Job and
+  Lifecycle fields present, confirming no route, query, value, or command
+  regression.
+
+Rendered acceptance is visual and behavioral review only. It must not interpret
+operational completion as profitability, human approval as execution, or a
+lifecycle proposal as an applied transition. Record acceptance before merging
+Sprint 163 or starting Sprint 164.
+
+The exact token and component contract is documented in
+`docs/product/visual-system.md`.
+
 For service state and bounded logs:
 
 ```powershell
