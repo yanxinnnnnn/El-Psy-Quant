@@ -5,6 +5,7 @@ import { resolveApiOrigin } from "./src/config/api-origin";
 
 describe("Next.js API rewrite", () => {
   it("proxies only the versioned FastAPI boundary", async () => {
+    expect(nextConfig.output).toBe("standalone");
     expect(nextConfig.rewrites).toBeTypeOf("function");
     if (nextConfig.rewrites === undefined) {
       throw new Error("expected the versioned API rewrite");

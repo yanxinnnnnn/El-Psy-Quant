@@ -16,6 +16,14 @@ describe("resolveApiOrigin", () => {
     expect(resolveApiOrigin(value)).toBe(expected);
   });
 
+  it("accepts only the fixed backend host with explicit Compose opt-in", () => {
+    expect(resolveApiOrigin("http://backend:8000", true)).toBe(
+      "http://backend:8000",
+    );
+    expect(() => resolveApiOrigin("http://backend:8000")).toThrow();
+    expect(() => resolveApiOrigin("http://api:8000", true)).toThrow();
+  });
+
   it.each([
     "",
     " http://127.0.0.1:8000",
@@ -24,6 +32,8 @@ describe("resolveApiOrigin", () => {
     "http://192.168.1.10:8000",
     "http://example.com:8000",
     "http://api.localhost:8000",
+    "http://api:8000",
+    "http://backend:8000",
     "http://user:secret@localhost:8000",
     "http://localhost:8000/api",
     "http://localhost:8000?target=remote",

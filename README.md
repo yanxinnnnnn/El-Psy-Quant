@@ -241,7 +241,10 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
 - Local Founder Web foundation:
   - strict TypeScript Next.js 16 App Router application under `web/`
   - responsive accessible workspace shell with Overview, Strategies/Research, and Governance/Reports enabled
-  - loopback-only server configuration and fixed same-origin `/api/backend` rewrite
+  - loopback or fixed internal Compose API configuration with a fixed same-origin `/api/backend` rewrite
+  - paired browser and versioned-API HTTP Basic boundary for one local Founder credential
+  - Docker Compose startup with explicit migrations, persistent local storage, loopback-published ports, and service health checks
+  - authenticated end-to-end smoke verification for the gateway, workspace routes, read workflows, and stateless lifecycle commands
   - deterministic FastAPI OpenAPI snapshot and generated TypeScript API types
   - typed health client with bounded errors, request IDs, visible failure, and retry
   - strategy list and exact-name detail routes with descriptive read-only parameters
@@ -260,6 +263,48 @@ QMT-specific behavior must not leak into strategy, evaluation, governance, persi
 
 ## Quick Start
 
+### Docker Compose Founder MVP
+
+Docker Desktop with Compose v2 is the shortest reproducible startup path. Copy
+the example configuration, replace the placeholder with a local-only password,
+then build and start both services:
+
+```powershell
+Copy-Item .env.example .env
+# Edit .env and replace EL_PSY_QUANT_FOUNDER_PASSWORD.
+docker compose up --build --detach
+docker compose ps
+```
+
+Open `http://127.0.0.1:3000` and enter the Founder username and password from
+`.env` in the browser's HTTP Basic prompt. Both published ports are bound to
+loopback. FastAPI is also authenticated on `http://127.0.0.1:8000/api/v1/...`.
+
+Run the authenticated, non-persisting MVP smoke verification inside the Web
+container:
+
+```powershell
+docker compose exec web node /app/verify-mvp.mjs
+```
+
+The verification checks the browser challenge, same-origin API gateway, all
+top-level S152–S158 workspace routes, strategy/research/evidence/job reads, and
+the existing stateless lifecycle proposal and deferred-review commands. It does
+not submit or run a durable paper job and does not apply a lifecycle transition.
+
+Stop the processes while preserving the named `mvp-data` volume:
+
+```powershell
+docker compose down
+```
+
+See [`docs/founder-mvp-local-operations.md`](docs/founder-mvp-local-operations.md)
+for storage, existing-artifact import, troubleshooting, direct developer startup,
+and the exact authentication boundary. Do not use `docker compose down --volumes`
+unless the local product database and authoritative paper outputs may be deleted.
+
+### Direct developer startup
+
 Install [uv](https://docs.astral.sh/uv/) and Node.js 24 LTS, then install the
 Python and frontend dependencies:
 
@@ -274,25 +319,34 @@ Run the complete quality gate used by GitHub Actions:
 uv run python scripts/check.py
 ```
 
-Run the local application API on loopback only:
+For an authenticated direct startup, configure the same credential pair in the
+FastAPI terminal before running the local application API on loopback:
 
-```bash
+```powershell
+$env:EL_PSY_QUANT_FOUNDER_USERNAME="founder"
+$env:EL_PSY_QUANT_FOUNDER_PASSWORD="replace-with-a-local-password"
 uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-In another terminal, optionally configure a loopback API origin and start the
-local Web workspace. The default is `http://127.0.0.1:8000`; configuration
-changes require restarting the Next.js process.
+In another terminal, configure that same pair plus the loopback API origin and
+start the local Web workspace. The API origin defaults to
+`http://127.0.0.1:8000`; configuration changes require restarting Next.js.
 
 ```powershell
 $env:EL_PSY_QUANT_API_ORIGIN="http://127.0.0.1:8000"
+$env:EL_PSY_QUANT_FOUNDER_USERNAME="founder"
+$env:EL_PSY_QUANT_FOUNDER_PASSWORD="replace-with-a-local-password"
 npm --prefix web run dev
 ```
 
 The browser calls only `/api/backend/api/v1/...`; Next.js transparently rewrites
 that fixed same-origin path to the configured FastAPI origin. The origin is
-server-only, accepts only `http` or `https` loopback origins, and cannot contain
-credentials, paths, queries, or fragments. FastAPI CORS remains unchanged.
+server-only, accepts only `http` or `https` loopback origins or the explicitly
+enabled exact internal Compose host `backend`, and cannot contain credentials,
+paths, queries, or fragments. FastAPI CORS remains unchanged. Leaving both
+credential variables unset preserves the pre-S159 unauthenticated developer
+mode, which must remain bound to loopback; partial credential configuration
+fails closed.
 
 Regenerate or freshness-check the canonical OpenAPI snapshot and derived
 TypeScript types without starting either server:
@@ -374,10 +428,11 @@ execution, promotion, or globally current state.
 
 The browser continues to call only `/api/backend/api/v1/...`, and all success
 and request-body types derive from the checked-in FastAPI OpenAPI contract. It
-never accesses SQLite or artifact files directly. Authentication, Docker
-Compose, broker/QMT, live behavior, and distributed infrastructure remain
-deferred. Sprint 159 is the next planned closeout sprint; Sprint 158 adds no
-authentication or Docker Compose behavior.
+never accesses SQLite or artifact files directly. The minimal paired HTTP Basic
+boundary and Docker Compose workflow add no user table, session service, RBAC,
+SaaS, broker/QMT, live behavior, or distributed infrastructure. Milestone 28
+governance closeout remains a separate CTO action after this implementation is
+merged.
 
 Initialize or upgrade the local product database only through an explicit
 operator action. The parent directory must already exist:

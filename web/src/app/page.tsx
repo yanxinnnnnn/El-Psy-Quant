@@ -8,12 +8,11 @@ export default function OverviewPage() {
     <WorkspaceShell>
       <div className="overview">
         <section className="overview-hero" aria-labelledby="overview-title">
-          <p className="eyebrow">Overview · Sprint 158</p>
+          <p className="eyebrow">Overview · Local Web MVP</p>
           <h1 id="overview-title">A calm control surface for reviewable paper workflows.</h1>
           <p className="overview-hero__summary">
-            The workspace now adds explicit lifecycle proposals, human review records,
-            and immutable in-session evidence timelines to the existing backend-owned
-            research, governance, paper, portfolio, and comparison workflows.
+            One authenticated local workspace now connects the existing backend-owned
+            research, governance, paper, portfolio, comparison, and lifecycle workflows.
           </p>
           <div className="overview-actions">
             <Link className="primary-link" href="/strategies">Browse strategies</Link>
@@ -46,13 +45,13 @@ export default function OverviewPage() {
         <section className="coming-next" aria-labelledby="coming-next-title">
           <div>
             <p className="eyebrow">Next planned sprint</p>
-            <h2 id="coming-next-title">MVP closeout</h2>
+            <h2 id="coming-next-title">Reproducible local operation</h2>
           </div>
           <p>
-            Sprint 159 remains separately scoped for minimal authentication, Docker
-            Compose, and end-to-end MVP closeout. Sprint 158 adds none of that behavior.
+            Docker Compose coordinates the Founder authentication boundary, versioned
+            FastAPI service, persistent local data, and same-origin Web gateway.
           </p>
-          <span className="sprint-chip">S159</span>
+          <span className="sprint-chip">MVP</span>
         </section>
       </div>
     </WorkspaceShell>

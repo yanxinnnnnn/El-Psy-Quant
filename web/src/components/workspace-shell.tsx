@@ -15,7 +15,7 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
           </span>
           <div>
             <p className="brand-name">El-Psy-Quant</p>
-            <p className="brand-context">Founder paper workspace · Local only</p>
+            <p className="brand-context">Founder-only paper workspace · Local</p>
           </div>
         </div>
         <div className="environment-pill" aria-label="Workspace environment: paper trading">
