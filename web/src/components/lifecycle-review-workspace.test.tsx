@@ -333,4 +333,24 @@ describe("LifecycleReviewWorkspace", () => {
     resolveRequest?.(response(proposalResponse));
     await waitFor(() => expect(screen.getByRole("heading", { name: "Proposal response received" })).toBeVisible());
   });
+
+  it("localizes Lifecycle Review while preserving raw descriptor IDs and lifecycle transport state", async () => {
+    const descriptor = demoDescriptorFromVersionedSource();
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response(descriptor, 200, "descriptor-zh-request"),
+    );
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<LifecycleReviewWorkspace />, { locale: "zh-CN" });
+
+    expect(screen.getByRole("heading", { name: "生命周期提案、人工审查与时间线" })).toBeVisible();
+    expect(screen.getByText("本页面上的任何命令都不会应用生命周期转换。")).toBeVisible();
+    expect(screen.getByRole("button", { name: "创建非执行提案" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "加载演示生命周期示例" }));
+
+    expect(await screen.findByDisplayValue(descriptor.lifecycle_proposal_example.source_snapshot.snapshot_id)).toBeVisible();
+    expect(screen.getByDisplayValue(descriptor.lifecycle_proposal_example.source_snapshot.lifecycle_state)).toBeVisible();
+    expect(screen.getByDisplayValue(descriptor.lifecycle_proposal_example.proposal_id)).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
 });

@@ -70,7 +70,7 @@ describe("bilingual workspace presentation", () => {
     expect(screen.getByText("2026-07-15T10:00:00Z")).toBeVisible();
   });
 
-  it("keeps a known raw error code and safe backend message beside localized guidance", () => {
+  it("keeps a known raw error code and safe backend message as labelled technical detail", () => {
     render(
       <ErrorState
         code="product_database_unavailable"
@@ -81,8 +81,11 @@ describe("bilingual workspace presentation", () => {
       { locale: "zh-CN" },
     );
     expect(screen.getByRole("heading", { name: "产品数据库不可用" })).toBeVisible();
+    expect(screen.getByText("当前无法读取持久化的本地产品状态。")).toBeVisible();
+    expect(screen.getByText("请确认产品数据库和迁移配置，然后重试。")).toBeVisible();
     expect(screen.getByText("错误码：product_database_unavailable")).toBeVisible();
-    expect(screen.getByText("Safe backend detail")).toBeVisible();
+    expect(screen.getByText("Safe backend detail").closest("details")).not.toBeNull();
+    expect(screen.getByText("后端详情")).toBeVisible();
     expect(screen.getByText("请求 raw-request-id")).toBeVisible();
   });
 });

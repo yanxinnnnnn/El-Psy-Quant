@@ -36,32 +36,42 @@ export function ErrorState({
   code,
   requestId,
   onRetry,
+  retryLabel,
+  className,
   backHref,
   backLabel,
 }: {
   title: string;
-  message: string;
-  code?: string;
+  message?: string | null;
+  code?: string | null;
   requestId: string | null;
   onRetry?: () => void;
+  retryLabel?: string;
+  className?: string;
   backHref?: string;
   backLabel?: string;
 }) {
   const t = useTranslations("common");
   const presentation = useErrorPresentation(code);
+  const resolvedTitle = presentation.useContextTitle ? title : presentation.title;
   return (
-    <section className="state-panel state-panel--error" role="alert">
+    <section className={`state-panel state-panel--error${className ? ` ${className}` : ""}`} role="alert">
       <p className="eyebrow">{t("states.unavailable")}</p>
-      <h2>{title}</h2>
-      <p>{code ? presentation.explanation : message}</p>
-      {code && message ? <p>{message}</p> : null}
-      {code ? <p>{presentation.recovery}</p> : null}
+      <h2>{resolvedTitle}</h2>
+      <p>{presentation.explanation}</p>
+      <p>{presentation.recovery}</p>
       {code ? <p className="request-id">{t("errorCode", { code })}</p> : null}
+      {message ? (
+        <details>
+          <summary>{t("backendDetail")}</summary>
+          <p>{message}</p>
+        </details>
+      ) : null}
       <RequestId value={requestId} />
       <div className="state-panel__actions">
         {onRetry ? (
           <button className="retry-button" type="button" onClick={onRetry}>
-            {t("actions.retry")}
+            {retryLabel ?? t("actions.retry")}
           </button>
         ) : null}
         {backHref && backLabel ? (

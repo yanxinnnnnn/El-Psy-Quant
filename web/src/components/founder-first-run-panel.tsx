@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { RequestId } from "@/components/data-states";
+import { ErrorState } from "@/components/data-states";
 import {
   ApiClientError,
   fetchDemoWorkspace,
@@ -19,7 +19,7 @@ type StandardWorkspaceState =
   | { status: "loading" }
   | { status: "empty" }
   | { status: "populated" }
-  | { status: "error"; message: string; requestId: string | null };
+  | { status: "error"; code: string | null; message: string | null; requestId: string | null };
 
 function comparisonHref(jobIds: readonly string[]): string {
   const query = new URLSearchParams();
@@ -38,7 +38,7 @@ function GuidedDemoJourney({ descriptor }: { descriptor: DemoWorkspaceDescriptor
           <p className="eyebrow">{t("demoEyebrow")}</p>
           <h2 id="demo-journey-title">{t("demoTitle")}</h2>
         </div>
-        <p>{descriptor.warning}</p>
+        <p>{t("demoWarning")}</p>
       </div>
       <ol className="demo-journey__steps">
         <li><Link href={`/strategies/${encodeURIComponent(descriptor.canonical_strategy_name)}`}>{t("strategyStep", { step: 1 })}</Link></li>
@@ -85,11 +85,12 @@ export function FounderFirstRunPanel() {
       if (current !== sequence.current) return;
       setStandardState({
         status: "error",
-        message: error instanceof ApiClientError ? error.publicMessage : t("unavailableFallback"),
+        code: error instanceof ApiClientError ? error.code : null,
+        message: error instanceof ApiClientError ? error.publicMessage : null,
         requestId: error instanceof ApiClientError ? error.requestId : null,
       });
     });
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     if (descriptorNotConfigured) {
@@ -106,12 +107,15 @@ export function FounderFirstRunPanel() {
   }
   if (descriptorState.code !== "demo_workspace_not_configured") {
     return (
-      <section className="first-run-panel state-panel--error" role="alert">
-        <h2>{t("identityUnavailable")}</h2>
-        <p>{descriptorState.message}</p>
-        <RequestId value={descriptorState.requestId} />
-        <button className="retry-button" type="button" onClick={retryDescriptor}>{t("retryDiscovery")}</button>
-      </section>
+      <ErrorState
+        className="first-run-panel"
+        code={descriptorState.code}
+        title={t("identityUnavailable")}
+        message={descriptorState.message}
+        requestId={descriptorState.requestId}
+        onRetry={retryDescriptor}
+        retryLabel={t("retryDiscovery")}
+      />
     );
   }
   if (standardState.status === "loading") {
@@ -119,11 +123,15 @@ export function FounderFirstRunPanel() {
   }
   if (standardState.status === "error") {
     return (
-      <section className="first-run-panel state-panel--error" role="alert">
-        <h2>{t("dataUnavailableTitle")}</h2>
-        <p>{standardState.message}</p><RequestId value={standardState.requestId} />
-        <button className="retry-button" type="button" onClick={inspectStandard}>{t("retryEvidence")}</button>
-      </section>
+      <ErrorState
+        className="first-run-panel"
+        code={standardState.code}
+        title={t("dataUnavailableTitle")}
+        message={standardState.message}
+        requestId={standardState.requestId}
+        onRetry={inspectStandard}
+        retryLabel={t("retryEvidence")}
+      />
     );
   }
   if (standardState.status === "populated") {

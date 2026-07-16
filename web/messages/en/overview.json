@@ -57,6 +57,7 @@
     "unavailableFallback": "Workspace evidence is unavailable.",
     "demoEyebrow": "Guided first run",
     "demoTitle": "Strategy to human decision evidence",
+    "demoWarning": "Demo only — disposable example evidence, not real user data or trading advice.",
     "strategyStep": "{step}. Review the canonical strategy definition",
     "researchStep": "{step}. Inspect saved research evidence",
     "manifestStep": "{step}. Inspect {manifestType}",

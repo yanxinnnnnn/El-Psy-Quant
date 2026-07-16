@@ -224,3 +224,47 @@ describe("EvidenceManifestDetailView", () => {
     expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 });
+
+describe("Simplified Chinese governance and reports smoke coverage", () => {
+  it("localizes manifest presentation while preserving API order and raw manifest identities", async () => {
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(apiResponse({
+      manifests: [
+        {
+          manifest_type: "report_artifact_manifest",
+          artifact_key: "report-zh-raw",
+          manifest_id: "manifest-report-zh",
+          reference_count: 1,
+          created_by: "founder-entered-text",
+          created_timestamp: "2026-07-15T10:00:00Z",
+          label: "Authoritative artifact label",
+          description: null,
+        },
+        {
+          manifest_type: "strategy_decision_manifest",
+          artifact_key: "decision-zh-raw",
+          manifest_id: "manifest-decision-zh",
+          reference_count: 2,
+          created_by: null,
+          created_timestamp: null,
+          label: null,
+          description: null,
+        },
+      ],
+    })));
+
+    render(<EvidenceManifestListView />, { locale: "zh-CN" });
+
+    expect(screen.getByRole("heading", { name: "证据清单" })).toBeVisible();
+    await screen.findByRole("heading", { name: "报告制品" });
+    expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual([
+      "报告制品",
+      "策略决策",
+    ]);
+    expect(screen.getByText("report_artifact_manifest / report-zh-raw")).toBeVisible();
+    expect(screen.getByText("Authoritative artifact label")).toBeVisible();
+    expect(screen.getAllByRole("link", { name: "检查清单" })[0]).toHaveAttribute(
+      "href",
+      "/evidence-manifests/report_artifact_manifest/report-zh-raw",
+    );
+  });
+});

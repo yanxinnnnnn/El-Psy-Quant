@@ -3,18 +3,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { RequestId } from "@/components/data-states";
+import { ErrorState, RequestId } from "@/components/data-states";
+import { useErrorPresentation } from "@/i18n/errors";
 import { ApiClientError, fetchHealth } from "@/lib/api-client";
 
 type HealthState =
   | { status: "loading" }
   | { status: "available"; requestId: string | null }
-  | { status: "unavailable"; message: string; requestId: string | null };
+  | { status: "unavailable"; code: string | null; message: string | null; requestId: string | null };
 
 export function HealthPanel() {
   const t = useTranslations("overview.health");
   const [health, setHealth] = useState<HealthState>({ status: "loading" });
   const requestSequence = useRef(0);
+  const errorPresentation = useErrorPresentation(health.status === "unavailable" ? health.code : null);
 
   const checkHealth = useCallback(async () => {
     const sequence = ++requestSequence.current;
@@ -31,18 +33,20 @@ export function HealthPanel() {
       if (error instanceof ApiClientError) {
         setHealth({
           status: "unavailable",
+          code: error.code,
           message: error.publicMessage,
           requestId: error.requestId,
         });
       } else {
         setHealth({
           status: "unavailable",
-          message: t("unavailableFallback"),
+          code: null,
+          message: null,
           requestId: null,
         });
       }
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     const sequence = ++requestSequence.current;
@@ -59,13 +63,15 @@ export function HealthPanel() {
         if (error instanceof ApiClientError) {
           setHealth({
             status: "unavailable",
+            code: error.code,
             message: error.publicMessage,
             requestId: error.requestId,
           });
         } else {
           setHealth({
             status: "unavailable",
-            message: t("unavailableFallback"),
+            code: null,
+            message: null,
             requestId: null,
           });
         }
@@ -73,7 +79,7 @@ export function HealthPanel() {
     return () => {
       requestSequence.current += 1;
     };
-  }, [t]);
+  }, []);
 
   return (
     <section className="health-panel" aria-labelledby="api-connectivity-title">
@@ -102,10 +108,13 @@ export function HealthPanel() {
           <RequestId value={health.requestId} />
         </div>
       ) : (
-        <div className="health-panel__message" role="alert">
-          <p>{health.message} {t("unavailableGuidance")}</p>
-          <RequestId value={health.requestId} />
-        </div>
+        <ErrorState
+          className="health-panel__message"
+          code={health.code}
+          title={errorPresentation.title}
+          message={health.message}
+          requestId={health.requestId}
+        />
       )}
 
       <button

@@ -120,6 +120,8 @@ describe("FounderFirstRunPanel", () => {
     expect(await screen.findByText("Demo Workspace")).toBeVisible();
     expect(screen.getByLabelText(/Demo Workspace: disposable example evidence/)).toBeVisible();
     expect(await screen.findByRole("heading", { name: "Strategy to human decision evidence" })).toBeVisible();
+    expect(screen.getAllByText("Demo only — disposable example evidence, not real user data or trading advice.")).toHaveLength(2);
+    expect(screen.queryByText(descriptor.warning)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Review the canonical strategy definition/ })).toHaveAttribute(
       "href",
       "/strategies/strategy-from-api",
@@ -129,6 +131,25 @@ describe("FounderFirstRunPanel", () => {
       "/comparisons?job_id=job-from-api-a&job_id=job-from-api-b",
     );
     expect(apiMocks.fetchResearchRuns).not.toHaveBeenCalled();
+  });
+
+  it("localizes the Demo header and guided journey in Simplified Chinese without mutating descriptor identities", async () => {
+    apiMocks.fetchDemoWorkspace.mockResolvedValue({ data: descriptor, requestId: "demo-request" });
+
+    render(<WorkspaceShell><FounderFirstRunPanel /></WorkspaceShell>, { locale: "zh-CN" });
+
+    expect(await screen.findByLabelText("演示工作区：可丢弃的示例证据，并非真实用户数据")).toBeVisible();
+    expect(screen.getAllByText("仅供演示——可丢弃的示例证据，不是真实用户数据，也不构成交易建议。")).toHaveLength(2);
+    expect(screen.getByRole("heading", { name: "从策略到人工决策证据" })).toBeVisible();
+    expect(screen.getByRole("link", { name: /审查规范策略定义/ })).toHaveAttribute(
+      "href",
+      "/strategies/strategy-from-api",
+    );
+    expect(screen.getByRole("link", { name: /对比两个有序演示结果/ })).toHaveAttribute(
+      "href",
+      "/comparisons?job_id=job-from-api-a&job_id=job-from-api-b",
+    );
+    expect(screen.queryByText(descriptor.warning)).not.toBeInTheDocument();
   });
 
   it("explains a healthy standard workspace with no loaded evidence", async () => {
@@ -144,6 +165,19 @@ describe("FounderFirstRunPanel", () => {
     expect(screen.getByText(/never seeds data, writes artifacts, or initializes storage/)).toBeVisible();
   });
 
+  it("keeps a healthy empty Standard Workspace distinct in Simplified Chinese", async () => {
+    apiMocks.fetchDemoWorkspace.mockRejectedValue(notConfigured());
+    apiMocks.fetchResearchRuns.mockResolvedValue({ data: { runs: [] }, requestId: "research" });
+    apiMocks.fetchEvidenceManifests.mockResolvedValue({ data: { manifests: [] }, requestId: "evidence" });
+    apiMocks.fetchPaperJobs.mockResolvedValue({ data: [], requestId: "jobs" });
+
+    render(<FounderFirstRunPanel />, { locale: "zh-CN" });
+
+    expect(await screen.findByRole("heading", { name: "应用正在运行，但尚未加载工作区证据。" })).toBeVisible();
+    expect(screen.getByText(/暂无数据是有效的首次运行状态/)).toBeVisible();
+    expect(screen.queryByText("错误码：demo_workspace_not_configured")).not.toBeInTheDocument();
+  });
+
   it("distinguishes unavailable workspace data from an empty standard workspace", async () => {
     apiMocks.fetchDemoWorkspace.mockRejectedValue(notConfigured());
     apiMocks.fetchResearchRuns.mockRejectedValue(new ApiClientError({
@@ -157,8 +191,68 @@ describe("FounderFirstRunPanel", () => {
 
     render(<FounderFirstRunPanel />);
 
-    expect(await screen.findByRole("heading", { name: "Workspace data is unavailable, not empty" })).toBeVisible();
-    expect(screen.getByText("Research artifact root is unavailable")).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Research artifact root unavailable" })).toBeVisible();
+    expect(screen.getByText("The configured research artifact root could not be inspected.")).toBeVisible();
+    expect(screen.getByText("Verify the configured research storage and retry without deleting data.")).toBeVisible();
+    expect(screen.getByText("Error code: research_artifact_root_unavailable")).toBeVisible();
+    expect(screen.getByText("Research artifact root is unavailable").closest("details")).not.toBeNull();
     await waitFor(() => expect(screen.getByText("Request research-failure")).toBeVisible());
+  });
+
+  it("localizes a Demo discovery failure while preserving its stable code, request ID, and safe backend detail", async () => {
+    apiMocks.fetchDemoWorkspace.mockRejectedValue(new ApiClientError({
+      status: 503,
+      code: "demo_workspace_unavailable",
+      publicMessage: "Demo descriptor is unavailable",
+      requestId: "demo-failure",
+    }));
+
+    render(<FounderFirstRunPanel />, { locale: "zh-CN" });
+
+    expect(await screen.findByRole("heading", { name: "演示工作区不可用" })).toBeVisible();
+    expect(screen.getByText("无法从已配置的隔离工作区读取演示描述符。")).toBeVisible();
+    expect(screen.getByText("请确认隔离演示工作区已启动，然后重试工作区识别。")).toBeVisible();
+    expect(screen.getByText("错误码：demo_workspace_unavailable")).toBeVisible();
+    expect(screen.getByText("请求 demo-failure")).toBeVisible();
+    expect(screen.getByText("Demo descriptor is unavailable").closest("details")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "重试工作区识别" })).toBeVisible();
+  });
+
+  it("localizes an unavailable Standard evidence root without treating it as an empty workspace", async () => {
+    apiMocks.fetchDemoWorkspace.mockRejectedValue(notConfigured());
+    apiMocks.fetchResearchRuns.mockRejectedValue(new ApiClientError({
+      status: 503,
+      code: "evidence_artifact_root_unavailable",
+      publicMessage: "Evidence artifact root is unavailable",
+      requestId: "evidence-failure",
+    }));
+    apiMocks.fetchEvidenceManifests.mockResolvedValue({ data: { manifests: [] }, requestId: "evidence" });
+    apiMocks.fetchPaperJobs.mockResolvedValue({ data: [], requestId: "jobs" });
+
+    render(<FounderFirstRunPanel />, { locale: "zh-CN" });
+
+    expect(await screen.findByRole("heading", { name: "证据根目录不可用" })).toBeVisible();
+    expect(screen.getByText("无法检查已配置的证据制品目录。")).toBeVisible();
+    expect(screen.getByText("错误码：evidence_artifact_root_unavailable")).toBeVisible();
+    expect(screen.getByText("请求 evidence-failure")).toBeVisible();
+    expect(screen.getByText("Evidence artifact root is unavailable").closest("details")).not.toBeNull();
+    expect(screen.queryByRole("heading", { name: /尚未加载工作区证据/ })).not.toBeInTheDocument();
+  });
+
+  it("uses the bounded localized fallback for an unknown Demo error code", async () => {
+    apiMocks.fetchDemoWorkspace.mockRejectedValue(new ApiClientError({
+      status: 503,
+      code: "unexpected_demo_failure",
+      publicMessage: "Safe unknown backend message",
+      requestId: "unknown-failure",
+    }));
+
+    render(<FounderFirstRunPanel />, { locale: "zh-CN" });
+
+    expect(await screen.findByRole("heading", { name: "工作区身份不可用" })).toBeVisible();
+    expect(screen.getByText("无法通过本地 API 边界完成该请求。")).toBeVisible();
+    expect(screen.getByText("请确认本地服务状态，然后重试请求。")).toBeVisible();
+    expect(screen.getByText("错误码：unexpected_demo_failure")).toBeVisible();
+    expect(screen.getByText("Safe unknown backend message").closest("details")).not.toBeNull();
   });
 });

@@ -37,7 +37,7 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
             aria-label={t("demoAria")}
           >
             <strong>{t("demo")}</strong>
-            <span>{demoDescriptor.warning}</span>
+            <span>{t("demoWarning")}</span>
           </div>
         ) : state.status === "loading" ? (
           <div className="environment-pill" role="status">
