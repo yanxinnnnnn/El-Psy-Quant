@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { RequestId } from "@/components/data-states";
@@ -27,38 +28,40 @@ function comparisonHref(jobIds: readonly string[]): string {
 }
 
 function GuidedDemoJourney({ descriptor }: { descriptor: DemoWorkspaceDescriptorResponse }) {
+  const t = useTranslations("overview.firstRun");
   const research = descriptor.research_run;
   const paperStep = descriptor.evidence_manifests.length + 3;
   return (
     <section className="first-run-panel demo-journey" aria-labelledby="demo-journey-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Guided first run</p>
-          <h2 id="demo-journey-title">Strategy to human decision evidence</h2>
+          <p className="eyebrow">{t("demoEyebrow")}</p>
+          <h2 id="demo-journey-title">{t("demoTitle")}</h2>
         </div>
         <p>{descriptor.warning}</p>
       </div>
       <ol className="demo-journey__steps">
-        <li><Link href={`/strategies/${encodeURIComponent(descriptor.canonical_strategy_name)}`}>1. Review the canonical strategy definition</Link></li>
-        <li><Link href={`/research-runs/${encodeURIComponent(research.experiment_slug)}/${encodeURIComponent(research.run_id)}`}>2. Inspect saved research evidence</Link></li>
+        <li><Link href={`/strategies/${encodeURIComponent(descriptor.canonical_strategy_name)}`}>{t("strategyStep", { step: 1 })}</Link></li>
+        <li><Link href={`/research-runs/${encodeURIComponent(research.experiment_slug)}/${encodeURIComponent(research.run_id)}`}>{t("researchStep", { step: 2 })}</Link></li>
         {descriptor.evidence_manifests.map((reference, index) => (
           <li key={`${reference.manifest_type}/${reference.artifact_key}`}>
             <Link href={`/evidence-manifests/${encodeURIComponent(reference.manifest_type)}/${encodeURIComponent(reference.artifact_key)}`}>
-              {index + 3}. Inspect {reference.manifest_type.replaceAll("_", " ")}
+              {t("manifestStep", { step: index + 3, manifestType: reference.manifest_type })}
             </Link>
           </li>
         ))}
-        <li><Link href={`/paper-jobs/${encodeURIComponent(descriptor.paper_jobs[0].job_id)}`}>{paperStep}. Inspect a succeeded paper job</Link></li>
-        <li><Link href={`/portfolio-records/${encodeURIComponent(descriptor.paper_jobs[0].job_id)}`}>{paperStep + 1}. Inspect its authoritative portfolio result</Link></li>
-        <li><Link href={comparisonHref(descriptor.comparison_candidate_job_ids)}>{paperStep + 2}. Compare the two ordered demo results</Link></li>
-        <li><Link href="/lifecycle-review">{paperStep + 3}. Prepare a proposal and record explicit human decision evidence</Link></li>
+        <li><Link href={`/paper-jobs/${encodeURIComponent(descriptor.paper_jobs[0].job_id)}`}>{t("jobStep", { step: paperStep })}</Link></li>
+        <li><Link href={`/portfolio-records/${encodeURIComponent(descriptor.paper_jobs[0].job_id)}`}>{t("portfolioStep", { step: paperStep + 1 })}</Link></li>
+        <li><Link href={comparisonHref(descriptor.comparison_candidate_job_ids)}>{t("comparisonStep", { step: paperStep + 2 })}</Link></li>
+        <li><Link href="/lifecycle-review">{t("lifecycleStep", { step: paperStep + 3 })}</Link></li>
       </ol>
-      <p className="neutral-note">Each link comes from the validated backend descriptor. No fixture identity or evidence payload is defined in the browser.</p>
+      <p className="neutral-note">{t("demoBoundary")}</p>
     </section>
   );
 }
 
 export function FounderFirstRunPanel() {
+  const t = useTranslations("overview.firstRun");
   const descriptorRequest = useCallback(() => fetchDemoWorkspace(), []);
   const { state: descriptorState, retry: retryDescriptor } = useApiResource(descriptorRequest);
   const [standardState, setStandardState] = useState<StandardWorkspaceState>({ status: "loading" });
@@ -82,11 +85,11 @@ export function FounderFirstRunPanel() {
       if (current !== sequence.current) return;
       setStandardState({
         status: "error",
-        message: error instanceof ApiClientError ? error.publicMessage : "Workspace evidence is unavailable.",
+        message: error instanceof ApiClientError ? error.publicMessage : t("unavailableFallback"),
         requestId: error instanceof ApiClientError ? error.requestId : null,
       });
     });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (descriptorNotConfigured) {
@@ -96,7 +99,7 @@ export function FounderFirstRunPanel() {
   }, [descriptorNotConfigured, inspectStandard]);
 
   if (descriptorState.status === "loading") {
-    return <section className="first-run-panel" role="status"><p>Discovering workspace mode…</p></section>;
+    return <section className="first-run-panel" role="status"><p>{t("discovering")}</p></section>;
   }
   if (descriptorState.status === "success") {
     return <GuidedDemoJourney descriptor={descriptorState.data} />;
@@ -104,34 +107,34 @@ export function FounderFirstRunPanel() {
   if (descriptorState.code !== "demo_workspace_not_configured") {
     return (
       <section className="first-run-panel state-panel--error" role="alert">
-        <h2>Workspace identity unavailable</h2>
+        <h2>{t("identityUnavailable")}</h2>
         <p>{descriptorState.message}</p>
         <RequestId value={descriptorState.requestId} />
-        <button className="retry-button" type="button" onClick={retryDescriptor}>Retry workspace discovery</button>
+        <button className="retry-button" type="button" onClick={retryDescriptor}>{t("retryDiscovery")}</button>
       </section>
     );
   }
   if (standardState.status === "loading") {
-    return <section className="first-run-panel" role="status"><p>Checking the standard workspace for saved evidence…</p></section>;
+    return <section className="first-run-panel" role="status"><p>{t("checkingStandard")}</p></section>;
   }
   if (standardState.status === "error") {
     return (
       <section className="first-run-panel state-panel--error" role="alert">
-        <h2>Workspace data is unavailable, not empty</h2>
+        <h2>{t("dataUnavailableTitle")}</h2>
         <p>{standardState.message}</p><RequestId value={standardState.requestId} />
-        <button className="retry-button" type="button" onClick={inspectStandard}>Retry evidence check</button>
+        <button className="retry-button" type="button" onClick={inspectStandard}>{t("retryEvidence")}</button>
       </section>
     );
   }
   if (standardState.status === "populated") {
-    return <section className="first-run-panel"><h2>Standard workspace evidence is available</h2><p>Continue with the review workspaces below. These records are not automatically connected to one another.</p></section>;
+    return <section className="first-run-panel"><h2>{t("standardAvailableTitle")}</h2><p>{t("standardAvailableDescription")}</p></section>;
   }
   return (
     <section className="first-run-panel" aria-labelledby="empty-workspace-title">
-      <p className="eyebrow">Healthy standard workspace</p>
-      <h2 id="empty-workspace-title">The application is running, but no workspace evidence has been loaded yet.</h2>
-      <p>Empty is a valid first-run state. It is different from an unavailable, invalid, or failed research root, evidence root, or product database.</p>
-      <p>Choose either the isolated Demo Workspace through the documented terminal commands, or load/create real artifacts through the documented operator workflows. This page never seeds data, writes artifacts, or initializes storage.</p>
+      <p className="eyebrow">{t("emptyEyebrow")}</p>
+      <h2 id="empty-workspace-title">{t("emptyTitle")}</h2>
+      <p>{t("emptyDescription")}</p>
+      <p>{t("emptyGuidance")}</p>
     </section>
   );
 }

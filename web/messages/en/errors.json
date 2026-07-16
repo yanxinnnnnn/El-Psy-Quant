@@ -1,0 +1,137 @@
+{
+  "unknown": {
+    "title": "Workspace request unavailable",
+    "explanation": "The request could not be completed through the local API boundary.",
+    "recovery": "Verify the local services and retry the request."
+  },
+  "api_unavailable": {
+    "title": "Local API unavailable",
+    "explanation": "The workspace could not reach the local API through the same-origin gateway.",
+    "recovery": "Verify FastAPI is running on loopback, then retry."
+  },
+  "api_request_failed": {
+    "title": "API request failed",
+    "explanation": "The local API rejected or could not complete this request.",
+    "recovery": "Review the safe backend detail and retry only when appropriate."
+  },
+  "api_response_invalid": {
+    "title": "API response is invalid",
+    "explanation": "The response did not match the generated frontend contract.",
+    "recovery": "Verify the Web and API versions match before retrying."
+  },
+  "not_found": {
+    "title": "Strategy not found",
+    "explanation": "The requested strategy identifier is not present in the backend catalog.",
+    "recovery": "Return to the strategy list and choose an available definition."
+  },
+  "research_artifact_root_unavailable": {
+    "title": "Research artifact root unavailable",
+    "explanation": "The configured research artifact root could not be inspected.",
+    "recovery": "Verify the configured research storage and retry without deleting data."
+  },
+  "research_artifact_invalid": {
+    "title": "Research artifacts are invalid",
+    "explanation": "Configured research evidence failed backend validation.",
+    "recovery": "Inspect the operator configuration and source artifacts before retrying."
+  },
+  "research_run_not_found": {
+    "title": "Research run not found",
+    "explanation": "The exact experiment slug and run ID were not found.",
+    "recovery": "Return to research runs and choose an available record."
+  },
+  "evidence_artifact_root_unavailable": {
+    "title": "Evidence root unavailable",
+    "explanation": "The configured evidence artifact root could not be inspected.",
+    "recovery": "Verify the configured evidence storage and retry without deleting data."
+  },
+  "evidence_artifact_invalid": {
+    "title": "Evidence artifacts are invalid",
+    "explanation": "Configured governance or report evidence failed backend validation.",
+    "recovery": "Inspect the operator configuration and source artifacts before retrying."
+  },
+  "evidence_manifest_not_found": {
+    "title": "Evidence manifest not found",
+    "explanation": "The exact manifest type and artifact key were not found.",
+    "recovery": "Return to evidence manifests and choose an available record."
+  },
+  "product_database_unavailable": {
+    "title": "Product database unavailable",
+    "explanation": "Durable local product state cannot currently be read.",
+    "recovery": "Verify the configured product database and migrations, then retry."
+  },
+  "paper_artifact_root_unavailable": {
+    "title": "Paper artifact root unavailable",
+    "explanation": "Authoritative completed paper artifacts cannot currently be read.",
+    "recovery": "Verify the configured paper artifact storage and retry without deleting outputs."
+  },
+  "paper_job_not_found": {
+    "title": "Paper job not found",
+    "explanation": "The requested durable paper job ID was not found.",
+    "recovery": "Return to Paper Jobs and choose an available job."
+  },
+  "paper_job_invalid": {
+    "title": "Paper job request is invalid",
+    "explanation": "The submitted command did not satisfy the backend paper-job contract.",
+    "recovery": "Review the entered transport values and submit again only after correction."
+  },
+  "paper_job_idempotency_conflict": {
+    "title": "Idempotency key conflicts with another request",
+    "explanation": "The same idempotency key is already bound to different request content.",
+    "recovery": "Use the original exact request for replay or choose a new intentional key."
+  },
+  "paper_job_conflict": {
+    "title": "Paper job conflicts with an existing job",
+    "explanation": "The requested durable identity conflicts with existing product state.",
+    "recovery": "Inspect the existing job before deciding whether to submit a distinct request."
+  },
+  "paper_job_state_conflict": {
+    "title": "Paper job state changed",
+    "explanation": "Another action or execution changed the job before this command completed.",
+    "recovery": "Refresh status manually before deciding what to do next."
+  },
+  "paper_job_output_conflict": {
+    "title": "Existing paper output conflicts with this operation",
+    "explanation": "Authoritative output already exists or conflicts with the requested operation.",
+    "recovery": "Inspect the job and outputs; do not overwrite or delete them automatically."
+  },
+  "paper_job_recovery_failed": {
+    "title": "Paper job recovery inspection failed",
+    "explanation": "The backend could not complete the explicit interrupted-job inspection.",
+    "recovery": "Review the stale threshold and current job state before retrying recovery."
+  },
+  "paper_job_result_unavailable": {
+    "title": "Paper job result unavailable",
+    "explanation": "The backend does not currently expose an authoritative result for this job.",
+    "recovery": "Inspect the paper job status and result-availability flag."
+  },
+  "paper_job_result_invalid": {
+    "title": "Paper job result is invalid",
+    "explanation": "The backend rejected the completed result during authoritative validation.",
+    "recovery": "Inspect the job and operator guidance; do not recalculate or repair it in the browser."
+  },
+  "lifecycle_transition_proposal_invalid": {
+    "title": "Lifecycle proposal is invalid",
+    "explanation": "The proposal did not satisfy backend lifecycle and evidence rules.",
+    "recovery": "Review the source snapshot, requested transition, and evidence before resubmitting."
+  },
+  "lifecycle_transition_record_invalid": {
+    "title": "Human review record is invalid",
+    "explanation": "The review record did not satisfy backend human-control rules.",
+    "recovery": "Review the explicit outcome and resulting-snapshot requirements before resubmitting."
+  },
+  "request_validation_error": {
+    "title": "Command structure is invalid",
+    "explanation": "The submitted request does not match the generated API contract.",
+    "recovery": "Correct the marked fields and retry without changing backend authority."
+  },
+  "demo_workspace_not_configured": {
+    "title": "Demo workspace not configured",
+    "explanation": "This local origin is running the valid unseeded Standard Workspace.",
+    "recovery": "Use the documented isolated Demo startup only when demonstration data is desired."
+  },
+  "demo_workspace_unavailable": {
+    "title": "Demo workspace unavailable",
+    "explanation": "The Demo descriptor could not be read from the configured isolated workspace.",
+    "recovery": "Verify the isolated Demo startup and retry workspace discovery."
+  }
+}

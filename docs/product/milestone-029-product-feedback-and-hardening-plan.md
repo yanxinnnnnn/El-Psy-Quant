@@ -4,8 +4,9 @@
 
 Milestone 29 is **In Progress**.
 
-Sprint 161 is the documentation-only architecture sprint. After its merge,
-Sprint 162 becomes the next implementation sprint.
+Sprint 161 is complete. Sprint 162 implementation is complete in its review
+branch; Founder bilingual Standard/Demo acceptance and the merge decision remain
+pending. Sprint 163 must not begin before both are complete.
 
 ## Milestone Objective
 
@@ -153,6 +154,15 @@ the visual system is finalized.
 
 Use both locales across the full Demo journey and representative Standard empty
 and error states.
+
+**Implementation status**
+
+Complete in the Sprint 162 review branch. The implementation uses pinned
+`next-intl`, static matching `en` and `zh-CN` catalogs, validated cookie/browser
+locale resolution, an accessible same-origin shell switcher, localized metadata
+and complete workspace copy, display-only localized formatting with raw values,
+static error-code explanations, and deterministic catalog validation. Founder
+local runtime verification remains pending.
 
 ### Sprint 163 — Modern Visual System Foundation
 

@@ -2,16 +2,15 @@
 
 ## Decision Status
 
-Approved planning decision for Sprint 162 — Multilingual Foundation and
-Simplified Chinese Workspace.
-
-This document defines the implementation boundary. It does not itself add a
-runtime dependency or change Web behavior.
+Implemented by Sprint 162 — Multilingual Foundation and Simplified Chinese
+Workspace. Founder local Standard/Demo bilingual browser acceptance remains
+pending.
 
 ## Context
 
-The M28 Founder workspace is English-only. The Founder requires complete
-Simplified Chinese support and an explicit language switcher.
+The M28 Founder workspace was English-only. Sprint 162 adds complete Simplified
+Chinese support and an explicit language switcher without changing product
+authority.
 
 The product is currently:
 
@@ -119,9 +118,11 @@ Requirements:
 - available to the server-rendered root layout; and
 - shared by standard and Demo modes on the same local origin.
 
-The implementation issue must make the final `Secure`, `HttpOnly`, `SameSite`,
-path, and lifetime decisions consistent with a local browser-readable language
-preference. The cookie must not become a security token.
+Sprint 162 finalizes the cookie as `HttpOnly`, `SameSite=Lax`, `Path=/`, with a
+one-year maximum age. `Secure` is intentionally omitted because the supported
+local product origin uses loopback HTTP. Browser code changes the value only
+through the bounded same-origin `POST /api/locale` route. The cookie is still a
+display preference, not a security token.
 
 ## Language Switcher
 
@@ -410,8 +411,35 @@ already provides.
 Rejected because the product has no user database or account-preference model,
 and locale is not product-domain state.
 
-## Implementation Handoff
+## Sprint 162 Implementation Record
 
-Sprint 162 may implement this decision. Any deviation in routing, supported
-locales, backend responsibility, or raw-value preservation requires an explicit
-Issue amendment or new architecture decision before code is merged.
+Sprint 162 implements the approved design as follows:
+
+- `next-intl` `4.13.2` is pinned in the existing npm lockfile;
+- `en` and `zh-CN` are the exact locale allow-list, with `en` as default and
+  fallback;
+- request resolution uses a valid saved cookie, then bounded supported
+  `Accept-Language`, then English;
+- root metadata, `<html lang>`, Server Components, and Client Components share
+  one request-level locale and statically imported message set;
+- the persistent accessible shell switcher posts only the validated locale and
+  calls `router.refresh()` without path or query navigation;
+- Paper Job and Lifecycle form-state tests prove the chosen refresh design does
+  not intentionally remount or clear those client forms;
+- all existing unprefixed routes and ordered repeated comparison parameters are
+  preserved;
+- eleven namespace files exist for each locale and use typed message keys;
+- `npm run messages:check` rejects unsupported locale directories, missing or
+  extra namespaces, malformed JSON, duplicate keys, invalid message formats,
+  non-string leaves, and locale key drift;
+- known stable error codes use static localized explanation and recovery maps,
+  while the raw code, safe backend message, and request ID remain visible;
+- dates, numbers, and percentages may receive locale-aware display formatting,
+  while visible raw UTC and numeric representations remain available; and
+- API, generated types, backend, database, artifact, lifecycle, Paper Job,
+  authentication, same-origin, and Standard/Demo boundaries are unchanged.
+
+No locale-prefixed route, backend translation, database locale preference,
+S163 visual refresh, S164 Dashboard redesign, or domain calculation was added.
+Any future deviation in routing, supported locales, backend responsibility, or
+raw-value preservation requires a new explicit architecture decision.

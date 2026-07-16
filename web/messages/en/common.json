@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "title": "El-Psy-Quant · Founder Workspace",
+    "description": "Local Founder paper-trading review workspace"
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "select": "Switch language to {language}",
+    "updating": "Updating language…",
+    "failed": "Language could not be changed. Try again."
+  },
+  "actions": {
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "inspect": "Inspect",
+    "back": "Back"
+  },
+  "states": {
+    "loading": "Loading",
+    "empty": "No records",
+    "unavailable": "Unavailable",
+    "notAvailable": "Not available",
+    "notSupplied": "Not supplied",
+    "yes": "Yes",
+    "no": "No",
+    "current": "Current",
+    "open": "Open"
+  },
+  "requestId": "Request {requestId}",
+  "errorCode": "Error code: {code}",
+  "backendDetail": "Backend detail",
+  "rawValue": "Raw value: {value}",
+  "rawUtc": "Raw UTC: {value}",
+  "loading": {
+    "title": "Retrieving backend-owned data"
+  }
+}

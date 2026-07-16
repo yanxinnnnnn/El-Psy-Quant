@@ -21,18 +21,19 @@ The active milestone is:
 Milestone 29 — Product Feedback and Hardening — In Progress
 ```
 
-The current planning sprint is:
-
-```text
-Sprint 161 — Founder Feedback and Product Experience Architecture
-```
-
-Sprint 161 converts direct Founder feedback into the implementation contracts
-for the remaining M29 sprints. It is documentation-only. After its merge, the
-next implementation sprint is:
+The current implementation sprint is:
 
 ```text
 Sprint 162 — Multilingual Foundation and Simplified Chinese Workspace
+```
+
+Sprint 161 is complete. Sprint 162 implements its approved internationalization
+architecture and glossary across the complete Founder workspace. Implementation
+is complete in the Sprint 162 branch; Founder bilingual browser acceptance and
+the merge decision remain pending. The next sprint may begin only after both:
+
+```text
+Sprint 163 — Modern Visual System Foundation
 ```
 
 ## Product Direction
@@ -123,6 +124,7 @@ docs/product/localization-glossary.md
 docs/product/product-experience-direction.md
 docs/product/founder-dashboard-information-architecture.md
 docs/product/milestone-029-product-feedback-and-hardening-plan.md
+docs/sprints/sprint-162-multilingual-foundation-and-simplified-chinese-workspace.md
 ```
 
 Key approved directions:
@@ -135,6 +137,10 @@ Key approved directions:
 - backend API values and error codes remain stable and untranslated;
 - raw IDs, states, versions, timestamps, and artifact content remain
   authoritative;
+- the persistent `English` / `简体中文` switcher updates a validated same-origin
+  locale cookie without changing the current route or ordered query parameters;
+- deterministic catalog validation enforces exact locale, namespace, and key
+  parity before the Web quality gate proceeds;
 - the target experience is an **AI Quant Decision Workspace**, not a marketing
   dashboard or autonomous trading terminal; and
 - Dashboard guidance remains operational navigation, not strategy ranking,

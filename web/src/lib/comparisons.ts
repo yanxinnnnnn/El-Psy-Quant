@@ -2,22 +2,23 @@ import { ApiClientError } from "@/lib/api-client";
 
 export const comparisonCandidateLimits = [25, 50, 100, 200] as const;
 
+export type ComparisonSelectionErrorKey = "blank" | "duplicate" | "minimum" | "maximum";
+
+export function comparisonSelectionErrorKey(jobIds: readonly string[]): ComparisonSelectionErrorKey | null {
+  if (jobIds.length === 0) return null;
+  if (jobIds.some((jobId) => jobId.trim().length === 0)) return "blank";
+  if (new Set(jobIds).size !== jobIds.length) return "duplicate";
+  if (jobIds.length < 2) return "minimum";
+  if (jobIds.length > 4) return "maximum";
+  return null;
+}
+
 export function comparisonSelectionError(jobIds: readonly string[]): string | null {
-  if (jobIds.length === 0) {
-    return null;
-  }
-  if (jobIds.some((jobId) => jobId.trim().length === 0)) {
-    return "Comparison job IDs must be nonblank.";
-  }
-  if (new Set(jobIds).size !== jobIds.length) {
-    return "Comparison job IDs must be distinct. Duplicate IDs are not allowed.";
-  }
-  if (jobIds.length < 2) {
-    return "Select at least two backend-available results before comparing.";
-  }
-  if (jobIds.length > 4) {
-    return "Select no more than four backend-available results before comparing.";
-  }
+  const key = comparisonSelectionErrorKey(jobIds);
+  if (key === "blank") return "Comparison job IDs must be nonblank.";
+  if (key === "duplicate") return "Comparison job IDs must be distinct. Duplicate IDs are not allowed.";
+  if (key === "minimum") return "Select at least two backend-available results before comparing.";
+  if (key === "maximum") return "Select no more than four backend-available results before comparing.";
   return null;
 }
 

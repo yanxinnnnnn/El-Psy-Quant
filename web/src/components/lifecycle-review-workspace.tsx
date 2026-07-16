@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 import { RequestId } from "@/components/data-states";
+import { useErrorPresentation } from "@/i18n/errors";
 import {
   LifecycleTimeline,
   ProposalInspection,
@@ -22,10 +24,7 @@ import {
   type LifecycleTransitionReviewRequest,
   type LifecycleTransitionReviewResponse,
 } from "@/lib/api-client";
-import {
-  lifecycleCommandErrorTitle,
-  proposalResponseToRequest,
-} from "@/lib/lifecycle-review";
+import { proposalResponseToRequest } from "@/lib/lifecycle-review";
 
 type StringRow = { key: number; value: string };
 type EvidenceRow = {
@@ -68,7 +67,7 @@ type ReviewDraft = {
   resultingSnapshot: SnapshotDraft;
 };
 type CommandFailure = {
-  title: string;
+  code: string;
   message: string;
   requestId: string | null;
 };
@@ -225,16 +224,22 @@ function reviewRequest(
 function commandFailure(error: unknown): CommandFailure {
   if (error instanceof ApiClientError) {
     return {
-      title: lifecycleCommandErrorTitle(error.code),
+      code: error.code,
       message: error.publicMessage,
       requestId: error.requestId,
     };
   }
   return {
-    title: "Lifecycle command unavailable",
+    code: "api_unavailable",
     message: "The local API is unavailable.",
     requestId: null,
   };
+}
+
+function LifecycleFailureNotice({ failure }: { failure: CommandFailure }) {
+  const error = useErrorPresentation(failure.code);
+  const common = useTranslations("common");
+  return <div className="mutation-notice mutation-notice--error" role="alert"><h3>{error.title}</h3><p>{error.explanation}</p><p>{error.recovery}</p><p className="request-id">{common("errorCode", { code: failure.code })}</p><details><summary>{common("backendDetail")}</summary><p>{failure.message}</p></details><RequestId value={failure.requestId} /></div>;
 }
 
 function StringListEditor({
@@ -252,30 +257,31 @@ function StringListEditor({
   setRows: (rows: StringRow[]) => void;
   nextKey: () => number;
 }) {
+  const t = useTranslations("lifecycle.editor");
   return (
     <div className="repeatable-editor">
       <div className="repeatable-heading">
         <div>
           <h3>{title}</h3>
-          <p>Optional caller-supplied values; order and duplicates are preserved.</p>
+          <p>{t("optionalValues")}</p>
         </div>
         <button
           className="secondary-button"
           type="button"
           onClick={() => setRows([...rows, { key: nextKey(), value: "" }])}
         >
-          Add {singular.toLowerCase()}
+          {t("add", { item: singular })}
         </button>
       </div>
       {rows.length === 0 ? (
-        <p className="repeatable-empty">No {title.toLowerCase()} supplied.</p>
+        <p className="repeatable-empty">{t("none", { title })}</p>
       ) : (
         <div className="repeatable-list">
           {rows.map((row, index) => (
             <div className="repeatable-row repeatable-row--lifecycle-string" key={row.key}>
-              <span className="row-number">{singular} {index + 1}</span>
+              <span className="row-number">{t("numbered", { item: singular, number: index + 1 })}</span>
               <label htmlFor={`${idPrefix}-${row.key}`}>
-                Value
+                {t("value")}
                 <input
                   id={`${idPrefix}-${row.key}`}
                   required
@@ -294,7 +300,7 @@ function StringListEditor({
                 type="button"
                 onClick={() => setRows(rows.filter((candidate) => candidate.key !== row.key))}
               >
-                Remove {singular.toLowerCase()} {index + 1}
+                {t("remove", { item: singular, number: index + 1 })}
               </button>
             </div>
           ))}
@@ -317,44 +323,46 @@ function SnapshotEditor({
   setDraft: (draft: SnapshotDraft) => void;
   nextKey: () => number;
 }) {
+  const t = useTranslations("lifecycle.editor");
+  const workspace = useTranslations("lifecycle.workspace");
   const update = <Field extends keyof SnapshotDraft>(field: Field, value: SnapshotDraft[Field]) =>
     setDraft({ ...draft, [field]: value });
   return (
     <fieldset className="form-section lifecycle-snapshot-form">
       <legend>{legend}</legend>
       <p className="form-section__description">
-        This is an explicit caller-supplied snapshot. The browser does not declare it current or derive it from another record.
+        {t("snapshotDescription")}
       </p>
       <div className="form-grid">
         <label htmlFor={`${idPrefix}-snapshot-id`}>
-          Snapshot ID
+          {t("snapshotId")}
           <input id={`${idPrefix}-snapshot-id`} required value={draft.snapshotId} onChange={(event) => update("snapshotId", event.target.value)} />
         </label>
         <label htmlFor={`${idPrefix}-strategy-id`}>
-          Strategy ID
+          {t("strategyId")}
           <input id={`${idPrefix}-strategy-id`} required value={draft.strategyId} onChange={(event) => update("strategyId", event.target.value)} />
         </label>
         <label htmlFor={`${idPrefix}-lifecycle-state`}>
-          Lifecycle state
+          {t("lifecycleState")}
           <input id={`${idPrefix}-lifecycle-state`} required value={draft.lifecycleState} onChange={(event) => update("lifecycleState", event.target.value)} />
-          <span className="field-guidance">Backend lifecycle rules are authoritative.</span>
+          <span className="field-guidance">{workspace("rulesBoundary")}</span>
         </label>
         <label className="form-grid__wide" htmlFor={`${idPrefix}-rationale`}>
-          Snapshot rationale
+          {t("snapshotRationale")}
           <textarea id={`${idPrefix}-rationale`} required value={draft.rationale} onChange={(event) => update("rationale", event.target.value)} />
         </label>
         <label htmlFor={`${idPrefix}-declared-by`}>
-          Declared by <span className="optional-label">(optional)</span>
+          {t("declaredBy")} <span className="optional-label">({workspace("optional")})</span>
           <input id={`${idPrefix}-declared-by`} value={draft.declaredBy} onChange={(event) => update("declaredBy", event.target.value)} />
         </label>
         <label htmlFor={`${idPrefix}-declared-timestamp`}>
-          Declared timestamp <span className="optional-label">(optional)</span>
+          {t("declaredTimestamp")} <span className="optional-label">({workspace("optional")})</span>
           <input id={`${idPrefix}-declared-timestamp`} value={draft.declaredTimestamp} onChange={(event) => update("declaredTimestamp", event.target.value)} />
-          <span className="field-guidance">Supply an explicit timestamp accepted by the backend.</span>
+          <span className="field-guidance">{t("timestampGuidance")}</span>
         </label>
       </div>
-      <StringListEditor title="Snapshot notes" singular="Snapshot note" idPrefix={`${idPrefix}-note`} rows={draft.notes} setRows={(notes) => update("notes", notes)} nextKey={nextKey} />
-      <StringListEditor title="Snapshot warnings" singular="Snapshot warning" idPrefix={`${idPrefix}-warning`} rows={draft.warnings} setRows={(warnings) => update("warnings", warnings)} nextKey={nextKey} />
+      <StringListEditor title={t("snapshotNotes")} singular={t("snapshotNote")} idPrefix={`${idPrefix}-note`} rows={draft.notes} setRows={(notes) => update("notes", notes)} nextKey={nextKey} />
+      <StringListEditor title={t("snapshotWarnings")} singular={t("snapshotWarning")} idPrefix={`${idPrefix}-warning`} rows={draft.warnings} setRows={(warnings) => update("warnings", warnings)} nextKey={nextKey} />
     </fieldset>
   );
 }
@@ -368,35 +376,37 @@ function EvidenceEditor({
   setRows: (rows: EvidenceRow[]) => void;
   nextKey: () => number;
 }) {
+  const t = useTranslations("lifecycle.editor");
+  const workspace = useTranslations("lifecycle.workspace");
   return (
     <fieldset className="form-section">
-      <legend>Evidence references</legend>
+      <legend>{t("evidenceLegend")}</legend>
       <p className="form-section__description">
-        References remain unresolved pointers. The backend decides whether the supplied evidence types satisfy the requested transition.
+        {t("evidenceDescription")}
       </p>
       <div className="repeatable-heading">
-        <div><h3>Caller-supplied references</h3><p>Order and duplicates remain visible.</p></div>
+        <div><h3>{t("callerReferences")}</h3><p>{t("orderBoundary")}</p></div>
         <button
           className="secondary-button"
           type="button"
           onClick={() => setRows([...rows, { key: nextKey(), referenceType: "", referenceId: "", label: "", description: "" }])}
         >
-          Add evidence reference
+          {t("addEvidence")}
         </button>
       </div>
-      {rows.length === 0 ? <p className="repeatable-empty">No evidence references supplied. The backend will validate this proposal.</p> : (
+      {rows.length === 0 ? <p className="repeatable-empty">{t("noEvidence")}</p> : (
         <div className="repeatable-list">
           {rows.map((row, index) => {
             const update = (field: keyof Omit<EvidenceRow, "key">, value: string) =>
               setRows(rows.map((candidate) => candidate.key === row.key ? { ...candidate, [field]: value } : candidate));
             return (
               <div className="repeatable-row lifecycle-evidence-row" key={row.key}>
-                <span className="row-number">Evidence reference {index + 1}</span>
-                <label>Reference type<input required value={row.referenceType} onChange={(event) => update("referenceType", event.target.value)} /></label>
-                <label>Reference ID<input required value={row.referenceId} onChange={(event) => update("referenceId", event.target.value)} /></label>
-                <label>Label <span className="optional-label">(optional)</span><input value={row.label} onChange={(event) => update("label", event.target.value)} /></label>
-                <label>Description <span className="optional-label">(optional)</span><input value={row.description} onChange={(event) => update("description", event.target.value)} /></label>
-                <button className="remove-button" type="button" onClick={() => setRows(rows.filter((candidate) => candidate.key !== row.key))}>Remove evidence reference {index + 1}</button>
+                <span className="row-number">{t("evidenceNumber", { number: index + 1 })}</span>
+                <label>{t("referenceType")}<input required value={row.referenceType} onChange={(event) => update("referenceType", event.target.value)} /></label>
+                <label>{t("referenceId")}<input required value={row.referenceId} onChange={(event) => update("referenceId", event.target.value)} /></label>
+                <label>{t("label")} <span className="optional-label">({workspace("optional")})</span><input value={row.label} onChange={(event) => update("label", event.target.value)} /></label>
+                <label>{t("description")} <span className="optional-label">({workspace("optional")})</span><input value={row.description} onChange={(event) => update("description", event.target.value)} /></label>
+                <button className="remove-button" type="button" onClick={() => setRows(rows.filter((candidate) => candidate.key !== row.key))}>{t("removeEvidence", { number: index + 1 })}</button>
               </div>
             );
           })}
@@ -407,6 +417,7 @@ function EvidenceEditor({
 }
 
 export function LifecycleReviewWorkspace() {
+  const t = useTranslations("lifecycle.workspace");
   const keyRef = useRef(0);
   const nextKey = () => ++keyRef.current;
   const [proposalDraft, setProposalDraft] = useState<ProposalDraft>(blankProposal);
@@ -479,89 +490,89 @@ export function LifecycleReviewWorkspace() {
     <div className="business-workspace lifecycle-workspace">
       <header className="page-heading page-heading--with-action">
         <div>
-          <p className="eyebrow">Lifecycle Review · S158</p>
-          <h1>Lifecycle proposal, human review, and timeline</h1>
-          <p>Create explicit governance commands and inspect the normalized immutable evidence returned by the existing backend-owned lifecycle contracts.</p>
+          <p className="eyebrow">{t("eyebrow")}</p>
+          <h1>{t("title")}</h1>
+          <p>{t("description")}</p>
         </div>
         <div className="record-card__actions">
-          <button className="secondary-button" type="button" onClick={() => void loadDemoLifecycleExample()}>Load demo lifecycle example</button>
-          <Link className="text-link" href="/strategies">Browse strategies</Link>
-          <Link className="text-link" href="/evidence-manifests">Inspect governance evidence</Link>
+          <button className="secondary-button" type="button" onClick={() => void loadDemoLifecycleExample()}>{t("loadDemo")}</button>
+          <Link className="text-link" href="/strategies">{t("browseStrategies")}</Link>
+          <Link className="text-link" href="/evidence-manifests">{t("inspectEvidence")}</Link>
         </div>
       </header>
 
-      {demoLoadFailure ? <div className="mutation-notice mutation-notice--error" role="alert"><h3>{demoLoadFailure.title}</h3><p>{demoLoadFailure.message}</p><RequestId value={demoLoadFailure.requestId} /></div> : null}
+      {demoLoadFailure ? <LifecycleFailureNotice failure={demoLoadFailure} /> : null}
 
       <section className="boundary-card lifecycle-boundary" aria-labelledby="lifecycle-boundary-title">
-        <p className="eyebrow">Human-control boundary</p>
-        <h2 id="lifecycle-boundary-title">No command on this page applies a lifecycle transition.</h2>
-        <p>The browser submits generated OpenAPI request shapes only. Backend domain factories validate lifecycle states, permitted transitions, evidence requirements, review outcomes, and resulting-snapshot rules.</p>
+        <p className="eyebrow">{t("boundaryEyebrow")}</p>
+        <h2 id="lifecycle-boundary-title">{t("boundaryTitle")}</h2>
+        <p>{t("boundaryDescription")}</p>
       </section>
 
       <form className="paper-job-form lifecycle-command-form" onSubmit={(event) => { event.preventDefault(); void submitProposal(); }}>
-        <div className="section-heading"><div><p className="eyebrow">Step 1</p><h2>Create an explicit proposal</h2></div></div>
-        <SnapshotEditor legend="Source lifecycle snapshot" idPrefix="source" draft={proposalDraft.sourceSnapshot} setDraft={(sourceSnapshot) => setProposalDraft({ ...proposalDraft, sourceSnapshot })} nextKey={nextKey} />
+        <div className="section-heading"><div><p className="eyebrow">{t("stepOne")}</p><h2>{t("createProposal")}</h2></div></div>
+        <SnapshotEditor legend={t("sourceSnapshot")} idPrefix="source" draft={proposalDraft.sourceSnapshot} setDraft={(sourceSnapshot) => setProposalDraft({ ...proposalDraft, sourceSnapshot })} nextKey={nextKey} />
         <fieldset className="form-section">
-          <legend>Transition proposal</legend>
-          <p className="form-section__description">Enter the requested transition. The browser does not infer a target, approve the request, or validate domain eligibility.</p>
+          <legend>{t("proposalLegend")}</legend>
+          <p className="form-section__description">{t("proposalDescription")}</p>
           <div className="form-grid">
-            <label>Proposal ID<input required value={proposalDraft.proposalId} onChange={(event) => setProposalDraft({ ...proposalDraft, proposalId: event.target.value })} /></label>
-            <label>Target state<input required value={proposalDraft.targetState} onChange={(event) => setProposalDraft({ ...proposalDraft, targetState: event.target.value })} /><span className="field-guidance">Backend lifecycle rules are authoritative.</span></label>
-            <label>Requested by <span className="optional-label">(optional)</span><input value={proposalDraft.requestedBy} onChange={(event) => setProposalDraft({ ...proposalDraft, requestedBy: event.target.value })} /></label>
-            <label>Requested timestamp <span className="optional-label">(optional)</span><input value={proposalDraft.requestedTimestamp} onChange={(event) => setProposalDraft({ ...proposalDraft, requestedTimestamp: event.target.value })} /></label>
-            <label className="form-grid__wide">Proposal rationale<textarea required value={proposalDraft.rationale} onChange={(event) => setProposalDraft({ ...proposalDraft, rationale: event.target.value })} /></label>
+            <label>{t("proposalId")}<input required value={proposalDraft.proposalId} onChange={(event) => setProposalDraft({ ...proposalDraft, proposalId: event.target.value })} /></label>
+            <label>{t("targetState")}<input required value={proposalDraft.targetState} onChange={(event) => setProposalDraft({ ...proposalDraft, targetState: event.target.value })} /><span className="field-guidance">{t("rulesBoundary")}</span></label>
+            <label>{t("requestedBy")} <span className="optional-label">({t("optional")})</span><input value={proposalDraft.requestedBy} onChange={(event) => setProposalDraft({ ...proposalDraft, requestedBy: event.target.value })} /></label>
+            <label>{t("requestedTimestamp")} <span className="optional-label">({t("optional")})</span><input value={proposalDraft.requestedTimestamp} onChange={(event) => setProposalDraft({ ...proposalDraft, requestedTimestamp: event.target.value })} /></label>
+            <label className="form-grid__wide">{t("proposalRationale")}<textarea required value={proposalDraft.rationale} onChange={(event) => setProposalDraft({ ...proposalDraft, rationale: event.target.value })} /></label>
           </div>
-          <StringListEditor title="Proposal notes" singular="Proposal note" idPrefix="proposal-note" rows={proposalDraft.notes} setRows={(notes) => setProposalDraft({ ...proposalDraft, notes })} nextKey={nextKey} />
-          <StringListEditor title="Proposal warnings" singular="Proposal warning" idPrefix="proposal-warning" rows={proposalDraft.warnings} setRows={(warnings) => setProposalDraft({ ...proposalDraft, warnings })} nextKey={nextKey} />
+          <StringListEditor title={t("proposalNotes")} singular={t("proposalNote")} idPrefix="proposal-note" rows={proposalDraft.notes} setRows={(notes) => setProposalDraft({ ...proposalDraft, notes })} nextKey={nextKey} />
+          <StringListEditor title={t("proposalWarnings")} singular={t("proposalWarning")} idPrefix="proposal-warning" rows={proposalDraft.warnings} setRows={(warnings) => setProposalDraft({ ...proposalDraft, warnings })} nextKey={nextKey} />
         </fieldset>
         <EvidenceEditor rows={proposalDraft.evidenceReferences} setRows={(evidenceReferences) => setProposalDraft({ ...proposalDraft, evidenceReferences })} nextKey={nextKey} />
-        {proposalFailure ? <div className="mutation-notice mutation-notice--error" role="alert"><h3>{proposalFailure.title}</h3><p>{proposalFailure.message}</p><RequestId value={proposalFailure.requestId} /></div> : null}
+        {proposalFailure ? <LifecycleFailureNotice failure={proposalFailure} /> : null}
         <div className="submission-actions">
-          <button className="primary-button" type="submit" disabled={proposalPending}>{proposalPending ? "Creating proposal…" : "Create non-executing proposal"}</button>
-          <p>One synchronous command. No persistence, promotion, paper run, or automatic follow-up.</p>
+          <button className="primary-button" type="submit" disabled={proposalPending}>{proposalPending ? t("creatingProposal") : t("createNonExecuting")}</button>
+          <p>{t("proposalCommandBoundary")}</p>
         </div>
       </form>
 
       {proposalResult ? (
         <div className="lifecycle-response-stack">
-          <div className="mutation-notice mutation-notice--success" role="status"><h2>Proposal response received</h2><p>The normalized proposal is available for inspection and an explicit human review command.</p><RequestId value={proposalResult.requestId} /></div>
-          <SnapshotInspection title="Source lifecycle snapshot" snapshot={proposalResult.data.proposal.source_snapshot} boundary="This immutable source snapshot remains distinct from any proposal or review outcome." />
+          <div className="mutation-notice mutation-notice--success" role="status"><h2>{t("proposalResponseTitle")}</h2><p>{t("proposalResponseDescription")}</p><RequestId value={proposalResult.requestId} /></div>
+          <SnapshotInspection title={t("sourceSnapshot")} snapshot={proposalResult.data.proposal.source_snapshot} boundary={t("sourceSnapshotBoundary")} />
           <ProposalInspection proposal={proposalResult.data.proposal} />
 
           <form className="paper-job-form lifecycle-command-form" onSubmit={(event) => { event.preventDefault(); void submitReview(); }}>
-            <div className="section-heading"><div><p className="eyebrow">Step 2</p><h2>Record an explicit human review</h2></div></div>
+            <div className="section-heading"><div><p className="eyebrow">{t("stepTwo")}</p><h2>{t("recordReview")}</h2></div></div>
             <fieldset className="form-section">
-              <legend>Human review record</legend>
-              <p className="form-section__description">The review carries the latest successful normalized proposal response. Enter the outcome explicitly; the browser does not infer it from proposal or evidence fields.</p>
+              <legend>{t("reviewLegend")}</legend>
+              <p className="form-section__description">{t("reviewDescription")}</p>
               <div className="form-grid">
-                <label>Transition record ID<input required value={reviewDraft.transitionRecordId} onChange={(event) => setReviewDraft({ ...reviewDraft, transitionRecordId: event.target.value })} /></label>
-                <label>Review outcome<input required value={reviewDraft.reviewOutcome} onChange={(event) => setReviewDraft({ ...reviewDraft, reviewOutcome: event.target.value })} /><span className="field-guidance">Backend human-control rules are authoritative.</span></label>
-                <label>Reviewed by <span className="optional-label">(optional)</span><input value={reviewDraft.reviewedBy} onChange={(event) => setReviewDraft({ ...reviewDraft, reviewedBy: event.target.value })} /></label>
-                <label>Reviewed timestamp <span className="optional-label">(optional)</span><input value={reviewDraft.reviewedTimestamp} onChange={(event) => setReviewDraft({ ...reviewDraft, reviewedTimestamp: event.target.value })} /></label>
-                <label className="form-grid__wide">Review rationale<textarea required value={reviewDraft.rationale} onChange={(event) => setReviewDraft({ ...reviewDraft, rationale: event.target.value })} /></label>
+                <label>{t("transitionRecordId")}<input required value={reviewDraft.transitionRecordId} onChange={(event) => setReviewDraft({ ...reviewDraft, transitionRecordId: event.target.value })} /></label>
+                <label>{t("reviewOutcome")}<input required value={reviewDraft.reviewOutcome} onChange={(event) => setReviewDraft({ ...reviewDraft, reviewOutcome: event.target.value })} /><span className="field-guidance">{t("humanRulesBoundary")}</span></label>
+                <label>{t("reviewedBy")} <span className="optional-label">({t("optional")})</span><input value={reviewDraft.reviewedBy} onChange={(event) => setReviewDraft({ ...reviewDraft, reviewedBy: event.target.value })} /></label>
+                <label>{t("reviewedTimestamp")} <span className="optional-label">({t("optional")})</span><input value={reviewDraft.reviewedTimestamp} onChange={(event) => setReviewDraft({ ...reviewDraft, reviewedTimestamp: event.target.value })} /></label>
+                <label className="form-grid__wide">{t("reviewRationale")}<textarea required value={reviewDraft.rationale} onChange={(event) => setReviewDraft({ ...reviewDraft, rationale: event.target.value })} /></label>
               </div>
-              <StringListEditor title="Review notes" singular="Review note" idPrefix="review-note" rows={reviewDraft.notes} setRows={(notes) => setReviewDraft({ ...reviewDraft, notes })} nextKey={nextKey} />
-              <StringListEditor title="Review warnings" singular="Review warning" idPrefix="review-warning" rows={reviewDraft.warnings} setRows={(warnings) => setReviewDraft({ ...reviewDraft, warnings })} nextKey={nextKey} />
+              <StringListEditor title={t("reviewNotes")} singular={t("reviewNote")} idPrefix="review-note" rows={reviewDraft.notes} setRows={(notes) => setReviewDraft({ ...reviewDraft, notes })} nextKey={nextKey} />
+              <StringListEditor title={t("reviewWarnings")} singular={t("reviewWarning")} idPrefix="review-warning" rows={reviewDraft.warnings} setRows={(warnings) => setReviewDraft({ ...reviewDraft, warnings })} nextKey={nextKey} />
             </fieldset>
             <fieldset className="form-section">
-              <legend>Optional resulting snapshot</legend>
-              <label className="lifecycle-snapshot-toggle"><input type="checkbox" checked={reviewDraft.includeResultingSnapshot} onChange={(event) => setReviewDraft({ ...reviewDraft, includeResultingSnapshot: event.target.checked })} />Include an explicit caller-supplied resulting snapshot</label>
-              <p className="form-section__description">The backend validates whether a resulting snapshot is allowed or required for the supplied outcome. Inclusion never makes the snapshot current or proves execution.</p>
+              <legend>{t("resultingLegend")}</legend>
+              <label className="lifecycle-snapshot-toggle"><input type="checkbox" checked={reviewDraft.includeResultingSnapshot} onChange={(event) => setReviewDraft({ ...reviewDraft, includeResultingSnapshot: event.target.checked })} />{t("includeResulting")}</label>
+              <p className="form-section__description">{t("resultingBoundary")}</p>
             </fieldset>
-            {reviewDraft.includeResultingSnapshot ? <SnapshotEditor legend="Caller-supplied resulting snapshot" idPrefix="resulting" draft={reviewDraft.resultingSnapshot} setDraft={(resultingSnapshot) => setReviewDraft({ ...reviewDraft, resultingSnapshot })} nextKey={nextKey} /> : null}
-            {reviewFailure ? <div className="mutation-notice mutation-notice--error" role="alert"><h3>{reviewFailure.title}</h3><p>{reviewFailure.message}</p><RequestId value={reviewFailure.requestId} /></div> : null}
+            {reviewDraft.includeResultingSnapshot ? <SnapshotEditor legend={t("callerResulting")} idPrefix="resulting" draft={reviewDraft.resultingSnapshot} setDraft={(resultingSnapshot) => setReviewDraft({ ...reviewDraft, resultingSnapshot })} nextKey={nextKey} /> : null}
+            {reviewFailure ? <LifecycleFailureNotice failure={reviewFailure} /> : null}
             <div className="submission-actions">
-              <button className="primary-button" type="submit" disabled={reviewPending}>{reviewPending ? "Recording human review…" : "Record human review evidence"}</button>
-              <p>This command records governance evidence only. It does not apply the requested transition.</p>
+              <button className="primary-button" type="submit" disabled={reviewPending}>{reviewPending ? t("recordingReview") : t("recordReviewEvidence")}</button>
+              <p>{t("reviewCommandBoundary")}</p>
             </div>
           </form>
         </div>
       ) : null}
 
-      {reviewResult ? <div className="lifecycle-response-stack"><div className="mutation-notice mutation-notice--success" role="status"><h2>Human review response received</h2><p>The normalized record is available for inspection. No lifecycle execution is inferred.</p><RequestId value={reviewResult.requestId} /></div><ReviewInspection response={reviewResult.data} />{reviewResult.data.transition_record.resulting_snapshot ? <SnapshotInspection title="Caller-supplied resulting snapshot" snapshot={reviewResult.data.transition_record.resulting_snapshot} boundary="This returned snapshot is immutable evidence. The workspace does not identify it as globally current or executed." /> : null}</div> : null}
+      {reviewResult ? <div className="lifecycle-response-stack"><div className="mutation-notice mutation-notice--success" role="status"><h2>{t("reviewResponseTitle")}</h2><p>{t("reviewResponseDescription")}</p><RequestId value={reviewResult.requestId} /></div><ReviewInspection response={reviewResult.data} />{reviewResult.data.transition_record.resulting_snapshot ? <SnapshotInspection title={t("callerResulting")} snapshot={reviewResult.data.transition_record.resulting_snapshot} boundary={t("resultingSnapshotBoundary")} /> : null}</div> : null}
 
       {displayedProposal ? <LifecycleTimeline proposal={displayedProposal} review={reviewResult?.data ?? null} /> : (
-        <section className="state-panel lifecycle-empty-timeline"><p className="eyebrow">Timeline evidence</p><h2>No lifecycle command response yet</h2><p>Create a proposal to inspect its immutable source snapshot, unresolved evidence references, and non-executing proposal event in order.</p></section>
+        <section className="state-panel lifecycle-empty-timeline"><p className="eyebrow">{t("timelineEyebrow")}</p><h2>{t("timelineEmptyTitle")}</h2><p>{t("timelineEmptyDescription")}</p></section>
       )}
     </div>
   );

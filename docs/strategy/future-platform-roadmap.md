@@ -71,9 +71,9 @@ working local MVP
 
 | Sprint | Deliverable | Status |
 |---:|---|---|
-| S161 | Founder Feedback and Product Experience Architecture | Implementation complete; Founder review pending |
-| S162 | Multilingual Foundation and Simplified Chinese Workspace | Next after S161 merge |
-| S163 | Modern Visual System Foundation | Planned |
+| S161 | Founder Feedback and Product Experience Architecture | Complete |
+| S162 | Multilingual Foundation and Simplified Chinese Workspace | Implementation complete; Founder bilingual acceptance pending |
+| S163 | Modern Visual System Foundation | Next after S162 merge and Founder acceptance |
 | S164 | Founder Dashboard and Workflow Information Architecture Refresh | Planned |
 | S165 | Reliability, Idempotency, and Job Recovery Hardening | Planned |
 | S166 | Error Surface, Observability, and Audit Hardening | Planned |
@@ -111,6 +111,12 @@ succeeded
 
 Locale formatting is display-only and must not recompute financial values or
 replace exact audit representations.
+
+Sprint 162 implements this decision through pinned `next-intl`, exact static
+catalogs, validated request-level locale resolution, a same-origin locale-cookie
+route, and an accessible shell switcher. Existing unprefixed routes, generated
+transport, backend ownership, and Standard/Demo isolation remain unchanged.
+Founder bilingual runtime acceptance remains pending before S163 begins.
 
 ### Product Experience
 
