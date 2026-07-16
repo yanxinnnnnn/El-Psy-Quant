@@ -10,301 +10,307 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 
 ## Current Milestone Status
 
-Milestones 1–27 are complete. **Milestone 28 — Founder Paper Trading Web
-Workspace** is in progress.
+Milestones 1–28 are complete.
 
-The latest completed sprint is **Sprint 159 — Minimal Authentication, Docker
-Compose, and End-to-End Engineering MVP Closeout**. Sprint 160 adds the isolated
-Founder Demo Workspace and first-run experience; formal M28 closeout remains a
-later Founder/CTO action.
-
-Milestone 27 established durable local product persistence and manually controlled
-paper-job operations beneath the existing versioned application API:
+**Milestone 29 — Product Feedback and Hardening** is in progress. The next sprint is:
 
 ```text
-Browser
-  -> local React/Next.js founder workspace
-  -> FastAPI application API
-  -> thin application services / use cases
-  -> existing El-Psy-Quant domain modules and artifact readers
+Sprint 161 — Founder Feedback and Product Experience Architecture
 ```
 
-Key ownership decisions remain:
+Milestone 28 closed after the Founder locally verified the isolated Demo Workspace and the complete product journey:
 
-- existing domain modules remain authoritative for quantitative and governance rules
-- API handlers and future UI code must not duplicate domain logic
-- existing local artifact files remain authoritative
-- SQLite will store product indexes, references, jobs, operational status, and other product metadata rather than silently duplicating full artifact payloads
-- lifecycle current state is a derived read model from immutable snapshots and approved human records, not an independently authoritative mutable field
-- paper job status is separate mutable operational state
-- the browser will use the API and never directly access SQLite, artifact directories, Python modules, QMT, MiniQMT, or a broker
+```text
+Strategy
+  -> Research Evidence
+  -> Governance Evidence
+  -> Paper Run
+  -> Portfolio Result
+  -> Comparison
+  -> Lifecycle Review
+  -> Human Decision Evidence
+```
+
+The formal closeout record is:
+
+```text
+docs/closeouts/milestone-028-founder-paper-trading-web-workspace-closeout.md
+```
 
 ## Current Direction
 
-Milestone 27 is complete. It delivered explicit SQLite and Alembic ownership,
-a compact rebuildable artifact index, durable paper-job requests and operational
-state, replay-safe submission, attempt audit, manual recovery and retry, compact
-result references, and a versioned durable-job API while keeping completed files
-authoritative.
+The platform has enough quantitative and governance depth for the current phase. Milestone 29 now uses real Founder feedback to improve the product before portfolio-level and execution-risk work resumes.
 
-Milestone 28 now has Founder-facing strategy, research, governance-evidence,
-report-manifest inspection, explicit durable paper-job operation, immutable
-result inspection, ordered paper-result comparison, lifecycle proposal,
-human-review, timeline inspection, minimal authentication, and reproducible
-Compose startup. Sprints 138 through 159 are complete. The current sprint is:
+The main product feedback is:
 
-```text
-Sprint 160 — Founder Demo Workspace and First-run Experience
-```
+1. The Web workspace is stable and professional, but its visual language still resembles an academic research portal or enterprise internal dashboard.
+2. The product needs a complete multilingual foundation, with English as the default language and Simplified Chinese (`zh-CN`) as the first additional language.
+3. Workflow guidance should evolve from passive navigation toward a Founder Dashboard and explicit next-action support.
+4. Daily local use still requires reliability, recovery, error-surface, audit, migration, test, and deployment hardening.
 
-The approved productization sequence is:
+The approved sequence is:
 
 ```text
 M25 — Paper Trading Productization Planning                 S137      Complete
 M26 — Paper Trading Application Service Foundation          S138-S144 Complete
 M27 — Persistence and Paper Job Control Foundation          S145-S151 Complete
-M28 — Founder Paper Trading Web Workspace                   S152-S160 In Progress
-M29 — Product Feedback and Hardening                        S161-S166 Planned
+M28 — Founder Paper Trading Web Workspace                   S152-S160 Complete
+M29 — Product Feedback and Hardening                        S161-S168 In Progress
 M30 — Portfolio-Level Decision Review Foundation                       Deferred, not canceled
 ```
 
-M28 must deliver the first usable local Web MVP.
+Milestone 29 sprint plan:
 
-M29 must use real founder workflows to harden usability, reliability, recovery, audit visibility, migrations, tests, and local deployment. After M29, the target is a local Paper Trading Web MVP reliable enough for daily Founder use.
+```text
+S161 Founder Feedback and Product Experience Architecture
+S162 Multilingual Foundation and Simplified Chinese Workspace
+S163 Modern Visual System Foundation
+S164 Founder Dashboard and Workflow Information Architecture Refresh
+S165 Reliability, Idempotency, and Job Recovery Hardening
+S166 Error Surface, Observability, and Audit Hardening
+S167 Migration, Test, and Local Deployment Hardening
+S168 Milestone 29 Closeout and M30 Handoff
+```
+
+Internationalization precedes the broad visual refresh so both English and Chinese layouts shape the design system rather than being bolted on afterward.
 
 ## Founder Product Target
 
-The first product is local-first, Founder-only, single-user or minimally authenticated, and Paper Trading only.
+The first product is:
 
-Approved founder journeys:
+- local-first;
+- Founder-only;
+- single-user or minimally authenticated;
+- Paper Trading only;
+- review-oriented rather than latency-oriented; and
+- a modular monolith.
 
-- strategy list and strategy detail
-- research and backtest inspection
-- governance evidence and report-artifact inspection
-- starting a paper run
-- paper-run status
-- equity, positions, orders, and fills
-- paper-run comparison
-- lifecycle transition proposals
-- human review records
-- lifecycle timeline
+It supports:
+
+- strategy list and detail inspection;
+- research and backtest evidence inspection;
+- governance and report-manifest inspection;
+- durable paper-job submission and manual control;
+- paper-job status, attempts, retry, recovery, and cancellation;
+- authoritative portfolio-result inspection;
+- explicit paper-result comparison;
+- lifecycle transition proposals;
+- explicit human review records;
+- an in-session lifecycle timeline; and
+- a deterministic isolated Demo Workspace for first-run evaluation.
+
+It is not:
+
+- a live trading system;
+- a broker integration project;
+- a SaaS product;
+- a multi-tenant platform;
+- a professional real-time trading terminal;
+- an automatic strategy approval engine; or
+- an automatic capital-allocation system.
+
+## Approved Product Architecture
+
+```text
+Browser
+  -> React/Next.js Founder workspace
+  -> fixed same-origin /api/backend gateway
+  -> versioned FastAPI application API
+  -> thin application services / use cases
+  -> existing El-Psy-Quant domain modules and artifact readers
+  -> SQLite product repositories and simple local job runner
+```
 
 Recommended implementation direction:
 
 ```text
 FastAPI
-explicit request/response schemas
+explicit request and response schemas
 SQLite + SQLAlchemy
-simple local background jobs
+repository boundaries
+simple local jobs
 React/Next.js
 Docker Compose / local-first
 single-user or minimal authentication
 ```
 
-Explicitly deferred through the founder productization phase unless a separate roadmap decision changes the scope:
+## Authority Boundaries
 
-- microservices
-- Kubernetes
-- Kafka
-- Redis clusters
-- distributed queues
-- multi-tenancy
-- complex RBAC
-- cloud SaaS hosting
-- broad real-time trading dashboards
-- broker integration
-- automatic lifecycle transitions
-- automatic strategy approval or capital allocation
-- real-money trading
+### Domain authority
 
-## Future QMT Boundary
+Existing research, backtesting, paper, promotion, comparison, decision, report, and lifecycle modules remain authoritative for quantitative and governance behavior.
 
-QMT is a future execution adapter only.
+The application and Web layers must not duplicate:
+
+- financial calculations;
+- paper execution semantics;
+- result validation;
+- comparison meaning;
+- governance validation;
+- lifecycle transition validation; or
+- human-control rules.
+
+### Artifact authority
+
+Existing local artifact files remain authoritative for completed research, paper, comparison, governance, and report outputs.
+
+SQLite stores compact product metadata such as:
+
+- artifact indexes and references;
+- paper-job requests and operational status;
+- attempts and bounded error codes;
+- idempotency data; and
+- result references.
+
+SQLite must not silently copy complete artifact payloads and become a competing source of truth.
+
+### Lifecycle authority
+
+Do not create an independently authoritative mutable strategy lifecycle `current_state` field.
+
+A transition proposal is non-executing. A human review record is governance evidence. Neither silently mutates lifecycle state or proves runtime execution.
+
+### Paper-job authority
+
+Paper-job status is mutable operational state and remains separate from strategy lifecycle governance.
+
+The durable states are:
 
 ```text
-Browser
-  -> Web/API
-  -> broker-neutral execution command
-  -> Windows QMT agent
-  -> MiniQMT
-  -> broker
+queued
+running
+succeeded
+failed
+canceled
 ```
 
-Future broker-neutral execution concepts remain:
+### Browser boundary
 
-```text
-OrderIntent
-ExecutionOrder
-ExecutionFill
-AccountSnapshot
-PositionSnapshot
-BrokerOrderReference
-```
+The browser must use the Web/API boundary. It must never directly access:
 
-QMT-specific behavior must not leak into strategy, evaluation, governance, persistence, or UI domain models. The browser must never connect directly to QMT, and no live QMT behavior should be added before dedicated execution-risk and live-readiness governance exists.
+- SQLite;
+- local artifact directories;
+- Python domain modules;
+- Demo source files;
+- QMT;
+- MiniQMT; or
+- a broker.
+
+### Demo isolation
+
+Standard startup remains unseeded. Demo data uses a separate Compose project and volume, is deterministic and disposable, and is always visibly identified as example evidence rather than real user data.
 
 ## Current Capabilities
+
+### Research and evaluation
 
 - Local market-data loading, caching, and validation.
 - Symbol-universe normalization and duplicate protection.
 - Configured local research workflows through YAML and a thin CLI.
-- Stable local run artifacts including manifest, metadata, summary, and metrics files.
+- Stable run artifacts including manifests, metadata, summaries, and metrics.
 - Saved-run comparison from existing local artifacts.
-- Strategy interface, moving-average strategy adapter, and exact-name resolver.
-- Moving-average crossover research pipeline with returns, costs, slippage, equity, and trade records.
-- Independent multi-symbol research execution and cross-symbol summaries.
-- Portfolio construction foundation:
-  - aligned per-symbol strategy return streams
-  - equal-weight portfolio returns
-  - validated static portfolio weights
-  - weighted portfolio returns
-  - standalone portfolio summary artifacts
-- Portfolio risk and attribution foundation:
-  - portfolio risk metrics
-  - worst drawdown inspection
-  - per-symbol contribution returns and summaries
-  - standalone attribution artifacts
-- Backtest execution realism foundation:
-  - explicit execution assumptions
-  - order-intent boundaries
-  - deterministic assumed fills
-  - execution-adjusted trade summaries
-  - in-memory execution realism artifacts
-- Paper trading foundation:
-  - deterministic local paper account state
-  - explicit paper order records and ledgers
-  - paper fill application
-  - equity snapshots from caller-supplied prices
-  - deterministic session summaries
-- Paper persistence and audit foundation:
-  - explicit paper artifact file contracts
-  - local writers and readers
-  - top-level file validation
-  - compact audit summaries
-- Paper workflow integration foundation:
-  - immutable paper run requests
-  - local in-memory execution boundary
-  - explicit artifact persistence
-  - immutable result summaries
-- Configured paper workflow wiring:
-  - optional local YAML `paper_run` configuration
-  - conversion to `PaperRunRequest`
-  - configured paper output paths
-  - local configured paper runner
-  - metadata and manifest references to paper outputs
-- Research-to-paper promotion governance:
-  - typed promotion evidence references
-  - explicit promotion candidates
-  - evidence summaries
-  - human-controlled promotion records
-  - promotion manifests and candidate references
-- Paper run comparison and review governance:
-  - typed run references
-  - explicit comparison inputs and summaries
-  - human review decision records
-  - review manifests and references
-- Decision governance:
-  - typed decision evidence references
-  - explicit decision inputs and summaries
-  - human-controlled decision records
-  - decision manifests and references
-- Report artifact foundation:
-  - report source references
-  - caller-supplied sections and summaries
-  - compact report references
-  - local report manifests
-- Strategy lifecycle governance:
-  - typed M20–M23 evidence references
-  - immutable state snapshots
-  - deterministic transition proposals
-  - human-controlled transition records
-  - compact workflow references and manifests
-- Local application-service and API foundation:
-  - deterministic FastAPI application factory
-  - versioned `/api/v1` routes
-  - server-owned request IDs
-  - stable sanitized errors
-  - strategy catalog list/detail reads
-  - bounded research-run and metrics inspection
-  - bounded evidence-manifest inspection
-  - synchronous in-memory paper-run command
-  - synchronous stateless lifecycle proposal and human-review commands
-- Local product persistence foundation:
-  - explicit SQLite and Alembic migration ownership
-  - compact rebuildable artifact index
-  - strict durable paper-run request snapshots
-  - immutable paper-job records and explicit submission/read services
-  - conditional queued/running/terminal operational transitions
-  - one selected-job local runner and queued-only manual cancellation
-  - replay-safe keyed submission and compact execution-attempt audit
-  - explicit interrupted-job recovery and failed-job retry
-  - compact job-owned result references and safe authoritative result reads
-  - versioned durable job submission, status, attempts, control, and result API
-- Local Founder Web foundation:
-  - strict TypeScript Next.js 16 App Router application under `web/`
-  - responsive accessible workspace shell with Overview, Strategies/Research, and Governance/Reports enabled
-  - loopback or fixed internal Compose API configuration with a fixed same-origin `/api/backend` rewrite
-  - paired browser and versioned-API HTTP Basic boundary for one local Founder credential
-  - Docker Compose startup with explicit migrations, persistent local storage, loopback-published ports, and service health checks
-  - authenticated end-to-end smoke verification for the gateway, workspace routes, read workflows, and stateless lifecycle commands
-  - deterministic FastAPI OpenAPI snapshot and generated TypeScript API types
-  - typed health client with bounded errors, request IDs, visible failure, and retry
-  - strategy list and exact-name detail routes with descriptive read-only parameters
-  - configured research-run list and detail routes with saved per-symbol metrics
-  - configured evidence-manifest list and exact type/key detail routes for all three variants
-  - ordered, duplicate-preserving, unresolved governance and report reference groups
-  - durable paper-job list, structured queued submission, exact status, and attempt-audit routes
-  - status-dependent confirmed Run, Cancel, Retry, and explicit-UTC Recover controls
-  - manual-only status refresh with no polling or automatic command chaining
-  - succeeded paper-result availability and exact authoritative result inspection
-  - ordered, duplicate-preserving account, position, change, order, fill, summary, reference, and audit views
-  - explicit loading, empty, bounded failure, not-found, and manual retry states
-- Basic and annualized performance metrics.
-- Buy-and-hold benchmark comparison.
-- GitHub Actions CI and local quality gate in `scripts/check.py`.
+- Strategy interface, moving-average adapter, and exact-name resolver.
+- Returns, costs, slippage, equity, trades, benchmarks, and risk-adjusted metrics.
+- Independent multi-symbol workflows and portfolio summaries.
+- Portfolio risk, drawdown, contribution, and attribution foundations.
+- Explicit execution assumptions, order intents, assumed fills, and execution-adjusted summaries.
+
+### Paper trading and persistence
+
+- Deterministic paper account, position, order, fill, and session records.
+- Explicit paper artifact writers, readers, validation, and audit summaries.
+- Configured paper-run requests and output layouts.
+- SQLite and Alembic product persistence.
+- Compact rebuildable artifact index.
+- Durable paper-job requests and operational state.
+- Replay-safe keyed submission.
+- Attempt audit with approved bounded error codes.
+- Manual run, cancellation, retry, and interrupted-job recovery.
+- Compact result references and strict authoritative result reads.
+
+### Governance and decision evidence
+
+- Research-to-paper promotion candidates, summaries, records, and manifests.
+- Paper-run comparison and human review governance.
+- Strategy decision evidence, summaries, records, and manifests.
+- Report sources, sections, summaries, references, and manifests.
+- Immutable lifecycle snapshots, non-executing proposals, human review records, and workflow manifests.
+
+### Application and API
+
+- Deterministic FastAPI application construction.
+- Versioned `/api/v1` routes.
+- Server-owned request IDs and stable sanitized errors.
+- Strategy catalog reads.
+- Bounded research and evidence-manifest inspection.
+- Synchronous paper-run and lifecycle command boundaries.
+- Durable paper-job API for submission, status, attempts, control, and result reads.
+- Read-only Demo Workspace descriptor API when Demo mode is explicitly enabled.
+
+### Founder Web workspace
+
+- Strict TypeScript Next.js App Router application under `web/`.
+- Responsive and accessible workspace shell.
+- Same-origin API gateway and generated TypeScript contracts.
+- Strategy, research, governance, paper-job, portfolio-result, comparison, and lifecycle views.
+- Explicit loading, empty, invalid, unavailable, not-found, and retry states.
+- Minimal paired Founder HTTP Basic authentication.
+- Reproducible standard Docker Compose startup.
+- Isolated Demo Workspace startup and reset.
+- Guided first-run workflow.
+- Product-facing user guide and local operations runbook.
 
 ## Quick Start
 
-### Docker Compose Founder MVP
+### Prerequisites
 
-Docker Desktop with Compose v2 is the shortest reproducible startup path. Copy
-the example configuration, replace the placeholder with a local-only password,
-then build and start both services:
+- Docker Desktop with Docker Compose v2
+- free loopback ports `3000` and `8000`
+
+Copy the local configuration template:
 
 ```powershell
 Copy-Item .env.example .env
-# Edit .env and replace EL_PSY_QUANT_FOUNDER_PASSWORD.
+```
+
+Edit `.env` and replace the Founder password placeholder with a unique local-only password. Do not reuse a system, email, cloud, or broker password.
+
+### Standard workspace
+
+Build and start the clean persistent workspace:
+
+```powershell
 docker compose up --build --detach
 docker compose ps
 ```
 
-Open `http://127.0.0.1:3000` and enter the Founder username and password from
-`.env` in the browser's HTTP Basic prompt. Both published ports are bound to
-loopback. FastAPI is also authenticated on `http://127.0.0.1:8000/api/v1/...`.
+Open:
 
-Run the authenticated, non-persisting MVP smoke verification inside the Web
-container:
+```text
+http://127.0.0.1:3000
+```
+
+Enter the Founder username and password from `.env` in the browser HTTP Basic prompt.
+
+Run authenticated smoke verification:
 
 ```powershell
 docker compose exec web node /app/verify-mvp.mjs
 ```
 
-The verification checks the browser challenge, same-origin API gateway, all
-top-level S152–S160 workspace routes, strategy/research/evidence/job reads, and
-the existing stateless lifecycle proposal and deferred-review commands. In Demo
-mode it also follows descriptor-provided strategy, research, evidence, job,
-result, comparison, and lifecycle references. It does not submit or run a
-durable paper job and does not apply a lifecycle transition.
-
-Stop the processes while preserving the named `mvp-data` volume:
+Stop while preserving the standard `mvp-data` volume:
 
 ```powershell
 docker compose down
 ```
 
-The standard path above remains unseeded. To start the separately named,
-disposable Demo Workspace instead, stop the standard instance first and use the
-demo overlay:
+Do not run `docker compose down --volumes` unless the standard local database and authoritative artifacts may be permanently deleted.
+
+### Isolated Demo Workspace
+
+The standard and Demo instances publish the same loopback ports and cannot run simultaneously.
+
+Stop the standard workspace, then start Demo mode:
 
 ```powershell
 docker compose down
@@ -312,52 +318,46 @@ docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
 docker compose -f compose.yaml -f compose.demo.yaml ps
 ```
 
-The backend validates and deterministically installs the versioned
-`examples/demo_workspace/` dataset before serving. The Demo uses the distinct
-`el-psy-quant-demo_demo-data` volume, displays a persistent **Demo Workspace**
-warning, and never changes the standard `mvp-data` volume. The two instances
-publish the same loopback ports and cannot run simultaneously.
+The Demo uses the distinct `el-psy-quant-demo_demo-data` volume. It validates and installs the versioned `examples/demo_workspace/` source before FastAPI serves requests.
 
-Stop and preserve the Demo Workspace:
+Run the guided smoke path:
+
+```powershell
+docker compose -f compose.yaml -f compose.demo.yaml exec web node /app/verify-mvp.mjs
+```
+
+Stop while preserving Demo storage:
 
 ```powershell
 docker compose -f compose.yaml -f compose.demo.yaml down
 ```
 
-Replay the same version safely by starting it again. To remove only the
-disposable Demo storage and reinstall from scratch:
+Reset only disposable Demo storage:
 
 ```powershell
 docker compose -f compose.yaml -f compose.demo.yaml down --volumes
 docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
 ```
 
-Return to the clean standard workspace with `docker compose up --detach`. Do
-not append `--volumes` to the standard `down` command unless its real local
-database and authoritative artifacts may be deleted.
+Return to the standard workspace with:
 
-See [`docs/founder-mvp-local-operations.md`](docs/founder-mvp-local-operations.md)
-for standard and Demo storage, first-run guidance, troubleshooting, direct
-developer startup, and the exact authentication boundary.
+```powershell
+docker compose -f compose.yaml -f compose.demo.yaml down
+docker compose up --detach
+```
 
 ### Direct developer startup
 
-Install [uv](https://docs.astral.sh/uv/) and Node.js 24 LTS, then install the
-Python and frontend dependencies:
+Install dependencies:
 
 ```bash
 uv sync
 npm --prefix web ci
 ```
 
-Run the complete quality gate used by GitHub Actions:
+Configure the same Founder credential pair in both terminals.
 
-```bash
-uv run python scripts/check.py
-```
-
-For an authenticated direct startup, configure the same credential pair in the
-FastAPI terminal before running the local application API on loopback:
+Backend:
 
 ```powershell
 $env:EL_PSY_QUANT_FOUNDER_USERNAME="founder"
@@ -365,9 +365,7 @@ $env:EL_PSY_QUANT_FOUNDER_PASSWORD="replace-with-a-local-password"
 uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-In another terminal, configure that same pair plus the loopback API origin and
-start the local Web workspace. The API origin defaults to
-`http://127.0.0.1:8000`; configuration changes require restarting Next.js.
+Web:
 
 ```powershell
 $env:EL_PSY_QUANT_API_ORIGIN="http://127.0.0.1:8000"
@@ -376,26 +374,12 @@ $env:EL_PSY_QUANT_FOUNDER_PASSWORD="replace-with-a-local-password"
 npm --prefix web run dev
 ```
 
-The browser calls only `/api/backend/api/v1/...`; Next.js transparently rewrites
-that fixed same-origin path to the configured FastAPI origin. The origin is
-server-only, accepts only `http` or `https` loopback origins or the explicitly
-enabled exact internal Compose host `backend`, and cannot contain credentials,
-paths, queries, or fragments. FastAPI CORS remains unchanged. Leaving both
-credential variables unset preserves the pre-S159 unauthenticated developer
-mode, which must remain bound to loopback; partial credential configuration
-fails closed.
+Leaving both credential variables unset preserves loopback-only unauthenticated developer mode. Partial credential configuration fails closed.
 
-Regenerate or freshness-check the canonical OpenAPI snapshot and derived
-TypeScript types without starting either server:
-
-```bash
-npm --prefix web run contracts:generate
-npm --prefix web run contracts:check
-```
-
-The delivered Web business routes are:
+## Web Routes
 
 ```text
+/
 /strategies
 /strategies/[strategyName]
 /research-runs
@@ -411,167 +395,22 @@ The delivered Web business routes are:
 /lifecycle-review
 ```
 
-Research inspection requires `EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT` on the
-FastAPI server. A successfully configured empty root is shown as an empty list;
-an unset, missing, unreadable, or invalid root is shown as a bounded API error
-with its request ID. The UI displays API-supplied saved metrics without
-recomputing, aggregating, ranking, or scoring them. Artifact references are
-read-only text and are not download links. No chart is rendered because the
-current endpoint exposes no authoritative time series.
+The browser calls only `/api/backend/api/v1/...`. It never receives a database connection or filesystem path.
 
-Evidence inspection requires `EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT` on the
-FastAPI server. A successfully configured empty root is an empty state; an
-unavailable root or invalid supported artifact remains a bounded API error with
-its request ID. The three supported manifest variants retain their backend
-reference groups, order, and duplicates. References are unresolved read-only
-pointers: the Web UI does not open referenced files, render or download reports,
-or infer lifecycle state, approval, completeness, or governance meaning.
+## API Surface
 
-The durable paper-job and portfolio-record workspaces require the explicitly migrated product
-database for all routes and the configured paper artifact root for Run, Retry,
-and Recover. Submission creates queued state only. Run is a separate explicit
-action whose HTTP 202 response means accepted rather than completed. Retry
-requeues without running, Recover requires a Founder-supplied timezone-aware UTC
-`stale_before`, and all later status observation is manual. The UI displays only
-backend-owned result availability. The result workspace reads only succeeded-job
-metadata and the exact result endpoint, preserves API order and duplicates, and
-never follows `result_url`.
-
-Paper results currently contain account cash and quantity snapshots, not total
-marked-to-market equity or equity history. The Web UI displays backend-provided
-changes and counts without recomputation and adds no valuation, profit, return,
-exposure, download, or chart behavior.
-
-The comparison workspace reads the same succeeded-job list and exact result
-endpoints. An applied set contains two to four distinct repeated `job_id` query
-parameters whose order remains the display order. Each immutable result loads
-independently, so successful runs remain visible when another run fails and can
-be retried manually. Refresh is explicit and reloads the applied set once. The
-browser juxtaposes account-cash snapshots, session summaries, audits, positions,
-and backend-provided position changes without cross-run calculations, ranking,
-recommendations, full order/fill alignment, or M21 artifact construction. M21
-comparison facts and summaries remain explicit caller-supplied governance data.
-
-The lifecycle review workspace uses only the existing synchronous
-`/api/v1/lifecycle-transition-proposals` and
-`/api/v1/lifecycle-transition-records` commands. The browser submits generated
-OpenAPI request shapes and displays normalized success responses; it does not
-hard-code lifecycle states, permitted transitions, evidence requirements,
-review outcomes, or resulting-snapshot relationships. Source snapshots,
-proposals, ordered unresolved evidence references, human review records, and
-optional caller-supplied resulting snapshots are juxtaposed in an in-session
-timeline. That timeline is not persisted and does not infer approval,
-execution, promotion, or globally current state.
-
-The browser continues to call only `/api/backend/api/v1/...`, and all success
-and request-body types derive from the checked-in FastAPI OpenAPI contract. It
-never accesses SQLite or artifact files directly. The minimal paired HTTP Basic
-boundary and Docker Compose workflow add no user table, session service, RBAC,
-SaaS, broker/QMT, live behavior, or distributed infrastructure. Milestone 28
-governance closeout remains a separate CTO action after this implementation is
-merged.
-
-Initialize or upgrade the local product database only through an explicit
-operator action. The parent directory must already exist:
-
-```powershell
-$env:EL_PSY_QUANT_PRODUCT_DATABASE_PATH="C:\path\to\el-psy-quant-product.sqlite3"
-uv run alembic upgrade head
-```
-
-Sprint 146 keeps one local SQLite file and adds only
-`artifact_index_entries`. Each immutable row stores schema version, supported
-artifact type, safe artifact key, root type, POSIX relative manifest path, and
-the normalized source manifest ID. Refresh explicitly calls the existing
-authoritative research/evidence list readers before replacing supplied roots in
-one transaction; omitted roots remain untouched and an empty supplied root is
-cleared. Repository-backed reads never open artifact files. Complete payloads
-and absolute roots are not copied into SQLite. There is no automatic refresh,
-API change, durable paper job, mutable lifecycle state, worker, or scheduler.
-
-Example explicit composition after `uv run alembic upgrade head`:
-
-```python
-from el_psy_quant.application import list_indexed_artifacts, refresh_artifact_index
-from el_psy_quant.persistence import (
-    create_product_database_engine,
-    create_product_session_factory,
-    resolve_product_database_config,
-)
-
-engine = create_product_database_engine(config=resolve_product_database_config())
-sessions = create_product_session_factory(engine=engine)
-refresh_artifact_index(
-    session_factory=sessions,
-    research_artifact_root=r"C:\path\to\experiment-outputs",
-    evidence_artifact_root=r"C:\path\to\evidence-artifacts",
-)
-entries = list_indexed_artifacts(session_factory=sessions)
-```
-
-Sprint 147 adds only the `paper_jobs` durable operational-input table. A queued
-row stores a canonical validated `PaperRunRequest` snapshot, application-owned
-UUID, unique normalized run ID, approved status value, and UTC timestamps.
-Duplicate run IDs are explicit conflicts rather than idempotent success. The
-snapshot is future runner input, not a completed artifact payload or result.
-Submission performs validation and canonical serialization before one database
-transaction, then creates only a `queued` row. Sprint 147 itself added no
-runner, status transition, retry, recovery, error, result reference, worker,
-scheduler, or automatic migration.
-
-Sprint 148 keeps the migration chain unchanged and adds exactly four legal
-status transitions: `queued -> running`, `queued -> canceled`,
-`running -> succeeded`, and `running -> failed`. One explicit runner preflights
-the two reserved paper output files, conditionally claims one caller-selected
-queued job, commits that claim, executes the shared request-driven paper
-workflow outside any database transaction, and records success or an expected
-failure in a separate transaction. Durable writes use atomic exclusive creation,
-so an output created after preflight is preserved and the claimed job fails
-without clobbering it. The configured synchronous runner retains its existing
-overwrite behavior. Manual cancellation applies only to queued jobs. Successful
-artifact and result-summary files remain authoritative; no result reference,
-result payload, or error detail is stored in SQLite.
-
-Sprint 149 advances the migration head to
-`0004_paper_job_recovery_audit`, adding only submission-key mappings and
-execution attempts. Optional caller keys bind the exact canonical request
-SHA-256 digest to one durable job: exact replay returns that job in any status,
-while a changed request conflicts. Durable creation is replay-safe; workflow
-execution is not claimed to be exactly once.
-
-Every new runner claim atomically starts a numbered attempt, and job/attempt
-completion commits together. Expected failures store only approved sanitized
-codes. Explicit manual recovery reconciles a running job against authoritative
-outputs without rewriting them, including legacy Sprint 148 jobs without
-attempts. Explicit retry requeues only a failed job after clean-output preflight.
-
-Through Sprint 149 there was no automatic scan, background execution, durable
-result reference, or durable-job API endpoint. Sprint 150 adds only the focused
-API/product-root integration described below.
-
-Sprint 150 advances the migration head to
-`0005_paper_job_result_references`, adding only one compact job-owned result
-registry. Configure the already-migrated database and an existing server-owned
-paper root explicitly:
-
-```powershell
-$env:EL_PSY_QUANT_PRODUCT_DATABASE_PATH="C:\path\to\product.sqlite3"
-$env:EL_PSY_QUANT_PAPER_ARTIFACT_ROOT="C:\path\to\paper-artifacts"
-uv run alembic upgrade head
-```
-
-API-owned successful outputs use exactly:
+Core reads and commands include:
 
 ```text
-<paper-root>/jobs/<job-id>/paper/paper_run_artifact.json
-<paper-root>/jobs/<job-id>/paper/paper_run_result_summary.json
-```
-
-The durable API is available through:
-
-```text
-POST /api/v1/paper-jobs
+GET  /api/v1/health
+GET  /api/v1/strategies
+GET  /api/v1/strategies/{strategy_name}
+GET  /api/v1/research-runs
+GET  /api/v1/research-runs/{experiment_slug}/{run_id}
+GET  /api/v1/evidence-manifests
+GET  /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
 GET  /api/v1/paper-jobs
+POST /api/v1/paper-jobs
 GET  /api/v1/paper-jobs/{job_id}
 GET  /api/v1/paper-jobs/{job_id}/attempts
 POST /api/v1/paper-jobs/{job_id}/run
@@ -579,213 +418,81 @@ POST /api/v1/paper-jobs/{job_id}/cancel
 POST /api/v1/paper-jobs/{job_id}/retry
 POST /api/v1/paper-jobs/{job_id}/recover
 GET  /api/v1/paper-jobs/{job_id}/result
-```
-
-Submission only creates or replays a queued job. `/run` schedules one selected
-job as a FastAPI post-response task; it is not a worker, scan, poller,
-scheduler, or distributed queue. Result references store compact relative
-pointers only, and every result read reopens and validates the authoritative
-files without exposing filesystem paths. The synchronous
-`POST /api/v1/paper-runs` endpoint remains unchanged and database-free. Sprint
-150 adds no Web UI, authentication, broker, QMT, live, or capital behavior.
-
-`create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
-
-An explicitly installed Demo Workspace additionally exposes:
-
-```text
-GET /api/v1/demo-workspace
-```
-
-This endpoint is hidden with a bounded 404 in standard mode. In Demo mode it
-returns only path-free navigation metadata and explicit command examples for
-the guided journey; research, evidence, paper results, and lifecycle validation
-remain authoritative through their existing endpoints and domain contracts.
-Installation is an operator CLI/Compose action and can never be invoked by this
-read-only route or the browser.
-
-The built-in strategy catalog is available through:
-
-```text
-GET /api/v1/strategies
-GET /api/v1/strategies/{strategy_name}
-```
-
-Catalog identity and order follow `supported_strategy_names()` exactly. It currently describes only `moving_average_crossover`. Parameter metadata is descriptive; existing configuration and domain validation remain authoritative. These endpoints do not discover experiments, inspect artifacts, execute strategies, expose performance or lifecycle state, rank strategies, run paper workflows, persist data, or imply broker/QMT/live readiness.
-
-Configured research-run inspection uses one server-side local root:
-
-```powershell
-$env:EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT="C:\path\to\experiment-outputs"
-uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
-```
-
-The read-only endpoints are:
-
-```text
-GET /api/v1/research-runs
-GET /api/v1/research-runs/{experiment_slug}/{run_id}
-```
-
-The list reads fixed `manifest.json` files only. Detail reads the selected fixed manifest and its safely contained `artifacts.metrics` JSON reference. All identifiers and artifact references remain under the configured root; HTTP requests cannot select a root or arbitrary path. The service does not read config, metadata, summary CSV, logs, or raw results, and it does not recompute, compare, aggregate, or rank metrics. Governance, paper, lifecycle, persistence, jobs, UI, broker, QMT, live, and real-money behavior remain excluded.
-
-Configured evidence-manifest inspection uses an independent server-side root:
-
-```powershell
-$env:EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT="C:\path\to\evidence-artifacts"
-uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
-```
-
-The fixed layout is:
-
-```text
-<evidence-root>/
-  strategy-decisions/<artifact-key>.json
-  report-artifacts/<artifact-key>.json
-  strategy-review/<artifact-key>.json
-```
-
-The read-only endpoints are:
-
-```text
-GET /api/v1/evidence-manifests
-GET /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
-```
-
-Only saved top-level `StrategyDecisionManifest`, `ReportArtifactManifest`, and `StrategyReviewWorkflowManifest` payloads are inspected. Existing domain reference and manifest factories remain authoritative for validation. Safe artifact keys select configured files and remain separate from domain manifest IDs. Compact references are returned as pointers only; they are not loaded or resolved. The service adds no chain-completeness or current-state inference, approval, execution, persistence, jobs, UI, broker, QMT, live, or capital behavior.
-
-The synchronous paper-run command is available through:
-
-```text
 POST /api/v1/paper-runs
-```
-
-The request supplies explicit starting and ending account states, orders, and fills. Existing paper domain factories and `run_paper_trading_request(...)` remain authoritative; the command does not generate orders, apply fills to derive state, or reconcile the caller's ending state. The normalized artifact is returned in memory without accepting a file path or writing an artifact or result summary. Repeated caller-supplied `run_id` values remain independent because this endpoint is unchanged and is not wired to the Sprint 147 durable submission service or product database. The endpoint adds no configured-paper execution, broker, QMT, market-data stream, live execution, lifecycle transition, automatic approval, or capital allocation.
-
-The synchronous lifecycle governance commands are available through:
-
-```text
 POST /api/v1/lifecycle-transition-proposals
 POST /api/v1/lifecycle-transition-records
+GET  /api/v1/demo-workspace
 ```
 
-Both endpoints are stateless and in memory. The proposal command reconstructs the caller-supplied source snapshot and unresolved evidence pointers through existing strategy-review factories. The review command carries and reconstructs the complete proposal because no proposal repository or lookup exists. An approved record requires a separate caller-supplied resulting snapshot matching the proposal strategy and target state; rejected and deferred records prohibit one.
+`GET /api/v1/demo-workspace` is hidden with a bounded not-configured response unless Demo mode is explicitly enabled.
 
-Approval is governance evidence only. Neither command applies a transition, mutates a snapshot, makes a snapshot globally current, resolves evidence, triggers paper or strategy execution, or persists an artifact, proposal, record, timeline, or status. Repeated caller-supplied IDs remain independent because no registry, database, durable job, broker, QMT, live, or capital behavior exists in Milestone 26.
+## Development and Quality
 
-## Minimal Research Pipeline Example
-
-```python
-import pandas as pd
-
-from el_psy_quant.backtesting import moving_average_crossover_pipeline
-
-close = pd.Series(
-    [1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 4.0],
-    name="close",
-)
-
-result = moving_average_crossover_pipeline(
-    close,
-    fast_window=2,
-    slow_window=3,
-    initial_capital=1_000.0,
-)
-```
-
-## Local Experiment Configuration
-
-Experiments can be described by a local YAML file and run with the existing CLI.
+Run the complete quality gate:
 
 ```bash
-el-psy-quant run experiment.yaml --output-root outputs --run-id 20260630T141500Z
+uv run python scripts/check.py
 ```
 
-The configured workflow validates explicit research and optional paper-run inputs, executes the existing local workflows, persists deterministic outputs, and records references in metadata and manifest files. It does not integrate with a broker or imply live readiness.
+The gate covers:
 
-## Recent Milestone Closeouts
+- Python tests;
+- Ruff and package-import checks;
+- CLI checks;
+- OpenAPI snapshot freshness;
+- generated TypeScript contract freshness;
+- ESLint;
+- strict TypeScript;
+- frontend tests; and
+- the production Next.js build.
 
-### Milestone 20 — Research-to-Paper Promotion Foundation
+Regenerate or verify contracts directly:
 
-A promotion candidate is not approval. A promotion record is not a live-readiness claim. Paper execution remains separate from promotion governance.
-
-### Milestone 21 — Paper Run Comparison and Review Foundation
-
-A paper-run reference is not artifact loading. A comparison summary is not a scoring engine. A review decision is not a capital-deployment decision.
-
-### Milestone 22 — Decision Governance Foundation
-
-A decision evidence reference is not artifact loading. A decision summary is not a recommendation engine. A decision record is not automatic approval.
-
-### Milestone 23 — Report Artifact Foundation
-
-A report source reference is only a pointer. A report artifact is not a rendering pipeline, dashboard, report engine, or workflow executor.
-
-### Milestone 24 — Strategy Review Workflow Foundation
-
-A lifecycle state snapshot is an explicit declaration, not stored mutable state. A transition proposal is not an action. A transition record is human governance evidence, not a runtime executor. A workflow manifest is a local index, not a resolved chain.
-
-### Milestone 25 — Paper Trading Productization Planning
-
-Productization wraps existing domain capabilities rather than rewriting them. Product persistence must not become a competing source of artifact truth, and operational paper-job state must remain separate from human-controlled strategy lifecycle governance.
-
-### Milestone 26 — Paper Trading Application Service Foundation
-
-The local API exposes selected existing reads and commands without changing domain or artifact ownership. It remains stateless for product operations: no database, durable job control, Web UI, broker, QMT, live, or capital behavior was introduced.
-
-### Milestone 27 — Persistence and Paper Job Control Foundation
-
-The local product now has explicit SQLite migrations, compact artifact indexes,
-durable paper-job requests and attempts, replay-safe submission, selected-job
-execution, manual recovery and retry, compact result references, and durable-job
-API control. Completed files remain authoritative, lifecycle governance remains
-separate from operational job state, and no Web UI, persistent worker, broker,
-QMT, live, or capital behavior was introduced.
-
-## Module Overview
-
-```text
-el_psy_quant/
-  cli.py         # Thin argparse entrypoint for local configured experiments
-  api/           # Local FastAPI factory, versioned routes, request IDs, and errors
-  application/   # Thin product read and command boundaries over existing domains
-  comparison.py  # Compare existing metrics from saved local experiment runs
-  configured_paper.py # Configured local paper workflow runner
-  configured_paper_references.py # Configured paper metadata and manifest references
-  config.py      # Load and validate local YAML experiment settings
-  decision_governance/ # Strategy-level decision evidence and governance contracts
-  report_artifacts/ # Report source, section, summary, reference, and manifest contracts
-  promotion/     # Research-to-paper promotion references and governance contracts
-  paper_review/  # Paper run comparison and review contracts
-  strategy_review/ # Lifecycle evidence, snapshots, proposals, records, references, and manifests
-  outputs.py     # Deterministic local experiment directories and reserved paths
-  strategies/    # Strategy contracts, adapters, validation, and resolution
-  data/          # Price validation, symbol universes, providers, and local input helpers
-  execution/     # Execution assumptions, order intents, fills, summaries, and artifacts
-  paper/         # Local paper state, records, persistence, audit, and run boundaries
-  persistence/   # Explicit local SQLite, SQLAlchemy, sessions, and Alembic metadata
-  indicators/    # Pure indicator calculations
-  signals/       # Signal event generation
-  portfolio/     # Alignment, weights, aggregation, risk, and attribution
-  backtesting/   # Research pipelines, experiments, benchmarks, and multi-symbol helpers
-  performance/   # Metrics, annualized evaluation, and backtest summaries
+```bash
+npm --prefix web run contracts:generate
+npm --prefix web run contracts:check
 ```
 
 ## Documentation
 
+- [Founder Workspace User Guide](docs/user-guide/README.md)
+- [Founder MVP Local Operations](docs/founder-mvp-local-operations.md)
+- [Project Roadmap](docs/roadmap.md)
+- [Future Platform Roadmap](docs/strategy/future-platform-roadmap.md)
+- [Milestone 28 Summary](docs/milestones/milestone-028-founder-paper-trading-web-workspace.md)
+- [Milestone 28 Closeout](docs/closeouts/milestone-028-founder-paper-trading-web-workspace-closeout.md)
+
+## Future Execution Boundary
+
+QMT is a future execution adapter only.
+
 ```text
-docs/roadmap.md
-docs/sprints/
-docs/milestones/
-docs/strategy/future-platform-roadmap.md
-AGENTS.md
+Browser
+  -> Web/API
+  -> broker-neutral execution command
+  -> Windows QMT agent
+  -> MiniQMT
+  -> broker
 ```
 
-## Engineering Principles
+QMT-specific behavior must not leak into strategy, evaluation, governance, persistence, or UI domain models. Never connect the browser directly to QMT. Do not add live behavior before dedicated portfolio review, execution-risk controls, operational readiness, and explicit human approval exist.
 
-- Build in small, reviewable milestones.
-- Keep behavior local and deterministic until operational complexity is justified.
-- Treat documentation as part of the product.
-- Prefer simple, explicit Python over clever abstractions.
-- Preserve human control over promotion, decisions, lifecycle changes, and future capital deployment.
-- Do not claim trading performance without evidence.
+## Explicit Non-priorities
+
+Do not prioritize these before the roadmap explicitly activates them:
+
+- real-money trading;
+- live broker integration;
+- browser-to-broker connectivity;
+- high-frequency trading;
+- autonomous strategy approval;
+- autonomous capital allocation;
+- microservices;
+- Kubernetes;
+- Kafka;
+- Redis clusters;
+- distributed queues;
+- multi-tenancy;
+- complex RBAC;
+- broad cloud infrastructure; or
+- SaaS behavior.
