@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@/test/render";
+import { render, screen, waitFor, within } from "@/test/render";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FounderFirstRunPanel } from "@/components/founder-first-run-panel";
@@ -107,6 +107,12 @@ function notConfigured() {
   });
 }
 
+function evidenceJourneyLinks(): HTMLAnchorElement[] {
+  return screen.getAllByRole("link").filter(
+    (link): link is HTMLAnchorElement => link instanceof HTMLAnchorElement && link.pathname.startsWith("/evidence-manifests/"),
+  );
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -126,6 +132,20 @@ describe("FounderFirstRunPanel", () => {
       "href",
       "/strategies/strategy-from-api",
     );
+    const manifestLinks = evidenceJourneyLinks();
+    expect(manifestLinks.map((link) => link.getAttribute("href"))).toEqual([
+      "/evidence-manifests/report_artifact_manifest/report-from-api",
+      "/evidence-manifests/strategy_decision_manifest/decision-from-api",
+      "/evidence-manifests/strategy_review_workflow_manifest/review-from-api",
+    ]);
+    for (const [index, [label, rawType]] of [
+      ["3. Inspect report artifact manifest", "report_artifact_manifest"],
+      ["4. Inspect strategy decision manifest", "strategy_decision_manifest"],
+      ["5. Inspect strategy review workflow manifest", "strategy_review_workflow_manifest"],
+    ].entries()) {
+      expect(within(manifestLinks[index]).getByText(label)).toBeVisible();
+      expect(within(manifestLinks[index]).getByText(rawType, { selector: "code" })).toBeVisible();
+    }
     expect(screen.getByRole("link", { name: /Compare the two ordered demo results/ })).toHaveAttribute(
       "href",
       "/comparisons?job_id=job-from-api-a&job_id=job-from-api-b",
@@ -145,11 +165,52 @@ describe("FounderFirstRunPanel", () => {
       "href",
       "/strategies/strategy-from-api",
     );
+    const manifestLinks = evidenceJourneyLinks();
+    expect(manifestLinks.map((link) => link.getAttribute("href"))).toEqual([
+      "/evidence-manifests/report_artifact_manifest/report-from-api",
+      "/evidence-manifests/strategy_decision_manifest/decision-from-api",
+      "/evidence-manifests/strategy_review_workflow_manifest/review-from-api",
+    ]);
+    for (const [index, [label, rawType]] of [
+      ["3. 检查报告制品清单", "report_artifact_manifest"],
+      ["4. 检查策略决策清单", "strategy_decision_manifest"],
+      ["5. 检查策略审查工作流清单", "strategy_review_workflow_manifest"],
+    ].entries()) {
+      expect(within(manifestLinks[index]).getByText(label)).toBeVisible();
+      expect(within(manifestLinks[index]).getByText(rawType, { selector: "code" })).toBeVisible();
+    }
     expect(screen.getByRole("link", { name: /对比两个有序演示结果/ })).toHaveAttribute(
       "href",
       "/comparisons?job_id=job-from-api-a&job_id=job-from-api-b",
     );
+    expect(screen.getByText("每个链接都来自经过验证的后端描述符。浏览器中没有硬编码演示身份或证据载荷。")).toBeVisible();
+    expect(screen.queryByText(/固件身份/)).not.toBeInTheDocument();
     expect(screen.queryByText(descriptor.warning)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["en", "3. Inspect evidence manifest"],
+    ["zh-CN", "3. 检查证据清单"],
+  ] as const)("uses the bounded %s manifest fallback while preserving an unknown raw type and artifact link", async (locale, label) => {
+    const rawManifestType = "future_manifest_type";
+    const unknownDescriptor = {
+      ...descriptor,
+      evidence_manifests: [
+        { manifest_type: rawManifestType, artifact_key: "future-artifact-key" },
+      ],
+    } as unknown as DemoWorkspaceDescriptorResponse;
+    apiMocks.fetchDemoWorkspace.mockResolvedValue({ data: unknownDescriptor, requestId: "demo-request" });
+
+    render(<FounderFirstRunPanel />, { locale });
+
+    const localizedLabel = await screen.findByText(label);
+    const link = localizedLabel.closest("a");
+    expect(link).not.toBeNull();
+    expect(link).toHaveAttribute(
+      "href",
+      "/evidence-manifests/future_manifest_type/future-artifact-key",
+    );
+    expect(within(link as HTMLAnchorElement).getByText(rawManifestType, { selector: "code" })).toBeVisible();
   });
 
   it("explains a healthy standard workspace with no loaded evidence", async () => {

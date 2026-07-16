@@ -61,6 +61,12 @@
     "strategyStep": "{step}. Review the canonical strategy definition",
     "researchStep": "{step}. Inspect saved research evidence",
     "manifestStep": "{step}. Inspect {manifestType}",
+    "manifestTypes": {
+      "reportArtifact": "report artifact manifest",
+      "strategyDecision": "strategy decision manifest",
+      "strategyReviewWorkflow": "strategy review workflow manifest",
+      "unknown": "evidence manifest"
+    },
     "jobStep": "{step}. Inspect a succeeded paper job",
     "portfolioStep": "{step}. Inspect its authoritative portfolio result",
     "comparisonStep": "{step}. Compare the two ordered demo results",

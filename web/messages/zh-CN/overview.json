@@ -60,11 +60,17 @@
     "demoWarning": "仅供演示——可丢弃的示例证据，不是真实用户数据，也不构成交易建议。",
     "strategyStep": "{step}. 审查规范策略定义",
     "researchStep": "{step}. 检查已保存研究证据",
-    "manifestStep": "{step}. 检查 {manifestType}",
+    "manifestStep": "{step}. 检查{manifestType}",
+    "manifestTypes": {
+      "reportArtifact": "报告制品清单",
+      "strategyDecision": "策略决策清单",
+      "strategyReviewWorkflow": "策略审查工作流清单",
+      "unknown": "证据清单"
+    },
     "jobStep": "{step}. 检查一个成功的模拟任务",
     "portfolioStep": "{step}. 检查其权威组合结果",
     "comparisonStep": "{step}. 对比两个有序演示结果",
     "lifecycleStep": "{step}. 准备提案并记录显式人工决策证据",
-    "demoBoundary": "每个链接都来自经过验证的后端描述符。浏览器中没有定义固件身份或证据载荷。"
+    "demoBoundary": "每个链接都来自经过验证的后端描述符。浏览器中没有硬编码演示身份或证据载荷。"
   }
 }

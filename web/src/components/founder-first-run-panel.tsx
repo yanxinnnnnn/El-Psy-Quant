@@ -21,6 +21,25 @@ type StandardWorkspaceState =
   | { status: "populated" }
   | { status: "error"; code: string | null; message: string | null; requestId: string | null };
 
+type ManifestTypeLabelKey =
+  | "reportArtifact"
+  | "strategyDecision"
+  | "strategyReviewWorkflow"
+  | "unknown";
+
+function manifestTypeLabelKey(manifestType: string): ManifestTypeLabelKey {
+  switch (manifestType) {
+    case "report_artifact_manifest":
+      return "reportArtifact";
+    case "strategy_decision_manifest":
+      return "strategyDecision";
+    case "strategy_review_workflow_manifest":
+      return "strategyReviewWorkflow";
+    default:
+      return "unknown";
+  }
+}
+
 function comparisonHref(jobIds: readonly string[]): string {
   const query = new URLSearchParams();
   jobIds.forEach((jobId) => query.append("job_id", jobId));
@@ -43,13 +62,17 @@ function GuidedDemoJourney({ descriptor }: { descriptor: DemoWorkspaceDescriptor
       <ol className="demo-journey__steps">
         <li><Link href={`/strategies/${encodeURIComponent(descriptor.canonical_strategy_name)}`}>{t("strategyStep", { step: 1 })}</Link></li>
         <li><Link href={`/research-runs/${encodeURIComponent(research.experiment_slug)}/${encodeURIComponent(research.run_id)}`}>{t("researchStep", { step: 2 })}</Link></li>
-        {descriptor.evidence_manifests.map((reference, index) => (
-          <li key={`${reference.manifest_type}/${reference.artifact_key}`}>
-            <Link href={`/evidence-manifests/${encodeURIComponent(reference.manifest_type)}/${encodeURIComponent(reference.artifact_key)}`}>
-              {t("manifestStep", { step: index + 3, manifestType: reference.manifest_type })}
-            </Link>
-          </li>
-        ))}
+        {descriptor.evidence_manifests.map((reference, index) => {
+          const labelKey = manifestTypeLabelKey(reference.manifest_type);
+          return (
+            <li key={`${reference.manifest_type}/${reference.artifact_key}`}>
+              <Link href={`/evidence-manifests/${encodeURIComponent(reference.manifest_type)}/${encodeURIComponent(reference.artifact_key)}`}>
+                <span>{t("manifestStep", { step: index + 3, manifestType: t(`manifestTypes.${labelKey}`) })}</span>{" "}
+                <code>{reference.manifest_type}</code>
+              </Link>
+            </li>
+          );
+        })}
         <li><Link href={`/paper-jobs/${encodeURIComponent(descriptor.paper_jobs[0].job_id)}`}>{t("jobStep", { step: paperStep })}</Link></li>
         <li><Link href={`/portfolio-records/${encodeURIComponent(descriptor.paper_jobs[0].job_id)}`}>{t("portfolioStep", { step: paperStep + 1 })}</Link></li>
         <li><Link href={comparisonHref(descriptor.comparison_candidate_job_ids)}>{t("comparisonStep", { step: paperStep + 2 })}</Link></li>

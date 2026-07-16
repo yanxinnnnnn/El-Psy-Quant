@@ -119,7 +119,7 @@ Final deterministic result:
 - `uv run python scripts/check.py` passed;
 - Python: 2,125 passed and 3 skipped;
 - message catalogs: 2 locales across 11 namespaces validated;
-- Web: 29 test files and 254 tests passed;
+- Web: 29 test files and 256 tests passed;
 - Ruff, package import, CLI help, OpenAPI/generated-contract freshness, ESLint,
   and TypeScript all passed; and
 - Next.js 16.2.10 production build compiled successfully and generated all 12
