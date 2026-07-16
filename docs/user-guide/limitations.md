@@ -10,6 +10,14 @@ credential pair. It has no registration, user database, roles, password reset,
 OAuth, multi-user review, or SaaS security model. It should remain bound to the
 local machine.
 
+## Demo Evidence Is Disposable
+
+The opt-in Demo Workspace contains fixed example artifacts and records for a
+guided product tour. It is visibly labeled, stored in a volume distinct from
+the standard workspace, and must not be treated as real research, approval,
+performance evidence, trading advice, or live readiness. Resetting Demo removes
+only its isolated volume when the documented overlay command is used.
+
 ## Paper Trading Only
 
 There is no live trading, broker connection, QMT or MiniQMT connection, capital

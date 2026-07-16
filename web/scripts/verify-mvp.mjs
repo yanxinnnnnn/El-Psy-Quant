@@ -7,6 +7,7 @@ const ENVIRONMENT_KEYS = new Set([
   "EL_PSY_QUANT_FOUNDER_USERNAME",
   "EL_PSY_QUANT_FOUNDER_PASSWORD",
   "EL_PSY_QUANT_MVP_ORIGIN",
+  "EL_PSY_QUANT_WORKSPACE_MODE",
 ]);
 
 function loadRootEnvironment() {
@@ -190,8 +191,92 @@ async function verifyReadWorkflows(origin, authorization) {
   }
 }
 
-async function verifyLifecycleCommands(origin, authorization) {
-  const proposal = lifecycleProposal();
+async function verifyDemoJourney(origin, authorization) {
+  const descriptorResponse = await request(
+    origin,
+    "/api/backend/api/v1/demo-workspace",
+    { authorization },
+  );
+  await expectStatus(descriptorResponse, 200, "Demo workspace descriptor");
+  const descriptor = await expectJson(descriptorResponse, "Demo workspace descriptor");
+  if (
+    descriptor.schema_version !== 1 ||
+    typeof descriptor.canonical_strategy_name !== "string" ||
+    !Array.isArray(descriptor.evidence_manifests) ||
+    !Array.isArray(descriptor.paper_jobs) ||
+    descriptor.paper_jobs.length < 2 ||
+    !Array.isArray(descriptor.comparison_candidate_job_ids) ||
+    descriptor.comparison_candidate_job_ids.length < 2 ||
+    new Set(descriptor.comparison_candidate_job_ids).size !==
+      descriptor.comparison_candidate_job_ids.length
+  ) {
+    throw new Error("Demo workspace descriptor returned an unexpected contract");
+  }
+  const encoded = encodeURIComponent;
+  const exactReads = [
+    [
+      `/api/backend/api/v1/strategies/${encoded(descriptor.canonical_strategy_name)}`,
+      "Demo strategy",
+    ],
+    [
+      `/api/backend/api/v1/research-runs/${encoded(descriptor.research_run.experiment_slug)}/${encoded(descriptor.research_run.run_id)}`,
+      "Demo research run",
+    ],
+    ...descriptor.evidence_manifests.map((reference) => [
+      `/api/backend/api/v1/evidence-manifests/${encoded(reference.manifest_type)}/${encoded(reference.artifact_key)}`,
+      `Demo evidence ${reference.manifest_type}/${reference.artifact_key}`,
+    ]),
+  ];
+  for (const [path, label] of exactReads) {
+    const response = await request(origin, path, { authorization });
+    await expectStatus(response, 200, label);
+    await expectJson(response, label);
+  }
+  for (const job of descriptor.paper_jobs) {
+    const jobResponse = await request(
+      origin,
+      `/api/backend/api/v1/paper-jobs/${encoded(job.job_id)}`,
+      { authorization },
+    );
+    await expectStatus(jobResponse, 200, `Demo paper job ${job.job_id}`);
+    const jobPayload = await expectJson(jobResponse, `Demo paper job ${job.job_id}`);
+    if (jobPayload.status !== "succeeded" || jobPayload.result_available !== true) {
+      throw new Error(`Demo paper job ${job.job_id} is not a succeeded available result`);
+    }
+    const resultResponse = await request(
+      origin,
+      `/api/backend/api/v1/paper-jobs/${encoded(job.job_id)}/result`,
+      { authorization },
+    );
+    await expectStatus(resultResponse, 200, `Demo paper result ${job.job_id}`);
+    await expectJson(resultResponse, `Demo paper result ${job.job_id}`);
+  }
+  const comparisonQuery = new URLSearchParams();
+  for (const jobId of descriptor.comparison_candidate_job_ids) {
+    comparisonQuery.append("job_id", jobId);
+  }
+  const comparisonResponse = await request(
+    origin,
+    `/comparisons?${comparisonQuery.toString()}`,
+    { authorization },
+  );
+  await expectStatus(comparisonResponse, 200, "Descriptor-provided Demo comparison");
+  return descriptor;
+}
+
+async function verifyStandardDescriptorDisabled(origin, authorization) {
+  const response = await request(origin, "/api/backend/api/v1/demo-workspace", {
+    authorization,
+  });
+  await expectStatus(response, 404, "Standard workspace Demo descriptor");
+  const payload = await expectJson(response, "Standard workspace Demo descriptor");
+  if (payload.error?.code !== "demo_workspace_not_configured") {
+    throw new Error("Standard workspace exposed an unexpected Demo descriptor response");
+  }
+}
+
+async function verifyLifecycleCommands(origin, authorization, examples = null) {
+  const proposal = examples?.lifecycle_proposal_example ?? lifecycleProposal();
   const proposalResponse = await request(
     origin,
     "/api/backend/api/v1/lifecycle-transition-proposals",
@@ -212,15 +297,17 @@ async function verifyLifecycleCommands(origin, authorization) {
     {
       authorization,
       body: {
-        transition_record_id: "mvp-smoke-review",
-        proposal,
-        review_outcome: "deferred",
-        rationale: "Verify explicit human review without applying a transition.",
-        resulting_snapshot: null,
-        reviewed_by: "founder",
-        reviewed_timestamp: "2026-07-15T00:02:00Z",
-        notes: [],
-        warnings: [],
+        ...(examples?.lifecycle_review_example ?? {
+          transition_record_id: "mvp-smoke-review",
+          proposal,
+          review_outcome: "deferred",
+          rationale: "Verify explicit human review without applying a transition.",
+          resulting_snapshot: null,
+          reviewed_by: "founder",
+          reviewed_timestamp: "2026-07-15T00:02:00Z",
+          notes: [],
+          warnings: [],
+        }),
       },
     },
   );
@@ -230,8 +317,9 @@ async function verifyLifecycleCommands(origin, authorization) {
     "Lifecycle human-review command",
   );
   if (
-    reviewPayload.transition_record?.transition_record_id !== "mvp-smoke-review" ||
-    reviewPayload.transition_record?.resulting_snapshot !== null
+    reviewPayload.transition_record?.transition_record_id !==
+      (examples?.lifecycle_review_example.transition_record_id ?? "mvp-smoke-review") ||
+    (examples === null && reviewPayload.transition_record?.resulting_snapshot !== null)
   ) {
     throw new Error("Lifecycle human-review command returned an unexpected contract");
   }
@@ -259,9 +347,13 @@ async function main() {
   }
   await verifyWorkspaceRoutes(parsedOrigin.origin, authorization);
   await verifyReadWorkflows(parsedOrigin.origin, authorization);
-  await verifyLifecycleCommands(parsedOrigin.origin, authorization);
+  const workspaceMode = process.env.EL_PSY_QUANT_WORKSPACE_MODE ?? "standard";
+  const demoDescriptor = workspaceMode === "demo"
+    ? await verifyDemoJourney(parsedOrigin.origin, authorization)
+    : await verifyStandardDescriptorDisabled(parsedOrigin.origin, authorization);
+  await verifyLifecycleCommands(parsedOrigin.origin, authorization, demoDescriptor);
   console.log(
-    "MVP verification passed: auth, same-origin health, workspace routes, read workflows, and stateless lifecycle commands.",
+    `MVP verification passed: auth, same-origin health, workspace routes, read workflows, ${workspaceMode} workspace identity, and stateless lifecycle commands.`,
   );
 }
 

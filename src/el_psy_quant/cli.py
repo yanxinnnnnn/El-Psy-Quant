@@ -14,6 +14,11 @@ from el_psy_quant.data import (
     read_daily_prices_caches,
     validate_daily_prices_by_symbol,
 )
+from el_psy_quant.demo_workspace import (
+    DemoWorkspaceError,
+    install_demo_workspace,
+    resolve_workspace_mode,
+)
 from el_psy_quant.outputs import create_experiment_output_layout
 from el_psy_quant.strategies import resolve_strategy
 
@@ -136,12 +141,37 @@ def _build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("config_path", type=Path)
     run_parser.add_argument("--output-root", type=Path, required=True)
     run_parser.add_argument("--run-id")
+    demo_parser = subparsers.add_parser(
+        "install-demo-workspace",
+        help="install the validated demo dataset into isolated demo storage",
+    )
+    demo_parser.add_argument("--source-root", type=Path, required=True)
+    demo_parser.add_argument("--workspace-root", type=Path, required=True)
+    demo_parser.add_argument("--alembic-config", type=Path, required=True)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the command-line interface."""
     args = _build_parser().parse_args(argv)
+    if args.command == "install-demo-workspace":
+        try:
+            result = install_demo_workspace(
+                source_root=args.source_root,
+                workspace_root=args.workspace_root,
+                workspace_mode=resolve_workspace_mode(),
+                alembic_config_path=args.alembic_config,
+            )
+        except (DemoWorkspaceError, OSError, ValueError) as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 1
+        status = "already installed" if result.already_installed else "installed"
+        print(
+            f"{result.dataset_id} v{result.dataset_version} {status} "
+            f"at {result.workspace_root}"
+        )
+        return 0
+
     try:
         run_dir = run_configured_experiment(
             args.config_path,

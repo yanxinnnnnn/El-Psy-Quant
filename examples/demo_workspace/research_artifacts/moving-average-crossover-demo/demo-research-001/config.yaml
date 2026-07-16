@@ -1,0 +1,6 @@
+# DEMO ONLY — deterministic example configuration; not trading advice.
+name: Moving Average Crossover Demo Review
+strategy: moving_average_crossover
+parameters:
+  fast_window: 20
+  slow_window: 50

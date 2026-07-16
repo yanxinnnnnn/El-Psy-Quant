@@ -1,9 +1,13 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
   ApiClientError,
   fetchEvidenceManifestDetail,
   fetchEvidenceManifests,
+  fetchDemoWorkspace,
   fetchHealth,
   fetchResearchRunDetail,
   fetchResearchRuns,
@@ -16,6 +20,36 @@ import {
   type StrategyDetailResponse,
   type StrategyListResponse,
 } from "./api-client";
+
+function demoSourceJson(relativePath: string): Record<string, unknown> {
+  return JSON.parse(
+    readFileSync(resolve(process.cwd(), "..", "examples", "demo_workspace", relativePath), "utf8"),
+  ) as Record<string, unknown>;
+}
+
+function demoDescriptorFromVersionedSource(): Record<string, unknown> {
+  const manifest = demoSourceJson("workspace-manifest.json");
+  const paperJobs = manifest.paper_jobs as Array<Record<string, unknown>>;
+  const submission = manifest.paper_submission_example as Record<string, unknown>;
+  return {
+    schema_version: manifest.schema_version,
+    dataset_id: manifest.dataset_id,
+    dataset_version: manifest.dataset_version,
+    display_name: manifest.display_name,
+    warning: manifest.warning,
+    canonical_strategy_name: manifest.canonical_strategy_name,
+    research_run: manifest.research_run,
+    evidence_manifests: manifest.evidence_manifests,
+    paper_jobs: paperJobs.map(({ job_id, run_id }) => ({ job_id, run_id })),
+    comparison_candidate_job_ids: manifest.comparison_candidate_job_ids,
+    lifecycle_proposal_example: demoSourceJson("lifecycle_records/proposal-request.json"),
+    lifecycle_review_example: demoSourceJson("lifecycle_records/human-review-request.json"),
+    paper_job_submission_example: {
+      idempotency_key: submission.idempotency_key,
+      request: demoSourceJson("paper_artifacts/submission-example.json"),
+    },
+  };
+}
 
 function response(
   body: unknown,
@@ -94,6 +128,38 @@ describe("fetchHealth", () => {
       code: "api_unavailable",
       publicMessage: "The local API is unavailable.",
       requestId: null,
+    });
+  });
+});
+
+describe("fetchDemoWorkspace", () => {
+  it("accepts the path-free descriptor assembled from the versioned backend source", async () => {
+    const descriptor = demoDescriptorFromVersionedSource();
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(descriptor));
+
+    const result = await fetchDemoWorkspace(fetcher);
+
+    expect(result.data.dataset_id).toBe(descriptor.dataset_id);
+    expect(result.data.comparison_candidate_job_ids).toHaveLength(2);
+    expect(fetcher).toHaveBeenCalledWith("/api/backend/api/v1/demo-workspace", {
+      method: "GET",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    expect(JSON.stringify(result.data)).not.toMatch(/[A-Za-z]:\\|\/data\/workspace/);
+  });
+
+  it("rejects a descriptor with non-distinct comparison candidates", async () => {
+    const descriptor = demoDescriptorFromVersionedSource();
+    const candidates = descriptor.comparison_candidate_job_ids as string[];
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response({
+      ...descriptor,
+      comparison_candidate_job_ids: [candidates[0], candidates[0]],
+    }));
+
+    await expect(fetchDemoWorkspace(fetcher)).rejects.toMatchObject({
+      code: "api_response_invalid",
+      publicMessage: "The local API returned an invalid response.",
     });
   });
 });

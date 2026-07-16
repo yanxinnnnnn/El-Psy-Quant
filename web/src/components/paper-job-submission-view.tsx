@@ -7,7 +7,9 @@ import { useRef, useState } from "react";
 import { RequestId } from "@/components/data-states";
 import {
   ApiClientError,
+  fetchDemoWorkspace,
   submitPaperJob,
+  type DemoWorkspaceDescriptorResponse,
   type PaperJobSubmissionRequest,
 } from "@/lib/api-client";
 import { paperJobErrorTitle } from "@/lib/paper-jobs";
@@ -90,24 +92,27 @@ function AccountSection({
       <p className="form-section__description">Enter backend transport fields exactly; no account values are derived in the browser.</p>
       <div className="form-grid">
         {[
-          ["timestamp", "Timestamp", value.timestamp],
-          ["startingCash", "Starting cash", value.startingCash],
-          ["currentCash", "Current cash", value.currentCash],
-        ].map(([field, label, current]) => {
+          ["timestamp", "Account timestamp", value.timestamp, "2026-01-18T13:55:00Z", "Use an explicit UTC timestamp ending in Z or +00:00."],
+          ["startingCash", "Starting cash", value.startingCash, "50000.00", "Use a finite non-negative decimal number."],
+          ["currentCash", "Current cash", value.currentCash, "50000.00", "Use a finite non-negative decimal number."],
+        ].map(([field, label, current, placeholder, guidance]) => {
           const name = `${prefix}-${field}`;
           const numeric = field !== "timestamp";
           return (
             <label key={field}>
-              {label}
+              {label} <span className="required-label">Required</span>
               <input
                 id={name}
                 name={name}
+                aria-label={field === "timestamp" ? "Timestamp" : label}
                 required
                 inputMode={numeric ? "decimal" : undefined}
+                placeholder={placeholder}
                 value={current}
                 onChange={(event) => update(field as "timestamp" | "startingCash" | "currentCash", event.target.value)}
                 {...fieldA11y(errors, name)}
               />
+              <span className="field-guidance">{guidance}</span>
               <FieldError id={`${name}-error`} message={errors[name]} />
             </label>
           );
@@ -131,8 +136,8 @@ function AccountSection({
             return (
               <div className="repeatable-row repeatable-row--position" key={position.key}>
                 <span className="row-number">Position {index + 1}</span>
-                <label>Symbol<input value={position.symbol} onChange={(event) => setValue({ ...value, positions: value.positions.map((row) => row.key === position.key ? { ...row, symbol: event.target.value } : row) })} {...fieldA11y(errors, symbolName)} /><FieldError id={`${symbolName}-error`} message={errors[symbolName]} /></label>
-                <label>Quantity<input inputMode="decimal" value={position.quantity} onChange={(event) => setValue({ ...value, positions: value.positions.map((row) => row.key === position.key ? { ...row, quantity: event.target.value } : row) })} {...fieldA11y(errors, quantityName)} /><FieldError id={`${quantityName}-error`} message={errors[quantityName]} /></label>
+                <label>Symbol <span className="required-label">Required</span><input aria-label="Symbol" placeholder="AAPL" value={position.symbol} onChange={(event) => setValue({ ...value, positions: value.positions.map((row) => row.key === position.key ? { ...row, symbol: event.target.value } : row) })} {...fieldA11y(errors, symbolName)} /><FieldError id={`${symbolName}-error`} message={errors[symbolName]} /></label>
+                <label>Quantity <span className="required-label">Required</span><input aria-label="Quantity" inputMode="decimal" placeholder="10" value={position.quantity} onChange={(event) => setValue({ ...value, positions: value.positions.map((row) => row.key === position.key ? { ...row, quantity: event.target.value } : row) })} {...fieldA11y(errors, quantityName)} /><span className="field-guidance">Use a finite decimal quantity.</span><FieldError id={`${quantityName}-error`} message={errors[quantityName]} /></label>
                 <button className="remove-button" type="button" onClick={() => setValue({ ...value, positions: value.positions.filter((row) => row.key !== position.key) })}>Remove position {index + 1}</button>
               </div>
             );
@@ -157,7 +162,72 @@ export function PaperJobSubmissionView() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [pending, setPending] = useState(false);
   const [serverError, setServerError] = useState<{ title: string; message: string; requestId: string | null } | null>(null);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoDiscoveryError, setDemoDiscoveryError] = useState<string | null>(null);
   const nextKey = () => ++keyCounter.current;
+
+  function populateDemoExample(demoDescriptor: DemoWorkspaceDescriptorResponse) {
+    const example = demoDescriptor.paper_job_submission_example;
+    const request = example.request;
+    const accountInput = (
+      account: typeof request.starting_account_state,
+    ): AccountInput => ({
+      timestamp: account.timestamp,
+      startingCash: String(account.starting_cash),
+      currentCash: String(account.current_cash),
+      positions: Object.entries(account.positions).map(([symbol, quantity]) => ({
+        key: nextKey(),
+        symbol,
+        quantity: String(quantity),
+      })),
+    });
+    setRunId(request.run_id);
+    setCreatedTimestamp(request.created_timestamp);
+    setIdempotencyKey(example.idempotency_key);
+    setStarting(accountInput(request.starting_account_state));
+    setEnding(accountInput(request.ending_account_state));
+    setOrders(request.orders.map((order) => ({
+      key: nextKey(),
+      orderId: order.order_id,
+      timestamp: order.timestamp,
+      symbol: order.symbol,
+      side: order.side,
+      quantity: String(order.quantity),
+      status: order.status,
+    })));
+    setFills(request.fills.map((fill) => ({
+      key: nextKey(),
+      timestamp: fill.timestamp,
+      symbol: fill.symbol,
+      side: fill.side,
+      quantity: String(fill.quantity),
+      price: String(fill.price),
+      orderId: fill.order_id ?? "",
+    })));
+    setErrors({});
+    setServerError(null);
+  }
+
+  function loadDemoExample() {
+    setDemoLoading(true);
+    setDemoDiscoveryError(null);
+    void fetchDemoWorkspace().then((result) => {
+      populateDemoExample(result.data);
+    }).catch((error: unknown) => {
+      if (
+        error instanceof ApiClientError &&
+        error.code === "demo_workspace_not_configured"
+      ) {
+        setDemoDiscoveryError("Start the isolated Demo Workspace before loading this example.");
+        return;
+      }
+      setDemoDiscoveryError(
+        error instanceof ApiClientError
+          ? error.publicMessage
+          : "The demo descriptor could not be loaded.",
+      );
+    }).finally(() => setDemoLoading(false));
+  }
 
   function buildRequest(): PaperJobSubmissionRequest | null {
     const nextErrors: FieldErrors = {};
@@ -166,10 +236,22 @@ export function PaperJobSubmissionView() {
       if (value.length === 0) nextErrors[name] = "This transport field is required.";
       return value;
     };
-    const validateNumeric = (name: string, value: string) => {
+    const validateNumeric = (
+      name: string,
+      value: string,
+      constraint: "finite" | "non-negative" | "positive" = "finite",
+    ) => {
       const parsed = parseNumericTransportValue(value);
       if (parsed === null) {
         nextErrors[name] = "Enter a finite decimal number.";
+        return;
+      }
+      if (constraint === "non-negative" && parsed < 0) {
+        nextErrors[name] = "Enter a finite non-negative decimal number.";
+        return;
+      }
+      if (constraint === "positive" && parsed <= 0) {
+        nextErrors[name] = "Enter a positive finite decimal number.";
         return;
       }
       numericValues.set(name, parsed);
@@ -188,8 +270,8 @@ export function PaperJobSubmissionView() {
         validateNumeric(quantityName, position.quantity);
       });
       required(`${prefix}-timestamp`, input.timestamp);
-      validateNumeric(`${prefix}-startingCash`, input.startingCash);
-      validateNumeric(`${prefix}-currentCash`, input.currentCash);
+      validateNumeric(`${prefix}-startingCash`, input.startingCash, "non-negative");
+      validateNumeric(`${prefix}-currentCash`, input.currentCash, "non-negative");
     };
 
     required("run-id", runId);
@@ -201,15 +283,15 @@ export function PaperJobSubmissionView() {
       required(`order-${index}-timestamp`, order.timestamp);
       required(`order-${index}-symbol`, order.symbol);
       required(`order-${index}-side`, order.side);
-      validateNumeric(`order-${index}-quantity`, order.quantity);
+      validateNumeric(`order-${index}-quantity`, order.quantity, "positive");
       required(`order-${index}-status`, order.status);
     });
     fills.forEach((fill, index) => {
       required(`fill-${index}-timestamp`, fill.timestamp);
       required(`fill-${index}-symbol`, fill.symbol);
       required(`fill-${index}-side`, fill.side);
-      validateNumeric(`fill-${index}-quantity`, fill.quantity);
-      validateNumeric(`fill-${index}-price`, fill.price);
+      validateNumeric(`fill-${index}-quantity`, fill.quantity, "positive");
+      validateNumeric(`fill-${index}-price`, fill.price, "non-negative");
     });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
@@ -265,6 +347,16 @@ export function PaperJobSubmissionView() {
         <p>Submission creates or exactly replays durable queued state. It never runs the job; Run remains a separate confirmed action on the detail page.</p>
       </header>
 
+      <div className="demo-form-action">
+        <button className="secondary-button" type="button" disabled={demoLoading} onClick={loadDemoExample}>
+          {demoLoading ? "Loading demo example\u2026" : "Load demo example"}
+        </button>
+        <p>Available in Demo Workspace mode. Values come only from the validated backend descriptor, and nothing is submitted automatically.</p>
+      </div>
+      {demoDiscoveryError ? (
+        <p className="neutral-note" role="status">Demo example unavailable: {demoDiscoveryError}</p>
+      ) : null}
+
       <form className="paper-job-form" noValidate onSubmit={(event) => {
         event.preventDefault();
         if (pendingRef.current) return;
@@ -293,12 +385,12 @@ export function PaperJobSubmissionView() {
         {serverError ? <div className="form-alert form-alert--server" role="alert"><strong>{serverError.title}</strong><span>{serverError.message}</span><RequestId value={serverError.requestId} /></div> : null}
 
         <fieldset className="form-section">
-          <legend>Job identity</legend>
-          <p className="form-section__description">Values are sent exactly as entered. A nonblank idempotency key is optional.</p>
+          <legend>Run identity</legend>
+          <p className="form-section__description">Identify the backend request. Required values are sent exactly as entered.</p>
           <div className="form-grid">
-            <label>Run ID<input id="run-id" value={runId} onChange={(event) => setRunId(event.target.value)} {...fieldA11y(errors, "run-id")} /><FieldError id="run-id-error" message={errors["run-id"]} /></label>
-            <label>Created timestamp<input id="created-timestamp" value={createdTimestamp} onChange={(event) => setCreatedTimestamp(event.target.value)} {...fieldA11y(errors, "created-timestamp")} /><FieldError id="created-timestamp-error" message={errors["created-timestamp"]} /></label>
-            <label>Idempotency key <span className="optional-label">Optional</span><input id="idempotency-key" value={idempotencyKey} onChange={(event) => setIdempotencyKey(event.target.value)} aria-describedby="idempotency-guidance" /><span className="field-guidance" id="idempotency-guidance">Sent only when nonblank; exact replay and conflicts remain backend-owned.</span></label>
+            <label>Run ID <span className="required-label">Required</span><input id="run-id" aria-label="Run ID" required placeholder="paper-run-20260118" value={runId} onChange={(event) => setRunId(event.target.value)} {...fieldA11y(errors, "run-id")} /><span className="field-guidance">Use a normalized nonblank run identity.</span><FieldError id="run-id-error" message={errors["run-id"]} /></label>
+            <label>Created timestamp <span className="required-label">Required</span><input id="created-timestamp" aria-label="Created timestamp" required placeholder="2026-01-18T14:00:00Z" value={createdTimestamp} onChange={(event) => setCreatedTimestamp(event.target.value)} {...fieldA11y(errors, "created-timestamp")} /><span className="field-guidance">Use an explicit UTC timestamp ending in Z or +00:00.</span><FieldError id="created-timestamp-error" message={errors["created-timestamp"]} /></label>
+            <label>Idempotency key <span className="optional-label">Optional</span><input id="idempotency-key" placeholder="founder-paper-run-v1" value={idempotencyKey} onChange={(event) => setIdempotencyKey(event.target.value)} aria-describedby="idempotency-guidance" /><span className="field-guidance" id="idempotency-guidance">Provides replay-safe submission identity. It is not a password or job ID. Exact replay and conflicts remain backend-owned.</span></label>
           </div>
         </fieldset>
 
@@ -307,14 +399,14 @@ export function PaperJobSubmissionView() {
 
         <fieldset className="form-section">
           <legend>Orders</legend>
-          <div className="repeatable-heading"><p className="form-section__description">Rows are sent in the exact order shown.</p><button className="secondary-button" type="button" onClick={() => setOrders([...orders, { key: nextKey(), orderId: "", timestamp: "", symbol: "", side: "", quantity: "", status: "" }])}>Add order</button></div>
-          {orders.length === 0 ? <p className="repeatable-empty">No orders added.</p> : <div className="repeatable-list">{orders.map((order, index) => <div className="repeatable-row" key={order.key}><span className="row-number">Order {index + 1}</span>{([['orderId','Order ID'],['timestamp','Timestamp'],['symbol','Symbol'],['side','Side'],['quantity','Quantity'],['status','Status']] as const).map(([field,label]) => { const name=`order-${index}-${field}`; return <label key={field}>{label}<input inputMode={field === 'quantity' ? 'decimal' : undefined} value={order[field]} onChange={(event) => setOrders(orders.map((row) => row.key === order.key ? { ...row, [field]: event.target.value } : row))} {...fieldA11y(errors,name)} /><FieldError id={`${name}-error`} message={errors[name]} /></label>; })}<button className="remove-button" type="button" onClick={() => setOrders(orders.filter((row) => row.key !== order.key))}>Remove order {index + 1}</button></div>)}</div>}
+          <div className="repeatable-heading"><p className="form-section__description">Orders are optional. When added, every field is required; timestamps use explicit UTC, quantities use positive finite decimals, and rows are sent in the exact order shown.</p><button className="secondary-button" type="button" onClick={() => setOrders([...orders, { key: nextKey(), orderId: "", timestamp: "", symbol: "", side: "", quantity: "", status: "" }])}>Add order</button></div>
+          {orders.length === 0 ? <p className="repeatable-empty">No orders added.</p> : <div className="repeatable-list">{orders.map((order, index) => <div className="repeatable-row" key={order.key}><span className="row-number">Order {index + 1}</span>{([['orderId','Order ID'],['timestamp','Timestamp'],['symbol','Symbol'],['side','Side'],['quantity','Quantity'],['status','Status']] as const).map(([field,label]) => { const name=`order-${index}-${field}`; const placeholder = field === "timestamp" ? "2026-01-18T14:01:00Z" : field === "symbol" ? "AAPL" : field === "quantity" ? "10" : field === "side" ? "buy" : field === "status" ? "filled" : "order-001"; return <label key={field}>{label} <span className="required-label">Required</span><input aria-label={label} required placeholder={placeholder} inputMode={field === 'quantity' ? 'decimal' : undefined} value={order[field]} onChange={(event) => setOrders(orders.map((row) => row.key === order.key ? { ...row, [field]: event.target.value } : row))} {...fieldA11y(errors,name)} /><FieldError id={`${name}-error`} message={errors[name]} /></label>; })}<button className="remove-button" type="button" onClick={() => setOrders(orders.filter((row) => row.key !== order.key))}>Remove order {index + 1}</button></div>)}</div>}
         </fieldset>
 
         <fieldset className="form-section">
           <legend>Fills</legend>
-          <div className="repeatable-heading"><p className="form-section__description">Blank optional order ID is sent as null. Row order is preserved.</p><button className="secondary-button" type="button" onClick={() => setFills([...fills, { key: nextKey(), timestamp: "", symbol: "", side: "", quantity: "", price: "", orderId: "" }])}>Add fill</button></div>
-          {fills.length === 0 ? <p className="repeatable-empty">No fills added.</p> : <div className="repeatable-list">{fills.map((fill, index) => <div className="repeatable-row" key={fill.key}><span className="row-number">Fill {index + 1}</span>{([['timestamp','Timestamp'],['symbol','Symbol'],['side','Side'],['quantity','Quantity'],['price','Price'],['orderId','Order ID (optional)']] as const).map(([field,label]) => { const name=`fill-${index}-${field}`; return <label key={field}>{label}<input inputMode={field === 'quantity' || field === 'price' ? 'decimal' : undefined} value={fill[field]} onChange={(event) => setFills(fills.map((row) => row.key === fill.key ? { ...row, [field]: event.target.value } : row))} {...fieldA11y(errors,name)} /><FieldError id={`${name}-error`} message={errors[name]} /></label>; })}<button className="remove-button" type="button" onClick={() => setFills(fills.filter((row) => row.key !== fill.key))}>Remove fill {index + 1}</button></div>)}</div>}
+          <div className="repeatable-heading"><p className="form-section__description">Fills are optional. Added timestamps use explicit UTC; quantity is a positive finite decimal and price is a finite non-negative decimal. Blank optional order ID is sent as null, and row order is preserved.</p><button className="secondary-button" type="button" onClick={() => setFills([...fills, { key: nextKey(), timestamp: "", symbol: "", side: "", quantity: "", price: "", orderId: "" }])}>Add fill</button></div>
+          {fills.length === 0 ? <p className="repeatable-empty">No fills added.</p> : <div className="repeatable-list">{fills.map((fill, index) => <div className="repeatable-row" key={fill.key}><span className="row-number">Fill {index + 1}</span>{([['timestamp','Timestamp'],['symbol','Symbol'],['side','Side'],['quantity','Quantity'],['price','Price'],['orderId','Order ID']] as const).map(([field,label]) => { const name=`fill-${index}-${field}`; const optional = field === "orderId"; const placeholder = field === "timestamp" ? "2026-01-18T14:01:30Z" : field === "symbol" ? "AAPL" : field === "quantity" ? "10" : field === "price" ? "100.00" : field === "side" ? "buy" : "order-001"; return <label key={field}>{label} <span className={optional ? "optional-label" : "required-label"}>{optional ? "Optional" : "Required"}</span><input aria-label={label} required={!optional} placeholder={placeholder} inputMode={field === 'quantity' || field === 'price' ? 'decimal' : undefined} value={fill[field]} onChange={(event) => setFills(fills.map((row) => row.key === fill.key ? { ...row, [field]: event.target.value } : row))} {...fieldA11y(errors,name)} /><FieldError id={`${name}-error`} message={errors[name]} /></label>; })}<button className="remove-button" type="button" onClick={() => setFills(fills.filter((row) => row.key !== fill.key))}>Remove fill {index + 1}</button></div>)}</div>}
         </fieldset>
 
         <div className="submission-actions"><button className="primary-button" type="submit" disabled={pending}>{pending ? "Submitting queued job…" : "Submit queued job"}</button><p>Execution will not start from this form.</p></div>

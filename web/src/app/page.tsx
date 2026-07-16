@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { HealthPanel } from "@/components/health-panel";
+import { FounderFirstRunPanel } from "@/components/founder-first-run-panel";
 import { WorkspaceShell } from "@/components/workspace-shell";
 
 export default function OverviewPage() {
@@ -25,6 +26,8 @@ export default function OverviewPage() {
           </div>
         </section>
 
+        <FounderFirstRunPanel />
+
         <div className="overview-grid">
           <HealthPanel />
           <section className="boundary-card" aria-labelledby="workspace-boundary-title">
@@ -42,16 +45,16 @@ export default function OverviewPage() {
           </section>
         </div>
 
-        <section className="coming-next" aria-labelledby="coming-next-title">
+        <section className="coming-next" aria-labelledby="workspace-startup-title">
           <div>
-            <p className="eyebrow">Next planned sprint</p>
-            <h2 id="coming-next-title">Reproducible local operation</h2>
+            <p className="eyebrow">Explicit first-run choice</p>
+            <h2 id="workspace-startup-title">Standard or isolated Demo Workspace</h2>
           </div>
           <p>
-            Docker Compose coordinates the Founder authentication boundary, versioned
-            FastAPI service, persistent local data, and same-origin Web gateway.
+            Operators choose clean real-user storage or a separately named disposable
+            Demo volume. This page never seeds or initializes either workspace.
           </p>
-          <span className="sprint-chip">MVP</span>
+          <span className="sprint-chip">Local MVP</span>
         </section>
       </div>
     </WorkspaceShell>

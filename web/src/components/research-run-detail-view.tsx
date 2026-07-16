@@ -163,6 +163,15 @@ export function ResearchRunDetailView({
               </table>
             </div>
           </section>
+
+          <section className="related-panel" aria-labelledby="research-evidence-next-title">
+            <div>
+              <p className="eyebrow">Your next review choice</p>
+              <h2 id="research-evidence-next-title">Inspect governance or report evidence</h2>
+              <p>Choose a saved evidence manifest explicitly. This generic research page does not infer that unrelated records are connected.</p>
+            </div>
+            <Link className="primary-link" href="/evidence-manifests">Browse evidence manifests</Link>
+          </section>
         </article>
       )}
     </div>

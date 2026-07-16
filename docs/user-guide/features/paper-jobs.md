@@ -21,9 +21,19 @@ The form includes:
 Numeric fields must contain finite decimal values. Position symbols cannot be
 duplicated within one account state. Order and fill row order is preserved.
 
+Required and optional labels, placeholders, and nearby format hints describe
+the unchanged backend transport: timestamps use explicit UTC, and cash,
+quantity, and price use finite decimal input. The browser does not derive or
+invent account values.
+
 Use an idempotency key when you need an exact replay-safe submission. Reusing a
 key with the same request can return the existing submission; reusing it with a
 different request conflicts. Leaving the field blank sends no key.
+The key is submission identity, not a password or a job ID.
+
+In Demo Workspace mode, **Load demo example** may fill the form only from the
+validated backend descriptor. It does not read the versioned source directly,
+hardcode fixture values in the browser, submit the command, or run a job.
 
 ## Submit, Then Run
 

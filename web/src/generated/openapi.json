@@ -1,6 +1,161 @@
 {
   "components": {
     "schemas": {
+      "DemoEvidenceManifestReferenceResponse": {
+        "properties": {
+          "artifact_key": {
+            "title": "Artifact Key",
+            "type": "string"
+          },
+          "manifest_type": {
+            "enum": [
+              "strategy_decision_manifest",
+              "report_artifact_manifest",
+              "strategy_review_workflow_manifest"
+            ],
+            "title": "Manifest Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "manifest_type",
+          "artifact_key"
+        ],
+        "title": "DemoEvidenceManifestReferenceResponse",
+        "type": "object"
+      },
+      "DemoPaperJobReferenceResponse": {
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "run_id"
+        ],
+        "title": "DemoPaperJobReferenceResponse",
+        "type": "object"
+      },
+      "DemoPaperJobSubmissionExampleResponse": {
+        "properties": {
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/PaperRunCommandRequest"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "request"
+        ],
+        "title": "DemoPaperJobSubmissionExampleResponse",
+        "type": "object"
+      },
+      "DemoResearchRunReferenceResponse": {
+        "properties": {
+          "experiment_slug": {
+            "title": "Experiment Slug",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "experiment_slug",
+          "run_id"
+        ],
+        "title": "DemoResearchRunReferenceResponse",
+        "type": "object"
+      },
+      "DemoWorkspaceDescriptorResponse": {
+        "properties": {
+          "canonical_strategy_name": {
+            "title": "Canonical Strategy Name",
+            "type": "string"
+          },
+          "comparison_candidate_job_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Comparison Candidate Job Ids",
+            "type": "array"
+          },
+          "dataset_id": {
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "dataset_version": {
+            "title": "Dataset Version",
+            "type": "integer"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "evidence_manifests": {
+            "items": {
+              "$ref": "#/components/schemas/DemoEvidenceManifestReferenceResponse"
+            },
+            "title": "Evidence Manifests",
+            "type": "array"
+          },
+          "lifecycle_proposal_example": {
+            "$ref": "#/components/schemas/LifecycleTransitionProposalCommandRequest"
+          },
+          "lifecycle_review_example": {
+            "$ref": "#/components/schemas/LifecycleTransitionReviewCommandRequest"
+          },
+          "paper_job_submission_example": {
+            "$ref": "#/components/schemas/DemoPaperJobSubmissionExampleResponse"
+          },
+          "paper_jobs": {
+            "items": {
+              "$ref": "#/components/schemas/DemoPaperJobReferenceResponse"
+            },
+            "title": "Paper Jobs",
+            "type": "array"
+          },
+          "research_run": {
+            "$ref": "#/components/schemas/DemoResearchRunReferenceResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "warning": {
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "dataset_id",
+          "dataset_version",
+          "display_name",
+          "warning",
+          "canonical_strategy_name",
+          "research_run",
+          "evidence_manifests",
+          "paper_jobs",
+          "comparison_candidate_job_ids",
+          "lifecycle_proposal_example",
+          "lifecycle_review_example",
+          "paper_job_submission_example"
+        ],
+        "title": "DemoWorkspaceDescriptorResponse",
+        "type": "object"
+      },
       "EvidenceManifestListResponse": {
         "properties": {
           "manifests": {
@@ -2341,6 +2496,25 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/demo-workspace": {
+      "get": {
+        "description": "Return path-free guided navigation only when demo mode is configured.",
+        "operationId": "get_demo_workspace_api_v1_demo_workspace_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoWorkspaceDescriptorResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Demo Workspace"
+      }
+    },
     "/api/v1/evidence-manifests": {
       "get": {
         "description": "List direct validated evidence manifests in fixed category order.",

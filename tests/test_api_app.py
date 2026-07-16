@@ -38,6 +38,8 @@ def test_application_has_no_startup_or_shutdown_dependencies() -> None:
         "product_database_path": None,
         "paper_artifact_root": None,
         "founder_auth": None,
+        "workspace_mode": "standard",
+        "demo_workspace_root": None,
         "product_database_engine": None,
         "product_session_factory": None,
     }

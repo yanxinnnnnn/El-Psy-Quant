@@ -8,6 +8,8 @@ from el_psy_quant import cli
 from el_psy_quant.cli import main
 from el_psy_quant.strategies import Strategy
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 PRICES_CSV = """Date,Open,High,Low,Close,Volume
 2024-01-01,10,11,9,10,100
 2024-01-02,20,21,19,20,110
@@ -234,6 +236,32 @@ def test_console_script_entrypoint_exists() -> None:
     project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
 
     assert project["project"]["scripts"]["el-psy-quant"] == "el_psy_quant.cli:main"
+
+
+def test_demo_installer_cli_requires_demo_mode_and_replays_deterministically(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    target = tmp_path / "demo"
+    arguments = [
+        "install-demo-workspace",
+        "--source-root",
+        str(PROJECT_ROOT / "examples" / "demo_workspace"),
+        "--workspace-root",
+        str(target),
+        "--alembic-config",
+        str(PROJECT_ROOT / "alembic.ini"),
+    ]
+
+    monkeypatch.setenv("EL_PSY_QUANT_WORKSPACE_MODE", "standard")
+    assert main(arguments) == 1
+    assert not target.exists()
+    assert "demo mode is required" in capsys.readouterr().err
+
+    monkeypatch.setenv("EL_PSY_QUANT_WORKSPACE_MODE", "demo")
+    assert main(arguments) == 0
+    assert "founder-demo-workspace v1 installed" in capsys.readouterr().out
+    assert main(arguments) == 0
+    assert "founder-demo-workspace v1 already installed" in capsys.readouterr().out
 
 
 def test_cli_main_is_importable() -> None:

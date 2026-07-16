@@ -164,6 +164,15 @@ export function EvidenceManifestDetailView({
           </section>
 
           <ManifestReferences detail={state.data} />
+
+          <section className="related-panel" aria-labelledby="evidence-paper-next-title">
+            <div>
+              <p className="eyebrow">Your next review choice</p>
+              <h2 id="evidence-paper-next-title">Inspect paper jobs and authoritative results</h2>
+              <p>Select a paper record yourself. This generic evidence page does not resolve references or claim that unrelated jobs belong to this manifest.</p>
+            </div>
+            <Link className="primary-link" href="/paper-jobs">Browse paper jobs</Link>
+          </section>
         </article>
       )}
     </div>

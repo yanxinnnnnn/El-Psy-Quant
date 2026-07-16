@@ -7,6 +7,7 @@ WORKDIR /app
 
 COPY pyproject.toml README.md alembic.ini ./
 COPY src ./src
+COPY examples/demo_workspace ./examples/demo_workspace
 RUN python -m pip install --no-cache-dir .
 
 COPY scripts/docker_backend_healthcheck.py ./scripts/docker_backend_healthcheck.py

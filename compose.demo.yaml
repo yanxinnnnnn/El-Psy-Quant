@@ -1,0 +1,30 @@
+name: el-psy-quant-demo
+
+services:
+  backend:
+    command:
+      - sh
+      - -c
+      - >-
+        el-psy-quant install-demo-workspace
+        --source-root /app/examples/demo_workspace
+        --workspace-root /data/workspace
+        --alembic-config /app/alembic.ini
+        && exec python -m uvicorn el_psy_quant.api.app:app
+        --host 0.0.0.0 --port 8000
+    environment:
+      EL_PSY_QUANT_DEMO_WORKSPACE_ROOT: /data/workspace
+      EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT: /data/workspace/evidence
+      EL_PSY_QUANT_PAPER_ARTIFACT_ROOT: /data/workspace/paper
+      EL_PSY_QUANT_PRODUCT_DATABASE_PATH: /data/workspace/product.sqlite3
+      EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT: /data/workspace/research
+      EL_PSY_QUANT_WORKSPACE_MODE: demo
+    volumes:
+      - demo-data:/data
+
+  web:
+    environment:
+      EL_PSY_QUANT_WORKSPACE_MODE: demo
+
+volumes:
+  demo-data:

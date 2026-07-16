@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "manifest_id": "demo research report manifest 001",
+  "references": [
+    {
+      "schema_version": 1,
+      "reference_type": "report_artifact_summary",
+      "reference_id": "moving-average-crossover-demo/demo-research-001",
+      "label": "DEMO ONLY — saved research evidence",
+      "description": "Unresolved reference to the authoritative demo research run."
+    }
+  ],
+  "label": "DEMO ONLY — Research review report",
+  "description": "Disposable example report evidence; no profitability or suitability claim.",
+  "created_by": "demo-founder",
+  "created_timestamp": "2026-01-14T12:00:00Z",
+  "notes": "Review example values only; not real user evidence."
+}

@@ -3,6 +3,11 @@
 The Founder workflow turns a strategy idea into a reviewable chain of evidence.
 It does not turn that evidence into an automatic decision.
 
+In Demo Workspace mode, Overview supplies one coherent versioned journey using
+exact backend-provided references. In a standard workspace, choose and verify
+each real record yourself; generic pages do not claim that unrelated records
+belong to one chain.
+
 ```text
 Strategy
   ↓
@@ -104,6 +109,10 @@ Choose **Create non-executing proposal** and inspect the normalized response.
 
 The proposal requests human review. It is not approval and does not change a
 lifecycle state.
+
+In Demo Workspace mode, **Load demo lifecycle example** fills these command
+inputs from the backend descriptor. Review every value before submitting. The
+action does not submit, approve, or apply a transition.
 
 ## 8. Record Human Decision Evidence
 

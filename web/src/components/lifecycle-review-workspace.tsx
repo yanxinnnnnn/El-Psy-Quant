@@ -12,9 +12,11 @@ import {
 } from "@/components/lifecycle-review-inspection";
 import {
   ApiClientError,
+  fetchDemoWorkspace,
   submitLifecycleTransitionProposal,
   submitLifecycleTransitionReview,
   type ApiResult,
+  type DemoWorkspaceDescriptorResponse,
   type LifecycleTransitionProposalRequest,
   type LifecycleTransitionProposalResponse,
   type LifecycleTransitionReviewRequest,
@@ -105,6 +107,65 @@ const blankReview = (): ReviewDraft => ({
   includeResultingSnapshot: false,
   resultingSnapshot: blankSnapshot(),
 });
+
+function snapshotDraftFromRequest(
+  snapshot: LifecycleTransitionProposalRequest["source_snapshot"],
+  nextKey: () => number,
+): SnapshotDraft {
+  return {
+    snapshotId: snapshot.snapshot_id,
+    strategyId: snapshot.strategy_id,
+    lifecycleState: snapshot.lifecycle_state,
+    rationale: snapshot.rationale,
+    declaredBy: snapshot.declared_by ?? "",
+    declaredTimestamp: snapshot.declared_timestamp ?? "",
+    notes: snapshot.notes.map((value) => ({ key: nextKey(), value })),
+    warnings: snapshot.warnings.map((value) => ({ key: nextKey(), value })),
+  };
+}
+
+function proposalDraftFromRequest(
+  proposal: LifecycleTransitionProposalRequest,
+  nextKey: () => number,
+): ProposalDraft {
+  return {
+    proposalId: proposal.proposal_id,
+    sourceSnapshot: snapshotDraftFromRequest(proposal.source_snapshot, nextKey),
+    targetState: proposal.target_state,
+    rationale: proposal.rationale,
+    evidenceReferences: proposal.evidence_references.map((reference) => ({
+      key: nextKey(),
+      referenceType: reference.reference_type,
+      referenceId: reference.reference_id,
+      label: reference.label ?? "",
+      description: reference.description ?? "",
+    })),
+    requestedBy: proposal.requested_by ?? "",
+    requestedTimestamp: proposal.requested_timestamp ?? "",
+    notes: proposal.notes.map((value) => ({ key: nextKey(), value })),
+    warnings: proposal.warnings.map((value) => ({ key: nextKey(), value })),
+  };
+}
+
+function reviewDraftFromRequest(
+  review: LifecycleTransitionReviewRequest,
+  nextKey: () => number,
+): ReviewDraft {
+  const resultingSnapshot = review.resulting_snapshot ?? null;
+  return {
+    transitionRecordId: review.transition_record_id,
+    reviewOutcome: review.review_outcome,
+    rationale: review.rationale,
+    reviewedBy: review.reviewed_by ?? "",
+    reviewedTimestamp: review.reviewed_timestamp ?? "",
+    notes: review.notes.map((value) => ({ key: nextKey(), value })),
+    warnings: review.warnings.map((value) => ({ key: nextKey(), value })),
+    includeResultingSnapshot: resultingSnapshot !== null,
+    resultingSnapshot: resultingSnapshot === null
+      ? blankSnapshot()
+      : snapshotDraftFromRequest(resultingSnapshot, nextKey),
+  };
+}
 
 function optionalText(value: string): string | null {
   return value === "" ? null : value;
@@ -356,6 +417,28 @@ export function LifecycleReviewWorkspace() {
   const [reviewResult, setReviewResult] = useState<ApiResult<LifecycleTransitionReviewResponse> | null>(null);
   const [proposalFailure, setProposalFailure] = useState<CommandFailure | null>(null);
   const [reviewFailure, setReviewFailure] = useState<CommandFailure | null>(null);
+  const [demoReviewDraft, setDemoReviewDraft] = useState<ReviewDraft | null>(null);
+  const [demoLoadFailure, setDemoLoadFailure] = useState<CommandFailure | null>(null);
+
+  const loadDemoLifecycleExample = async () => {
+    setDemoLoadFailure(null);
+    try {
+      const result = await fetchDemoWorkspace();
+      const descriptor: DemoWorkspaceDescriptorResponse = result.data;
+      setProposalDraft(
+        proposalDraftFromRequest(descriptor.lifecycle_proposal_example, nextKey),
+      );
+      setDemoReviewDraft(
+        reviewDraftFromRequest(descriptor.lifecycle_review_example, nextKey),
+      );
+      setProposalResult(null);
+      setReviewResult(null);
+      setProposalFailure(null);
+      setReviewFailure(null);
+    } catch (error) {
+      setDemoLoadFailure(commandFailure(error));
+    }
+  };
 
   const submitProposal = async () => {
     if (proposalPending) return;
@@ -366,7 +449,7 @@ export function LifecycleReviewWorkspace() {
       setProposalResult(result);
       setReviewResult(null);
       setReviewFailure(null);
-      setReviewDraft(blankReview());
+      setReviewDraft(demoReviewDraft ?? blankReview());
     } catch (error) {
       setProposalFailure(commandFailure(error));
     } finally {
@@ -401,10 +484,13 @@ export function LifecycleReviewWorkspace() {
           <p>Create explicit governance commands and inspect the normalized immutable evidence returned by the existing backend-owned lifecycle contracts.</p>
         </div>
         <div className="record-card__actions">
+          <button className="secondary-button" type="button" onClick={() => void loadDemoLifecycleExample()}>Load demo lifecycle example</button>
           <Link className="text-link" href="/strategies">Browse strategies</Link>
           <Link className="text-link" href="/evidence-manifests">Inspect governance evidence</Link>
         </div>
       </header>
+
+      {demoLoadFailure ? <div className="mutation-notice mutation-notice--error" role="alert"><h3>{demoLoadFailure.title}</h3><p>{demoLoadFailure.message}</p><RequestId value={demoLoadFailure.requestId} /></div> : null}
 
       <section className="boundary-card lifecycle-boundary" aria-labelledby="lifecycle-boundary-title">
         <p className="eyebrow">Human-control boundary</p>

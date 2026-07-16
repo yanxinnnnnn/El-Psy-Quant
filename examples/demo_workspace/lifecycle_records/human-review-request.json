@@ -1,0 +1,43 @@
+{
+  "transition_record_id": "demo-human-review-deferred-001",
+  "proposal": {
+    "proposal_id": "demo-paper-review-proposal-001",
+    "source_snapshot": {
+      "snapshot_id": "demo-research-review-snapshot-001",
+      "strategy_id": "moving_average_crossover",
+      "lifecycle_state": "research_review",
+      "rationale": "DEMO ONLY — saved research and governance evidence are available for human review.",
+      "declared_by": "demo-founder",
+      "declared_timestamp": "2026-01-17T12:00:00Z",
+      "notes": ["Disposable example snapshot."],
+      "warnings": ["This snapshot is not globally current state."]
+    },
+    "target_state": "paper_review",
+    "rationale": "DEMO ONLY — prepare a non-executing paper-review proposal for explicit human consideration.",
+    "evidence_references": [
+      {
+        "reference_type": "strategy_decision_record",
+        "reference_id": "demo-human-decision-001",
+        "label": "DEMO ONLY — decision evidence",
+        "description": "Unresolved example evidence reference."
+      },
+      {
+        "reference_type": "promotion_record",
+        "reference_id": "demo-research-to-paper-promotion-001",
+        "label": "DEMO ONLY — promotion evidence",
+        "description": "Example evidence only; no transition is executed."
+      }
+    ],
+    "requested_by": "demo-founder",
+    "requested_timestamp": "2026-01-17T12:05:00Z",
+    "notes": ["Human review remains required."],
+    "warnings": ["This proposal is non-executing and does not indicate live readiness."]
+  },
+  "review_outcome": "deferred",
+  "rationale": "DEMO ONLY — the example Founder defers the decision for further evidence.",
+  "resulting_snapshot": null,
+  "reviewed_by": "demo-founder",
+  "reviewed_timestamp": "2026-01-17T12:10:00Z",
+  "notes": ["Disposable example human decision record."],
+  "warnings": ["No lifecycle transition was applied or inferred."]
+}

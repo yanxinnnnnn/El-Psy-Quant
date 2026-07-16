@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "created_timestamp": "2026-01-16T14:00:00+00:00",
+  "starting_account_state": {
+    "timestamp": "2026-01-16T13:55:00+00:00",
+    "starting_cash": 100000.0,
+    "current_cash": 100000.0,
+    "positions": []
+  },
+  "ending_account_state": {
+    "timestamp": "2026-01-16T14:02:00+00:00",
+    "starting_cash": 100000.0,
+    "current_cash": 98400.0,
+    "positions": [
+      {"symbol": "MSFT", "quantity": 4.0}
+    ]
+  },
+  "orders": [
+    {
+      "order_id": "demo-msft-order-001",
+      "timestamp": "2026-01-16T14:01:00+00:00",
+      "symbol": "MSFT",
+      "side": "buy",
+      "quantity": 4.0,
+      "status": "filled"
+    }
+  ],
+  "fills": [
+    {
+      "timestamp": "2026-01-16T14:01:30+00:00",
+      "symbol": "MSFT",
+      "side": "buy",
+      "quantity": 4.0,
+      "price": 400.0,
+      "order_id": "demo-msft-order-001"
+    }
+  ],
+  "session_summary": {
+    "session_start_timestamp": "2026-01-16T13:55:00+00:00",
+    "session_end_timestamp": "2026-01-16T14:02:00+00:00",
+    "starting_cash": 100000.0,
+    "ending_cash": 98400.0,
+    "cash_change": -1600.0,
+    "starting_positions": [],
+    "ending_positions": [
+      {"symbol": "MSFT", "quantity": 4.0}
+    ],
+    "position_changes": [
+      {
+        "symbol": "MSFT",
+        "starting_quantity": 0.0,
+        "ending_quantity": 4.0,
+        "quantity_change": 4.0
+      }
+    ],
+    "order_count": 1,
+    "fill_count": 1
+  }
+}

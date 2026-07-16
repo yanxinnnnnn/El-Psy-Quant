@@ -13,8 +13,10 @@ The project is intentionally built sprint by sprint. The goal is not to find a m
 Milestones 1–27 are complete. **Milestone 28 — Founder Paper Trading Web
 Workspace** is in progress.
 
-The latest completed sprint is **Sprint 158 — Lifecycle Proposal, Human Review,
-and Timeline Workspace**.
+The latest completed sprint is **Sprint 159 — Minimal Authentication, Docker
+Compose, and End-to-End Engineering MVP Closeout**. Sprint 160 adds the isolated
+Founder Demo Workspace and first-run experience; formal M28 closeout remains a
+later Founder/CTO action.
 
 Milestone 27 established durable local product persistence and manually controlled
 paper-job operations beneath the existing versioned application API:
@@ -47,12 +49,12 @@ authoritative.
 
 Milestone 28 now has Founder-facing strategy, research, governance-evidence,
 report-manifest inspection, explicit durable paper-job operation, immutable
-result inspection, ordered paper-result comparison, and lifecycle proposal,
-human-review, and timeline inspection. Sprints 138 through 158 are complete.
-The next sprint is:
+result inspection, ordered paper-result comparison, lifecycle proposal,
+human-review, timeline inspection, minimal authentication, and reproducible
+Compose startup. Sprints 138 through 159 are complete. The current sprint is:
 
 ```text
-Sprint 159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
+Sprint 160 — Founder Demo Workspace and First-run Experience
 ```
 
 The approved productization sequence is:
@@ -61,8 +63,8 @@ The approved productization sequence is:
 M25 — Paper Trading Productization Planning                 S137      Complete
 M26 — Paper Trading Application Service Foundation          S138-S144 Complete
 M27 — Persistence and Paper Job Control Foundation          S145-S151 Complete
-M28 — Founder Paper Trading Web Workspace                   S152-S159 In Progress
-M29 — Product Feedback and Hardening                        S160-S165 Planned
+M28 — Founder Paper Trading Web Workspace                   S152-S160 In Progress
+M29 — Product Feedback and Hardening                        S161-S166 Planned
 M30 — Portfolio-Level Decision Review Foundation                       Deferred, not canceled
 ```
 
@@ -288,9 +290,11 @@ docker compose exec web node /app/verify-mvp.mjs
 ```
 
 The verification checks the browser challenge, same-origin API gateway, all
-top-level S152–S158 workspace routes, strategy/research/evidence/job reads, and
-the existing stateless lifecycle proposal and deferred-review commands. It does
-not submit or run a durable paper job and does not apply a lifecycle transition.
+top-level S152–S160 workspace routes, strategy/research/evidence/job reads, and
+the existing stateless lifecycle proposal and deferred-review commands. In Demo
+mode it also follows descriptor-provided strategy, research, evidence, job,
+result, comparison, and lifecycle references. It does not submit or run a
+durable paper job and does not apply a lifecycle transition.
 
 Stop the processes while preserving the named `mvp-data` volume:
 
@@ -298,10 +302,43 @@ Stop the processes while preserving the named `mvp-data` volume:
 docker compose down
 ```
 
+The standard path above remains unseeded. To start the separately named,
+disposable Demo Workspace instead, stop the standard instance first and use the
+demo overlay:
+
+```powershell
+docker compose down
+docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
+docker compose -f compose.yaml -f compose.demo.yaml ps
+```
+
+The backend validates and deterministically installs the versioned
+`examples/demo_workspace/` dataset before serving. The Demo uses the distinct
+`el-psy-quant-demo_demo-data` volume, displays a persistent **Demo Workspace**
+warning, and never changes the standard `mvp-data` volume. The two instances
+publish the same loopback ports and cannot run simultaneously.
+
+Stop and preserve the Demo Workspace:
+
+```powershell
+docker compose -f compose.yaml -f compose.demo.yaml down
+```
+
+Replay the same version safely by starting it again. To remove only the
+disposable Demo storage and reinstall from scratch:
+
+```powershell
+docker compose -f compose.yaml -f compose.demo.yaml down --volumes
+docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
+```
+
+Return to the clean standard workspace with `docker compose up --detach`. Do
+not append `--volumes` to the standard `down` command unless its real local
+database and authoritative artifacts may be deleted.
+
 See [`docs/founder-mvp-local-operations.md`](docs/founder-mvp-local-operations.md)
-for storage, existing-artifact import, troubleshooting, direct developer startup,
-and the exact authentication boundary. Do not use `docker compose down --volumes`
-unless the local product database and authoritative paper outputs may be deleted.
+for standard and Demo storage, first-run guidance, troubleshooting, direct
+developer startup, and the exact authentication boundary.
 
 ### Direct developer startup
 
@@ -553,6 +590,19 @@ files without exposing filesystem paths. The synchronous
 150 adds no Web UI, authentication, broker, QMT, live, or capital behavior.
 
 `create_app()` provides independent FastAPI instances, and all application routes use the `/api/v1` boundary. `GET /api/v1/health` returns process health only. It is not a database, worker, broker, QMT, external-service, live-trading, or readiness check. Every response receives a server-owned UUID in `X-Request-ID`; handled errors use the stable `error` plus `request_id` envelope without exposing internal exception details.
+
+An explicitly installed Demo Workspace additionally exposes:
+
+```text
+GET /api/v1/demo-workspace
+```
+
+This endpoint is hidden with a bounded 404 in standard mode. In Demo mode it
+returns only path-free navigation metadata and explicit command examples for
+the guided journey; research, evidence, paper results, and lifecycle validation
+remain authoritative through their existing endpoints and domain contracts.
+Installation is an operator CLI/Compose action and can never be invoked by this
+read-only route or the browser.
 
 The built-in strategy catalog is available through:
 

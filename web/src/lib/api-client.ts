@@ -2,6 +2,7 @@ import type { paths } from "@/generated/api-types";
 
 const API_BASE_PATH = "/api/backend";
 const HEALTH_PATH = "/api/v1/health";
+const DEMO_WORKSPACE_PATH = "/api/v1/demo-workspace";
 const STRATEGIES_PATH = "/api/v1/strategies";
 const STRATEGY_DETAIL_PATH = "/api/v1/strategies/{strategy_name}";
 const RESEARCH_RUNS_PATH = "/api/v1/research-runs";
@@ -48,6 +49,9 @@ type PostRequestBody<Path extends keyof paths> = paths[Path]["post"] extends {
   : never;
 
 export type HealthResponse = SuccessResponse<typeof HEALTH_PATH>;
+export type DemoWorkspaceDescriptorResponse = SuccessResponse<
+  typeof DEMO_WORKSPACE_PATH
+>;
 export type StrategyListResponse = SuccessResponse<typeof STRATEGIES_PATH>;
 export type StrategyDetailResponse = SuccessResponse<typeof STRATEGY_DETAIL_PATH>;
 export type ResearchRunListResponse = SuccessResponse<typeof RESEARCH_RUNS_PATH>;
@@ -180,6 +184,159 @@ function isNullableString(value: unknown): value is string | null {
 
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(isString);
+}
+
+function isNumericRecord(value: unknown): boolean {
+  return (
+    isObject(value) && Object.values(value).every((item) => isNumber(item))
+  );
+}
+
+function isPaperCommandAccount(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.timestamp) &&
+    isNumber(value.starting_cash) &&
+    isNumber(value.current_cash) &&
+    isNumericRecord(value.positions)
+  );
+}
+
+function isPaperCommandRequest(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.run_id) &&
+    isString(value.created_timestamp) &&
+    isPaperCommandAccount(value.starting_account_state) &&
+    isPaperCommandAccount(value.ending_account_state) &&
+    Array.isArray(value.orders) &&
+    value.orders.every(
+      (order) =>
+        isObject(order) &&
+        isString(order.order_id) &&
+        isString(order.timestamp) &&
+        isString(order.symbol) &&
+        isString(order.side) &&
+        isNumber(order.quantity) &&
+        isString(order.status),
+    ) &&
+    Array.isArray(value.fills) &&
+    value.fills.every(
+      (fill) =>
+        isObject(fill) &&
+        isString(fill.timestamp) &&
+        isString(fill.symbol) &&
+        isString(fill.side) &&
+        isNumber(fill.quantity) &&
+        isNumber(fill.price) &&
+        isNullableString(fill.order_id),
+    )
+  );
+}
+
+function isLifecycleSnapshotRequest(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.snapshot_id) &&
+    isString(value.strategy_id) &&
+    isString(value.lifecycle_state) &&
+    isString(value.rationale) &&
+    isNullableString(value.declared_by) &&
+    isNullableString(value.declared_timestamp) &&
+    isStringArray(value.notes) &&
+    isStringArray(value.warnings)
+  );
+}
+
+function isLifecycleEvidenceRequest(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.reference_type) &&
+    isString(value.reference_id) &&
+    isNullableString(value.label) &&
+    isNullableString(value.description)
+  );
+}
+
+function isLifecycleProposalRequest(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.proposal_id) &&
+    isLifecycleSnapshotRequest(value.source_snapshot) &&
+    isString(value.target_state) &&
+    isString(value.rationale) &&
+    Array.isArray(value.evidence_references) &&
+    value.evidence_references.every(isLifecycleEvidenceRequest) &&
+    isNullableString(value.requested_by) &&
+    isNullableString(value.requested_timestamp) &&
+    isStringArray(value.notes) &&
+    isStringArray(value.warnings)
+  );
+}
+
+function isLifecycleReviewRequest(value: unknown): boolean {
+  return (
+    isObject(value) &&
+    isString(value.transition_record_id) &&
+    isLifecycleProposalRequest(value.proposal) &&
+    isString(value.review_outcome) &&
+    isString(value.rationale) &&
+    (value.resulting_snapshot === null ||
+      isLifecycleSnapshotRequest(value.resulting_snapshot)) &&
+    isNullableString(value.reviewed_by) &&
+    isNullableString(value.reviewed_timestamp) &&
+    isStringArray(value.notes) &&
+    isStringArray(value.warnings)
+  );
+}
+
+function isDemoWorkspaceDescriptor(
+  value: unknown,
+): value is DemoWorkspaceDescriptorResponse {
+  if (!isObject(value)) {
+    return false;
+  }
+  const jobIds = Array.isArray(value.paper_jobs)
+    ? value.paper_jobs
+        .filter(isObject)
+        .map((job) => job.job_id)
+        .filter(isString)
+    : [];
+  return (
+    value.schema_version === 1 &&
+    isString(value.dataset_id) &&
+    Number.isInteger(value.dataset_version) &&
+    isString(value.display_name) &&
+    isString(value.warning) &&
+    isString(value.canonical_strategy_name) &&
+    isObject(value.research_run) &&
+    isString(value.research_run.experiment_slug) &&
+    isString(value.research_run.run_id) &&
+    Array.isArray(value.evidence_manifests) &&
+    value.evidence_manifests.every(
+      (reference) =>
+        isObject(reference) &&
+        isEvidenceManifestType(reference.manifest_type) &&
+        isString(reference.artifact_key),
+    ) &&
+    Array.isArray(value.paper_jobs) &&
+    value.paper_jobs.every(
+      (job) =>
+        isObject(job) && isString(job.job_id) && isString(job.run_id),
+    ) &&
+    Array.isArray(value.comparison_candidate_job_ids) &&
+    value.comparison_candidate_job_ids.length >= 2 &&
+    value.comparison_candidate_job_ids.every(
+      (jobId) => isString(jobId) && jobIds.includes(jobId),
+    ) &&
+    new Set(value.comparison_candidate_job_ids).size ===
+      value.comparison_candidate_job_ids.length &&
+    isLifecycleProposalRequest(value.lifecycle_proposal_example) &&
+    isLifecycleReviewRequest(value.lifecycle_review_example) &&
+    isObject(value.paper_job_submission_example) &&
+    isString(value.paper_job_submission_example.idempotency_key) &&
+    isPaperCommandRequest(value.paper_job_submission_example.request)
+  );
 }
 
 function isHealthResponse(value: unknown): value is HealthResponse {
@@ -796,6 +953,16 @@ export function fetchHealth(
   return requestJson({
     path: HEALTH_PATH,
     validate: isHealthResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchDemoWorkspace(
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<DemoWorkspaceDescriptorResponse>> {
+  return requestJson({
+    path: DEMO_WORKSPACE_PATH,
+    validate: isDemoWorkspaceDescriptor,
     fetchImplementation,
   });
 }

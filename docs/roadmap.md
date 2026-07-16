@@ -59,8 +59,8 @@ flowchart LR
 | M25 — Paper Trading Productization Planning | S137 | Complete | Founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
 | M26 — Paper Trading Application Service Foundation | S138-144 | Complete | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
 | M27 — Persistence and Paper Job Control Foundation | S145-151 | Complete | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
-| M28 — Founder Paper Trading Web Workspace | S152-159 | In Progress | Deliver the first usable Founder Web MVP. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary. |
-| M29 — Product Feedback and Hardening | S160-165 | Planned | Improve usability and reliability from real usage. | Founder feedback is incorporated and the local product is reliable enough for daily use. |
+| M28 — Founder Paper Trading Web Workspace | S152-160 | In Progress | Deliver the first usable Founder Web MVP and an isolated first-run demo. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary, then verify the product journey before formal closeout. |
+| M29 — Product Feedback and Hardening | S161-166 | Planned | Improve usability and reliability from real usage after M28 closeout. | Founder feedback is incorporated and the local product is reliable enough for daily use. |
 | M30 — Portfolio-Level Decision Review Foundation | TBD | Deferred | Resume portfolio-level strategy review. | Portfolio impact and concentration are included in human decisions. |
 
 ## Completed Milestone 24 — Strategy Review Workflow Foundation
@@ -166,18 +166,19 @@ Critical ownership decisions:
 | S156 | Equity, Positions, Orders, and Fills Views. **Complete.** |
 | S157 | Paper Run Comparison Workspace. **Complete.** |
 | S158 | Lifecycle Proposal, Human Review, and Timeline Workspace. **Complete.** |
-| S159 | Minimal Authentication, Docker Compose, and End-to-End MVP Closeout. **Next.** |
+| S159 | Minimal Authentication, Docker Compose, and End-to-End Engineering MVP Closeout. **Complete.** |
+| S160 | Founder Demo Workspace and First-run Experience. **Implementation complete; Founder/CTO verification remains.** |
 
 ### M29 Sprint Sequence
 
 | Sprint | Deliverable |
 |---:|---|
-| S160 | Founder Usage Review and Hardening Prioritization |
-| S161 | Workflow and Information Architecture Hardening |
-| S162 | Reliability, Idempotency, and Job Recovery Hardening |
-| S163 | Error Surface, Observability, and Audit Hardening |
-| S164 | Migration, Test, and Local Deployment Hardening |
-| S165 | Milestone 29 Closeout and M30 Handoff |
+| S161 | Founder Usage Review and Hardening Prioritization |
+| S162 | Workflow and Information Architecture Hardening |
+| S163 | Reliability, Idempotency, and Job Recovery Hardening |
+| S164 | Error Surface, Observability, and Audit Hardening |
+| S165 | Migration, Test, and Local Deployment Hardening |
+| S166 | Milestone 29 Closeout and M30 Handoff |
 
 See:
 
@@ -398,14 +399,8 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 
 ## Current Next Step
 
-```text
-Sprint 159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
-```
-
-Sprint 158 delivered one `/lifecycle-review` route over the existing stateless
-proposal and human-review commands. It sends generated request shapes, displays
-normalized immutable responses and unresolved ordered evidence, and presents an
-in-session response timeline without recreating backend lifecycle validation or
-inferring approval, execution, promotion, or current state. Sprint 159 is the
-next separately bounded closeout sprint. Authentication and Docker Compose were
-not introduced by Sprint 158.
+Sprint 160 implements the isolated Founder Demo Workspace and first-run
+experience after Sprint 159 completed minimal authentication, Docker Compose,
+and Engineering MVP verification. Milestone 28 remains **In Progress** until a
+separate Founder/CTO verification and formal closeout action. Milestone 29 does
+not begin before that decision.
