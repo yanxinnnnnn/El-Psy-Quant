@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@/test/render";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -203,7 +203,7 @@ describe("ResearchRunListView", () => {
   });
 
   it.each([
-    ["research_artifact_root_unavailable", "Research root unavailable", 503],
+    ["research_artifact_root_unavailable", "Research artifact root unavailable", 503],
     ["research_artifact_invalid", "Research artifacts are invalid", 422],
   ])("renders and retries bounded %s failures", async (code, heading, status) => {
     const fetcher = vi
@@ -275,5 +275,35 @@ describe("ResearchRunDetailView", () => {
     expect(table).toHaveTextContent("-2.50%");
     expect(screen.getAllByText("Not available")).toHaveLength(3);
     expect(screen.getByText("results/metrics.json").closest("a")).toBeNull();
+  });
+});
+
+describe("Simplified Chinese strategy and research smoke coverage", () => {
+  it("localizes both workspaces while preserving backend strategy and run identities", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(apiResponse({ strategies: [strategy] })),
+    );
+    const strategies = render(<StrategyListView />, { locale: "zh-CN" });
+
+    expect(screen.getByRole("heading", { name: "策略定义" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Moving Average Crossover" })).toBeVisible();
+    expect(screen.getByText("moving_average_crossover")).toBeVisible();
+    expect(screen.getByRole("link", { name: "检查 Moving Average Crossover" })).toHaveAttribute(
+      "href",
+      "/strategies/moving_average_crossover",
+    );
+
+    strategies.unmount();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(apiResponse({ runs: [runSummary] })),
+    );
+    render(<ResearchRunListView />, { locale: "zh-CN" });
+
+    expect(screen.getByRole("heading", { name: "已保存研究运行" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "My Experiment" })).toBeVisible();
+    expect(screen.getByText("my-experiment / run_1")).toBeVisible();
+    expect(screen.getByText("AAPL, MSFT")).toBeVisible();
   });
 });

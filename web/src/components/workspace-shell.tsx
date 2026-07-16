@@ -2,7 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useCallback } from "react";
+import { useTranslations } from "next-intl";
 
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { WorkspaceNavigation } from "@/components/workspace-navigation";
 import { fetchDemoWorkspace } from "@/lib/api-client";
 import { useApiResource } from "@/lib/use-api-resource";
@@ -11,12 +13,13 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
   const request = useCallback(() => fetchDemoWorkspace(), []);
   const { state } = useApiResource(request);
   const demoDescriptor = state.status === "success" ? state.data : null;
+  const t = useTranslations("navigation");
 
   return (
     <div className="workspace">
       <header className="workspace-header">
         <a className="skip-link" href="#workspace-main">
-          Skip to workspace content
+          {t("skip")}
         </a>
         <div className="brand-lockup">
           <span className="brand-mark" aria-hidden="true">
@@ -24,40 +27,41 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
           </span>
           <div>
             <p className="brand-name">El-Psy-Quant</p>
-            <p className="brand-context">Founder-only paper workspace · Local</p>
+            <p className="brand-context">{t("brandContext")}</p>
           </div>
         </div>
         {demoDescriptor ? (
           <div
             className="demo-identity"
             role="status"
-            aria-label="Demo Workspace: disposable example evidence, not real user data"
+            aria-label={t("demoAria")}
           >
-            <strong>Demo Workspace</strong>
-            <span>{demoDescriptor.warning}</span>
+            <strong>{t("demo")}</strong>
+            <span>{t("demoWarning")}</span>
           </div>
         ) : state.status === "loading" ? (
           <div className="environment-pill" role="status">
-            Discovering workspace
+            {t("discovering")}
           </div>
         ) : state.status === "error" && state.code !== "demo_workspace_not_configured" ? (
           <div className="environment-pill environment-pill--warning" role="alert">
-            Workspace identity unavailable
+            {t("identityUnavailable")}
           </div>
         ) : (
-          <div className="environment-pill" aria-label="Workspace environment: paper trading">
+          <div className="environment-pill" aria-label={t("paperEnvironmentAria")}>
             <span aria-hidden="true" />
-            Paper environment
+            {t("paperEnvironment")}
           </div>
         )}
+        <LanguageSwitcher />
       </header>
 
       <div className="workspace-body">
         <aside className="workspace-sidebar">
           <WorkspaceNavigation />
           <div className="sidebar-note">
-            <p>Milestone 28</p>
-            <span>Review and explicit paper operations</span>
+            <p>{t("sidebarMilestone")}</p>
+            <span>{t("sidebarNote")}</span>
           </div>
         </aside>
 

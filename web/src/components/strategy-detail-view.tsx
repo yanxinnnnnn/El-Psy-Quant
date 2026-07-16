@@ -1,15 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback } from "react";
 
 import { ErrorState, LoadingState } from "@/components/data-states";
 import { SectionNavigation } from "@/components/section-navigation";
 import { fetchStrategyDetail } from "@/lib/api-client";
 import { formatDefault } from "@/lib/formatters";
+import { parseLocale } from "@/i18n/config";
 import { useApiResource } from "@/lib/use-api-resource";
 
 export function StrategyDetailView({ strategyName }: { strategyName: string }) {
+  const t = useTranslations("strategies.detail");
+  const locale = parseLocale(useLocale()) ?? "en";
   const request = useCallback(() => fetchStrategyDetail(strategyName), [strategyName]);
   const { state, retry } = useApiResource(request);
 
@@ -18,47 +22,48 @@ export function StrategyDetailView({ strategyName }: { strategyName: string }) {
       <SectionNavigation />
       <div className="back-links">
         <Link className="text-link" href="/strategies">
-          ← Back to strategies
+          {t("back")}
         </Link>
       </div>
 
       {state.status === "loading" ? (
-        <LoadingState message="Loading the exact strategy definition…" />
+        <LoadingState message={t("loading")} />
       ) : state.status === "error" ? (
         <ErrorState
-          title={state.code === "not_found" ? "Strategy not found" : "Strategy unavailable"}
+          code={state.code}
+          title={state.code === "not_found" ? t("notFound") : t("unavailable")}
           message={state.message}
           requestId={state.requestId}
           onRetry={state.code === "not_found" ? undefined : retry}
           backHref="/strategies"
-          backLabel="Return to strategy list"
+          backLabel={t("return")}
         />
       ) : (
         <article>
           <header className="page-heading page-heading--detail">
-            <p className="eyebrow">Strategy definition</p>
+            <p className="eyebrow">{t("eyebrow")}</p>
             <h1>{state.data.display_name}</h1>
-            <p className="identity-line">Exact name: {state.data.name}</p>
+            <p className="identity-line">{t("exactName", { name: state.data.name })}</p>
             <p>{state.data.description}</p>
           </header>
 
           <section className="content-panel" aria-labelledby="strategy-parameters-title">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Descriptive metadata</p>
-                <h2 id="strategy-parameters-title">Parameters</h2>
+                <p className="eyebrow">{t("metadataEyebrow")}</p>
+                <h2 id="strategy-parameters-title">{t("parametersTitle")}</h2>
               </div>
-              <p>Values remain read-only; backend and domain validation stay authoritative.</p>
+              <p>{t("parametersBoundary")}</p>
             </div>
             <div className="table-scroll">
               <table>
-                <caption>Parameter metadata for {state.data.display_name}</caption>
+                <caption>{t("caption", { displayName: state.data.display_name })}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Value type</th>
-                    <th scope="col">Required</th>
-                    <th scope="col">Default value</th>
+                    <th scope="col">{t("name")}</th>
+                    <th scope="col">{t("valueType")}</th>
+                    <th scope="col">{t("required")}</th>
+                    <th scope="col">{t("defaultValue")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -66,8 +71,8 @@ export function StrategyDetailView({ strategyName }: { strategyName: string }) {
                     <tr key={parameter.name}>
                       <th scope="row">{parameter.name}</th>
                       <td>{parameter.value_type}</td>
-                      <td>{parameter.required ? "Yes" : "No"}</td>
-                      <td>{formatDefault(parameter.default)}</td>
+                      <td>{parameter.required ? t("yes") : t("no")}</td>
+                      <td>{formatDefault(parameter.default, locale)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -77,12 +82,12 @@ export function StrategyDetailView({ strategyName }: { strategyName: string }) {
 
           <section className="related-panel" aria-labelledby="strategy-research-title">
             <div>
-              <p className="eyebrow">Separate inspection workspace</p>
-              <h2 id="strategy-research-title">Review saved research runs</h2>
-              <p>Inspect backend-owned manifests and saved metrics without starting a run.</p>
+              <p className="eyebrow">{t("relatedEyebrow")}</p>
+              <h2 id="strategy-research-title">{t("relatedTitle")}</h2>
+              <p>{t("relatedDescription")}</p>
             </div>
             <Link className="primary-link" href="/research-runs">
-              Browse research runs
+              {t("browseResearch")}
             </Link>
           </section>
         </article>

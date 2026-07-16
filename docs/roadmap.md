@@ -109,9 +109,9 @@ M29 begins from direct Founder use rather than speculative feature work.
 
 | Sprint | Deliverable | Status |
 |---:|---|---|
-| S161 | Founder Feedback and Product Experience Architecture | Implementation complete; Founder review pending |
-| S162 | Multilingual Foundation and Simplified Chinese Workspace | Next after S161 merge |
-| S163 | Modern Visual System Foundation | Planned |
+| S161 | Founder Feedback and Product Experience Architecture | Complete |
+| S162 | Multilingual Foundation and Simplified Chinese Workspace | Implementation complete; Founder bilingual acceptance pending |
+| S163 | Modern Visual System Foundation | Next after S162 merge and Founder acceptance |
 | S164 | Founder Dashboard and Workflow Information Architecture Refresh | Planned |
 | S165 | Reliability, Idempotency, and Job Recovery Hardening | Planned |
 | S166 | Error Surface, Observability, and Audit Hardening | Planned |
@@ -146,6 +146,19 @@ docs/product/product-experience-direction.md
 docs/product/founder-dashboard-information-architecture.md
 docs/product/milestone-029-product-feedback-and-hardening-plan.md
 ```
+
+### Sprint 162 implementation
+
+Sprint 162 now provides complete static `en` and `zh-CN` catalogs, validated
+cookie/browser/English locale resolution, an accessible route-preserving
+language switcher, localized metadata and workspace copy, localized display
+formatting with visible raw audit values, static error-code explanations, and a
+deterministic catalog gate. Existing unprefixed routes and all M28 authority
+boundaries remain unchanged.
+
+Founder local Standard/Demo startup and full bilingual browser acceptance remain
+pending. S163 must not begin before Sprint 162 is merged and that acceptance is
+recorded.
 
 ## Codex and Founder Verification Boundary
 

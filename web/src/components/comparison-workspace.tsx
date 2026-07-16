@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -9,18 +10,20 @@ import {
   type ComparisonResultSlot,
 } from "@/components/comparison-results";
 import { EmptyState, ErrorState } from "@/components/data-states";
+import { AttemptErrorValue, PaperJobStatusValue } from "@/components/domain-values";
+import { LocalizedTimestamp } from "@/components/localized-values";
+import { useErrorPresentation } from "@/i18n/errors";
 import {
   fetchPaperJobResult,
   fetchPaperJobs,
   type PaperJobResponse,
 } from "@/lib/api-client";
-import { attemptErrorDescription } from "@/lib/paper-jobs";
 import {
-  comparisonCandidateErrorTitle,
   comparisonCandidateLimits,
   comparisonFailure,
   comparisonHref,
-  comparisonSelectionError,
+  comparisonSelectionErrorKey,
+  type ComparisonSelectionErrorKey,
 } from "@/lib/comparisons";
 import { useApiResource } from "@/lib/use-api-resource";
 
@@ -172,6 +175,8 @@ function CandidateCard({
   selectionLimitReached: boolean;
   onSelectionChange: (jobId: string, checked: boolean) => void;
 }) {
+  const t = useTranslations("comparisons.workspace");
+  const common = useTranslations("common.states");
   const encodedJobId = encodeURIComponent(job.job_id);
   const inputId = `comparison-candidate-${index}`;
   const disabled = !job.result_available || (selectionLimitReached && !selected);
@@ -188,39 +193,39 @@ function CandidateCard({
           />
           <label htmlFor={inputId}>
             {!job.result_available
-              ? `Result ${job.job_id} is unavailable and cannot be selected`
+              ? t("unavailableSelection", { jobId: job.job_id })
               : selectionLimitReached && !selected
-                ? `Result ${job.job_id} cannot be selected because four results are already selected`
-                : `Select result ${job.job_id}`}
+                ? t("limitSelection", { jobId: job.job_id })
+                : t("select", { jobId: job.job_id })}
           </label>
         </div>
         <p className="record-card__meta">{job.job_id}</p>
         <h2>{job.run_id}</h2>
         <dl className="compact-definitions compact-definitions--jobs">
-          <div><dt>Status</dt><dd>{job.status}</dd></div>
-          <div><dt>Submitted</dt><dd>{job.submitted_timestamp}</dd></div>
-          <div><dt>Updated</dt><dd>{job.updated_timestamp}</dd></div>
-          <div><dt>Attempt count</dt><dd>{job.attempt_count}</dd></div>
-          <div><dt>Latest attempt number</dt><dd>{job.latest_attempt?.attempt_number ?? "Not available"}</dd></div>
-          <div><dt>Latest attempt ID</dt><dd>{job.latest_attempt?.attempt_id ?? "Not available"}</dd></div>
-          <div><dt>Latest attempt status</dt><dd>{job.latest_attempt?.status ?? "Not available"}</dd></div>
-          <div><dt>Latest attempt started</dt><dd>{job.latest_attempt?.started_timestamp ?? "Not available"}</dd></div>
-          <div><dt>Latest attempt completed</dt><dd>{job.latest_attempt?.completed_timestamp ?? "Not available"}</dd></div>
-          <div><dt>Latest attempt error</dt><dd>{attemptErrorDescription(job.latest_attempt?.error_code ?? null)}</dd></div>
-          <div><dt>Result available</dt><dd>{job.result_available ? "Yes" : "No"}</dd></div>
+          <div><dt>{t("status")}</dt><dd><PaperJobStatusValue value={job.status} /></dd></div>
+          <div><dt>{t("submitted")}</dt><dd><LocalizedTimestamp value={job.submitted_timestamp} /></dd></div>
+          <div><dt>{t("updated")}</dt><dd><LocalizedTimestamp value={job.updated_timestamp} /></dd></div>
+          <div><dt>{t("attemptCount")}</dt><dd>{job.attempt_count}</dd></div>
+          <div><dt>{t("latestAttemptNumber")}</dt><dd>{job.latest_attempt?.attempt_number ?? common("notAvailable")}</dd></div>
+          <div><dt>{t("latestAttemptId")}</dt><dd>{job.latest_attempt?.attempt_id ?? common("notAvailable")}</dd></div>
+          <div><dt>{t("latestAttemptStatus")}</dt><dd>{job.latest_attempt?.status ?? common("notAvailable")}</dd></div>
+          <div><dt>{t("latestStarted")}</dt><dd>{job.latest_attempt?.started_timestamp ? <LocalizedTimestamp value={job.latest_attempt.started_timestamp} /> : common("notAvailable")}</dd></div>
+          <div><dt>{t("latestCompleted")}</dt><dd>{job.latest_attempt?.completed_timestamp ? <LocalizedTimestamp value={job.latest_attempt.completed_timestamp} /> : common("notAvailable")}</dd></div>
+          <div><dt>{t("latestError")}</dt><dd><AttemptErrorValue code={job.latest_attempt?.error_code ?? null} /></dd></div>
+          <div><dt>{t("resultAvailable")}</dt><dd>{job.result_available ? common("yes") : common("no")}</dd></div>
         </dl>
         {!job.result_available ? (
-          <p className="neutral-note">This succeeded job remains visible, but the backend reports no result available for comparison.</p>
+          <p className="neutral-note">{t("unavailableResult")}</p>
         ) : null}
       </div>
       <div className="record-card__actions">
         {job.result_available ? (
           <Link className="text-link" href={`/portfolio-records/${encodedJobId}`}>
-            Open Portfolio Record {job.job_id}
+            {t("openPortfolio", { jobId: job.job_id })}
           </Link>
         ) : null}
         <Link className="text-link" href={`/paper-jobs/${encodedJobId}`}>
-          Open Paper Job {job.job_id}
+          {t("openJob", { jobId: job.job_id })}
         </Link>
       </div>
     </li>
@@ -228,13 +233,15 @@ function CandidateCard({
 }
 
 export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
+  const t = useTranslations("comparisons.workspace");
+  const selectionErrors = useTranslations("comparisons.selectionErrors");
   const router = useRouter();
   const [draftLimit, setDraftLimit] = useState<(typeof comparisonCandidateLimits)[number]>(50);
   const [limit, setLimit] = useState<(typeof comparisonCandidateLimits)[number]>(50);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
-  const [selectionMessage, setSelectionMessage] = useState<string | null>(null);
+  const [selectionMessage, setSelectionMessage] = useState<ComparisonSelectionErrorKey | null>(null);
   const queryKey = JSON.stringify(jobIds);
-  const directValidation = comparisonSelectionError(jobIds);
+  const directValidation = comparisonSelectionErrorKey(jobIds);
   const comparisonValid = jobIds.length >= 2 && directValidation === null;
 
   const candidateRequest = useCallback(
@@ -242,6 +249,7 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
     [limit],
   );
   const candidates = useApiResource(candidateRequest);
+  const candidateError = useErrorPresentation(candidates.state.status === "error" ? candidates.state.code : null);
 
   useEffect(() => {
     if (candidates.state.status !== "success") {
@@ -294,7 +302,7 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
     const orderedSelection = candidates.state.data
       .filter((job) => job.result_available && representedSelection.has(job.job_id))
       .map((job) => job.job_id);
-    const validation = comparisonSelectionError(orderedSelection);
+    const validation = comparisonSelectionErrorKey(orderedSelection);
     if (validation !== null) {
       setSelectionMessage(validation);
       return;
@@ -307,41 +315,39 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
     <div className="business-workspace">
       <header className="page-heading page-heading--with-action">
         <div>
-          <p className="eyebrow">Comparisons · S157</p>
-          <h1>Paper run comparison workspace</h1>
-          <p>
-            Explicitly select two to four backend-available completed results, then inspect their authoritative facts side by side in selected order.
-          </p>
+          <p className="eyebrow">{t("eyebrow")}</p>
+          <h1>{t("title")}</h1>
+          <p>{t("description")}</p>
         </div>
-        <Link className="text-link" href="/portfolio-records">Browse Portfolio Records</Link>
+        <Link className="text-link" href="/portfolio-records">{t("browse")}</Link>
       </header>
 
       {primaryLoading ? (
         <section className="state-panel comparison-primary-loading" role="status" aria-busy="true">
-          <p className="eyebrow">Loading</p>
-          <h2>Retrieving comparison workspace data</h2>
-          <p>Loading candidates or selected authoritative results…</p>
+          <p className="eyebrow">{t("loadingEyebrow")}</p>
+          <h2>{t("loadingTitle")}</h2>
+          <p>{t("loadingMessage")}</p>
         </section>
       ) : null}
 
       <section className="comparison-chooser" aria-labelledby="comparison-chooser-title">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Explicit selection</p>
-            <h2 id="comparison-chooser-title">Succeeded paper jobs</h2>
+            <p className="eyebrow">{t("chooserEyebrow")}</p>
+            <h2 id="comparison-chooser-title">{t("chooserTitle")}</h2>
           </div>
-          <p className="selected-count" aria-live="polite">Selected {representedSelection.size} of 4 maximum</p>
+          <p className="selected-count" aria-live="polite">{t("selectedCount", { count: representedSelection.size })}</p>
         </div>
         <form
           className="filter-bar"
-          aria-label="Comparison candidate controls"
+          aria-label={t("controlsAria")}
           onSubmit={(event) => {
             event.preventDefault();
             setLimit(draftLimit);
           }}
         >
           <label>
-            Limit
+            {t("limit")}
             <select
               value={draftLimit}
               onChange={(event) => setDraftLimit(Number(event.target.value) as (typeof comparisonCandidateLimits)[number])}
@@ -349,28 +355,29 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
               {comparisonCandidateLimits.map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
-          <button className="secondary-button" type="submit">Apply limit</button>
-          <button className="secondary-button" type="button" onClick={candidates.retry}>Refresh candidates</button>
+          <button className="secondary-button" type="submit">{t("apply")}</button>
+          <button className="secondary-button" type="button" onClick={candidates.retry}>{t("refreshCandidates")}</button>
           <button className="primary-button" type="button" onClick={applySelection}>
-            Compare selected results
+            {t("compare")}
           </button>
         </form>
-        {selectionMessage ? <p className="form-error" role="alert">{selectionMessage}</p> : null}
+        {selectionMessage ? <p className="form-error" role="alert">{selectionErrors(selectionMessage)}</p> : null}
 
         {candidates.state.status === "error" ? (
           <ErrorState
-            title={comparisonCandidateErrorTitle(candidates.state.code)}
+            code={candidates.state.code}
+            title={candidateError.useContextTitle ? t("candidateUnavailableTitle") : candidateError.title}
             message={candidates.state.message}
             requestId={candidates.state.requestId}
             onRetry={candidates.retry}
           />
         ) : candidates.state.status === "success" && candidates.state.data.length === 0 ? (
           <EmptyState
-            title="No succeeded paper jobs"
-            message="The product database request succeeded and returned no succeeded jobs within the selected limit."
+            title={t("emptyTitle")}
+            message={t("emptyMessage")}
           />
         ) : candidates.state.status === "success" ? (
-          <ol className="card-list" aria-label="Succeeded comparison candidates in exact API order">
+          <ol className="card-list" aria-label={t("candidatesAria")}>
             {candidates.state.data.map((job, index) => (
               <CandidateCard
                 key={`${job.job_id}-${index}`}
@@ -387,9 +394,9 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
 
       {jobIds.length > 0 && directValidation !== null ? (
         <section className="state-panel state-panel--error comparison-query-error" role="alert">
-          <p className="eyebrow">Invalid comparison selection</p>
-          <h2>Comparison selection is invalid</h2>
-          <p>{directValidation}</p>
+          <p className="eyebrow">{t("invalidEyebrow")}</p>
+          <h2>{t("invalidTitle")}</h2>
+          <p>{selectionErrors(directValidation)}</p>
         </section>
       ) : null}
 
@@ -402,8 +409,8 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
       ) : null}
 
       <section className="related-panel" aria-labelledby="comparison-lifecycle-next-title">
-        <div><p className="eyebrow">Your next review choice</p><h2 id="comparison-lifecycle-next-title">Prepare an explicit lifecycle review</h2><p>Carry only evidence you choose. A proposal remains non-executing and requires a separate human decision record.</p></div>
-        <Link className="primary-link" href="/lifecycle-review">Open lifecycle review</Link>
+        <div><p className="eyebrow">{t("relatedEyebrow")}</p><h2 id="comparison-lifecycle-next-title">{t("relatedTitle")}</h2><p>{t("relatedDescription")}</p></div>
+        <Link className="primary-link" href="/lifecycle-review">{t("openLifecycle")}</Link>
       </section>
     </div>
   );

@@ -143,14 +143,15 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current sprint is:
 
 ```text
-Sprint 161 — Founder Feedback and Product Experience Architecture
+Sprint 162 — Multilingual Foundation and Simplified Chinese Workspace
 ```
 
-Sprint 161 is documentation-only and is implementation complete pending Founder
-review and merge. After merge, the next sprint is:
+Sprint 161 is complete. Sprint 162 implementation is complete in its review
+branch. Founder bilingual Standard/Demo browser acceptance and the merge decision
+remain pending. Do not begin the next sprint until both are complete:
 
 ```text
-Sprint 162 — Multilingual Foundation and Simplified Chinese Workspace
+Sprint 163 — Modern Visual System Foundation
 ```
 
 ## M29 Product Outcome
@@ -208,6 +209,20 @@ Approved internationalization direction:
 - backend contracts remain stable and untranslated; and
 - raw IDs, states, values, timestamps, schemas, and artifact content remain
   authoritative.
+
+Implemented Sprint 162 contract:
+
+- `next-intl` owns App Router message context and locale-aware presentation;
+- supported locale values remain exactly `en` and `zh-CN`;
+- a validated `el_psy_quant_locale` cookie is changed only through the
+  same-origin `/api/locale` route;
+- the language switcher preserves unprefixed routes, ordered query parameters,
+  and in-progress Paper Job and Lifecycle form state;
+- message catalogs are static and checked for exact locale, namespace, and key
+  parity before the Web gate continues; and
+- frontend explanations may be localized, but raw transport, domain, artifact,
+  user-entered, timestamp, ordering, duplicate, and quantitative truth is never
+  translated or recomputed.
 
 ## Approved Product Architecture
 

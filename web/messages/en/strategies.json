@@ -1,0 +1,36 @@
+{
+  "list": {
+    "eyebrow": "Strategies · Built-in catalog",
+    "title": "Strategy definitions",
+    "description": "Browse the exact built-in definitions exposed by the backend. Parameter metadata is descriptive and no strategy is executed or ranked here.",
+    "loading": "Loading the built-in strategy catalog…",
+    "errorTitle": "Strategy catalog unavailable",
+    "emptyTitle": "No built-in strategies are available",
+    "emptyMessage": "The backend returned a successful empty catalog.",
+    "ariaLabel": "Built-in strategies",
+    "inspect": "Inspect {displayName}"
+  },
+  "detail": {
+    "back": "← Back to strategies",
+    "loading": "Loading the exact strategy definition…",
+    "notFound": "Strategy not found",
+    "unavailable": "Strategy unavailable",
+    "return": "Return to strategy list",
+    "eyebrow": "Strategy definition",
+    "exactName": "Exact name: {name}",
+    "metadataEyebrow": "Descriptive metadata",
+    "parametersTitle": "Parameters",
+    "parametersBoundary": "Values remain read-only; backend and domain validation stay authoritative.",
+    "caption": "Parameter metadata for {displayName}",
+    "name": "Name",
+    "valueType": "Value type",
+    "required": "Required",
+    "defaultValue": "Default value",
+    "yes": "Yes",
+    "no": "No",
+    "relatedEyebrow": "Separate inspection workspace",
+    "relatedTitle": "Review saved research runs",
+    "relatedDescription": "Inspect backend-owned manifests and saved metrics without starting a run.",
+    "browseResearch": "Browse research runs"
+  }
+}

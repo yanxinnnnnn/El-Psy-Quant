@@ -1,0 +1,76 @@
+{
+  "hero": {
+    "eyebrow": "总览 · 本地 Web MVP",
+    "title": "用于可审查模拟工作流的平静操作界面。",
+    "summary": "一个经过身份验证的本地工作台连接现有由后端负责的研究、治理、模拟任务、组合、对比和生命周期工作流。",
+    "strategies": "浏览策略",
+    "research": "检查研究运行",
+    "evidence": "检查治理证据",
+    "paperJobs": "操作模拟任务",
+    "portfolio": "检查组合记录",
+    "comparisons": "对比模拟结果",
+    "lifecycle": "审查生命周期证据"
+  },
+  "boundary": {
+    "eyebrow": "工作台边界",
+    "title": "先审查，再谨慎操作。",
+    "description": "浏览器通过固定同源网关使用版本化 FastAPI 契约。已完成制品和后端领域服务仍是权威来源。",
+    "modeLabel": "模式",
+    "mode": "仅创始人 · 本地",
+    "executionLabel": "执行",
+    "execution": "仅限显式模拟命令",
+    "connectionLabel": "连接",
+    "connection": "同源 API 网关"
+  },
+  "startup": {
+    "eyebrow": "显式首次运行选择",
+    "title": "标准工作区或隔离的演示工作区",
+    "description": "运营者选择干净的真实用户存储，或单独命名且可丢弃的演示卷。本页面不会植入数据或初始化任何工作区。",
+    "chip": "本地 MVP"
+  },
+  "health": {
+    "eyebrow": "本地依赖",
+    "title": "API 连接",
+    "checking": "检查中",
+    "available": "可用",
+    "unavailable": "不可用",
+    "checkingMessage": "正在通过同源网关检查 FastAPI 进程…",
+    "availableMessage": "本地 API 进程正在版本化健康端点上响应。",
+    "unavailableFallback": "本地 API 不可用。",
+    "unavailableGuidance": "请在回环地址启动 FastAPI，然后重试。",
+    "retry": "重试连接",
+    "checkingAction": "检查中…"
+  },
+  "firstRun": {
+    "discovering": "正在识别工作区模式…",
+    "identityUnavailable": "工作区身份不可用",
+    "retryDiscovery": "重试工作区识别",
+    "checkingStandard": "正在检查标准工作区中的已保存证据…",
+    "dataUnavailableTitle": "工作区数据不可用，并非暂无数据",
+    "retryEvidence": "重试证据检查",
+    "standardAvailableTitle": "标准工作区证据可用",
+    "standardAvailableDescription": "请继续使用下方审查工作区。这些记录不会自动相互关联。",
+    "emptyEyebrow": "运行正常的标准工作区",
+    "emptyTitle": "应用正在运行，但尚未加载工作区证据。",
+    "emptyDescription": "暂无数据是有效的首次运行状态，不同于研究目录、证据目录或产品数据库不可用、无效或失败。",
+    "emptyGuidance": "请选择通过文档终端命令启动隔离演示工作区，或通过文档中的运营工作流加载或创建真实制品。本页面不会植入数据、写入制品或初始化存储。",
+    "unavailableFallback": "工作区证据不可用。",
+    "demoEyebrow": "首次运行指引",
+    "demoTitle": "从策略到人工决策证据",
+    "demoWarning": "仅供演示——可丢弃的示例证据，不是真实用户数据，也不构成交易建议。",
+    "strategyStep": "{step}. 审查规范策略定义",
+    "researchStep": "{step}. 检查已保存研究证据",
+    "manifestStep": "{step}. 检查{manifestType}",
+    "manifestTypes": {
+      "reportArtifact": "报告制品清单",
+      "strategyDecision": "策略决策清单",
+      "strategyReviewWorkflow": "策略审查工作流清单",
+      "unknown": "证据清单"
+    },
+    "jobStep": "{step}. 检查一个成功的模拟任务",
+    "portfolioStep": "{step}. 检查其权威组合结果",
+    "comparisonStep": "{step}. 对比两个有序演示结果",
+    "lifecycleStep": "{step}. 准备提案并记录显式人工决策证据",
+    "demoBoundary": "每个链接都来自经过验证的后端描述符。浏览器中没有硬编码演示身份或证据载荷。"
+  }
+}

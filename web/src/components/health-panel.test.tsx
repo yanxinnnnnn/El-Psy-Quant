@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@/test/render";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -45,5 +45,20 @@ describe("HealthPanel", () => {
     await user.click(screen.getByRole("button", { name: "Retry connection" }));
     await waitFor(() => expect(screen.getByText("Available")).toBeInTheDocument());
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses the localized stable-error presentation when the local API is unavailable", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockRejectedValue(new Error("C:\\private\\network detail"));
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<HealthPanel />, { locale: "zh-CN" });
+
+    expect(await screen.findByRole("heading", { name: "本地 API 不可用" })).toBeVisible();
+    expect(screen.getByText("工作台无法通过同源网关连接本地 API。")).toBeVisible();
+    expect(screen.getByText("请确认 FastAPI 已在回环地址运行，然后重试。")).toBeVisible();
+    expect(screen.getByText("错误码：api_unavailable")).toBeVisible();
+    expect(screen.getByText("The local API is unavailable.").closest("details")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "重试连接" })).toBeVisible();
+    expect(screen.queryByText(/private/i)).not.toBeInTheDocument();
   });
 });

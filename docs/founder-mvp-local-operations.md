@@ -184,6 +184,28 @@ The lifecycle commands are synchronous and stateless. Verification does not
 submit a durable paper job, create paper outputs, infer approval, apply a
 transition, allocate capital, or contact an external system.
 
+## Bilingual Browser Acceptance
+
+Sprint 162 deterministic checks do not replace Founder runtime acceptance. In
+both Standard and Demo modes, verify:
+
+- the header switcher exposes **English** and **简体中文** and survives reload;
+- `<html lang>` and document metadata follow the active language;
+- the current unprefixed route is unchanged after switching;
+- repeated ordered comparison `job_id` parameters remain in exact order;
+- representative navigation, forms, confirmations, loading/empty/error states,
+  Demo identity, and the complete guided journey are translated;
+- in-progress Paper Job and Lifecycle form fields remain populated;
+- raw IDs, states, error codes, UTC timestamps, quantitative values, artifact
+  text, ordering, and duplicates remain unchanged; and
+- switching language never submits or chains a command.
+
+The `el_psy_quant_locale` cookie is a local display preference shared by
+Standard and Demo because both use the same loopback origin. If an unsupported
+or malformed value is present, the application falls back to English. Clearing
+site data resets the preference but also clears any other browser state for that
+origin; it does not alter SQLite or artifact storage.
+
 For service state and bounded logs:
 
 ```powershell

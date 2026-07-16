@@ -1,44 +1,51 @@
 export type WorkspaceDestination = Readonly<{
-  label: string;
+  labelKey:
+    | "overview"
+    | "strategiesResearch"
+    | "governanceReports"
+    | "paperJobs"
+    | "portfolioRecords"
+    | "comparisons"
+    | "lifecycleReview";
   sprint: `S${number}`;
   href?: string;
   available: boolean;
 }>;
 
 export const workspaceDestinations: readonly WorkspaceDestination[] = [
-  { label: "Overview", sprint: "S152", href: "/", available: true },
+  { labelKey: "overview", sprint: "S152", href: "/", available: true },
   {
-    label: "Strategies and Research",
+    labelKey: "strategiesResearch",
     sprint: "S153",
     href: "/strategies",
     available: true,
   },
   {
-    label: "Governance and Reports",
+    labelKey: "governanceReports",
     sprint: "S154",
     href: "/evidence-manifests",
     available: true,
   },
   {
-    label: "Paper Runs",
+    labelKey: "paperJobs",
     sprint: "S155",
     href: "/paper-jobs",
     available: true,
   },
   {
-    label: "Portfolio Records",
+    labelKey: "portfolioRecords",
     sprint: "S156",
     href: "/portfolio-records",
     available: true,
   },
   {
-    label: "Comparisons",
+    labelKey: "comparisons",
     sprint: "S157",
     href: "/comparisons",
     available: true,
   },
   {
-    label: "Lifecycle Review",
+    labelKey: "lifecycleReview",
     sprint: "S158",
     href: "/lifecycle-review",
     available: true,

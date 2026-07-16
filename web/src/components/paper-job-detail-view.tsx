@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useCallback, useRef, useState } from "react";
 
 import { ErrorState, LoadingState, RequestId } from "@/components/data-states";
+import { AttemptErrorValue, PaperJobStatusValue } from "@/components/domain-values";
+import { LocalizedTimestamp } from "@/components/localized-values";
+import { useErrorPresentation } from "@/i18n/errors";
 import {
   ApiClientError,
   cancelPaperJob,
@@ -15,12 +19,7 @@ import {
   type ApiResult,
   type PaperJobResponse,
 } from "@/lib/api-client";
-import {
-  attemptErrorDescription,
-  isExplicitUtcTimestamp,
-  paperJobErrorGuidance,
-  paperJobErrorTitle,
-} from "@/lib/paper-jobs";
+import { isExplicitUtcTimestamp } from "@/lib/paper-jobs";
 import { useApiResource } from "@/lib/use-api-resource";
 
 type JobAction = "run" | "cancel" | "retry" | "recover";
@@ -29,14 +28,7 @@ type MutationState =
   | { status: "confirming"; action: JobAction }
   | { status: "pending"; action: JobAction }
   | { status: "success"; action: JobAction; message: string; requestId: string | null }
-  | { status: "error"; action: JobAction; title: string; message: string; requestId: string | null };
-
-const actionLabels: Readonly<Record<JobAction, string>> = {
-  run: "Run",
-  cancel: "Cancel",
-  retry: "Retry",
-  recover: "Recover",
-};
+  | { status: "error"; action: JobAction; code: string; message: string; requestId: string | null };
 
 function allowedActions(status: PaperJobResponse["status"]): readonly JobAction[] {
   if (status === "queued") return ["run", "cancel"];
@@ -45,18 +37,22 @@ function allowedActions(status: PaperJobResponse["status"]): readonly JobAction[
   return [];
 }
 
-function actionSuccessMessage(action: JobAction, job: PaperJobResponse): string {
-  if (action === "run") return "Execution was accepted, not completed. Use Refresh status manually to observe later state.";
-  if (action === "retry") return "The failed job returned to queued. It has not run; use the separate Run action when ready.";
-  if (action === "recover") return `Recovery inspection returned the current backend status: ${job.status}. No further action was chained.`;
-  return "The queued job was canceled. Nothing was run.";
+function MutationErrorNotice({ code, message, requestId }: { code: string; message: string; requestId: string | null }) {
+  const error = useErrorPresentation(code);
+  const common = useTranslations("common");
+  return <div className="mutation-notice mutation-notice--error" role="alert"><strong>{error.title}</strong><p>{error.explanation}</p><p>{message}</p><p>{error.recovery}</p><p className="request-id">{common("errorCode", { code })}</p><RequestId value={requestId} /></div>;
 }
 
 export function PaperJobDetailView({ jobId }: { jobId: string }) {
+  const t = useTranslations("paperJobs.detail");
+  const common = useTranslations("common.states");
+  const actionLabel = (action: JobAction) => action === "run" ? t("run") : action === "cancel" ? t("cancel") : action === "retry" ? t("retry") : t("recover");
+  const successMessage = (action: JobAction, nextJob: PaperJobResponse) => action === "run" ? t("runSuccess") : action === "retry" ? t("retrySuccess") : action === "recover" ? t("recoverSuccess", { status: nextJob.status }) : t("cancelSuccess");
   const jobRequest = useCallback(() => fetchPaperJobDetail(jobId), [jobId]);
   const attemptsRequest = useCallback(() => fetchPaperJobAttempts(jobId), [jobId]);
   const jobResource = useApiResource(jobRequest);
   const attemptsResource = useApiResource(attemptsRequest);
+  const jobError = useErrorPresentation(jobResource.state.status === "error" ? jobResource.state.code : null);
   const [mutationJob, setMutationJob] = useState<PaperJobResponse | null>(null);
   const [mutation, setMutation] = useState<MutationState>({ status: "idle" });
   const [staleBefore, setStaleBefore] = useState("");
@@ -98,7 +94,7 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
   function execute(action: JobAction) {
     if (pendingRef.current || runRefreshLocked) return;
     if (action === "recover" && !isExplicitUtcTimestamp(staleBefore)) {
-      setRecoveryFieldError("Enter a full UTC date and time ending in Z or +00:00.");
+      setRecoveryFieldError(t("staleError"));
       return;
     }
     pendingRef.current = true;
@@ -117,12 +113,12 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
         setRunRefreshRequired(false);
         setRunRefreshSequence(null);
       }
-      setMutation({ status: "success", action, message: actionSuccessMessage(action, result.data), requestId: result.requestId });
+      setMutation({ status: "success", action, message: successMessage(action, result.data), requestId: result.requestId });
     }).catch((error: unknown) => {
       if (error instanceof ApiClientError) {
-        setMutation({ status: "error", action, title: paperJobErrorTitle(error.code), message: paperJobErrorGuidance(error.code, error.publicMessage), requestId: error.requestId });
+        setMutation({ status: "error", action, code: error.code, message: error.publicMessage, requestId: error.requestId });
       } else {
-        setMutation({ status: "error", action, title: "Paper job operation failed", message: "The local API is unavailable.", requestId: null });
+        setMutation({ status: "error", action, code: "api_unavailable", message: "The local API is unavailable.", requestId: null });
       }
     }).finally(() => { pendingRef.current = false; });
   }
@@ -131,83 +127,84 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
 
   return (
     <div className="business-workspace">
-      <div className="back-links"><Link className="text-link" href="/paper-jobs">← Back to paper jobs</Link></div>
+      <div className="back-links"><Link className="text-link" href="/paper-jobs">{t("back")}</Link></div>
       {job === null && jobResource.state.status === "loading" ? (
-        <LoadingState message="Loading the selected paper job…" />
+        <LoadingState message={t("loading")} />
       ) : job === null && jobResource.state.status === "error" ? (
         <ErrorState
-          title={paperJobErrorTitle(jobResource.state.code)}
+          code={jobResource.state.code}
+          title={jobError.useContextTitle ? t("unavailableTitle") : jobError.title}
           message={jobResource.state.message}
           requestId={jobResource.state.requestId}
           onRetry={initialNotFound ? undefined : jobResource.retry}
           backHref="/paper-jobs"
-          backLabel="Return to paper jobs"
+          backLabel={t("return")}
         />
       ) : job ? (
         <article>
           <header className="page-heading page-heading--with-action page-heading--detail">
             <div>
-              <p className="eyebrow">Paper job · Manual operational control</p>
+              <p className="eyebrow">{t("eyebrow")}</p>
               <h1>{job.run_id}</h1>
               <p className="identity-line">{job.job_id}</p>
             </div>
-            <button className="secondary-button" type="button" onClick={refresh}>Refresh status</button>
+            <button className="secondary-button" type="button" onClick={refresh}>{t("refresh")}</button>
           </header>
 
           <section className="content-panel" aria-labelledby="job-status-title">
-            <div className="section-heading"><div><p className="eyebrow">{runRefreshLocked ? "Accepted Run response · Awaiting manual refresh" : "Last successful backend representation"}</p><h2 id="job-status-title">Job status</h2></div><span className={`job-status job-status--${job.status}`}>{job.status}</span></div>
+            <div className="section-heading"><div><p className="eyebrow">{runRefreshLocked ? t("acceptedEyebrow") : t("representationEyebrow")}</p><h2 id="job-status-title">{t("statusTitle")}</h2></div><PaperJobStatusValue value={job.status} /></div>
             <dl className="definition-grid definition-grid--wide">
-              <div><dt>Job ID</dt><dd>{job.job_id}</dd></div>
-              <div><dt>Run ID</dt><dd>{job.run_id}</dd></div>
-              <div><dt>Status</dt><dd>{job.status}</dd></div>
-              <div><dt>Submitted</dt><dd>{job.submitted_timestamp}</dd></div>
-              <div><dt>Updated</dt><dd>{job.updated_timestamp}</dd></div>
-              <div><dt>Attempt count</dt><dd>{job.attempt_count}</dd></div>
-              <div><dt>Latest attempt</dt><dd>{job.latest_attempt ? `#${job.latest_attempt.attempt_number} ${job.latest_attempt.status}` : "Not available"}</dd></div>
-              <div><dt>Latest attempt ID</dt><dd>{job.latest_attempt?.attempt_id ?? "Not available"}</dd></div>
-              <div><dt>Latest attempt started</dt><dd>{job.latest_attempt?.started_timestamp ?? "Not available"}</dd></div>
-              <div><dt>Latest attempt completed</dt><dd>{job.latest_attempt?.completed_timestamp ?? "Not available"}</dd></div>
-              <div><dt>Latest attempt error</dt><dd>{attemptErrorDescription(job.latest_attempt?.error_code ?? null)}</dd></div>
-              <div><dt>Result available</dt><dd>{job.result_available ? "Yes" : "No"}</dd></div>
-              <div><dt>Detailed result inspection</dt><dd>{job.result_available ? <Link className="text-link" href={`/portfolio-records/${encodeURIComponent(job.job_id)}`}>Inspect portfolio record for {job.run_id}</Link> : "Not available"}</dd></div>
+              <div><dt>{t("jobId")}</dt><dd>{job.job_id}</dd></div>
+              <div><dt>{t("runId")}</dt><dd>{job.run_id}</dd></div>
+              <div><dt>{t("status")}</dt><dd><PaperJobStatusValue value={job.status} /></dd></div>
+              <div><dt>{t("submitted")}</dt><dd><LocalizedTimestamp value={job.submitted_timestamp} /></dd></div>
+              <div><dt>{t("updated")}</dt><dd><LocalizedTimestamp value={job.updated_timestamp} /></dd></div>
+              <div><dt>{t("attemptCount")}</dt><dd>{job.attempt_count}</dd></div>
+              <div><dt>{t("latestAttempt")}</dt><dd>{job.latest_attempt ? `#${job.latest_attempt.attempt_number} ${job.latest_attempt.status}` : common("notAvailable")}</dd></div>
+              <div><dt>{t("latestAttemptId")}</dt><dd>{job.latest_attempt?.attempt_id ?? common("notAvailable")}</dd></div>
+              <div><dt>{t("latestStarted")}</dt><dd>{job.latest_attempt?.started_timestamp ? <LocalizedTimestamp value={job.latest_attempt.started_timestamp} /> : common("notAvailable")}</dd></div>
+              <div><dt>{t("latestCompleted")}</dt><dd>{job.latest_attempt?.completed_timestamp ? <LocalizedTimestamp value={job.latest_attempt.completed_timestamp} /> : common("notAvailable")}</dd></div>
+              <div><dt>{t("latestError")}</dt><dd><AttemptErrorValue code={job.latest_attempt?.error_code ?? null} /></dd></div>
+              <div><dt>{t("resultAvailable")}</dt><dd>{job.result_available ? common("yes") : common("no")}</dd></div>
+              <div><dt>{t("resultInspection")}</dt><dd>{job.result_available ? <Link className="text-link" href={`/portfolio-records/${encodeURIComponent(job.job_id)}`}>{t("inspectPortfolio", { runId: job.run_id })}</Link> : common("notAvailable")}</dd></div>
             </dl>
-            {runRefreshLocked ? <p className="neutral-note" role="status"><strong>Displayed job state is stale.</strong> Refresh status is required before another action can be selected.</p> : null}
-            <p className="neutral-note">Result inspection is offered only from the backend-owned availability flag. This page never follows the returned result URL or loads result contents automatically.</p>
+            {runRefreshLocked ? <p className="neutral-note" role="status"><strong>{t("staleTitle")}</strong> {t("staleDescription")}</p> : null}
+            <p className="neutral-note">{t("resultBoundary")}</p>
           </section>
 
           <section className="content-panel" aria-labelledby="manual-controls-title">
-            <p className="eyebrow">No automatic chaining or polling</p>
-            <h2 id="manual-controls-title">Manual controls</h2>
+            <p className="eyebrow">{t("controlsEyebrow")}</p>
+            <h2 id="manual-controls-title">{t("controlsTitle")}</h2>
             {runRefreshLocked ? (
-              <p className="reference-empty">Run was accepted, not completed. Use Refresh status before selecting any mutation.</p>
+              <p className="reference-empty">{t("acceptedDescription")}</p>
             ) : mutation.status === "confirming" || mutation.status === "pending" ? null : allowedActions(job.status).length === 0 ? (
-              <p className="reference-empty">No mutating control is available for a {job.status} job.</p>
+              <p className="reference-empty">{t("noControl", { status: job.status })}</p>
             ) : (
-              <div className="control-actions">{allowedActions(job.status).map((action) => <button className={action === "cancel" ? "danger-button" : "primary-button"} type="button" key={action} onClick={() => confirm(action)}>{actionLabels[action]}</button>)}</div>
+              <div className="control-actions">{allowedActions(job.status).map((action) => <button className={action === "cancel" ? "danger-button" : "primary-button"} type="button" key={action} onClick={() => confirm(action)}>{actionLabel(action)}</button>)}</div>
             )}
 
             {(mutation.status === "confirming" || mutation.status === "pending") ? (
               <div className="confirmation-panel" role="group" aria-labelledby="confirmation-title">
-                <p className="eyebrow">Explicit confirmation</p>
-                <h3 id="confirmation-title">Confirm {actionLabels[mutation.action]} for {job.run_id}</h3>
-                <p>Job {job.job_id}. This sends one command only.</p>
-                {mutation.action === "run" ? <p>Accepted execution still requires manual refresh to observe claim or completion.</p> : null}
-                {mutation.action === "retry" ? <p>Retry returns a failed job to queued and does not run it.</p> : null}
-                {mutation.action === "recover" ? <div className="recovery-input"><label htmlFor="stale-before">Stale before (exact UTC)</label><input id="stale-before" value={staleBefore} onChange={(event) => setStaleBefore(event.target.value)} placeholder="2026-07-15T10:00:00Z" aria-describedby={recoveryFieldError ? "stale-before-guidance stale-before-error" : "stale-before-guidance"} aria-invalid={recoveryFieldError ? true : undefined} /><span className="field-guidance" id="stale-before-guidance">Supply the exact UTC threshold; the browser never generates one silently.</span>{recoveryFieldError ? <span className="field-error" id="stale-before-error">{recoveryFieldError}</span> : null}</div> : null}
-                <div className="control-actions"><button className="primary-button" type="button" disabled={mutation.status === "pending"} onClick={() => execute(mutation.action)}>{mutation.status === "pending" ? `${actionLabels[mutation.action]} pending…` : `Confirm ${actionLabels[mutation.action]}`}</button><button className="secondary-button" type="button" disabled={mutation.status === "pending"} onClick={() => setMutation({ status: "idle" })}>Keep job unchanged</button></div>
+                <p className="eyebrow">{t("confirmationEyebrow")}</p>
+                <h3 id="confirmation-title">{t("confirmTitle", { action: actionLabel(mutation.action), runId: job.run_id })}</h3>
+                <p>{t("oneCommand", { jobId: job.job_id })}</p>
+                {mutation.action === "run" ? <p>{t("runConfirmation")}</p> : null}
+                {mutation.action === "retry" ? <p>{t("retryConfirmation")}</p> : null}
+                {mutation.action === "recover" ? <div className="recovery-input"><label htmlFor="stale-before">{t("staleBefore")}</label><input id="stale-before" value={staleBefore} onChange={(event) => setStaleBefore(event.target.value)} placeholder="2026-07-15T10:00:00Z" aria-describedby={recoveryFieldError ? "stale-before-guidance stale-before-error" : "stale-before-guidance"} aria-invalid={recoveryFieldError ? true : undefined} /><span className="field-guidance" id="stale-before-guidance">{t("staleGuidance")}</span>{recoveryFieldError ? <span className="field-error" id="stale-before-error">{recoveryFieldError}</span> : null}</div> : null}
+                <div className="control-actions"><button className="primary-button" type="button" disabled={mutation.status === "pending"} onClick={() => execute(mutation.action)}>{mutation.status === "pending" ? t("pending", { action: actionLabel(mutation.action) }) : t("confirm", { action: actionLabel(mutation.action) })}</button><button className="secondary-button" type="button" disabled={mutation.status === "pending"} onClick={() => setMutation({ status: "idle" })}>{t("keep")}</button></div>
               </div>
             ) : null}
-            {mutation.status === "success" ? <div className="mutation-notice mutation-notice--success" role="status"><strong>{actionLabels[mutation.action]} response received</strong><p>{mutation.message}</p><RequestId value={mutation.requestId} /></div> : null}
-            {mutation.status === "error" ? <div className="mutation-notice mutation-notice--error" role="alert"><strong>{mutation.title}</strong><p>{mutation.message}</p><RequestId value={mutation.requestId} /></div> : null}
+            {mutation.status === "success" ? <div className="mutation-notice mutation-notice--success" role="status"><strong>{t("response", { action: actionLabel(mutation.action) })}</strong><p>{mutation.message}</p><RequestId value={mutation.requestId} /></div> : null}
+            {mutation.status === "error" ? <MutationErrorNotice code={mutation.code} message={mutation.message} requestId={mutation.requestId} /> : null}
           </section>
 
           <section className="content-panel" aria-labelledby="attempts-title">
-            <div className="section-heading"><div><p className="eyebrow">Numbered operational audit</p><h2 id="attempts-title">Attempts</h2></div><p>Order and approved error codes come from the backend.</p></div>
-            {attemptsResource.state.status === "loading" ? <div className="inline-loading" role="status" aria-busy="true">Loading attempts…</div> : attemptsResource.state.status === "error" ? <div className="mutation-notice mutation-notice--error" role="alert"><strong>{paperJobErrorTitle(attemptsResource.state.code)}</strong><p>{attemptsResource.state.message}</p><RequestId value={attemptsResource.state.requestId} /><button className="secondary-button" type="button" onClick={attemptsResource.retry}>Retry attempts</button></div> : attemptsResource.state.data.length === 0 ? <p className="reference-empty">The attempts request succeeded. No attempts exist for this job.</p> : <div className="table-scroll"><table className="attempts-table"><caption>Attempts in exact API order</caption><thead><tr><th>Attempt ID</th><th>Number</th><th>Status</th><th>Started</th><th>Completed</th><th>Error code</th></tr></thead><tbody>{attemptsResource.state.data.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td>{attempt.status}</td><td>{attempt.started_timestamp}</td><td>{attempt.completed_timestamp ?? "Not available"}</td><td>{attemptErrorDescription(attempt.error_code)}</td></tr>)}</tbody></table></div>}
+            <div className="section-heading"><div><p className="eyebrow">{t("attemptsEyebrow")}</p><h2 id="attempts-title">{t("attemptsTitle")}</h2></div><p>{t("attemptsBoundary")}</p></div>
+            {attemptsResource.state.status === "loading" ? <div className="inline-loading" role="status" aria-busy="true">{t("loadingAttempts")}</div> : attemptsResource.state.status === "error" ? <MutationErrorNotice code={attemptsResource.state.code} message={attemptsResource.state.message} requestId={attemptsResource.state.requestId} /> : attemptsResource.state.data.length === 0 ? <p className="reference-empty">{t("emptyAttempts")}</p> : <div className="table-scroll"><table className="attempts-table"><caption>{t("attemptsCaption")}</caption><thead><tr><th>{t("attemptId")}</th><th>{t("number")}</th><th>{t("status")}</th><th>{t("started")}</th><th>{t("completed")}</th><th>{t("errorCode")}</th></tr></thead><tbody>{attemptsResource.state.data.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td>{attempt.status}</td><td><LocalizedTimestamp value={attempt.started_timestamp} /></td><td>{attempt.completed_timestamp ? <LocalizedTimestamp value={attempt.completed_timestamp} /> : common("notAvailable")}</td><td><AttemptErrorValue code={attempt.error_code} /></td></tr>)}</tbody></table></div>}
           </section>
           <section className="related-panel" aria-labelledby="paper-comparison-next-title">
-            <div><p className="eyebrow">Your next review choice</p><h2 id="paper-comparison-next-title">Compare available paper results</h2><p>Choose two to four backend-available results. No ranking or recommendation is produced.</p></div>
-            <Link className="primary-link" href="/comparisons">Open comparison workspace</Link>
+            <div><p className="eyebrow">{t("relatedEyebrow")}</p><h2 id="paper-comparison-next-title">{t("relatedTitle")}</h2><p>{t("relatedDescription")}</p></div>
+            <Link className="primary-link" href="/comparisons">{t("openComparison")}</Link>
           </section>
         </article>
       ) : null}

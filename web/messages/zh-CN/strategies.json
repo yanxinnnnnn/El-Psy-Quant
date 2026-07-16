@@ -1,0 +1,36 @@
+{
+  "list": {
+    "eyebrow": "策略 · 内置目录",
+    "title": "策略定义",
+    "description": "浏览后端公开的准确内置定义。参数元数据仅用于说明，此处不会执行策略或进行排名。",
+    "loading": "正在加载内置策略目录…",
+    "errorTitle": "策略目录不可用",
+    "emptyTitle": "暂无可用的内置策略",
+    "emptyMessage": "后端成功返回了空目录。",
+    "ariaLabel": "内置策略",
+    "inspect": "检查 {displayName}"
+  },
+  "detail": {
+    "back": "← 返回策略列表",
+    "loading": "正在加载准确的策略定义…",
+    "notFound": "未找到策略",
+    "unavailable": "策略不可用",
+    "return": "返回策略列表",
+    "eyebrow": "策略定义",
+    "exactName": "准确名称：{name}",
+    "metadataEyebrow": "说明性元数据",
+    "parametersTitle": "参数",
+    "parametersBoundary": "值保持只读；后端和领域验证仍具权威性。",
+    "caption": "{displayName} 的参数元数据",
+    "name": "名称",
+    "valueType": "值类型",
+    "required": "必填",
+    "defaultValue": "默认值",
+    "yes": "是",
+    "no": "否",
+    "relatedEyebrow": "独立检查工作区",
+    "relatedTitle": "审查已保存研究运行",
+    "relatedDescription": "检查后端负责的清单和已保存指标，不会启动运行。",
+    "browseResearch": "浏览研究运行"
+  }
+}

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@/test/render";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -103,5 +103,30 @@ describe("PortfolioRecordListView", () => {
     expect(screen.getByText("Request portfolio-list-request")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Retry" }));
     expect(await screen.findByRole("heading", { name: "No succeeded paper jobs" })).toBeVisible();
+  });
+
+  it("localizes Portfolio Records while preserving job order, raw status, IDs, and UTC timestamps", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(response([unavailableJob, availableJob])),
+    );
+
+    render(<PortfolioRecordListView />, { locale: "zh-CN" });
+
+    expect(screen.getByRole("heading", { name: "模拟结果可用性" })).toBeVisible();
+    await screen.findByRole("heading", { name: "run-unavailable" });
+    expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual([
+      "run-unavailable",
+      "run-available",
+    ]);
+    const availableCard = screen.getByRole("heading", { name: "run-available" }).closest("li");
+    expect(availableCard).not.toBeNull();
+    expect(within(availableCard as HTMLElement).getByText("available / job")).toBeVisible();
+    expect(within(availableCard as HTMLElement).getByText("succeeded")).toBeVisible();
+    expect(within(availableCard as HTMLElement).getByText("2026-07-15T10:00:00Z")).toBeVisible();
+    expect(within(availableCard as HTMLElement).getByRole("link", { name: "检查 run-available 的结果" })).toHaveAttribute(
+      "href",
+      "/portfolio-records/available%20%2F%20job",
+    );
   });
 });

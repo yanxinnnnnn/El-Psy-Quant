@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@/test/render";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -418,5 +418,31 @@ describe("ComparisonWorkspace", () => {
     render(<ComparisonWorkspace jobIds={["empty", "other"]} />);
     await screen.findByRole("heading", { name: "run-empty" });
     expect(screen.getAllByText(/result request succeeded and returned no rows/)).toHaveLength(5);
+  });
+
+  it("localizes the comparison workspace while preserving candidate order and raw audit values", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(response([
+        job("comparison-first", "run-comparison-first"),
+        job("comparison-second", "run-comparison-second"),
+      ])),
+    );
+
+    render(<ComparisonWorkspace jobIds={[]} />, { locale: "zh-CN" });
+
+    expect(screen.getByRole("heading", { name: "模拟运行对比工作区" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "对比所选结果" })).toBeVisible();
+    await screen.findByRole("heading", { name: "run-comparison-first" });
+    expect(screen.getAllByRole("heading", { level: 2 }).filter((heading) => heading.textContent?.startsWith("run-comparison-")).map((heading) => heading.textContent)).toEqual([
+      "run-comparison-first",
+      "run-comparison-second",
+    ]);
+    const firstCard = screen.getByRole("heading", { name: "run-comparison-first" }).closest("li");
+    expect(firstCard).not.toBeNull();
+    expect(within(firstCard as HTMLElement).getByText("comparison-first")).toBeVisible();
+    expect(within(firstCard as HTMLElement).getAllByText("succeeded").length).toBeGreaterThan(0);
+    expect(within(firstCard as HTMLElement).getAllByText("2026-07-15T10:00:00Z").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("选择结果 comparison-first")).toBeVisible();
   });
 });

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@/test/render";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -151,7 +151,7 @@ describe("PortfolioRecordDetailView", () => {
     const user = userEvent.setup();
     render(<PortfolioRecordDetailView jobId={paperJobResultFixture.job_id} />);
     expect(await screen.findByRole("heading", { name: "Portfolio record unavailable" })).toBeVisible();
-    expect(screen.getByText(message)).toBeVisible();
+    expect(screen.getByText(message).closest("details")).not.toBeNull();
     if (requestId) expect(screen.getByText(`Request ${requestId}`)).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Retry" }));
     expect(await screen.findByRole("heading", { name: "run-156" })).toBeVisible();

@@ -5,39 +5,39 @@ import { isDestinationActive, workspaceDestinations } from "./navigation";
 describe("workspace navigation", () => {
   it("enables the seven delivered destinations", () => {
     expect(workspaceDestinations.filter((item) => item.available)).toEqual([
-      { label: "Overview", sprint: "S152", href: "/", available: true },
+      { labelKey: "overview", sprint: "S152", href: "/", available: true },
       {
-        label: "Strategies and Research",
+        labelKey: "strategiesResearch",
         sprint: "S153",
         href: "/strategies",
         available: true,
       },
       {
-        label: "Governance and Reports",
+        labelKey: "governanceReports",
         sprint: "S154",
         href: "/evidence-manifests",
         available: true,
       },
       {
-        label: "Paper Runs",
+        labelKey: "paperJobs",
         sprint: "S155",
         href: "/paper-jobs",
         available: true,
       },
       {
-        label: "Portfolio Records",
+        labelKey: "portfolioRecords",
         sprint: "S156",
         href: "/portfolio-records",
         available: true,
       },
       {
-        label: "Comparisons",
+        labelKey: "comparisons",
         sprint: "S157",
         href: "/comparisons",
         available: true,
       },
       {
-        label: "Lifecycle Review",
+        labelKey: "lifecycleReview",
         sprint: "S158",
         href: "/lifecycle-review",
         available: true,
@@ -47,29 +47,29 @@ describe("workspace navigation", () => {
   });
 
   it.each([
-    ["/", "Overview"],
-    ["/strategies", "Strategies and Research"],
-    ["/strategies/moving_average_crossover", "Strategies and Research"],
-    ["/research-runs", "Strategies and Research"],
-    ["/research-runs/my-experiment/run_1", "Strategies and Research"],
-    ["/evidence-manifests", "Governance and Reports"],
+    ["/", "overview"],
+    ["/strategies", "strategiesResearch"],
+    ["/strategies/moving_average_crossover", "strategiesResearch"],
+    ["/research-runs", "strategiesResearch"],
+    ["/research-runs/my-experiment/run_1", "strategiesResearch"],
+    ["/evidence-manifests", "governanceReports"],
     [
       "/evidence-manifests/report_artifact_manifest/founder-report",
-      "Governance and Reports",
+      "governanceReports",
     ],
-    ["/paper-jobs", "Paper Runs"],
-    ["/paper-jobs/new", "Paper Runs"],
-    ["/paper-jobs/123", "Paper Runs"],
-    ["/portfolio-records", "Portfolio Records"],
-    ["/portfolio-records/123", "Portfolio Records"],
-    ["/comparisons", "Comparisons"],
-    ["/lifecycle-review", "Lifecycle Review"],
-  ])("marks only the matching route family active for %s", (pathname, label) => {
+    ["/paper-jobs", "paperJobs"],
+    ["/paper-jobs/new", "paperJobs"],
+    ["/paper-jobs/123", "paperJobs"],
+    ["/portfolio-records", "portfolioRecords"],
+    ["/portfolio-records/123", "portfolioRecords"],
+    ["/comparisons", "comparisons"],
+    ["/lifecycle-review", "lifecycleReview"],
+  ])("marks only the matching route family active for %s", (pathname, labelKey) => {
     expect(
       workspaceDestinations
         .filter((destination) => isDestinationActive(destination, pathname))
-        .map((destination) => destination.label),
-    ).toEqual([label]);
+        .map((destination) => destination.labelKey),
+    ).toEqual([labelKey]);
   });
 
   it("does not extend the comparisons active state beyond its exact route", () => {

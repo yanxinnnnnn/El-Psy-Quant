@@ -64,5 +64,14 @@ The workspace has no polling, scheduled refresh, automatic retry, WebSocket, or
 live dashboard. Use the explicit refresh and retry actions, especially after a
 paper Run response.
 
+## Presentation Localization Only
+
+English and Simplified Chinese catalogs translate product-owned interface copy.
+They do not translate backend messages, artifact contents, user-entered text,
+raw IDs, status/lifecycle transport values, error codes, or audit values. A
+localized number or timestamp is a display aid, not a recalculation or a
+replacement for the adjacent raw representation. Unsupported or tampered locale
+preferences fall back to English; there is no partial third-locale mode.
+
 These limitations preserve the central product boundary: evidence informs a
 human decision, and the human remains the final authority.

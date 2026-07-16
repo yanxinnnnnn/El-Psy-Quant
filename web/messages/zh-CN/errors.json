@@ -1,0 +1,137 @@
+{
+  "unknown": {
+    "title": "工作台请求不可用",
+    "explanation": "无法通过本地 API 边界完成该请求。",
+    "recovery": "请确认本地服务状态，然后重试请求。"
+  },
+  "api_unavailable": {
+    "title": "本地 API 不可用",
+    "explanation": "工作台无法通过同源网关连接本地 API。",
+    "recovery": "请确认 FastAPI 已在回环地址运行，然后重试。"
+  },
+  "api_request_failed": {
+    "title": "API 请求失败",
+    "explanation": "本地 API 拒绝或未能完成该请求。",
+    "recovery": "请查看安全的后端详情，并仅在合适时重试。"
+  },
+  "api_response_invalid": {
+    "title": "API 响应无效",
+    "explanation": "响应与前端生成的契约不一致。",
+    "recovery": "请确认 Web 与 API 版本一致后再重试。"
+  },
+  "not_found": {
+    "title": "未找到策略",
+    "explanation": "后端策略目录中不存在所请求的策略标识。",
+    "recovery": "请返回策略列表并选择可用定义。"
+  },
+  "research_artifact_root_unavailable": {
+    "title": "研究制品目录不可用",
+    "explanation": "无法检查已配置的研究制品目录。",
+    "recovery": "请确认研究存储配置并重试，不要删除数据。"
+  },
+  "research_artifact_invalid": {
+    "title": "研究制品无效",
+    "explanation": "已配置的研究证据未通过后端验证。",
+    "recovery": "请检查运营配置和源制品后再重试。"
+  },
+  "research_run_not_found": {
+    "title": "未找到研究运行",
+    "explanation": "未找到准确的实验 slug 和运行 ID。",
+    "recovery": "请返回研究运行列表并选择可用记录。"
+  },
+  "evidence_artifact_root_unavailable": {
+    "title": "证据根目录不可用",
+    "explanation": "无法检查已配置的证据制品目录。",
+    "recovery": "请确认证据存储配置并重试，不要删除数据。"
+  },
+  "evidence_artifact_invalid": {
+    "title": "证据制品无效",
+    "explanation": "已配置的治理或报告证据未通过后端验证。",
+    "recovery": "请检查运营配置和源制品后再重试。"
+  },
+  "evidence_manifest_not_found": {
+    "title": "未找到证据清单",
+    "explanation": "未找到准确的清单类型和制品键。",
+    "recovery": "请返回证据清单列表并选择可用记录。"
+  },
+  "product_database_unavailable": {
+    "title": "产品数据库不可用",
+    "explanation": "当前无法读取持久化的本地产品状态。",
+    "recovery": "请确认产品数据库和迁移配置，然后重试。"
+  },
+  "paper_artifact_root_unavailable": {
+    "title": "模拟交易制品目录不可用",
+    "explanation": "当前无法读取权威的已完成模拟制品。",
+    "recovery": "请确认模拟交易制品存储并重试，不要删除输出。"
+  },
+  "paper_job_not_found": {
+    "title": "未找到模拟任务",
+    "explanation": "未找到所请求的持久化模拟任务 ID。",
+    "recovery": "请返回模拟任务并选择可用任务。"
+  },
+  "paper_job_invalid": {
+    "title": "模拟任务请求无效",
+    "explanation": "提交的命令不符合后端模拟任务契约。",
+    "recovery": "请检查输入的传输值，仅在修正后重新提交。"
+  },
+  "paper_job_idempotency_conflict": {
+    "title": "幂等键与另一请求冲突",
+    "explanation": "同一幂等键已绑定到不同的请求内容。",
+    "recovery": "请使用原始完全相同的请求重放，或有意选择新键。"
+  },
+  "paper_job_conflict": {
+    "title": "模拟任务与现有任务冲突",
+    "explanation": "请求的持久化身份与现有产品状态冲突。",
+    "recovery": "请先检查现有任务，再决定是否提交不同请求。"
+  },
+  "paper_job_state_conflict": {
+    "title": "模拟任务状态已变化",
+    "explanation": "在本命令完成前，其他操作或执行已更改任务状态。",
+    "recovery": "请手动刷新状态，再决定下一步操作。"
+  },
+  "paper_job_output_conflict": {
+    "title": "现有模拟输出与本操作冲突",
+    "explanation": "权威输出已存在或与请求的操作冲突。",
+    "recovery": "请检查任务和输出；不要自动覆盖或删除。"
+  },
+  "paper_job_recovery_failed": {
+    "title": "模拟任务恢复检查失败",
+    "explanation": "后端无法完成显式的中断任务检查。",
+    "recovery": "请检查过期阈值和当前任务状态后再重试恢复。"
+  },
+  "paper_job_result_unavailable": {
+    "title": "模拟任务结果不可用",
+    "explanation": "后端当前没有为该任务提供权威结果。",
+    "recovery": "请检查模拟任务状态和结果可用标志。"
+  },
+  "paper_job_result_invalid": {
+    "title": "模拟任务结果无效",
+    "explanation": "后端在权威验证中拒绝了已完成结果。",
+    "recovery": "请检查任务和运营指引；不要在浏览器中重新计算或修复。"
+  },
+  "lifecycle_transition_proposal_invalid": {
+    "title": "生命周期提案无效",
+    "explanation": "提案不符合后端生命周期和证据规则。",
+    "recovery": "请检查源快照、请求的转换和证据后重新提交。"
+  },
+  "lifecycle_transition_record_invalid": {
+    "title": "人工审查记录无效",
+    "explanation": "审查记录不符合后端人工控制规则。",
+    "recovery": "请检查显式结果和结果快照要求后重新提交。"
+  },
+  "request_validation_error": {
+    "title": "命令结构无效",
+    "explanation": "提交的请求与生成的 API 契约不一致。",
+    "recovery": "请修正标记字段后重试，不要改变后端权威边界。"
+  },
+  "demo_workspace_not_configured": {
+    "title": "未配置演示工作区",
+    "explanation": "当前本地源正在运行有效且未植入数据的标准工作区。",
+    "recovery": "仅在需要演示数据时使用文档中的隔离演示启动方式。"
+  },
+  "demo_workspace_unavailable": {
+    "title": "演示工作区不可用",
+    "explanation": "无法从已配置的隔离工作区读取演示描述符。",
+    "recovery": "请确认隔离演示工作区已启动，然后重试工作区识别。"
+  }
+}

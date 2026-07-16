@@ -13,13 +13,15 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "messages:check": "node scripts/check-messages.mjs",
     "contracts:generate": "uv run python ../scripts/export_openapi.py && node scripts/generate-api-types.mjs",
     "contracts:check": "uv run python ../scripts/export_openapi.py --check && node scripts/generate-api-types.mjs --check",
     "verify:mvp": "node scripts/verify-mvp.mjs",
-    "check": "npm run contracts:check && npm run lint && npm run typecheck && npm run test && npm run build"
+    "check": "npm run messages:check && npm run contracts:check && npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
     "next": "16.2.10",
+    "next-intl": "4.13.2",
     "react": "19.2.7",
     "react-dom": "19.2.7"
   },

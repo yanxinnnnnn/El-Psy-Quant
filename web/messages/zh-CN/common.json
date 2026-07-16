@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "title": "El-Psy-Quant · 创始人工作台",
+    "description": "本地创始人模拟交易审查工作台"
+  },
+  "languageSwitcher": {
+    "label": "语言",
+    "select": "将语言切换为{language}",
+    "updating": "正在更新语言…",
+    "failed": "无法切换语言，请重试。"
+  },
+  "actions": {
+    "retry": "重试",
+    "refresh": "刷新",
+    "inspect": "检查",
+    "back": "返回"
+  },
+  "states": {
+    "loading": "加载中",
+    "empty": "暂无记录",
+    "unavailable": "不可用",
+    "notAvailable": "不可用",
+    "notSupplied": "未提供",
+    "yes": "是",
+    "no": "否",
+    "current": "当前",
+    "open": "打开"
+  },
+  "requestId": "请求 {requestId}",
+  "errorCode": "错误码：{code}",
+  "backendDetail": "后端详情",
+  "rawValue": "原始值：{value}",
+  "rawUtc": "原始 UTC：{value}",
+  "loading": {
+    "title": "正在获取后端权威数据"
+  }
+}

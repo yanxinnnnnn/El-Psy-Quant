@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { RequestId } from "@/components/data-states";
+import { useErrorPresentation } from "@/i18n/errors";
 import {
   ApiClientError,
   fetchDemoWorkspace,
@@ -12,7 +14,6 @@ import {
   type DemoWorkspaceDescriptorResponse,
   type PaperJobSubmissionRequest,
 } from "@/lib/api-client";
-import { paperJobErrorTitle } from "@/lib/paper-jobs";
 
 type PositionRow = { key: number; symbol: string; quantity: string };
 type AccountInput = {
@@ -84,27 +85,28 @@ function AccountSection({
   errors: FieldErrors;
   nextKey: () => number;
 }) {
+  const t = useTranslations("paperJobs.submission");
   const update = (field: keyof Omit<AccountInput, "positions">, next: string) =>
     setValue({ ...value, [field]: next });
   return (
     <fieldset className="form-section">
       <legend>{legend}</legend>
-      <p className="form-section__description">Enter backend transport fields exactly; no account values are derived in the browser.</p>
+      <p className="form-section__description">{t("accountDescription")}</p>
       <div className="form-grid">
         {[
-          ["timestamp", "Account timestamp", value.timestamp, "2026-01-18T13:55:00Z", "Use an explicit UTC timestamp ending in Z or +00:00."],
-          ["startingCash", "Starting cash", value.startingCash, "50000.00", "Use a finite non-negative decimal number."],
-          ["currentCash", "Current cash", value.currentCash, "50000.00", "Use a finite non-negative decimal number."],
+          ["timestamp", t("accountTimestamp"), value.timestamp, "2026-01-18T13:55:00Z", t("timestampGuidance")],
+          ["startingCash", t("startingCash"), value.startingCash, "50000.00", t("nonNegativeGuidance")],
+          ["currentCash", t("currentCash"), value.currentCash, "50000.00", t("nonNegativeGuidance")],
         ].map(([field, label, current, placeholder, guidance]) => {
           const name = `${prefix}-${field}`;
           const numeric = field !== "timestamp";
           return (
             <label key={field}>
-              {label} <span className="required-label">Required</span>
+              {label} <span className="required-label">{t("required")}</span>
               <input
                 id={name}
                 name={name}
-                aria-label={field === "timestamp" ? "Timestamp" : label}
+                aria-label={field === "timestamp" ? t("timestamp") : label}
                 required
                 inputMode={numeric ? "decimal" : undefined}
                 placeholder={placeholder}
@@ -119,26 +121,26 @@ function AccountSection({
         })}
       </div>
       <div className="repeatable-heading">
-        <div><h3>Positions</h3><p>Optional exact symbol-to-quantity rows.</p></div>
+        <div><h3>{t("positions")}</h3><p>{t("positionsDescription")}</p></div>
         <button
           className="secondary-button"
           type="button"
           onClick={() => setValue({ ...value, positions: [...value.positions, { key: nextKey(), symbol: "", quantity: "" }] })}
         >
-          Add position
+          {t("addPosition")}
         </button>
       </div>
-      {value.positions.length === 0 ? <p className="repeatable-empty">No positions added.</p> : (
+      {value.positions.length === 0 ? <p className="repeatable-empty">{t("noPositions")}</p> : (
         <div className="repeatable-list">
           {value.positions.map((position, index) => {
             const symbolName = `${prefix}-position-${index}-symbol`;
             const quantityName = `${prefix}-position-${index}-quantity`;
             return (
               <div className="repeatable-row repeatable-row--position" key={position.key}>
-                <span className="row-number">Position {index + 1}</span>
-                <label>Symbol <span className="required-label">Required</span><input aria-label="Symbol" placeholder="AAPL" value={position.symbol} onChange={(event) => setValue({ ...value, positions: value.positions.map((row) => row.key === position.key ? { ...row, symbol: event.target.value } : row) })} {...fieldA11y(errors, symbolName)} /><FieldError id={`${symbolName}-error`} message={errors[symbolName]} /></label>
-                <label>Quantity <span className="required-label">Required</span><input aria-label="Quantity" inputMode="decimal" placeholder="10" value={position.quantity} onChange={(event) => setValue({ ...value, positions: value.positions.map((row) => row.key === position.key ? { ...row, quantity: event.target.value } : row) })} {...fieldA11y(errors, quantityName)} /><span className="field-guidance">Use a finite decimal quantity.</span><FieldError id={`${quantityName}-error`} message={errors[quantityName]} /></label>
-                <button className="remove-button" type="button" onClick={() => setValue({ ...value, positions: value.positions.filter((row) => row.key !== position.key) })}>Remove position {index + 1}</button>
+                <span className="row-number">{t("positionNumber", { number: index + 1 })}</span>
+                <label>{t("symbol")} <span className="required-label">{t("required")}</span><input aria-label={t("symbol")} placeholder="AAPL" value={position.symbol} onChange={(event) => setValue({ ...value, positions: value.positions.map((row) => row.key === position.key ? { ...row, symbol: event.target.value } : row) })} {...fieldA11y(errors, symbolName)} /><FieldError id={`${symbolName}-error`} message={errors[symbolName]} /></label>
+                <label>{t("quantity")} <span className="required-label">{t("required")}</span><input aria-label={t("quantity")} inputMode="decimal" placeholder="10" value={position.quantity} onChange={(event) => setValue({ ...value, positions: value.positions.map((row) => row.key === position.key ? { ...row, quantity: event.target.value } : row) })} {...fieldA11y(errors, quantityName)} /><span className="field-guidance">{t("quantityGuidance")}</span><FieldError id={`${quantityName}-error`} message={errors[quantityName]} /></label>
+                <button className="remove-button" type="button" onClick={() => setValue({ ...value, positions: value.positions.filter((row) => row.key !== position.key) })}>{t("removePosition", { number: index + 1 })}</button>
               </div>
             );
           })}
@@ -149,6 +151,8 @@ function AccountSection({
 }
 
 export function PaperJobSubmissionView() {
+  const t = useTranslations("paperJobs.submission");
+  const common = useTranslations("common");
   const router = useRouter();
   const keyCounter = useRef(0);
   const pendingRef = useRef(false);
@@ -161,9 +165,10 @@ export function PaperJobSubmissionView() {
   const [fills, setFills] = useState<FillRow[]>([]);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [pending, setPending] = useState(false);
-  const [serverError, setServerError] = useState<{ title: string; message: string; requestId: string | null } | null>(null);
+  const [serverError, setServerError] = useState<{ code: string; message: string; requestId: string | null } | null>(null);
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoDiscoveryError, setDemoDiscoveryError] = useState<string | null>(null);
+  const serverErrorPresentation = useErrorPresentation(serverError?.code);
   const nextKey = () => ++keyCounter.current;
 
   function populateDemoExample(demoDescriptor: DemoWorkspaceDescriptorResponse) {
@@ -218,13 +223,13 @@ export function PaperJobSubmissionView() {
         error instanceof ApiClientError &&
         error.code === "demo_workspace_not_configured"
       ) {
-        setDemoDiscoveryError("Start the isolated Demo Workspace before loading this example.");
+        setDemoDiscoveryError(t("demoStart"));
         return;
       }
       setDemoDiscoveryError(
         error instanceof ApiClientError
           ? error.publicMessage
-          : "The demo descriptor could not be loaded.",
+          : t("demoLoadFailed"),
       );
     }).finally(() => setDemoLoading(false));
   }
@@ -233,7 +238,7 @@ export function PaperJobSubmissionView() {
     const nextErrors: FieldErrors = {};
     const numericValues = new Map<string, number>();
     const required = (name: string, value: string): string => {
-      if (value.length === 0) nextErrors[name] = "This transport field is required.";
+      if (value.length === 0) nextErrors[name] = t("requiredError");
       return value;
     };
     const validateNumeric = (
@@ -243,15 +248,15 @@ export function PaperJobSubmissionView() {
     ) => {
       const parsed = parseNumericTransportValue(value);
       if (parsed === null) {
-        nextErrors[name] = "Enter a finite decimal number.";
+        nextErrors[name] = t("numberError");
         return;
       }
       if (constraint === "non-negative" && parsed < 0) {
-        nextErrors[name] = "Enter a finite non-negative decimal number.";
+        nextErrors[name] = t("nonNegativeError");
         return;
       }
       if (constraint === "positive" && parsed <= 0) {
-        nextErrors[name] = "Enter a positive finite decimal number.";
+        nextErrors[name] = t("positiveError");
         return;
       }
       numericValues.set(name, parsed);
@@ -262,9 +267,9 @@ export function PaperJobSubmissionView() {
         const symbolName = `${prefix}-position-${index}-symbol`;
         const quantityName = `${prefix}-position-${index}-quantity`;
         if (position.symbol.length === 0) {
-          nextErrors[symbolName] = "Position symbol is required.";
+          nextErrors[symbolName] = t("positionSymbolError");
         } else if (symbols.has(position.symbol)) {
-          nextErrors[symbolName] = "Duplicate position symbols are not allowed in one account state.";
+          nextErrors[symbolName] = t("duplicateSymbolError");
         }
         symbols.add(position.symbol);
         validateNumeric(quantityName, position.quantity);
@@ -340,21 +345,21 @@ export function PaperJobSubmissionView() {
 
   return (
     <div className="business-workspace">
-      <div className="back-links"><Link className="text-link" href="/paper-jobs">← Back to paper jobs</Link></div>
+      <div className="back-links"><Link className="text-link" href="/paper-jobs">{t("back")}</Link></div>
       <header className="page-heading page-heading--detail">
-        <p className="eyebrow">Paper runs · Explicit submission</p>
-        <h1>Submit a queued job</h1>
-        <p>Submission creates or exactly replays durable queued state. It never runs the job; Run remains a separate confirmed action on the detail page.</p>
+        <p className="eyebrow">{t("eyebrow")}</p>
+        <h1>{t("title")}</h1>
+        <p>{t("description")}</p>
       </header>
 
       <div className="demo-form-action">
         <button className="secondary-button" type="button" disabled={demoLoading} onClick={loadDemoExample}>
-          {demoLoading ? "Loading demo example\u2026" : "Load demo example"}
+          {demoLoading ? t("loadingDemo") : t("loadDemo")}
         </button>
-        <p>Available in Demo Workspace mode. Values come only from the validated backend descriptor, and nothing is submitted automatically.</p>
+        <p>{t("demoDescription")}</p>
       </div>
       {demoDiscoveryError ? (
-        <p className="neutral-note" role="status">Demo example unavailable: {demoDiscoveryError}</p>
+        <p className="neutral-note" role="status">{t("demoUnavailable", { message: demoDiscoveryError })}</p>
       ) : null}
 
       <form className="paper-job-form" noValidate onSubmit={(event) => {
@@ -372,44 +377,44 @@ export function PaperJobSubmissionView() {
           router.push(`/paper-jobs/${encodeURIComponent(result.data.job_id)}`);
         }).catch((error: unknown) => {
           if (error instanceof ApiClientError) {
-            setServerError({ title: paperJobErrorTitle(error.code), message: error.publicMessage, requestId: error.requestId });
+            setServerError({ code: error.code, message: error.publicMessage, requestId: error.requestId });
           } else {
-            setServerError({ title: "Paper job operation failed", message: "The local API is unavailable.", requestId: null });
+            setServerError({ code: "api_unavailable", message: "The local API is unavailable.", requestId: null });
           }
         }).finally(() => {
           pendingRef.current = false;
           setPending(false);
         });
       }}>
-        {Object.keys(errors).length > 0 ? <div className="form-alert" role="alert"><strong>Submission fields need attention.</strong><span>Correct the associated required or numeric fields before sending.</span></div> : null}
-        {serverError ? <div className="form-alert form-alert--server" role="alert"><strong>{serverError.title}</strong><span>{serverError.message}</span><RequestId value={serverError.requestId} /></div> : null}
+        {Object.keys(errors).length > 0 ? <div className="form-alert" role="alert"><strong>{t("attentionTitle")}</strong><span>{t("attentionDescription")}</span></div> : null}
+        {serverError ? <div className="form-alert form-alert--server" role="alert"><strong>{serverErrorPresentation.title}</strong><span>{serverErrorPresentation.explanation} {serverErrorPresentation.recovery}</span><code>{serverError.code}</code><details><summary>{common("backendDetail")}</summary><p>{serverError.message}</p></details><RequestId value={serverError.requestId} /></div> : null}
 
         <fieldset className="form-section">
-          <legend>Run identity</legend>
-          <p className="form-section__description">Identify the backend request. Required values are sent exactly as entered.</p>
+          <legend>{t("runIdentity")}</legend>
+          <p className="form-section__description">{t("identityDescription")}</p>
           <div className="form-grid">
-            <label>Run ID <span className="required-label">Required</span><input id="run-id" aria-label="Run ID" required placeholder="paper-run-20260118" value={runId} onChange={(event) => setRunId(event.target.value)} {...fieldA11y(errors, "run-id")} /><span className="field-guidance">Use a normalized nonblank run identity.</span><FieldError id="run-id-error" message={errors["run-id"]} /></label>
-            <label>Created timestamp <span className="required-label">Required</span><input id="created-timestamp" aria-label="Created timestamp" required placeholder="2026-01-18T14:00:00Z" value={createdTimestamp} onChange={(event) => setCreatedTimestamp(event.target.value)} {...fieldA11y(errors, "created-timestamp")} /><span className="field-guidance">Use an explicit UTC timestamp ending in Z or +00:00.</span><FieldError id="created-timestamp-error" message={errors["created-timestamp"]} /></label>
-            <label>Idempotency key <span className="optional-label">Optional</span><input id="idempotency-key" placeholder="founder-paper-run-v1" value={idempotencyKey} onChange={(event) => setIdempotencyKey(event.target.value)} aria-describedby="idempotency-guidance" /><span className="field-guidance" id="idempotency-guidance">Provides replay-safe submission identity. It is not a password or job ID. Exact replay and conflicts remain backend-owned.</span></label>
+            <label>{t("runId")} <span className="required-label">{t("required")}</span><input id="run-id" aria-label={t("runId")} required placeholder="paper-run-20260118" value={runId} onChange={(event) => setRunId(event.target.value)} {...fieldA11y(errors, "run-id")} /><span className="field-guidance">{t("runGuidance")}</span><FieldError id="run-id-error" message={errors["run-id"]} /></label>
+            <label>{t("createdTimestamp")} <span className="required-label">{t("required")}</span><input id="created-timestamp" aria-label={t("createdTimestamp")} required placeholder="2026-01-18T14:00:00Z" value={createdTimestamp} onChange={(event) => setCreatedTimestamp(event.target.value)} {...fieldA11y(errors, "created-timestamp")} /><span className="field-guidance">{t("timestampGuidance")}</span><FieldError id="created-timestamp-error" message={errors["created-timestamp"]} /></label>
+            <label>{t("idempotencyKey")} <span className="optional-label">{t("optional")}</span><input id="idempotency-key" placeholder="founder-paper-run-v1" value={idempotencyKey} onChange={(event) => setIdempotencyKey(event.target.value)} aria-describedby="idempotency-guidance" /><span className="field-guidance" id="idempotency-guidance">{t("idempotencyGuidance")}</span></label>
           </div>
         </fieldset>
 
-        <AccountSection legend="Starting account state" prefix="starting" value={starting} setValue={setStarting} errors={errors} nextKey={nextKey} />
-        <AccountSection legend="Ending account state" prefix="ending" value={ending} setValue={setEnding} errors={errors} nextKey={nextKey} />
+        <AccountSection legend={t("startingAccount")} prefix="starting" value={starting} setValue={setStarting} errors={errors} nextKey={nextKey} />
+        <AccountSection legend={t("endingAccount")} prefix="ending" value={ending} setValue={setEnding} errors={errors} nextKey={nextKey} />
 
         <fieldset className="form-section">
-          <legend>Orders</legend>
-          <div className="repeatable-heading"><p className="form-section__description">Orders are optional. When added, every field is required; timestamps use explicit UTC, quantities use positive finite decimals, and rows are sent in the exact order shown.</p><button className="secondary-button" type="button" onClick={() => setOrders([...orders, { key: nextKey(), orderId: "", timestamp: "", symbol: "", side: "", quantity: "", status: "" }])}>Add order</button></div>
-          {orders.length === 0 ? <p className="repeatable-empty">No orders added.</p> : <div className="repeatable-list">{orders.map((order, index) => <div className="repeatable-row" key={order.key}><span className="row-number">Order {index + 1}</span>{([['orderId','Order ID'],['timestamp','Timestamp'],['symbol','Symbol'],['side','Side'],['quantity','Quantity'],['status','Status']] as const).map(([field,label]) => { const name=`order-${index}-${field}`; const placeholder = field === "timestamp" ? "2026-01-18T14:01:00Z" : field === "symbol" ? "AAPL" : field === "quantity" ? "10" : field === "side" ? "buy" : field === "status" ? "filled" : "order-001"; return <label key={field}>{label} <span className="required-label">Required</span><input aria-label={label} required placeholder={placeholder} inputMode={field === 'quantity' ? 'decimal' : undefined} value={order[field]} onChange={(event) => setOrders(orders.map((row) => row.key === order.key ? { ...row, [field]: event.target.value } : row))} {...fieldA11y(errors,name)} /><FieldError id={`${name}-error`} message={errors[name]} /></label>; })}<button className="remove-button" type="button" onClick={() => setOrders(orders.filter((row) => row.key !== order.key))}>Remove order {index + 1}</button></div>)}</div>}
+          <legend>{t("orders")}</legend>
+          <div className="repeatable-heading"><p className="form-section__description">{t("ordersDescription")}</p><button className="secondary-button" type="button" onClick={() => setOrders([...orders, { key: nextKey(), orderId: "", timestamp: "", symbol: "", side: "", quantity: "", status: "" }])}>{t("addOrder")}</button></div>
+          {orders.length === 0 ? <p className="repeatable-empty">{t("noOrders")}</p> : <div className="repeatable-list">{orders.map((order, index) => <div className="repeatable-row" key={order.key}><span className="row-number">{t("orderNumber", { number: index + 1 })}</span>{([['orderId','orderId'],['timestamp','timestamp'],['symbol','symbol'],['side','side'],['quantity','quantity'],['status','status']] as const).map(([field,labelKey]) => { const name=`order-${index}-${field}`; const placeholder = field === "timestamp" ? "2026-01-18T14:01:00Z" : field === "symbol" ? "AAPL" : field === "quantity" ? "10" : field === "side" ? "buy" : field === "status" ? "filled" : "order-001"; return <label key={field}>{t(labelKey)} <span className="required-label">{t("required")}</span><input aria-label={t(labelKey)} required placeholder={placeholder} inputMode={field === 'quantity' ? 'decimal' : undefined} value={order[field]} onChange={(event) => setOrders(orders.map((row) => row.key === order.key ? { ...row, [field]: event.target.value } : row))} {...fieldA11y(errors,name)} /><FieldError id={`${name}-error`} message={errors[name]} /></label>; })}<button className="remove-button" type="button" onClick={() => setOrders(orders.filter((row) => row.key !== order.key))}>{t("removeOrder", { number: index + 1 })}</button></div>)}</div>}
         </fieldset>
 
         <fieldset className="form-section">
-          <legend>Fills</legend>
-          <div className="repeatable-heading"><p className="form-section__description">Fills are optional. Added timestamps use explicit UTC; quantity is a positive finite decimal and price is a finite non-negative decimal. Blank optional order ID is sent as null, and row order is preserved.</p><button className="secondary-button" type="button" onClick={() => setFills([...fills, { key: nextKey(), timestamp: "", symbol: "", side: "", quantity: "", price: "", orderId: "" }])}>Add fill</button></div>
-          {fills.length === 0 ? <p className="repeatable-empty">No fills added.</p> : <div className="repeatable-list">{fills.map((fill, index) => <div className="repeatable-row" key={fill.key}><span className="row-number">Fill {index + 1}</span>{([['timestamp','Timestamp'],['symbol','Symbol'],['side','Side'],['quantity','Quantity'],['price','Price'],['orderId','Order ID']] as const).map(([field,label]) => { const name=`fill-${index}-${field}`; const optional = field === "orderId"; const placeholder = field === "timestamp" ? "2026-01-18T14:01:30Z" : field === "symbol" ? "AAPL" : field === "quantity" ? "10" : field === "price" ? "100.00" : field === "side" ? "buy" : "order-001"; return <label key={field}>{label} <span className={optional ? "optional-label" : "required-label"}>{optional ? "Optional" : "Required"}</span><input aria-label={label} required={!optional} placeholder={placeholder} inputMode={field === 'quantity' || field === 'price' ? 'decimal' : undefined} value={fill[field]} onChange={(event) => setFills(fills.map((row) => row.key === fill.key ? { ...row, [field]: event.target.value } : row))} {...fieldA11y(errors,name)} /><FieldError id={`${name}-error`} message={errors[name]} /></label>; })}<button className="remove-button" type="button" onClick={() => setFills(fills.filter((row) => row.key !== fill.key))}>Remove fill {index + 1}</button></div>)}</div>}
+          <legend>{t("fills")}</legend>
+          <div className="repeatable-heading"><p className="form-section__description">{t("fillsDescription")}</p><button className="secondary-button" type="button" onClick={() => setFills([...fills, { key: nextKey(), timestamp: "", symbol: "", side: "", quantity: "", price: "", orderId: "" }])}>{t("addFill")}</button></div>
+          {fills.length === 0 ? <p className="repeatable-empty">{t("noFills")}</p> : <div className="repeatable-list">{fills.map((fill, index) => <div className="repeatable-row" key={fill.key}><span className="row-number">{t("fillNumber", { number: index + 1 })}</span>{([['timestamp','timestamp'],['symbol','symbol'],['side','side'],['quantity','quantity'],['price','price'],['orderId','orderId']] as const).map(([field,labelKey]) => { const name=`fill-${index}-${field}`; const optional = field === "orderId"; const placeholder = field === "timestamp" ? "2026-01-18T14:01:30Z" : field === "symbol" ? "AAPL" : field === "quantity" ? "10" : field === "price" ? "100.00" : field === "side" ? "buy" : "order-001"; return <label key={field}>{t(labelKey)} <span className={optional ? "optional-label" : "required-label"}>{optional ? t("optional") : t("required")}</span><input aria-label={t(labelKey)} required={!optional} placeholder={placeholder} inputMode={field === 'quantity' || field === 'price' ? 'decimal' : undefined} value={fill[field]} onChange={(event) => setFills(fills.map((row) => row.key === fill.key ? { ...row, [field]: event.target.value } : row))} {...fieldA11y(errors,name)} /><FieldError id={`${name}-error`} message={errors[name]} /></label>; })}<button className="remove-button" type="button" onClick={() => setFills(fills.filter((row) => row.key !== fill.key))}>{t("removeFill", { number: index + 1 })}</button></div>)}</div>}
         </fieldset>
 
-        <div className="submission-actions"><button className="primary-button" type="submit" disabled={pending}>{pending ? "Submitting queued job…" : "Submit queued job"}</button><p>Execution will not start from this form.</p></div>
+        <div className="submission-actions"><button className="primary-button" type="submit" disabled={pending}>{pending ? t("submitting") : t("submit")}</button><p>{t("executionBoundary")}</p></div>
       </form>
     </div>
   );

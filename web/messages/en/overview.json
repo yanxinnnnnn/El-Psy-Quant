@@ -1,0 +1,76 @@
+{
+  "hero": {
+    "eyebrow": "Overview · Local Web MVP",
+    "title": "A calm control surface for reviewable paper workflows.",
+    "summary": "One authenticated local workspace connects the existing backend-owned research, governance, paper, portfolio, comparison, and lifecycle workflows.",
+    "strategies": "Browse strategies",
+    "research": "Inspect research runs",
+    "evidence": "Inspect governance evidence",
+    "paperJobs": "Operate paper jobs",
+    "portfolio": "Inspect portfolio records",
+    "comparisons": "Compare paper results",
+    "lifecycle": "Review lifecycle evidence"
+  },
+  "boundary": {
+    "eyebrow": "Workspace boundary",
+    "title": "Review first. Operate deliberately.",
+    "description": "The browser uses the versioned FastAPI contract through a fixed same-origin gateway. Completed artifacts and backend domain services remain authoritative.",
+    "modeLabel": "Mode",
+    "mode": "Founder-only · Local",
+    "executionLabel": "Execution",
+    "execution": "Explicit paper commands only",
+    "connectionLabel": "Connection",
+    "connection": "Same-origin API gateway"
+  },
+  "startup": {
+    "eyebrow": "Explicit first-run choice",
+    "title": "Standard or isolated Demo Workspace",
+    "description": "Operators choose clean real-user storage or a separately named disposable Demo volume. This page never seeds or initializes either workspace.",
+    "chip": "Local MVP"
+  },
+  "health": {
+    "eyebrow": "Local dependency",
+    "title": "API connectivity",
+    "checking": "Checking",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "checkingMessage": "Checking the FastAPI process through the same-origin gateway…",
+    "availableMessage": "The local API process is responding on the versioned health endpoint.",
+    "unavailableFallback": "The local API is unavailable.",
+    "unavailableGuidance": "Start FastAPI on loopback, then retry.",
+    "retry": "Retry connection",
+    "checkingAction": "Checking…"
+  },
+  "firstRun": {
+    "discovering": "Discovering workspace mode…",
+    "identityUnavailable": "Workspace identity unavailable",
+    "retryDiscovery": "Retry workspace discovery",
+    "checkingStandard": "Checking the Standard Workspace for saved evidence…",
+    "dataUnavailableTitle": "Workspace data is unavailable, not empty",
+    "retryEvidence": "Retry evidence check",
+    "standardAvailableTitle": "Standard Workspace evidence is available",
+    "standardAvailableDescription": "Continue with the review workspaces below. These records are not automatically connected to one another.",
+    "emptyEyebrow": "Healthy Standard Workspace",
+    "emptyTitle": "The application is running, but no workspace evidence has been loaded yet.",
+    "emptyDescription": "Empty is a valid first-run state. It differs from an unavailable, invalid, or failed research root, evidence root, or product database.",
+    "emptyGuidance": "Choose either the isolated Demo Workspace through the documented terminal commands, or load or create real artifacts through documented operator workflows. This page never seeds data, writes artifacts, or initializes storage.",
+    "unavailableFallback": "Workspace evidence is unavailable.",
+    "demoEyebrow": "Guided first run",
+    "demoTitle": "Strategy to human decision evidence",
+    "demoWarning": "Demo only — disposable example evidence, not real user data or trading advice.",
+    "strategyStep": "{step}. Review the canonical strategy definition",
+    "researchStep": "{step}. Inspect saved research evidence",
+    "manifestStep": "{step}. Inspect {manifestType}",
+    "manifestTypes": {
+      "reportArtifact": "report artifact manifest",
+      "strategyDecision": "strategy decision manifest",
+      "strategyReviewWorkflow": "strategy review workflow manifest",
+      "unknown": "evidence manifest"
+    },
+    "jobStep": "{step}. Inspect a succeeded paper job",
+    "portfolioStep": "{step}. Inspect its authoritative portfolio result",
+    "comparisonStep": "{step}. Compare the two ordered demo results",
+    "lifecycleStep": "{step}. Prepare a proposal and record explicit human decision evidence",
+    "demoBoundary": "Each link comes from the validated backend descriptor. No fixture identity or evidence payload is defined in the browser."
+  }
+}

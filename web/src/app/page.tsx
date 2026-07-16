@@ -1,28 +1,29 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { HealthPanel } from "@/components/health-panel";
 import { FounderFirstRunPanel } from "@/components/founder-first-run-panel";
 import { WorkspaceShell } from "@/components/workspace-shell";
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  const t = await getTranslations("overview");
   return (
     <WorkspaceShell>
       <div className="overview">
         <section className="overview-hero" aria-labelledby="overview-title">
-          <p className="eyebrow">Overview · Local Web MVP</p>
-          <h1 id="overview-title">A calm control surface for reviewable paper workflows.</h1>
+          <p className="eyebrow">{t("hero.eyebrow")}</p>
+          <h1 id="overview-title">{t("hero.title")}</h1>
           <p className="overview-hero__summary">
-            One authenticated local workspace now connects the existing backend-owned
-            research, governance, paper, portfolio, comparison, and lifecycle workflows.
+            {t("hero.summary")}
           </p>
           <div className="overview-actions">
-            <Link className="primary-link" href="/strategies">Browse strategies</Link>
-            <Link className="text-link" href="/research-runs">Inspect research runs</Link>
-            <Link className="text-link" href="/evidence-manifests">Inspect governance evidence</Link>
-            <Link className="text-link" href="/paper-jobs">Operate paper jobs</Link>
-            <Link className="text-link" href="/portfolio-records">Inspect portfolio records</Link>
-            <Link className="text-link" href="/comparisons">Compare paper results</Link>
-            <Link className="text-link" href="/lifecycle-review">Review lifecycle evidence</Link>
+            <Link className="primary-link" href="/strategies">{t("hero.strategies")}</Link>
+            <Link className="text-link" href="/research-runs">{t("hero.research")}</Link>
+            <Link className="text-link" href="/evidence-manifests">{t("hero.evidence")}</Link>
+            <Link className="text-link" href="/paper-jobs">{t("hero.paperJobs")}</Link>
+            <Link className="text-link" href="/portfolio-records">{t("hero.portfolio")}</Link>
+            <Link className="text-link" href="/comparisons">{t("hero.comparisons")}</Link>
+            <Link className="text-link" href="/lifecycle-review">{t("hero.lifecycle")}</Link>
           </div>
         </section>
 
@@ -31,30 +32,26 @@ export default function OverviewPage() {
         <div className="overview-grid">
           <HealthPanel />
           <section className="boundary-card" aria-labelledby="workspace-boundary-title">
-            <p className="eyebrow">Workspace boundary</p>
-            <h2 id="workspace-boundary-title">Review first. Operate deliberately.</h2>
-            <p>
-              The browser uses the versioned FastAPI contract through a fixed same-origin
-              gateway. Completed artifacts and backend domain services remain authoritative.
-            </p>
+            <p className="eyebrow">{t("boundary.eyebrow")}</p>
+            <h2 id="workspace-boundary-title">{t("boundary.title")}</h2>
+            <p>{t("boundary.description")}</p>
             <dl className="boundary-list">
-              <div><dt>Mode</dt><dd>Founder-only · Local</dd></div>
-              <div><dt>Execution</dt><dd>Explicit paper commands only</dd></div>
-              <div><dt>Connection</dt><dd>Same-origin API gateway</dd></div>
+              <div><dt>{t("boundary.modeLabel")}</dt><dd>{t("boundary.mode")}</dd></div>
+              <div><dt>{t("boundary.executionLabel")}</dt><dd>{t("boundary.execution")}</dd></div>
+              <div><dt>{t("boundary.connectionLabel")}</dt><dd>{t("boundary.connection")}</dd></div>
             </dl>
           </section>
         </div>
 
         <section className="coming-next" aria-labelledby="workspace-startup-title">
           <div>
-            <p className="eyebrow">Explicit first-run choice</p>
-            <h2 id="workspace-startup-title">Standard or isolated Demo Workspace</h2>
+            <p className="eyebrow">{t("startup.eyebrow")}</p>
+            <h2 id="workspace-startup-title">{t("startup.title")}</h2>
           </div>
           <p>
-            Operators choose clean real-user storage or a separately named disposable
-            Demo volume. This page never seeds or initializes either workspace.
+            {t("startup.description")}
           </p>
-          <span className="sprint-chip">Local MVP</span>
+          <span className="sprint-chip">{t("startup.chip")}</span>
         </section>
       </div>
     </WorkspaceShell>

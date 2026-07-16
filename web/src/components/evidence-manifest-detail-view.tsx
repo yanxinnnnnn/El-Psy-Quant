@@ -1,18 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useCallback } from "react";
 
 import { ErrorState, LoadingState } from "@/components/data-states";
+import { useErrorPresentation } from "@/i18n/errors";
 import {
   fetchEvidenceManifestDetail,
   type EvidenceManifestDetailResponse,
 } from "@/lib/api-client";
-import {
-  evidenceErrorTitle,
-  evidenceManifestLabel,
-  nullableText,
-} from "@/lib/evidence-manifests";
 import { useApiResource } from "@/lib/use-api-resource";
 
 type EvidenceReference =
@@ -30,32 +27,36 @@ type EvidenceReference =
 
 function ReferenceGroup({
   title,
+  id,
   references,
 }: {
   title: string;
+  id: string;
   references: EvidenceReference[];
 }) {
+  const t = useTranslations("evidence.detail");
+  const common = useTranslations("common.states");
   return (
-    <section className="content-panel" aria-labelledby={`${title.replaceAll(" ", "-").toLowerCase()}-title`}>
+    <section className="content-panel" aria-labelledby={`${id}-title`}>
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Ordered unresolved pointers</p>
-          <h2 id={`${title.replaceAll(" ", "-").toLowerCase()}-title`}>{title}</h2>
+          <p className="eyebrow">{t("orderedEyebrow")}</p>
+          <h2 id={`${id}-title`}>{title}</h2>
         </div>
-        <p>API order and duplicate references are preserved.</p>
+        <p>{t("orderBoundary")}</p>
       </div>
       {references.length === 0 ? (
-        <p className="reference-empty">No references in this group.</p>
+        <p className="reference-empty">{t("emptyGroup")}</p>
       ) : (
         <ol className="reference-list">
           {references.map((reference, index) => (
             <li key={index}>
               <dl className="definition-grid definition-grid--wide">
-                <div><dt>Schema version</dt><dd>{reference.schema_version}</dd></div>
-                <div><dt>Reference type</dt><dd>{reference.reference_type}</dd></div>
-                <div><dt>Reference ID</dt><dd>{reference.reference_id}</dd></div>
-                <div><dt>Label</dt><dd>{nullableText(reference.label)}</dd></div>
-                <div><dt>Description</dt><dd>{nullableText(reference.description)}</dd></div>
+                <div><dt>{t("schemaVersion")}</dt><dd>{reference.schema_version}</dd></div>
+                <div><dt>{t("referenceType")}</dt><dd>{reference.reference_type}</dd></div>
+                <div><dt>{t("referenceId")}</dt><dd>{reference.reference_id}</dd></div>
+                <div><dt>{t("label")}</dt><dd>{reference.label ?? common("notAvailable")}</dd></div>
+                <div><dt>{t("description")}</dt><dd>{reference.description ?? common("notAvailable")}</dd></div>
               </dl>
             </li>
           ))}
@@ -66,11 +67,13 @@ function ReferenceGroup({
 }
 
 function ManifestReferences({ detail }: { detail: EvidenceManifestDetailResponse }) {
+  const t = useTranslations("evidence.detail");
+  const common = useTranslations("common.states");
   if (detail.manifest_type === "strategy_decision_manifest") {
     return (
       <>
-        <ReferenceGroup title="Summary references" references={detail.summary_references} />
-        <ReferenceGroup title="Record references" references={detail.record_references} />
+        <ReferenceGroup id="summary-references" title={t("summaryReferences")} references={detail.summary_references} />
+        <ReferenceGroup id="record-references" title={t("recordReferences")} references={detail.record_references} />
       </>
     );
   }
@@ -78,29 +81,32 @@ function ManifestReferences({ detail }: { detail: EvidenceManifestDetailResponse
     return (
       <>
         <section className="content-panel" aria-labelledby="report-fields-title">
-          <p className="eyebrow">Report manifest fields</p>
-          <h2 id="report-fields-title">Report details</h2>
+          <p className="eyebrow">{t("reportEyebrow")}</p>
+          <h2 id="report-fields-title">{t("reportTitle")}</h2>
           <dl className="definition-grid">
-            <div><dt>Label</dt><dd>{nullableText(detail.label)}</dd></div>
-            <div><dt>Notes</dt><dd>{nullableText(detail.notes)}</dd></div>
+            <div><dt>{t("label")}</dt><dd>{detail.label ?? common("notAvailable")}</dd></div>
+            <div><dt>{t("notes")}</dt><dd>{detail.notes ?? common("notAvailable")}</dd></div>
           </dl>
         </section>
-        <ReferenceGroup title="References" references={detail.references} />
+        <ReferenceGroup id="references" title={t("references")} references={detail.references} />
       </>
     );
   }
   return (
     <>
       <ReferenceGroup
-        title="State snapshot references"
+        id="state-snapshot-references"
+        title={t("stateSnapshotReferences")}
         references={detail.state_snapshot_references}
       />
       <ReferenceGroup
-        title="Transition proposal references"
+        id="transition-proposal-references"
+        title={t("proposalReferences")}
         references={detail.transition_proposal_references}
       />
       <ReferenceGroup
-        title="Transition record references"
+        id="transition-record-references"
+        title={t("recordTransitionReferences")}
         references={detail.transition_record_references}
       />
     </>
@@ -114,52 +120,57 @@ export function EvidenceManifestDetailView({
   manifestType: string;
   artifactKey: string;
 }) {
+  const t = useTranslations("evidence.detail");
+  const typeT = useTranslations("evidence.types");
+  const common = useTranslations("common.states");
   const request = useCallback(
     () => fetchEvidenceManifestDetail(manifestType, artifactKey),
     [manifestType, artifactKey],
   );
   const { state, retry } = useApiResource(request);
+  const error = useErrorPresentation(state.status === "error" ? state.code : null);
 
   return (
     <div className="business-workspace">
       <div className="back-links">
         <Link className="text-link" href="/evidence-manifests">
-          ← Back to evidence manifests
+          {t("back")}
         </Link>
       </div>
 
       {state.status === "loading" ? (
-        <LoadingState message="Loading the selected evidence manifest…" />
+        <LoadingState message={t("loading")} />
       ) : state.status === "error" ? (
         <ErrorState
-          title={evidenceErrorTitle(state.code)}
+          code={state.code}
+          title={error.useContextTitle ? t("unavailableTitle") : error.title}
           message={state.message}
           requestId={state.requestId}
           onRetry={state.code === "evidence_manifest_not_found" ? undefined : retry}
           backHref="/evidence-manifests"
-          backLabel="Return to evidence manifests"
+          backLabel={t("return")}
         />
       ) : (
         <article>
           <header className="page-heading page-heading--detail">
-            <p className="eyebrow">Governance and report evidence</p>
-            <h1>{evidenceManifestLabel(state.data.manifest_type)}</h1>
+            <p className="eyebrow">{t("eyebrow")}</p>
+            <h1>{state.data.manifest_type === "strategy_decision_manifest" ? typeT("strategyDecision") : state.data.manifest_type === "report_artifact_manifest" ? typeT("reportArtifact") : typeT("strategyReviewWorkflow")}</h1>
             <p className="identity-line">
               {state.data.manifest_type} / {state.data.artifact_key}
             </p>
           </header>
 
           <section className="content-panel" aria-labelledby="manifest-identity-title">
-            <p className="eyebrow">Manifest identity</p>
-            <h2 id="manifest-identity-title">Backend-owned metadata</h2>
+            <p className="eyebrow">{t("identityEyebrow")}</p>
+            <h2 id="manifest-identity-title">{t("metadataTitle")}</h2>
             <dl className="definition-grid definition-grid--wide">
-              <div><dt>Manifest type</dt><dd>{state.data.manifest_type}</dd></div>
-              <div><dt>Artifact key</dt><dd>{state.data.artifact_key}</dd></div>
-              <div><dt>Schema version</dt><dd>{state.data.schema_version}</dd></div>
-              <div><dt>Manifest ID</dt><dd>{state.data.manifest_id}</dd></div>
-              <div><dt>Created by</dt><dd>{nullableText(state.data.created_by)}</dd></div>
-              <div><dt>Created</dt><dd>{nullableText(state.data.created_timestamp)}</dd></div>
-              <div><dt>Description</dt><dd>{nullableText(state.data.description)}</dd></div>
+              <div><dt>{t("manifestType")}</dt><dd>{state.data.manifest_type}</dd></div>
+              <div><dt>{t("artifactKey")}</dt><dd>{state.data.artifact_key}</dd></div>
+              <div><dt>{t("schemaVersion")}</dt><dd>{state.data.schema_version}</dd></div>
+              <div><dt>{t("manifestId")}</dt><dd>{state.data.manifest_id}</dd></div>
+              <div><dt>{t("createdBy")}</dt><dd>{state.data.created_by ?? common("notAvailable")}</dd></div>
+              <div><dt>{t("created")}</dt><dd>{state.data.created_timestamp ?? common("notAvailable")}</dd></div>
+              <div><dt>{t("description")}</dt><dd>{state.data.description ?? common("notAvailable")}</dd></div>
             </dl>
           </section>
 
@@ -167,11 +178,11 @@ export function EvidenceManifestDetailView({
 
           <section className="related-panel" aria-labelledby="evidence-paper-next-title">
             <div>
-              <p className="eyebrow">Your next review choice</p>
-              <h2 id="evidence-paper-next-title">Inspect paper jobs and authoritative results</h2>
-              <p>Select a paper record yourself. This generic evidence page does not resolve references or claim that unrelated jobs belong to this manifest.</p>
+              <p className="eyebrow">{t("relatedEyebrow")}</p>
+              <h2 id="evidence-paper-next-title">{t("relatedTitle")}</h2>
+              <p>{t("relatedDescription")}</p>
             </div>
-            <Link className="primary-link" href="/paper-jobs">Browse paper jobs</Link>
+            <Link className="primary-link" href="/paper-jobs">{t("browsePaperJobs")}</Link>
           </section>
         </article>
       )}

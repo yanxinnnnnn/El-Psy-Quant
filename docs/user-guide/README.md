@@ -12,6 +12,10 @@ A first run may use either a clean standard workspace with explicit empty-state
 guidance or the isolated, visibly labeled Demo Workspace. Demo evidence is
 disposable and never shares standard storage by default.
 
+The complete workspace is available in English and Simplified Chinese. Choose
+**English** or **简体中文** from the persistent header control; routes and backend
+records do not change with the presentation language.
+
 ## Start Here
 
 1. [Get started](getting-started.md) with the local workspace and its navigation.

@@ -39,6 +39,20 @@ An empty page and an unavailable page mean different things:
 
 Do not treat an unavailable evidence source as evidence that no records exist.
 
+## Choose English or Simplified Chinese
+
+Use the persistent **English** / **简体中文** control in the workspace header.
+The selected language applies to the current unprefixed route and is remembered
+on the same local origin for both Standard and Demo modes. Switching language
+does not intentionally navigate, reorder repeated comparison `job_id` values,
+submit a command, or clear an in-progress Paper Job or Lifecycle form.
+
+Translated labels and explanations are presentation only. Raw strategy names,
+run/job/reference IDs, statuses, lifecycle values, error codes, UTC timestamps,
+artifact text, user-entered text, and quantitative values remain visible and
+unchanged. When a localized date or number is shown, use its accompanying raw
+value for exact audit comparison.
+
 On a healthy new standard workspace, Overview states that the application is
 running but no workspace evidence has been loaded. It offers two operator-owned
 paths: start the isolated Demo Workspace with the documented terminal commands,

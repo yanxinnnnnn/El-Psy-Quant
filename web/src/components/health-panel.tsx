@@ -1,17 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
+import { ErrorState, RequestId } from "@/components/data-states";
+import { useErrorPresentation } from "@/i18n/errors";
 import { ApiClientError, fetchHealth } from "@/lib/api-client";
 
 type HealthState =
   | { status: "loading" }
   | { status: "available"; requestId: string | null }
-  | { status: "unavailable"; message: string; requestId: string | null };
+  | { status: "unavailable"; code: string | null; message: string | null; requestId: string | null };
 
 export function HealthPanel() {
+  const t = useTranslations("overview.health");
   const [health, setHealth] = useState<HealthState>({ status: "loading" });
   const requestSequence = useRef(0);
+  const errorPresentation = useErrorPresentation(health.status === "unavailable" ? health.code : null);
 
   const checkHealth = useCallback(async () => {
     const sequence = ++requestSequence.current;
@@ -28,13 +33,15 @@ export function HealthPanel() {
       if (error instanceof ApiClientError) {
         setHealth({
           status: "unavailable",
+          code: error.code,
           message: error.publicMessage,
           requestId: error.requestId,
         });
       } else {
         setHealth({
           status: "unavailable",
-          message: "The local API is unavailable.",
+          code: null,
+          message: null,
           requestId: null,
         });
       }
@@ -56,13 +63,15 @@ export function HealthPanel() {
         if (error instanceof ApiClientError) {
           setHealth({
             status: "unavailable",
+            code: error.code,
             message: error.publicMessage,
             requestId: error.requestId,
           });
         } else {
           setHealth({
             status: "unavailable",
-            message: "The local API is unavailable.",
+            code: null,
+            message: null,
             requestId: null,
           });
         }
@@ -76,33 +85,36 @@ export function HealthPanel() {
     <section className="health-panel" aria-labelledby="api-connectivity-title">
       <div className="health-panel__heading">
         <div>
-          <p className="eyebrow">Local dependency</p>
-          <h2 id="api-connectivity-title">API connectivity</h2>
+          <p className="eyebrow">{t("eyebrow")}</p>
+          <h2 id="api-connectivity-title">{t("title")}</h2>
         </div>
         <span className={`status-badge status-badge--${health.status}`} aria-live="polite">
           <span aria-hidden="true" className="status-badge__dot" />
           {health.status === "loading"
-            ? "Checking"
+            ? t("checking")
             : health.status === "available"
-              ? "Available"
-              : "Unavailable"}
+              ? t("available")
+              : t("unavailable")}
         </span>
       </div>
 
       {health.status === "loading" ? (
         <p className="health-panel__message" role="status">
-          Checking the FastAPI process through the same-origin gateway…
+          {t("checkingMessage")}
         </p>
       ) : health.status === "available" ? (
         <div className="health-panel__message" role="status">
-          <p>The local API process is responding on the versioned health endpoint.</p>
-          {health.requestId ? <p className="request-id">Request {health.requestId}</p> : null}
+          <p>{t("availableMessage")}</p>
+          <RequestId value={health.requestId} />
         </div>
       ) : (
-        <div className="health-panel__message" role="alert">
-          <p>{health.message} Start FastAPI on loopback, then retry.</p>
-          {health.requestId ? <p className="request-id">Request {health.requestId}</p> : null}
-        </div>
+        <ErrorState
+          className="health-panel__message"
+          code={health.code}
+          title={errorPresentation.title}
+          message={health.message}
+          requestId={health.requestId}
+        />
       )}
 
       <button
@@ -111,7 +123,7 @@ export function HealthPanel() {
         onClick={() => void checkHealth()}
         disabled={health.status === "loading"}
       >
-        {health.status === "loading" ? "Checking…" : "Retry connection"}
+        {health.status === "loading" ? t("checkingAction") : t("retry")}
       </button>
     </section>
   );
