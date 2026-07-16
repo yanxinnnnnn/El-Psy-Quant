@@ -23,9 +23,9 @@ flowchart LR
     M1["M1-M8<br/>Research Workflow Foundations ✅"] --> M9["M9-M15<br/>Quality, Portfolio & Execution Realism ✅"]
     M9 --> M16["M16-M19<br/>Paper Trading & Configured Workflow ✅"]
     M16 --> M20["M20-M24<br/>Governance & Review Workflow ✅"]
-    M20 --> M25["M25-M26<br/>Productization Planning & API ✅"]
-    M25 --> M27["M27-M29<br/>Founder Paper Productization 🟡"]
-    M27 --> M30["M30+<br/>Portfolio Decisions & Execution Readiness"]
+    M20 --> M25["M25-M28<br/>Founder Paper Productization ✅"]
+    M25 --> M29["M29<br/>Product Feedback & Hardening 🟡"]
+    M29 --> M30["M30+<br/>Portfolio Decisions & Execution Readiness"]
 ```
 
 ## Milestone Table
@@ -57,23 +57,23 @@ flowchart LR
 | M23 — Report Artifact Foundation | S124-129 | Complete | Deterministic review packaging. | Report sources, sections, summaries, references, and manifests are explicit. |
 | M24 — Strategy Review Workflow Foundation | S130-136 | Complete | Human-controlled lifecycle governance. | States, proposals, transition records, references, manifests, and guardrails are explicit without runtime lifecycle execution. |
 | M25 — Paper Trading Productization Planning | S137 | Complete | Founder product boundary and staged architecture. | A reviewed implementation plan exists for M26-M29 without premature implementation. |
-| M26 — Paper Trading Application Service Foundation | S138-144 | Complete | Add a thin local application-service boundary. | Existing capabilities are exposed through explicit local API schemas without persistence, background workers, broker behavior, or Web UI. |
-| M27 — Persistence and Paper Job Control Foundation | S145-151 | Complete | Add product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
-| M28 — Founder Paper Trading Web Workspace | S152-160 | In Progress | Deliver the first usable Founder Web MVP and an isolated first-run demo. | The Founder can inspect strategies and operate paper workflows locally through the Web/API boundary, then verify the product journey before formal closeout. |
-| M29 — Product Feedback and Hardening | S161-166 | Planned | Improve usability and reliability from real usage after M28 closeout. | Founder feedback is incorporated and the local product is reliable enough for daily use. |
+| M26 — Paper Trading Application Service Foundation | S138-144 | Complete | Thin local application-service and API boundary. | Existing capabilities are exposed through explicit local schemas. |
+| M27 — Persistence and Paper Job Control Foundation | S145-151 | Complete | Product persistence and controllable local jobs. | Product metadata and paper jobs are durable, inspectable, idempotent, recoverable, and manually controlled. |
+| M28 — Founder Paper Trading Web Workspace | S152-160 | Complete | First usable local Founder Web MVP. | The Founder can start, understand, and verify the complete paper-decision journey through the Web/API boundary. |
+| M29 — Product Feedback and Hardening | S161-168 | In Progress | Improve product experience and daily local reliability from real use. | The multilingual, modernized product is reliable enough for daily Founder use. |
 | M30 — Portfolio-Level Decision Review Foundation | TBD | Deferred | Resume portfolio-level strategy review. | Portfolio impact and concentration are included in human decisions. |
 
 ## Completed Milestone 24 — Strategy Review Workflow Foundation
 
-Milestone 24 completed this chain:
+Milestone 24 completed:
 
 ```text
-strategy review evidence reference contract
-  -> strategy lifecycle state snapshot contract
-  -> lifecycle transition proposal contract
-  -> human-controlled lifecycle transition record
-  -> strategy review workflow manifest and references
-  -> milestone closeout
+strategy review evidence reference
+  -> immutable lifecycle state snapshot
+  -> non-executing transition proposal
+  -> human-controlled transition record
+  -> workflow reference and manifest
+  -> closeout
 ```
 
 Approved lifecycle vocabulary:
@@ -86,36 +86,15 @@ on_hold
 rejected
 ```
 
-Sprint sequence:
-
-| Sprint | Status | Deliverable | Guardrail |
-|---:|---|---|---|
-| S130 | Complete | M24 scope, vocabulary, matrix, evidence rules, sequence, and guardrails. | Planning only. |
-| S131 | Complete | Typed pointers to completed M20-M23 governance artifacts. | No discovery, loading, scoring, or execution. |
-| S132 | Complete | Immutable caller-supplied state snapshots. | No implicit or mutable current state. |
-| S133 | Complete | Non-executing proposals using the exact 16-pair matrix. | No approval or mutation. |
-| S134 | Complete | Human-controlled `approved`, `rejected`, and `deferred` transition records. | Governance evidence only. |
-| S135 | Complete | Compact workflow references and grouped manifests. | No ID resolution, chain validation, persistence, or execution. |
-| S136 | Complete | Closeout and productization pivot. | Documentation only. |
-
-Milestone 24 did not add runtime state mutation, automatic transitions, automatic decision mapping, artifact loading, workflow orchestration, broker behavior, live readiness, capital deployment, databases, dashboards, or hosted SaaS behavior.
-
-See:
-
-```text
-docs/milestones/milestone-024-strategy-review-workflow-foundation.md
-docs/sprints/sprint-136-milestone-24-closeout-and-productization-pivot.md
-```
+Milestone 24 added no runtime state mutation, automatic transition, automatic decision mapping, paper execution, broker behavior, live readiness, or capital deployment.
 
 ## Completed Milestone 25 — Paper Trading Productization Planning
 
-Milestone 25 converts the productization pivot into an explicit implementation plan.
-
-Approved product architecture:
+Milestone 25 established the approved product architecture:
 
 ```text
 Browser
-  -> React/Next.js founder workspace
+  -> React/Next.js Founder workspace
   -> FastAPI application API
   -> thin application services / use cases
   -> existing domain modules and artifact readers
@@ -124,141 +103,147 @@ Browser
 
 Critical ownership decisions:
 
-- existing domain modules remain authoritative for financial and governance rules
-- existing artifact files remain authoritative for completed outputs
-- SQLite stores product metadata and references rather than silently duplicating full artifact payloads
-- lifecycle current state is derived from immutable snapshots and approved human records
-- paper job status is separate mutable operational state
-- the browser uses the API and never directly accesses the database, filesystem, Python modules, QMT, or a broker
-
-### M26 Sprint Sequence
-
-| Sprint | Deliverable |
-|---:|---|
-| S138 | Application Service and API Skeleton. **Complete.** |
-| S139 | Strategy Catalog and Detail Read Services. **Complete.** |
-| S140 | Research and Backtest Artifact Inspection Services. **Complete.** |
-| S141 | Governance, Report, and Lifecycle Evidence Inspection Services. **Complete.** |
-| S142 | Paper Run Application Command Boundary. **Complete.** |
-| S143 | Lifecycle Proposal and Human Review Application Commands. **Complete.** |
-| S144 | Milestone 26 Closeout. **Complete.** |
-
-### M27 Sprint Sequence
-
-| Sprint | Deliverable |
-|---:|---|
-| S145 | SQLite and SQLAlchemy Product Persistence Foundation. **Complete.** |
-| S146 | Artifact Index and Product Repository Foundation. **Complete.** |
-| S147 | Durable Paper Job Record and Submission Foundation. **Complete.** |
-| S148 | Simple Local Paper Job Runner and Manual Control. **Complete.** |
-| S149 | Job Recovery, Idempotency, and Error Audit Foundation. **Complete.** |
-| S150 | Durable Job API and Result Reference Integration. **Complete.** |
-| S151 | Milestone 27 Closeout. **Complete.** |
-
-### M28 Sprint Sequence
-
-| Sprint | Deliverable |
-|---:|---|
-| S152 | Next.js Workspace Shell and API Client Foundation. **Complete.** |
-| S153 | Strategy List, Detail, Research, and Backtest Views. **Complete.** |
-| S154 | Governance Evidence and Report Artifact Views. **Complete.** |
-| S155 | Paper Run Launch and Status Workspace. **Complete.** |
-| S156 | Equity, Positions, Orders, and Fills Views. **Complete.** |
-| S157 | Paper Run Comparison Workspace. **Complete.** |
-| S158 | Lifecycle Proposal, Human Review, and Timeline Workspace. **Complete.** |
-| S159 | Minimal Authentication, Docker Compose, and End-to-End Engineering MVP Closeout. **Complete.** |
-| S160 | Founder Demo Workspace and First-run Experience. **Implementation complete; Founder/CTO verification remains.** |
-
-### M29 Sprint Sequence
-
-| Sprint | Deliverable |
-|---:|---|
-| S161 | Founder Usage Review and Hardening Prioritization |
-| S162 | Workflow and Information Architecture Hardening |
-| S163 | Reliability, Idempotency, and Job Recovery Hardening |
-| S164 | Error Surface, Observability, and Audit Hardening |
-| S165 | Migration, Test, and Local Deployment Hardening |
-| S166 | Milestone 29 Closeout and M30 Handoff |
-
-See:
-
-```text
-docs/milestones/milestone-025-paper-trading-productization-planning.md
-docs/sprints/sprint-137-milestone-25-paper-trading-productization-planning.md
-```
+- existing domain modules remain authoritative;
+- completed artifact files remain payload authority;
+- SQLite stores compact metadata and operational state rather than complete payloads;
+- lifecycle state is derived from immutable evidence rather than an independent mutable field;
+- paper-job state remains separate operational state; and
+- the browser uses the API rather than direct database or filesystem access.
 
 ## Completed Milestone 26 — Paper Trading Application Service Foundation
 
-Milestone 26 established a thin local application/API boundary without replacing existing domain or artifact authority.
+Sprint sequence:
 
-Completed chain:
+| Sprint | Deliverable | Status |
+|---:|---|---|
+| S138 | Application Service and API Skeleton | Complete |
+| S139 | Strategy Catalog and Detail Read Services | Complete |
+| S140 | Research and Backtest Artifact Inspection Services | Complete |
+| S141 | Governance, Report, and Lifecycle Evidence Inspection Services | Complete |
+| S142 | Paper Run Application Command Boundary | Complete |
+| S143 | Lifecycle Proposal and Human Review Application Commands | Complete |
+| S144 | Milestone 26 Closeout | Complete |
+
+M26 established versioned FastAPI routes, explicit schemas, stable sanitized errors, server-owned request IDs, bounded artifact reads, and thin synchronous commands without product persistence or background-job requirements.
+
+## Completed Milestone 27 — Persistence and Paper Job Control Foundation
+
+Sprint sequence:
+
+| Sprint | Deliverable | Status |
+|---:|---|---|
+| S145 | SQLite and SQLAlchemy Product Persistence Foundation | Complete |
+| S146 | Artifact Index and Product Repository Foundation | Complete |
+| S147 | Durable Paper Job Record and Submission Foundation | Complete |
+| S148 | Simple Local Paper Job Runner and Manual Control | Complete |
+| S149 | Job Recovery, Idempotency, and Error Audit Foundation | Complete |
+| S150 | Durable Job API and Result Reference Integration | Complete |
+| S151 | Milestone 27 Closeout | Complete |
+
+M27 delivered SQLite and Alembic ownership, a compact artifact index, durable queued jobs, replay-safe submission, attempt audit, manual control and recovery, compact result references, and strict authoritative-file result reads.
+
+## Completed Milestone 28 — Founder Paper Trading Web Workspace
+
+Sprint sequence:
+
+| Sprint | Deliverable | Status |
+|---:|---|---|
+| S152 | Next.js Workspace Shell and API Client Foundation | Complete |
+| S153 | Strategy List, Detail, Research, and Backtest Views | Complete |
+| S154 | Governance Evidence and Report Artifact Views | Complete |
+| S155 | Paper Run Launch and Status Workspace | Complete |
+| S156 | Portfolio Result Views | Complete |
+| S157 | Paper Run Comparison Workspace | Complete |
+| S158 | Lifecycle Proposal, Human Review, and Timeline Workspace | Complete |
+| S159 | Minimal Authentication, Docker Compose, and Engineering MVP Closeout | Complete |
+| S160 | Founder Demo Workspace and First-run Experience | Complete |
+
+M28 delivered:
+
+- one local-first Founder-only Web workspace;
+- paired minimal authentication for the Web and API;
+- reproducible standard Docker Compose startup;
+- isolated persistent standard storage;
+- an isolated disposable Demo Workspace;
+- strategy, research, governance, paper-job, result, comparison, and lifecycle views;
+- explicit first-run empty-state guidance;
+- product-facing user and operations documentation; and
+- one complete guided Strategy-to-Human-Decision journey.
+
+Preserved boundaries:
+
+- domain modules remain authoritative for quantitative and governance behavior;
+- artifact files remain payload authority;
+- SQLite remains compact product and operational state;
+- the browser uses only the same-origin API boundary;
+- lifecycle proposals remain non-executing;
+- human review remains explicit governance evidence;
+- paper-job state remains separate from lifecycle governance; and
+- Demo data remains isolated from real user data.
+
+Closeout records:
 
 ```text
-application/API skeleton
-  -> strategy catalog reads
-  -> research and backtest artifact inspection
-  -> governance, report, and lifecycle evidence inspection
-  -> synchronous paper-run command
-  -> lifecycle proposal and human-review commands
-  -> closeout
+docs/milestones/milestone-028-founder-paper-trading-web-workspace.md
+docs/closeouts/milestone-028-founder-paper-trading-web-workspace-closeout.md
 ```
 
-Delivered boundaries:
+## Active Milestone 29 — Product Feedback and Hardening
 
-- deterministic FastAPI application construction and `/api/v1`
-- server-owned request IDs and stable sanitized errors
-- explicit request and response schemas
-- safe configured artifact inspection
-- synchronous in-memory commands over existing paper and lifecycle factories
-- no product persistence or operational job control
+Milestone 29 begins from real Founder usage rather than speculative features.
 
-Preserved guardrails:
+### Founder feedback priorities
 
-- existing artifact files remain authoritative
-- lifecycle current state is not stored as an independent mutable field
-- paper-job status remains separate from lifecycle governance
-- no database, repository, worker, queue, Web UI, broker, QMT, live, or capital behavior was added
+1. **Multilingual product foundation**
+   - English remains the default.
+   - Simplified Chinese (`zh-CN`) is the first additional language.
+   - Product copy, navigation, forms, states, confirmations, accessibility labels, and stable frontend error explanations must be localized.
+   - Raw domain identifiers, API values, IDs, timestamps, schemas, and artifact payloads must remain unchanged.
 
-See:
+2. **Product experience refresh**
+   - move from an academic portal / internal dashboard toward an AI Quant Decision Workspace;
+   - use a modern neutral palette and clean sans-serif typography;
+   - improve hierarchy, forms, tables, and data visualization;
+   - strengthen product identity; and
+   - add a Founder Dashboard and workflow-oriented next actions.
 
-```text
-docs/milestones/milestone-026-paper-trading-application-service-foundation.md
-docs/sprints/sprint-144-milestone-26-closeout.md
-```
+3. **Daily-use hardening**
+   - improve idempotency and recovery experience;
+   - make errors and audit information actionable;
+   - harden migrations, tests, and local deployment; and
+   - preserve all existing authority and safety boundaries.
+
+### M29 Sprint Sequence
+
+| Sprint | Deliverable | Status |
+|---:|---|---|
+| S161 | Founder Feedback and Product Experience Architecture | Next |
+| S162 | Multilingual Foundation and Simplified Chinese Workspace | Planned |
+| S163 | Modern Visual System Foundation | Planned |
+| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Planned |
+| S165 | Reliability, Idempotency, and Job Recovery Hardening | Planned |
+| S166 | Error Surface, Observability, and Audit Hardening | Planned |
+| S167 | Migration, Test, and Local Deployment Hardening | Planned |
+| S168 | Milestone 29 Closeout and M30 Handoff | Planned |
+
+Internationalization precedes visual-system implementation so English and Chinese both shape component sizing, typography, spacing, and content hierarchy.
 
 ## Founder Product Target
 
-The first product is local, Founder-only, single-user or minimally authenticated, and Paper Trading only.
+The product remains:
 
-It supports:
+- local-first;
+- Founder-only;
+- Paper Trading only;
+- review-oriented;
+- minimally authenticated; and
+- a modular monolith.
 
-- strategy list and detail
-- research and backtest inspection
-- governance evidence and report-artifact inspection
-- paper-run launch and status
-- equity, positions, orders, and fills
-- paper-run comparison
-- lifecycle proposals and human transition records
-- lifecycle timeline
-
-Planning baseline:
-
-```text
-FastAPI
-SQLite + SQLAlchemy
-simple local background jobs
-React/Next.js
-Docker Compose / local-first
-single-user or minimal authentication
-```
-
-Explicitly defer microservices, Kubernetes, Kafka, Redis clusters, distributed queues, multi-tenancy, complex RBAC, cloud SaaS hosting, broad real-time dashboards, broker integration, automatic lifecycle transitions, automatic capital allocation, and real-money trading.
+It is not a live system, broker project, SaaS platform, multi-tenant product, or autonomous strategy and capital engine.
 
 ## Future Execution Direction
 
-Broker-specific systems must remain adapters behind broker-neutral domain models.
-
-Future QMT boundary:
+Broker-specific systems remain adapters behind broker-neutral domain models.
 
 ```text
 Browser
@@ -269,7 +254,7 @@ Browser
   -> broker
 ```
 
-No browser-to-QMT direct connection and no live QMT work before dedicated execution-risk and live-readiness governance.
+No browser-to-QMT direct connection and no live QMT work before portfolio review, execution-risk governance, live-readiness controls, and explicit human approval.
 
 ## Roadmap Principles
 
@@ -277,130 +262,13 @@ No browser-to-QMT direct connection and no live QMT work before dedicated execut
 2. Evaluation discipline comes before strategy complexity.
 3. Parameter search is not alpha discovery.
 4. Costs, slippage, benchmarks, and risk context precede serious claims.
-5. Stable interfaces should come before strategy proliferation.
-6. Paper state and auditability should precede broker integration.
+5. Stable interfaces come before strategy proliferation.
+6. Paper state and auditability precede broker integration.
 7. Promotion, review, decision, and lifecycle records remain human-controlled.
 8. A proposal is not an action and an approval record is not runtime execution.
-9. Productization should wrap stable domain capabilities rather than rewrite them.
-10. Start with one founder and one local deployment before multi-user or cloud complexity.
-11. Existing artifact files remain authoritative; product persistence should index and operate around them.
-12. Operational paper-job state must remain separate from strategy lifecycle governance.
-13. Broker-specific concerns must remain behind adapters.
-14. Real capital requires separate risk, operational, and live-readiness governance.
-
-## Completed Milestone 27 — Persistence and Paper Job Control Foundation
-
-Sprint 145 established:
-
-- one explicit local SQLite file selected through `EL_PSY_QUANT_PRODUCT_DATABASE_PATH`
-- a project-owned SQLAlchemy 2.x declarative metadata boundary
-- lazy SQLite engine construction with foreign-key enforcement
-- caller-owned session factories and explicit transactions
-- an intentionally empty Alembic baseline that upgrades and downgrades cleanly
-
-It did not add artifact indexes, product repositories, durable paper jobs,
-workers, new APIs, lifecycle current-state storage, Web UI, broker, QMT, live,
-or capital behavior. Existing artifact files remain authoritative.
-
-Sprint 146 established:
-
-- one immutable six-field index entry for exactly four supported manifest types
-- one constrained `artifact_index_entries` table and `0002_artifact_index`
-  migration directly after the unchanged Sprint 145 baseline
-- root-isolated replacement with stale cleanup under caller-owned transactions
-- explicit multi-root refresh using only existing authoritative list readers
-- database-only exact and filtered index reads with no artifact payload access
-
-It did not copy payloads or absolute roots into SQLite and added no automatic
-refresh, API endpoint, paper-job record, job status, worker, retry, recovery,
-idempotency, lifecycle mutation, Web UI, broker, QMT, live, or capital behavior.
-
-Sprint 147 established:
-
-- one shared validation-only command-to-domain request boundary used by the
-  existing synchronous execution command
-- one strict canonical `PaperRunRequest` codec and immutable paper-job record
-- one constrained `paper_jobs` table and `0003_paper_jobs` migration
-- one caller-owned repository with add, exact reads, deterministic list, and
-  supported-status filtering
-- explicit submission that validates and serializes before transactionally
-  creating one queued row
-- unique durable run IDs with explicit conflicts rather than idempotent success
-
-The durable request snapshot is operational input, not completed artifact
-authority. Sprint 147 added no runner, status transition, retry, recovery,
-idempotency key, error/result persistence, API endpoint, Web UI, broker, QMT,
-live, or capital behavior. The existing synchronous paper-run API remains
-unchanged and database-free.
-
-Sprint 148 established:
-
-- one shared request-driven paper workflow reused by configured execution
-- exactly four immutable transitions: queued-to-running, queued-to-canceled,
-  running-to-succeeded, and running-to-failed
-- conditional repository updates under caller-owned transactions
-- one explicit runner for one caller-selected queued job, with output preflight
-  and workflow execution outside database transactions
-- expected local failure recording without persisted error details
-- queued-only manual cancellation
-
-The migration chain remains `0001 -> 0002 -> 0003`. Completed paper outputs
-remain authoritative files; SQLite stores no result payload or reference.
-Sprint 148 adds no queue scan, worker loop, polling, scheduler, retry, recovery,
-idempotency, error audit, partial-output cleanup, running-job cancellation, API
-endpoint, Web UI, broker, QMT, live, or capital behavior. Interrupted jobs may
-remain running and partial output may remain after failure.
-
-Sprint 149 established:
-
-- migration head `0004_paper_job_recovery_audit` with exactly submission-key
-  and execution-attempt tables
-- optional caller-key replay using the exact canonical request SHA-256 digest
-- atomic job/attempt claim and completion with sanitized error codes
-- explicit interrupted-job reconciliation, including legacy running jobs
-- explicit failed-job requeue after clean-output preflight
-
-Keyed submission is replay-safe durable creation, not exactly-once execution.
-Recovery and retry remain manual. No worker, scan, polling, cleanup, result
-reference, API, lifecycle mutation, broker, QMT, live, or capital behavior was
-added.
-
-Sprint 150 established:
-
-- migration head `0005_paper_job_result_references` with one compact
-  job-owned result-reference table
-- atomic succeeded job, attempt, and result-reference finalization for
-  API-owned execution and valid-output recovery
-- one configured existing paper root with the fixed
-  `jobs/<job-id>/paper/` server-owned layout
-- versioned durable submission, bounded job and attempt reads, explicit run,
-  cancel, retry, recover, and path-free result endpoints
-- one selected-job post-response task with no scan, worker loop, polling,
-  scheduler, or distributed queue
-- strict result reads that close the database session before reopening and
-  validating the authoritative artifact and result-summary files
-
-Submission does not execute automatically. Compact result references do not
-copy result payloads into SQLite, and the existing synchronous
-`POST /api/v1/paper-runs` remains unchanged and database-free. Sprint 150 adds
-no Web UI, authentication, broker, QMT, live, or capital behavior.
-
-Sprint 151 verified the complete M27 migration, transaction, recovery,
-idempotency, result-reference, artifact-authority, and browser-boundary contracts
-and closed the milestone without changing runtime code, schemas, dependencies,
-or test behavior.
-
-See:
-
-```text
-docs/milestones/milestone-027-persistence-and-paper-job-control-foundation.md
-docs/sprints/sprint-151-milestone-27-closeout.md
-```
-
-## Current Next Step
-
-Sprint 160 implements the isolated Founder Demo Workspace and first-run
-experience after Sprint 159 completed minimal authentication, Docker Compose,
-and Engineering MVP verification. Milestone 28 remains **In Progress** until a
-separate Founder/CTO verification and formal closeout action. Milestone 29 does
-not begin before that decision.
+9. Artifact files remain authoritative for completed outputs.
+10. Product metadata must not silently replace domain or artifact truth.
+11. Visible failure is better than hidden automation.
+12. Real Founder feedback outranks speculative product features.
+13. Internationalization must be designed before the visual system is finalized.
+14. Real capital remains deferred until research, paper evidence, portfolio review, execution-risk controls, operational readiness, and explicit approval are all strong.
