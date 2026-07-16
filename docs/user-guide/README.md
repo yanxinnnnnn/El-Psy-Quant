@@ -8,6 +8,10 @@ It is a review workspace for paper trading. It does not trade live, choose a
 winning strategy, guarantee returns, or replace human judgment. The Founder
 remains the final decision authority throughout the workflow.
 
+A first run may use either a clean standard workspace with explicit empty-state
+guidance or the isolated, visibly labeled Demo Workspace. Demo evidence is
+disposable and never shares standard storage by default.
+
 ## Start Here
 
 1. [Get started](getting-started.md) with the local workspace and its navigation.

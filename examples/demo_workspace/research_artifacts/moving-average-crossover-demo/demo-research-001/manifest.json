@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "experiment_name": "DEMO ONLY — Moving Average Crossover Review",
+  "strategy": "moving_average_crossover",
+  "run_id": "demo-research-001",
+  "data": {
+    "source": "csv",
+    "symbols": ["AAPL", "MSFT"]
+  },
+  "parameters": {
+    "fast_window": 20,
+    "slow_window": 50,
+    "initial_capital": 100000.0,
+    "transaction_cost_rate": 0.001,
+    "slippage_rate": 0.0005
+  },
+  "evaluation": {
+    "periods_per_year": 252.0,
+    "annual_risk_free_rate": 0.0
+  },
+  "artifacts": {
+    "config": "config.yaml",
+    "metadata": "metadata.json",
+    "summary": "results/summary.csv",
+    "metrics": "results/metrics.json",
+    "logs_dir": "logs"
+  }
+}

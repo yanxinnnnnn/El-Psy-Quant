@@ -17,6 +17,8 @@ SERVER_LOCAL_ENVIRONMENT_NAMES = (
     "EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT",
     "EL_PSY_QUANT_PRODUCT_DATABASE_PATH",
     "EL_PSY_QUANT_PAPER_ARTIFACT_ROOT",
+    "EL_PSY_QUANT_WORKSPACE_MODE",
+    "EL_PSY_QUANT_DEMO_WORKSPACE_ROOT",
 )
 
 
@@ -30,6 +32,8 @@ def build_canonical_openapi() -> str:
             evidence_artifact_root="",
             product_database_path="",
             paper_artifact_root="",
+            workspace_mode="standard",
+            demo_workspace_root="",
         )
         document = application.openapi()
     return json.dumps(

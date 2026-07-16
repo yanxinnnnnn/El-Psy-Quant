@@ -1,0 +1,18 @@
+{
+  "run_id": "demo-founder-submission-example",
+  "created_timestamp": "2026-01-18T14:00:00Z",
+  "starting_account_state": {
+    "timestamp": "2026-01-18T13:55:00Z",
+    "starting_cash": 50000.0,
+    "current_cash": 50000.0,
+    "positions": {}
+  },
+  "ending_account_state": {
+    "timestamp": "2026-01-18T14:05:00Z",
+    "starting_cash": 50000.0,
+    "current_cash": 50000.0,
+    "positions": {}
+  },
+  "orders": [],
+  "fills": []
+}

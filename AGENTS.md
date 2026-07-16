@@ -243,16 +243,34 @@ dependency, persistence, GET/list/current-state/apply endpoint, automatic
 transition, paper execution, capital allocation, authentication, Docker
 Compose, broker, QMT, live, or S159 behavior.
 
-The next sprint is:
+Sprint 159 added the minimal paired HTTP Basic boundary at the Web and API
+surfaces, explicit loopback-only Docker Compose startup with one standard
+`mvp-data` volume, deterministic authenticated MVP smoke verification, and the
+Founder operations and user guides. Unauthenticated developer mode remains
+loopback-only, partial credential configuration fails closed, and the existing
+same-origin gateway, domain, lifecycle, artifact, and paper-job boundaries were
+preserved. It added no user database, session service, RBAC, SaaS, demo seed,
+broker, QMT, live, or distributed behavior.
+
+The current sprint is:
 
 ```text
-Sprint 159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
+Sprint 160 — Founder Demo Workspace and First-run Experience
 ```
 
-Sprint 159 may add only the minimal authentication, Docker Compose, and MVP
-closeout behavior defined by its future authoritative issue. It must preserve
-the Sprint 152–158 same-origin transport, generated-contract, lifecycle and
-artifact authority, accessibility, and unified quality-gate boundaries.
+Sprint 160 adds one versioned deterministic demo source, an explicit atomic and
+idempotent backend/operator installer, an isolated Compose demo volume, a
+path-free read-only descriptor API, descriptor-driven first-run guidance, and
+bounded Paper Job submission usability improvements. The standard workspace
+remains unseeded. Demo and real storage remain separate, authoritative payloads
+remain files, repositories and Alembic remain product-state boundaries, and the
+browser never installs or reads demo source files. It adds no new quantitative
+capability, financial calculation, recommendation, automatic lifecycle
+transition, broker, QMT, live, or broad M29 product refresh behavior.
+
+After Sprint 160 implementation, Milestone 28 remains in progress until a
+separate Founder/CTO verification and formal closeout action. M29 must not begin
+before that decision.
 
 Approved productization sequence:
 
@@ -260,8 +278,8 @@ Approved productization sequence:
 M25 — S137      Paper Trading Productization Planning
 M26 — S138-S144 Paper Trading Application Service Foundation — Complete
 M27 — S145-S151 Persistence and Paper Job Control Foundation — Complete
-M28 — S152-S159 Founder Paper Trading Web Workspace — In Progress
-M29 — S160-S165 Product Feedback and Hardening
+M28 — S152-S160 Founder Paper Trading Web Workspace — In Progress
+M29 — S161-S166 Product Feedback and Hardening
 M30 —           Portfolio-Level Decision Review Foundation
 ```
 

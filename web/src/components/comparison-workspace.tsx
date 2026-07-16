@@ -400,6 +400,11 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
           onRefresh={comparison.refresh}
         />
       ) : null}
+
+      <section className="related-panel" aria-labelledby="comparison-lifecycle-next-title">
+        <div><p className="eyebrow">Your next review choice</p><h2 id="comparison-lifecycle-next-title">Prepare an explicit lifecycle review</h2><p>Carry only evidence you choose. A proposal remains non-executing and requires a separate human decision record.</p></div>
+        <Link className="primary-link" href="/lifecycle-review">Open lifecycle review</Link>
+      </section>
     </div>
   );
 }

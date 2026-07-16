@@ -222,8 +222,10 @@ Milestone 24 established explicit lifecycle governance while preserving these bo
 
 ## Phase 4 — Founder Paper Trading Productization
 
-Status: Milestones 25 through 27 complete; Milestone 28 is in progress after
-the Sprint 156 authoritative portfolio-record workspace delivery.
+Status: Milestones 25 through 27 complete; Milestone 28 is in progress through
+the Sprint 160 Founder Demo Workspace implementation. Sprint 159 completed the
+Engineering MVP; Product MVP verification and formal Founder/CTO closeout
+remain pending.
 
 The platform has enough domain depth. The current company-level objective is to make existing capabilities usable by the Founder through a coherent local product.
 
@@ -413,13 +415,16 @@ Do not introduce Kafka, Redis clusters, distributed queues, Kubernetes, or multi
 - Do not log secrets, credentials, or authentication material.
 - Validate all user-supplied identifiers and paths at the application boundary.
 
-The exact minimal authentication mechanism is deferred to an M28 implementation issue.
+Sprint 159 implemented the exact minimal mechanism as one paired local Founder
+HTTP Basic credential at both Web and API boundaries, with loopback-only
+publication and no user database, sessions, or RBAC.
 
 ### Local Deployment Baseline
 
 - One local machine is the supported target through M29.
 - FastAPI and Next.js remain separate logical components without requiring distributed infrastructure.
-- Docker Compose may provide convenient startup in M28.
+- Docker Compose provides the reproducible standard and isolated Demo startup
+  paths in M28.
 - SQLite data and artifact roots use explicit local volumes or mounts.
 - The product remains operable without Kubernetes, cloud services, or external message brokers.
 
@@ -528,7 +533,8 @@ S155 — Paper Run Launch and Status Workspace — Complete
 S156 — Equity, Positions, Orders, and Fills Views — Complete
 S157 — Paper Run Comparison Workspace — Complete
 S158 — Lifecycle Proposal, Human Review, and Timeline Workspace — Complete
-S159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout — Next
+S159 — Minimal Authentication, Docker Compose, and End-to-End Engineering MVP Closeout — Complete
+S160 — Founder Demo Workspace and First-run Experience — Implementation complete; Founder/CTO verification remains
 ```
 
 Exit criteria:
@@ -547,12 +553,12 @@ Status: Planned.
 Sprint sequence:
 
 ```text
-S160 — Founder Usage Review and Hardening Prioritization
-S161 — Workflow and Information Architecture Hardening
-S162 — Reliability, Idempotency, and Job Recovery Hardening
-S163 — Error Surface, Observability, and Audit Hardening
-S164 — Migration, Test, and Local Deployment Hardening
-S165 — Milestone 29 Closeout and M30 Handoff
+S161 — Founder Usage Review and Hardening Prioritization
+S162 — Workflow and Information Architecture Hardening
+S163 — Reliability, Idempotency, and Job Recovery Hardening
+S164 — Error Surface, Observability, and Audit Hardening
+S165 — Migration, Test, and Local Deployment Hardening
+S166 — Milestone 29 Closeout and M30 Handoff
 ```
 
 Exit criteria:
@@ -841,18 +847,11 @@ docs/sprints/sprint-151-milestone-27-closeout.md
 
 ## Current Next Step
 
-```text
-Sprint 159 — Minimal Authentication, Docker Compose, and End-to-End MVP Closeout
-```
-
-Sprint 158 delivered one `/lifecycle-review` route using only the existing
-versioned lifecycle proposal and human-review POST commands. Generated OpenAPI
-request and response contracts remain authoritative, while backend domain
-factories continue to validate every lifecycle and human-control rule. The
-browser displays immutable snapshots, proposals, ordered unresolved evidence,
-review records, and an in-session response sequence without inferring approval,
-execution, promotion, or current state. Sprint 159 is the next separately
-bounded closeout sprint; Sprint 158 added no authentication or Docker Compose.
+Sprint 160 implements the isolated Founder Demo Workspace and first-run
+experience after Sprint 159 completed minimal authentication, Docker Compose,
+and Engineering MVP verification. Milestone 28 remains **In Progress** until a
+separate Founder/CTO verification and formal closeout action. Milestone 29 begins
+only after that decision, with its hardening sequence rebased to S161–S166.
 
 ## One-Line Strategy
 

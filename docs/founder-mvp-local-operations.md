@@ -1,8 +1,8 @@
 # Founder Web MVP Local Operations
 
-This runbook covers reproducible local startup and verification of the existing
-Sprint 152–158 Founder workflows. It is implementation and operating guidance,
-not a Milestone 28 governance closeout.
+This runbook covers reproducible standard and Demo startup and verification of
+the Sprint 152–160 Founder workflows. It is implementation and operating
+guidance, not a Milestone 28 governance closeout.
 
 ## Runtime Boundary
 
@@ -19,10 +19,12 @@ Browser
 
 The browser never receives a filesystem path or database connection and never
 accesses SQLite, artifact directories, Python modules, QMT, MiniQMT, or a broker.
-Compose adds two processes and one local volume; it does not create a
-microservice, distributed worker, or competing domain boundary.
+Compose adds two processes and one selected local volume; it does not create a
+microservice, distributed worker, or competing domain boundary. Standard and
+Demo startup select different named volumes and never share product storage by
+default.
 
-## Fresh Checkout Startup
+## Standard Workspace Startup
 
 Prerequisites:
 
@@ -77,7 +79,9 @@ and explicitly upgrades the SQLite database before serving traffic:
 /data/paper/           authoritative completed paper outputs
 ```
 
-An empty research or evidence root produces the existing bounded empty state.
+An empty research or evidence root produces explicit first-run guidance rather
+than demo records. Standard startup never runs the demo installer and never
+seeds product state.
 Paper-job list and submission routes are available after the migration reaches
 the existing `0005_paper_job_result_references` head. Migrations never run from
 the browser or Next.js process.
@@ -93,6 +97,65 @@ docker compose cp C:\path\to\evidence\. backend:/data/evidence/
 Restart only the backend if an operating-system permission change requires it;
 ordinary artifact reads need no refresh process. Artifact files remain payload
 authority. SQLite is not populated with complete artifact payloads.
+
+## Isolated Demo Workspace Startup
+
+The Demo Workspace is an explicit, disposable alternative to the standard
+workspace. Stop the standard instance first because both modes publish the same
+loopback ports:
+
+```powershell
+docker compose down
+docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
+docker compose -f compose.yaml -f compose.demo.yaml ps
+```
+
+The overlay uses Compose project identity `el-psy-quant-demo` and the distinct
+`el-psy-quant-demo_demo-data` volume. Before FastAPI serves requests, the
+backend validates the complete versioned `examples/demo_workspace/` source,
+upgrades only the Demo SQLite database through Alembic, and installs artifacts
+and compact records through existing readers, repositories, and services. The
+browser cannot invoke the installer.
+
+The install is deterministic and replay-safe for the same dataset version. A
+repeat startup validates the existing installation and leaves it unchanged. A
+source conflict, invalid source, unrelated non-empty target, or target not
+explicitly configured as Demo fails startup without exposing partial installed
+state.
+
+Open `http://127.0.0.1:3000` with the same `.env` Founder credential. The shell
+shows a persistent **Demo Workspace** identity and warns that records are
+disposable examples, not real user evidence. From Overview, follow the exact
+backend-provided journey:
+
+```text
+Strategy -> Research Evidence -> Governance Evidence -> Paper Run
+  -> Portfolio Result -> Comparison -> Lifecycle Review
+  -> Human Decision Evidence
+```
+
+The lifecycle example remains non-executing. Its deferred human-review input is
+governance evidence and does not create mutable current state. The optional
+Paper Job example only fills the form after an explicit user action; it never
+submits automatically.
+
+Stop while preserving the installed Demo Workspace:
+
+```powershell
+docker compose -f compose.yaml -f compose.demo.yaml down
+```
+
+Reset only disposable Demo storage, then reinstall:
+
+```powershell
+docker compose -f compose.yaml -f compose.demo.yaml down --volumes
+docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
+```
+
+This reset does not address the standard `mvp-data` volume. To return to the
+standard workspace, stop Demo and run `docker compose up --detach`. Never run
+the standard `docker compose down --volumes` command unless the real local
+database and authoritative artifacts may be deleted.
 
 ## End-to-End Smoke Verification
 
@@ -113,6 +176,9 @@ checks:
   return their checked contracts
 - lifecycle proposal and deferred human-review commands normalize successfully
   through the same-origin gateway
+- standard mode returns the bounded Demo-not-configured response; Demo mode
+  follows descriptor-provided strategy, research, evidence, job, result,
+  comparison, proposal, and deferred-review references
 
 The lifecycle commands are synchronous and stateless. Verification does not
 submit a durable paper job, create paper outputs, infer approval, apply a
@@ -129,7 +195,7 @@ The health checks send the configured credential but never write it to their
 output. Application code must not log `Authorization` or credential environment
 variables.
 
-## Normal Stop, Restart, and Reset
+## Standard Stop, Restart, and Reset
 
 Stop processes and preserve all local state:
 
@@ -199,6 +265,26 @@ uv run alembic upgrade head
 uv run uvicorn el_psy_quant.api.app:app --host 127.0.0.1 --port 8000
 ```
 
+For a direct developer Demo installation, use a dedicated empty directory and
+set Demo mode explicitly. Do not point these variables at standard or real-user
+storage:
+
+```powershell
+New-Item -ItemType Directory -Force .local-demo
+$demoRoot=(Resolve-Path .local-demo).Path
+$env:EL_PSY_QUANT_WORKSPACE_MODE="demo"
+$env:EL_PSY_QUANT_DEMO_WORKSPACE_ROOT=$demoRoot
+$env:EL_PSY_QUANT_PRODUCT_DATABASE_PATH="$demoRoot\product.sqlite3"
+$env:EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT="$demoRoot\research"
+$env:EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT="$demoRoot\evidence"
+$env:EL_PSY_QUANT_PAPER_ARTIFACT_ROOT="$demoRoot\paper"
+uv run el-psy-quant install-demo-workspace --source-root examples/demo_workspace --workspace-root $demoRoot --alembic-config alembic.ini
+```
+
+The command performs its own Alembic upgrade. Repeating it with the same source
+is a validated replay. Use a different empty directory to test another source
+version; the installer will not overwrite a conflicting or unrelated target.
+
 In a second terminal, configure the same credential and start Next.js:
 
 ```powershell
@@ -226,3 +312,8 @@ bind an unauthenticated API or Web process to a LAN or public interface.
   completed the Alembic upgrade and that the named volume is writable.
 - Port binding fails: stop the conflicting local process. Do not change the
   Compose bindings to a non-loopback host for this MVP.
+- The Demo service exits before serving: inspect backend logs for a bounded
+  source-validation, dataset-conflict, or non-empty-target refusal. Do not move
+  or copy real files into the Demo volume to work around the refusal.
+- Demo and standard cannot start together: this is expected because both use
+  `127.0.0.1:3000` and `127.0.0.1:8000`; stop one mode before starting the other.

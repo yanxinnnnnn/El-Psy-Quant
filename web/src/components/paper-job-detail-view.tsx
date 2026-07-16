@@ -205,6 +205,10 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
             <div className="section-heading"><div><p className="eyebrow">Numbered operational audit</p><h2 id="attempts-title">Attempts</h2></div><p>Order and approved error codes come from the backend.</p></div>
             {attemptsResource.state.status === "loading" ? <div className="inline-loading" role="status" aria-busy="true">Loading attempts…</div> : attemptsResource.state.status === "error" ? <div className="mutation-notice mutation-notice--error" role="alert"><strong>{paperJobErrorTitle(attemptsResource.state.code)}</strong><p>{attemptsResource.state.message}</p><RequestId value={attemptsResource.state.requestId} /><button className="secondary-button" type="button" onClick={attemptsResource.retry}>Retry attempts</button></div> : attemptsResource.state.data.length === 0 ? <p className="reference-empty">The attempts request succeeded. No attempts exist for this job.</p> : <div className="table-scroll"><table className="attempts-table"><caption>Attempts in exact API order</caption><thead><tr><th>Attempt ID</th><th>Number</th><th>Status</th><th>Started</th><th>Completed</th><th>Error code</th></tr></thead><tbody>{attemptsResource.state.data.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td>{attempt.status}</td><td>{attempt.started_timestamp}</td><td>{attempt.completed_timestamp ?? "Not available"}</td><td>{attemptErrorDescription(attempt.error_code)}</td></tr>)}</tbody></table></div>}
           </section>
+          <section className="related-panel" aria-labelledby="paper-comparison-next-title">
+            <div><p className="eyebrow">Your next review choice</p><h2 id="paper-comparison-next-title">Compare available paper results</h2><p>Choose two to four backend-available results. No ranking or recommendation is produced.</p></div>
+            <Link className="primary-link" href="/comparisons">Open comparison workspace</Link>
+          </section>
         </article>
       ) : null}
     </div>

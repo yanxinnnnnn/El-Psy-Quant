@@ -12,6 +12,10 @@ from el_psy_quant.api.auth import resolve_founder_auth_config
 from el_psy_quant.api.errors import register_exception_handlers
 from el_psy_quant.api.middleware import RequestIdMiddleware
 from el_psy_quant.api.routes import api_v1_router
+from el_psy_quant.demo_workspace import (
+    resolve_demo_workspace_root,
+    resolve_workspace_mode,
+)
 from el_psy_quant.persistence import (
     create_product_database_engine,
     create_product_session_factory,
@@ -43,6 +47,8 @@ def create_app(
     paper_artifact_root: str | Path | None = None,
     founder_username: str | None = None,
     founder_password: str | None = None,
+    workspace_mode: str | None = None,
+    demo_workspace_root: str | Path | None = None,
 ) -> FastAPI:
     """Create one independent, side-effect-free local API application."""
     configured_database_path = _configured_artifact_root(
@@ -88,6 +94,10 @@ def create_app(
     application.state.founder_auth = resolve_founder_auth_config(
         username=founder_username,
         password=founder_password,
+    )
+    application.state.workspace_mode = resolve_workspace_mode(workspace_mode)
+    application.state.demo_workspace_root = resolve_demo_workspace_root(
+        demo_workspace_root
     )
     application.state.product_database_engine = engine
     application.state.product_session_factory = session_factory

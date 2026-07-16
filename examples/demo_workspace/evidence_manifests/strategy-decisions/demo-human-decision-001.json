@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "manifest_id": "demo human decision manifest 001",
+  "summary_references": [
+    {
+      "schema_version": 1,
+      "reference_type": "strategy_decision_summary",
+      "reference_id": "demo-research-report-001",
+      "label": "DEMO ONLY — report evidence",
+      "description": "Unresolved example governance reference."
+    }
+  ],
+  "record_references": [
+    {
+      "schema_version": 1,
+      "reference_type": "strategy_decision_record",
+      "reference_id": "demo-human-review-deferred-001",
+      "label": "DEMO ONLY — deferred human decision",
+      "description": "Example human decision evidence; not approval or execution."
+    }
+  ],
+  "created_by": "demo-founder",
+  "created_timestamp": "2026-01-17T12:00:00Z",
+  "description": "Disposable demo-only human decision evidence."
+}

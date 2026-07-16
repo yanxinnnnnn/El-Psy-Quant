@@ -1,12 +1,46 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { LifecycleReviewWorkspace } from "@/components/lifecycle-review-workspace";
 import type {
+  DemoWorkspaceDescriptorResponse,
   LifecycleTransitionProposalResponse,
   LifecycleTransitionReviewResponse,
 } from "@/lib/api-client";
+
+function demoSourceJson(relativePath: string): Record<string, unknown> {
+  return JSON.parse(
+    readFileSync(resolve(process.cwd(), "..", "examples", "demo_workspace", relativePath), "utf8"),
+  ) as Record<string, unknown>;
+}
+
+function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
+  const manifest = demoSourceJson("workspace-manifest.json");
+  const jobs = manifest.paper_jobs as Array<{ job_id: string; run_id: string }>;
+  const submission = manifest.paper_submission_example as { idempotency_key: string };
+  return {
+    schema_version: manifest.schema_version as 1,
+    dataset_id: manifest.dataset_id as string,
+    dataset_version: manifest.dataset_version as number,
+    display_name: manifest.display_name as string,
+    warning: manifest.warning as string,
+    canonical_strategy_name: manifest.canonical_strategy_name as string,
+    research_run: manifest.research_run as DemoWorkspaceDescriptorResponse["research_run"],
+    evidence_manifests: manifest.evidence_manifests as DemoWorkspaceDescriptorResponse["evidence_manifests"],
+    paper_jobs: jobs.map(({ job_id, run_id }) => ({ job_id, run_id })),
+    comparison_candidate_job_ids: manifest.comparison_candidate_job_ids as string[],
+    lifecycle_proposal_example: demoSourceJson("lifecycle_records/proposal-request.json") as DemoWorkspaceDescriptorResponse["lifecycle_proposal_example"],
+    lifecycle_review_example: demoSourceJson("lifecycle_records/human-review-request.json") as DemoWorkspaceDescriptorResponse["lifecycle_review_example"],
+    paper_job_submission_example: {
+      idempotency_key: submission.idempotency_key,
+      request: demoSourceJson("paper_artifacts/submission-example.json") as DemoWorkspaceDescriptorResponse["paper_job_submission_example"]["request"],
+    },
+  };
+}
 
 const proposalResponse: LifecycleTransitionProposalResponse = {
   proposal: {
@@ -131,6 +165,34 @@ describe("LifecycleReviewWorkspace", () => {
     expect(screen.queryByRole("heading", { name: "Record an explicit human review" })).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("loads lifecycle inputs from the backend demo descriptor without applying a transition", async () => {
+    const descriptor = demoDescriptorFromVersionedSource();
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response(descriptor, 200, "descriptor-request"))
+      .mockResolvedValueOnce(response(proposalResponse, 200, "proposal-request"));
+    vi.stubGlobal("fetch", fetcher);
+    render(<LifecycleReviewWorkspace />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Load demo lifecycle example" }));
+
+    expect(await within(screen.getByRole("group", { name: "Source lifecycle snapshot" })).findByLabelText("Snapshot ID")).toHaveValue(
+      descriptor.lifecycle_proposal_example.source_snapshot.snapshot_id,
+    );
+    expect(screen.getByText("No command on this page applies a lifecycle transition.")).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "Create non-executing proposal" }));
+    const review = await screen.findByRole("group", { name: "Human review record" });
+    expect(within(review).getByLabelText("Transition record ID")).toHaveValue(
+      descriptor.lifecycle_review_example.transition_record_id,
+    );
+    expect(within(review).getByLabelText(/^Review outcome/)).toHaveValue(
+      descriptor.lifecycle_review_example.review_outcome,
+    );
+    expect(fetcher.mock.calls[0][0]).toBe("/api/backend/api/v1/demo-workspace");
+    expect(fetcher.mock.calls[1][0]).toBe("/api/backend/api/v1/lifecycle-transition-proposals");
   });
 
   it("lets the backend reject a structurally complete proposal without recreating evidence rules", async () => {

@@ -220,6 +220,10 @@ function ResultContent({ result }: { result: PaperJobResultResponse }) {
           <div><dt>Position change count</dt><dd>{summary.audit.position_change_count}</dd></div>
         </dl>
       </section>
+      <section className="related-panel" aria-labelledby="portfolio-comparison-next-title">
+        <div><p className="eyebrow">Your next review choice</p><h2 id="portfolio-comparison-next-title">Compare this result with other available records</h2><p>Select comparison candidates explicitly; the workspace does not rank or recommend an outcome.</p></div>
+        <Link className="primary-link" href="/comparisons">Choose comparison results</Link>
+      </section>
     </article>
   );
 }

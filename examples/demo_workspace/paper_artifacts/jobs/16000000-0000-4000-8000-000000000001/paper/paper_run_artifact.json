@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "created_timestamp": "2026-01-15T14:00:00+00:00",
+  "starting_account_state": {
+    "timestamp": "2026-01-15T13:55:00+00:00",
+    "starting_cash": 100000.0,
+    "current_cash": 100000.0,
+    "positions": []
+  },
+  "ending_account_state": {
+    "timestamp": "2026-01-15T14:02:00+00:00",
+    "starting_cash": 100000.0,
+    "current_cash": 99000.0,
+    "positions": [
+      {"symbol": "AAPL", "quantity": 10.0}
+    ]
+  },
+  "orders": [
+    {
+      "order_id": "demo-aapl-order-001",
+      "timestamp": "2026-01-15T14:01:00+00:00",
+      "symbol": "AAPL",
+      "side": "buy",
+      "quantity": 10.0,
+      "status": "filled"
+    }
+  ],
+  "fills": [
+    {
+      "timestamp": "2026-01-15T14:01:30+00:00",
+      "symbol": "AAPL",
+      "side": "buy",
+      "quantity": 10.0,
+      "price": 100.0,
+      "order_id": "demo-aapl-order-001"
+    }
+  ],
+  "session_summary": {
+    "session_start_timestamp": "2026-01-15T13:55:00+00:00",
+    "session_end_timestamp": "2026-01-15T14:02:00+00:00",
+    "starting_cash": 100000.0,
+    "ending_cash": 99000.0,
+    "cash_change": -1000.0,
+    "starting_positions": [],
+    "ending_positions": [
+      {"symbol": "AAPL", "quantity": 10.0}
+    ],
+    "position_changes": [
+      {
+        "symbol": "AAPL",
+        "starting_quantity": 0.0,
+        "ending_quantity": 10.0,
+        "quantity_change": 10.0
+      }
+    ],
+    "order_count": 1,
+    "fill_count": 1
+  }
+}

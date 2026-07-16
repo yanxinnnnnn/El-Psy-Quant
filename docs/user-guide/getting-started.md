@@ -39,6 +39,29 @@ An empty page and an unavailable page mean different things:
 
 Do not treat an unavailable evidence source as evidence that no records exist.
 
+On a healthy new standard workspace, Overview states that the application is
+running but no workspace evidence has been loaded. It offers two operator-owned
+paths: start the isolated Demo Workspace with the documented terminal commands,
+or load/create real artifacts through the documented workflows. The browser
+does not seed data, initialize the database, or run an installer.
+
+## Choose Standard or Demo
+
+Use the standard workspace for real local research, governance, and paper
+artifacts. It starts clean and remains separate from examples.
+
+Use the Demo Workspace only for a disposable first tour. Its header always says
+**Demo Workspace** and warns that the data is example evidence, not real user
+data. Overview provides exact links from the backend descriptor through the
+Moving Average Crossover strategy, saved research and governance evidence, two
+succeeded paper results, comparison, lifecycle review, and human decision
+evidence. These identities are not guessed by the browser.
+
+Standard and Demo use different storage volumes but the same loopback ports, so
+an operator must stop one before starting the other. See the
+[local operations guide](../founder-mvp-local-operations.md) for start, replay,
+safe Demo reset, and return-to-standard commands.
+
 ## Learn the Navigation
 
 - **Strategies and Research** contains built-in strategy definitions and saved

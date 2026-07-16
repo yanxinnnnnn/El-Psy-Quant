@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "run_id": "demo-research-001",
+  "source_artifact": "results/summary.csv",
+  "metrics": [
+    {
+      "symbol": "AAPL",
+      "initial_equity": 100000.0,
+      "final_equity": 100000.0,
+      "total_return": 0.0,
+      "max_drawdown": -0.04,
+      "periods": 252.0,
+      "cagr": 0.0,
+      "annualized_volatility": 0.12,
+      "sharpe_ratio": 0.0
+    },
+    {
+      "symbol": "MSFT",
+      "initial_equity": 100000.0,
+      "final_equity": 100000.0,
+      "total_return": 0.0,
+      "max_drawdown": -0.05,
+      "periods": 252.0,
+      "cagr": 0.0,
+      "annualized_volatility": 0.14,
+      "sharpe_ratio": 0.0
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "dataset_id": "founder-demo-workspace",
+  "dataset_version": 1,
+  "display_name": "Founder Demo Workspace",
+  "warning": "DEMO ONLY — disposable example evidence, not real user data or trading advice.",
+  "canonical_strategy_name": "moving_average_crossover",
+  "research_run": {
+    "experiment_slug": "moving-average-crossover-demo",
+    "run_id": "demo-research-001"
+  },
+  "evidence_manifests": [
+    {
+      "manifest_type": "report_artifact_manifest",
+      "artifact_key": "demo-research-report-001"
+    },
+    {
+      "manifest_type": "strategy_decision_manifest",
+      "artifact_key": "demo-human-decision-001"
+    },
+    {
+      "manifest_type": "strategy_review_workflow_manifest",
+      "artifact_key": "demo-lifecycle-review-001"
+    }
+  ],
+  "paper_jobs": [
+    {
+      "job_id": "16000000-0000-4000-8000-000000000001",
+      "attempt_id": "16000000-0000-4000-8100-000000000001",
+      "run_id": "demo-paper-aapl-001",
+      "request_relative_path": "paper_artifacts/jobs/16000000-0000-4000-8000-000000000001/request.json",
+      "submitted_timestamp": "2026-01-15T14:00:00Z",
+      "started_timestamp": "2026-01-15T14:01:00Z",
+      "completed_timestamp": "2026-01-15T14:02:00Z"
+    },
+    {
+      "job_id": "16000000-0000-4000-8000-000000000002",
+      "attempt_id": "16000000-0000-4000-8100-000000000002",
+      "run_id": "demo-paper-msft-001",
+      "request_relative_path": "paper_artifacts/jobs/16000000-0000-4000-8000-000000000002/request.json",
+      "submitted_timestamp": "2026-01-16T14:00:00Z",
+      "started_timestamp": "2026-01-16T14:01:00Z",
+      "completed_timestamp": "2026-01-16T14:02:00Z"
+    }
+  ],
+  "comparison_candidate_job_ids": [
+    "16000000-0000-4000-8000-000000000001",
+    "16000000-0000-4000-8000-000000000002"
+  ],
+  "lifecycle_proposal_relative_path": "lifecycle_records/proposal-request.json",
+  "lifecycle_review_relative_path": "lifecycle_records/human-review-request.json",
+  "paper_submission_example": {
+    "idempotency_key": "demo-founder-submission-v1",
+    "request_relative_path": "paper_artifacts/submission-example.json"
+  }
+}

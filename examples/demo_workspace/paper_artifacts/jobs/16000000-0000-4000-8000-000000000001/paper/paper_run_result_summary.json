@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "run_id": "demo-paper-aapl-001",
+  "request": {
+    "schema_version": 1,
+    "created_timestamp": "2026-01-15T14:00:00+00:00"
+  },
+  "artifact": {
+    "schema_version": 1,
+    "created_timestamp": "2026-01-15T14:00:00+00:00",
+    "path": "paper_run_artifact.json"
+  },
+  "audit": {
+    "schema_version": 1,
+    "created_timestamp": "2026-01-15T14:00:00+00:00",
+    "session_start_timestamp": "2026-01-15T13:55:00+00:00",
+    "session_end_timestamp": "2026-01-15T14:02:00+00:00",
+    "starting_cash": 100000.0,
+    "ending_cash": 99000.0,
+    "cash_change": -1000.0,
+    "order_count": 1,
+    "fill_count": 1,
+    "starting_position_count": 0,
+    "ending_position_count": 1,
+    "position_change_count": 1
+  }
+}

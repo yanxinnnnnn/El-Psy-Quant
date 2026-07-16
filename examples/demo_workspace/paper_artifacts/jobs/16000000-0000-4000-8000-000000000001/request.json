@@ -1,0 +1,36 @@
+{
+  "run_id": "demo-paper-aapl-001",
+  "created_timestamp": "2026-01-15T14:00:00Z",
+  "starting_account_state": {
+    "timestamp": "2026-01-15T13:55:00Z",
+    "starting_cash": 100000.0,
+    "current_cash": 100000.0,
+    "positions": {}
+  },
+  "ending_account_state": {
+    "timestamp": "2026-01-15T14:02:00Z",
+    "starting_cash": 100000.0,
+    "current_cash": 99000.0,
+    "positions": {"AAPL": 10.0}
+  },
+  "orders": [
+    {
+      "order_id": "demo-aapl-order-001",
+      "timestamp": "2026-01-15T14:01:00Z",
+      "symbol": "AAPL",
+      "side": "buy",
+      "quantity": 10.0,
+      "status": "filled"
+    }
+  ],
+  "fills": [
+    {
+      "timestamp": "2026-01-15T14:01:30Z",
+      "symbol": "AAPL",
+      "side": "buy",
+      "quantity": 10.0,
+      "price": 100.0,
+      "order_id": "demo-aapl-order-001"
+    }
+  ]
+}
