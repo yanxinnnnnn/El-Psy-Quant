@@ -77,7 +77,11 @@ There is:
 - never labels the aggregate ready when a required dependency failed;
 - preserves stable code, sanitized backend detail, request ID, localized
   explanation, bounded recovery, and individual retry; and
-- leaves independent successful sources visible during partial failure.
+- leaves independent successful sources visible during partial failure;
+- preserves the last settled success count/request identity or failure
+  code/request identity/detail/guidance while that source refreshes; and
+- presents refresh or retry progress separately with the source action visible
+  and disabled until the new outcome replaces the retained evidence.
 
 ### Human attention
 
@@ -174,6 +178,9 @@ record or connect independent records.
 The technical region names each endpoint owner and exposes available request
 identity. Every source has an explicit manual refresh. The region documents the
 no-polling, no-cache, no-persistence, no-aggregate-API, and no-command boundary.
+During a pending refresh, technical detail and operational attention continue to
+reflect the same last settled evidence as readiness, so a known dependency
+failure cannot disappear or become healthy before the replacement read settles.
 
 ## Bilingual, Responsive, and Accessible Behavior
 
@@ -203,6 +210,7 @@ Focused tests cover:
 - populated, healthy-empty, unavailable, invalid, and partial availability;
 - raw stable code and request ID;
 - independent source retry;
+- deferred error retry and success refresh with retained settled evidence;
 - stale-response suppression;
 - manual refresh without polling;
 - Paper Job backend order and duplicates;
@@ -262,18 +270,21 @@ desktop widths:
 4. Confirm one failed region does not erase successful regions.
 5. Confirm stable error code, sanitized detail, request ID, localized guidance,
    and individual retry.
-6. Confirm no polling and no command request occurs on refresh.
-7. Confirm Paper Job order, duplicates, IDs, raw/localized statuses, attempt
+6. Confirm refresh/retry progress keeps prior settled evidence visible across
+   readiness, attention, and technical detail, disables the pending source
+   action, and replaces the evidence only when the read settles.
+7. Confirm no polling and no command request occurs on refresh.
+8. Confirm Paper Job order, duplicates, IDs, raw/localized statuses, attempt
    summary, timestamps, result authority, and exact links.
-8. Confirm only allow-listed operational attention appears.
-9. Confirm explicit result selection and exact repeated ordered comparison
+9. Confirm only allow-listed operational attention appears.
+10. Confirm explicit result selection and exact repeated ordered comparison
    parameters.
-10. Confirm research and evidence remain separate and source ordered.
-11. Confirm Standard guidance does not connect records and Demo guidance
+11. Confirm research and evidence remain separate and source ordered.
+12. Confirm Standard guidance does not connect records and Demo guidance
     preserves the exact descriptor journey.
-12. Confirm no Dashboard command, ranking, recommendation, winner, profitability
+13. Confirm no Dashboard command, ranking, recommendation, winner, profitability
     claim, or durable lifecycle pending-review claim.
-13. Confirm keyboard focus, named regions/actions, alerts, disclosures, wrapping,
+14. Confirm keyboard focus, named regions/actions, alerts, disclosures, wrapping,
     and no global horizontal page overflow.
 
 ## Known Limitations and S165 Handoff

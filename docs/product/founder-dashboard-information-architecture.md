@@ -412,7 +412,13 @@ dependencies appear ready. The aggregate summary treats all five sources
 independently: mixed success and error is partial; `API unreachable` is reserved
 for an actual process-health `api_unavailable` failure with no successful read;
 other error-only evidence is unavailable; and an in-flight refresh retains the
-last completed success or failure evidence.
+last completed success or failure evidence. A pending refresh is shown as a
+separate localized state with its source action still visible and disabled.
+Successful evidence keeps its prior count and request identity; failed evidence
+keeps its stable code, request identity, backend detail, explanation, and
+recovery. Attention and technical detail continue to use that same settled
+evidence until the new read settles, then all three surfaces replace it with the
+new outcome. Sequence guards continue to reject stale responses.
 
 Stable raw error codes, sanitized backend detail, and request IDs remain visible
 where returned. Error surfaces use localized explanation and bounded recovery

@@ -67,12 +67,34 @@ type ResultCandidate = {
   rowKey: string;
 };
 
-function effectiveResourceState<Data>(
+type ApiResourcePresentation<Data> = {
+  evidence: ApiResourceState<Data>;
+  initialLoading: boolean;
+  refreshPending: boolean;
+};
+
+function apiResourcePresentation<Data>(
   state: ApiResourceState<Data>,
-): ApiResourceState<Data> {
-  return state.status === "loading" && state.previous !== null
-    ? state.previous
-    : state;
+): ApiResourcePresentation<Data> {
+  if (state.status !== "loading") {
+    return {
+      evidence: state,
+      initialLoading: false,
+      refreshPending: false,
+    };
+  }
+  if (state.previous === null) {
+    return {
+      evidence: state,
+      initialLoading: true,
+      refreshPending: false,
+    };
+  }
+  return {
+    evidence: state.previous,
+    initialLoading: false,
+    refreshPending: true,
+  };
 }
 
 function reconcileComparisonSelection(
@@ -136,6 +158,21 @@ function isStandardWorkspace(
 function environmentDependencyState(
   state: ApiResourceState<DemoWorkspaceDescriptorResponse>,
 ): ApiResourceState<unknown> {
+  if (
+    state.status === "loading" &&
+    state.previous !== null &&
+    isStandardWorkspace(state.previous)
+  ) {
+    return {
+      ...state,
+      previous: {
+        status: "success",
+        data: null,
+        requestId: state.previous.requestId,
+        sequence: state.previous.sequence,
+      },
+    };
+  }
   if (isStandardWorkspace(state) && state.status === "error") {
     return {
       status: "success",
@@ -269,6 +306,7 @@ function ReadinessSource({
   endpoint,
   state,
   count,
+  refreshPending,
   retry,
   processOnly = false,
   identityOnly = false,
@@ -277,6 +315,7 @@ function ReadinessSource({
   endpoint: string;
   state: ApiResourceState<unknown>;
   count: number | null;
+  refreshPending: boolean;
   retry: Retry;
   processOnly?: boolean;
   identityOnly?: boolean;
@@ -289,7 +328,7 @@ function ReadinessSource({
   );
 
   return (
-    <li className="readiness-source">
+    <li className="readiness-source" aria-busy={refreshPending}>
       <div className="readiness-source__heading">
         <div>
           <strong>{label}</strong>
@@ -319,13 +358,51 @@ function ReadinessSource({
           </details>
         </>
       )}
+      {refreshPending && state.status !== "loading" ? (
+        <div
+          className="readiness-source__pending"
+          role="status"
+          aria-live="polite"
+        >
+          <StatusBadge
+            label={t(
+              state.status === "error"
+                ? "states.retrying"
+                : "states.refreshing",
+            )}
+            tone="info"
+          />
+          <span>
+            {t(
+              state.status === "error"
+                ? "retryInProgress"
+                : "refreshInProgress",
+              { source: label },
+            )}
+          </span>
+        </div>
+      ) : null}
       {state.status !== "loading" ? (
         <div className="readiness-source__actions">
           {state.requestId ? (
             <p className="request-id">{common("requestId", { requestId: state.requestId })}</p>
           ) : null}
-          <button className="quiet-button" type="button" onClick={retry}>
-            {state.status === "error" ? t("retrySource", { source: label }) : t("refreshSource", { source: label })}
+          <button
+            className="quiet-button"
+            type="button"
+            onClick={retry}
+            disabled={refreshPending}
+          >
+            {refreshPending
+              ? t(
+                  state.status === "error"
+                    ? "retryingSource"
+                    : "refreshingSource",
+                  { source: label },
+                )
+              : state.status === "error"
+                ? t("retrySource", { source: label })
+                : t("refreshSource", { source: label })}
           </button>
         </div>
       ) : null}
@@ -357,14 +434,18 @@ function ReadinessRegion({
   retryJobs: Retry;
 }) {
   const t = useTranslations("overview.dashboard.readiness");
-  const identity = environmentDependencyState(environment);
-  const effectiveHealth = effectiveResourceState(health);
+  const healthPresentation = apiResourcePresentation(health);
+  const environmentPresentation = apiResourcePresentation(environment);
+  const researchPresentation = apiResourcePresentation(research);
+  const evidencePresentation = apiResourcePresentation(evidence);
+  const jobsPresentation = apiResourcePresentation(jobs);
+  const effectiveHealth = healthPresentation.evidence;
   const effectiveIdentity = environmentDependencyState(
-    effectiveResourceState(environment),
+    environmentPresentation.evidence,
   );
-  const effectiveResearch = effectiveResourceState(research);
-  const effectiveEvidence = effectiveResourceState(evidence);
-  const effectiveJobs = effectiveResourceState(jobs);
+  const effectiveResearch = researchPresentation.evidence;
+  const effectiveEvidence = evidencePresentation.evidence;
+  const effectiveJobs = jobsPresentation.evidence;
   const sources = [
     effectiveHealth,
     effectiveIdentity,
@@ -428,38 +509,43 @@ function ReadinessRegion({
         <ReadinessSource
           label={t("sources.process")}
           endpoint="/api/v1/health"
-          state={health}
-          count={health.status === "success" ? 1 : null}
+          state={effectiveHealth}
+          count={effectiveHealth.status === "success" ? 1 : null}
+          refreshPending={healthPresentation.refreshPending}
           retry={retryHealth}
           processOnly
         />
         <ReadinessSource
           label={t("sources.identity")}
           endpoint="/api/v1/demo-workspace"
-          state={identity}
-          count={identity.status === "success" ? 1 : null}
+          state={effectiveIdentity}
+          count={effectiveIdentity.status === "success" ? 1 : null}
+          refreshPending={environmentPresentation.refreshPending}
           retry={retryEnvironment}
           identityOnly
         />
         <ReadinessSource
           label={t("sources.research")}
           endpoint="/api/v1/research-runs"
-          state={research}
-          count={sourceCount(research)}
+          state={effectiveResearch}
+          count={sourceCount(effectiveResearch)}
+          refreshPending={researchPresentation.refreshPending}
           retry={retryResearch}
         />
         <ReadinessSource
           label={t("sources.evidence")}
           endpoint="/api/v1/evidence-manifests"
-          state={evidence}
-          count={sourceCount(evidence)}
+          state={effectiveEvidence}
+          count={sourceCount(effectiveEvidence)}
+          refreshPending={evidencePresentation.refreshPending}
           retry={retryEvidence}
         />
         <ReadinessSource
           label={t("sources.jobs")}
           endpoint="/api/v1/paper-jobs"
-          state={jobs}
-          count={sourceCount(jobs)}
+          state={effectiveJobs}
+          count={sourceCount(effectiveJobs)}
+          refreshPending={jobsPresentation.refreshPending}
           retry={retryJobs}
         />
       </ul>
@@ -571,9 +657,30 @@ function AttentionRegion({
   jobs: ApiResourceState<PaperJobListResponse>;
 }) {
   const t = useTranslations("overview.dashboard.attention");
-  const items = buildAttentionItems({ health, environment, research, evidence, jobs });
-  const anyLoading = [health, environment, research, evidence, jobs].some(
-    (source) => source.status === "loading",
+  const healthPresentation = apiResourcePresentation(health);
+  const environmentPresentation = apiResourcePresentation(environment);
+  const researchPresentation = apiResourcePresentation(research);
+  const evidencePresentation = apiResourcePresentation(evidence);
+  const jobsPresentation = apiResourcePresentation(jobs);
+  const presentations = [
+    healthPresentation,
+    environmentPresentation,
+    researchPresentation,
+    evidencePresentation,
+    jobsPresentation,
+  ];
+  const items = buildAttentionItems({
+    health: healthPresentation.evidence,
+    environment: environmentPresentation.evidence,
+    research: researchPresentation.evidence,
+    evidence: evidencePresentation.evidence,
+    jobs: jobsPresentation.evidence,
+  });
+  const anyInitialLoading = presentations.some(
+    (presentation) => presentation.initialLoading,
+  );
+  const anyRefreshPending = presentations.some(
+    (presentation) => presentation.refreshPending,
   );
 
   return (
@@ -587,7 +694,7 @@ function AttentionRegion({
         description={t("description")}
         id="dashboard-attention-title"
       />
-      {items.length === 0 && anyLoading ? (
+      {items.length === 0 && anyInitialLoading ? (
         <div className="dashboard-state" role="status" aria-live="polite">
           <p>{t("loading")}</p>
         </div>
@@ -614,6 +721,9 @@ function AttentionRegion({
           ))}
         </ul>
       )}
+      {anyRefreshPending ? (
+        <p className="attention-refresh-note">{t("refreshPending")}</p>
+      ) : null}
       <p className="neutral-note">{t("boundary")}</p>
     </section>
   );
@@ -1242,6 +1352,7 @@ function TechnicalRegion({
   }[];
 }) {
   const t = useTranslations("overview.dashboard.technical");
+  const readiness = useTranslations("overview.dashboard.readiness");
   const common = useTranslations("common");
   return (
     <section className="dashboard-region dashboard-region--wide" aria-labelledby="dashboard-technical-title">
@@ -1252,25 +1363,73 @@ function TechnicalRegion({
         id="dashboard-technical-title"
       />
       <ul className="technical-source-list">
-        {sources.map((source) => (
-          <li key={source.endpoint}>
-            <div>
-              <strong>{source.label}</strong>
-              <code>{source.endpoint}</code>
-              {source.state.status === "error" ? (
-                <>
-                  <span>{common("errorCode", { code: source.state.code })}</span>
-                  {source.state.requestId ? <span>{common("requestId", { requestId: source.state.requestId })}</span> : null}
-                </>
-              ) : source.state.status === "success" && source.state.requestId ? (
-                <span>{common("requestId", { requestId: source.state.requestId })}</span>
-              ) : null}
-            </div>
-            <button className="quiet-button" type="button" onClick={source.retry} disabled={source.state.status === "loading"}>
-              {source.state.status === "loading" ? t("loading") : t("refresh", { source: source.label })}
-            </button>
-          </li>
-        ))}
+        {sources.map((source) => {
+          const presentation = apiResourcePresentation(source.state);
+          const evidence = presentation.evidence;
+          return (
+            <li
+              key={source.endpoint}
+              aria-busy={
+                presentation.initialLoading || presentation.refreshPending
+              }
+            >
+              <div>
+                <strong>{source.label}</strong>
+                <code>{source.endpoint}</code>
+                {evidence.status === "error" ? (
+                  <>
+                    <span>{common("errorCode", { code: evidence.code })}</span>
+                    {evidence.requestId ? (
+                      <span>
+                        {common("requestId", {
+                          requestId: evidence.requestId,
+                        })}
+                      </span>
+                    ) : null}
+                  </>
+                ) : evidence.status === "success" && evidence.requestId ? (
+                  <span>
+                    {common("requestId", {
+                      requestId: evidence.requestId,
+                    })}
+                  </span>
+                ) : null}
+                {presentation.refreshPending &&
+                evidence.status !== "loading" ? (
+                  <span className="technical-source__pending">
+                    {readiness(
+                      evidence.status === "error"
+                        ? "retryInProgress"
+                        : "refreshInProgress",
+                      { source: source.label },
+                    )
+                    }
+                  </span>
+                ) : null}
+              </div>
+              <button
+                className="quiet-button"
+                type="button"
+                onClick={source.retry}
+                disabled={
+                  presentation.initialLoading || presentation.refreshPending
+                }
+              >
+                {presentation.initialLoading
+                  ? t("loading")
+                  : presentation.refreshPending &&
+                      evidence.status !== "loading"
+                    ? readiness(
+                        evidence.status === "error"
+                          ? "retryingSource"
+                          : "refreshingSource",
+                        { source: source.label },
+                      )
+                    : t("refresh", { source: source.label })}
+              </button>
+            </li>
+          );
+        })}
       </ul>
       <p className="neutral-note">{t("boundary")}</p>
     </section>

@@ -21,9 +21,15 @@ function ResourceHarness({
 }) {
   const stableRequest = useCallback(() => request(), [request]);
   const { state, retry } = useApiResource(stableRequest);
+  const visibleState =
+    state.status === "loading" && state.previous !== null
+      ? `loading:${state.previous.status === "success" ? state.previous.data : state.previous.code}`
+      : state.status === "success"
+        ? state.data
+        : state.status;
   return (
     <div>
-      <output>{state.status === "success" ? state.data : state.status}</output>
+      <output>{visibleState}</output>
       <button type="button" onClick={retry}>Refresh read</button>
     </div>
   );
@@ -50,5 +56,41 @@ describe("useApiResource explicit refresh sequencing", () => {
     first.resolve({ data: "older", requestId: "request-older" });
     await waitFor(() => expect(screen.getByText("newer")).toBeVisible());
     expect(screen.queryByText("older")).not.toBeInTheDocument();
+  });
+
+  it("retains settled evidence across repeated refreshes without accepting a stale response", async () => {
+    const olderRefresh = deferred<string>();
+    const newerRefresh = deferred<string>();
+    const request = vi
+      .fn<() => Promise<ApiResult<string>>>()
+      .mockResolvedValueOnce({
+        data: "settled",
+        requestId: "request-settled",
+      })
+      .mockReturnValueOnce(olderRefresh.promise)
+      .mockReturnValueOnce(newerRefresh.promise);
+    const user = userEvent.setup();
+
+    render(<ResourceHarness request={request} />);
+    expect(await screen.findByText("settled")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Refresh read" }));
+    expect(screen.getByText("loading:settled")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Refresh read" }));
+    expect(screen.getByText("loading:settled")).toBeVisible();
+    expect(request).toHaveBeenCalledTimes(3);
+
+    newerRefresh.resolve({
+      data: "newest",
+      requestId: "request-newest",
+    });
+    expect(await screen.findByText("newest")).toBeVisible();
+
+    olderRefresh.resolve({
+      data: "stale",
+      requestId: "request-stale",
+    });
+    await waitFor(() => expect(screen.getByText("newest")).toBeVisible());
+    expect(screen.queryByText("stale")).not.toBeInTheDocument();
   });
 });

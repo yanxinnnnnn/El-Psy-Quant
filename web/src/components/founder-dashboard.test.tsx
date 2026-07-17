@@ -454,7 +454,7 @@ describe("FounderDashboard", () => {
     },
   );
 
-  it("retains completed failure evidence in readiness while that source refreshes", async () => {
+  it("retains settled error evidence across readiness, attention, and technical surfaces while retrying", async () => {
     arrangeStandard();
     const healthRetry = deferred<{
       data: { status: "ok"; service: string; api_version: "v1" };
@@ -471,17 +471,278 @@ describe("FounderDashboard", () => {
     renderDashboard();
 
     expect(await screen.findByText("Partially available")).toBeVisible();
+    const readiness = screen
+      .getByRole("heading", {
+        name: "Is the product healthy and configured?",
+      })
+      .closest("section");
+    expect(readiness).not.toBeNull();
+    const sourceCard = within(readiness as HTMLElement)
+      .getByText("API process", { selector: "strong" })
+      .closest("li");
+    expect(sourceCard).not.toBeNull();
+    expect(
+      within(sourceCard as HTMLElement).getByText("api_unavailable"),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(/health-initial-failure/),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "The workspace could not reach the local API through the same-origin gateway.",
+      ),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "Verify FastAPI is running on loopback, then retry.",
+      ),
+    ).toBeVisible();
+    const backendDetail = within(sourceCard as HTMLElement)
+      .getByText("Backend detail")
+      .closest("details");
+    expect(backendDetail).not.toBeNull();
+    await user.click(within(sourceCard as HTMLElement).getByText("Backend detail"));
+    expect(backendDetail).toHaveAttribute("open");
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "Bounded failure: api_unavailable",
+      ),
+    ).toBeVisible();
+    const attention = screen
+      .getByRole("heading", {
+        name: "Which explicit conditions may need attention?",
+      })
+      .closest("section");
+    expect(attention).not.toBeNull();
+    expect(
+      within(attention as HTMLElement).getByText(
+        "Product dependency needs operator attention",
+      ),
+    ).toBeVisible();
+    const technical = screen
+      .getByRole("heading", { name: "Explicit read ownership" })
+      .closest("section");
+    expect(technical).not.toBeNull();
+    expect(
+      within(technical as HTMLElement).getByText(
+        "Error code: api_unavailable",
+      ),
+    ).toBeVisible();
+    expect(
+      within(technical as HTMLElement).getByText(
+        "Request health-initial-failure",
+      ),
+    ).toBeVisible();
+
     await user.click(
-      screen.getByRole("button", { name: "Retry API process" }),
+      within(sourceCard as HTMLElement).getByRole("button", {
+        name: "Retry API process",
+      }),
     );
+
     expect(screen.getByText("Partially available")).toBeVisible();
     expect(screen.queryByText("Configured and populated")).not.toBeInTheDocument();
+    expect(
+      within(sourceCard as HTMLElement).getByText("api_unavailable"),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(/health-initial-failure/),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "Bounded failure: api_unavailable",
+      ),
+    ).toBeVisible();
+    expect(backendDetail).toHaveAttribute("open");
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "The workspace could not reach the local API through the same-origin gateway.",
+      ),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "Verify FastAPI is running on loopback, then retry.",
+      ),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByRole("status"),
+    ).toHaveTextContent(
+      "Checking API process again. Previous error evidence remains visible until the new read finishes.",
+    );
+    expect(
+      within(sourceCard as HTMLElement).getByRole("button", {
+        name: "Retrying API process…",
+      }),
+    ).toBeDisabled();
+    expect(
+      within(attention as HTMLElement).getByText(
+        "Product dependency needs operator attention",
+      ),
+    ).toBeVisible();
+    expect(
+      within(attention as HTMLElement).getByText(
+        "A source refresh is pending. Attention continues to reflect the last settled evidence until that read finishes.",
+      ),
+    ).toBeVisible();
+    expect(
+      within(technical as HTMLElement).getByText(
+        "Error code: api_unavailable",
+      ),
+    ).toBeVisible();
+    expect(
+      within(technical as HTMLElement).getByText(
+        "Request health-initial-failure",
+      ),
+    ).toBeVisible();
+    expect(
+      within(technical as HTMLElement).getByText(
+        "Checking API process again. Previous error evidence remains visible until the new read finishes.",
+      ),
+    ).toBeVisible();
+    expect(
+      within(technical as HTMLElement).getByRole("button", {
+        name: "Retrying API process…",
+      }),
+    ).toBeDisabled();
 
     healthRetry.resolve({
       data: { status: "ok", service: "el-psy-quant", api_version: "v1" },
       requestId: "health-recovered",
     });
     expect(await screen.findByText("Configured and populated")).toBeVisible();
+    await waitFor(() =>
+      expect(
+        within(sourceCard as HTMLElement).getByText(
+          "The FastAPI process responded. Research, evidence, and product-database readiness are reported separately.",
+        ),
+      ).toBeVisible(),
+    );
+    expect(
+      within(sourceCard as HTMLElement).queryByText("api_unavailable"),
+    ).not.toBeInTheDocument();
+    expect(
+      within(sourceCard as HTMLElement).queryByText(/health-initial-failure/),
+    ).not.toBeInTheDocument();
+    expect(
+      within(sourceCard as HTMLElement).queryByText(/Previous error evidence/),
+    ).not.toBeInTheDocument();
+    expect(
+      within(sourceCard as HTMLElement).getByText(/health-recovered/),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByRole("button", {
+        name: "Refresh API process",
+      }),
+    ).toBeEnabled();
+    expect(
+      within(attention as HTMLElement).queryByText(
+        "Product dependency needs operator attention",
+      ),
+    ).not.toBeInTheDocument();
+    expect(
+      within(technical as HTMLElement).queryByText(
+        "Error code: api_unavailable",
+      ),
+    ).not.toBeInTheDocument();
+    expect(
+      within(technical as HTMLElement).getByText(
+        "Request health-recovered",
+      ),
+    ).toBeVisible();
+  });
+
+  it("keeps prior successful count and request identity visible while refreshing", async () => {
+    arrangeStandard();
+    const researchRefresh = deferred<{
+      data: { runs: typeof researchRuns };
+      requestId: string;
+    }>();
+    apiMocks.fetchResearchRuns
+      .mockReset()
+      .mockResolvedValueOnce({
+        data: { runs: researchRuns },
+        requestId: "research-initial-success",
+      })
+      .mockReturnValueOnce(researchRefresh.promise);
+    const user = userEvent.setup();
+
+    renderDashboard();
+
+    const readiness = (
+      await screen.findByRole("heading", {
+        name: "Is the product healthy and configured?",
+      })
+    ).closest("section");
+    expect(readiness).not.toBeNull();
+    const sourceCard = within(readiness as HTMLElement)
+      .getByText("Research storage", { selector: "strong" })
+      .closest("li");
+    expect(sourceCard).not.toBeNull();
+    expect(
+      await within(sourceCard as HTMLElement).findByText(
+        "The request succeeded with 2 source records.",
+      ),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "Request research-initial-success",
+      ),
+    ).toBeVisible();
+
+    await user.click(
+      within(sourceCard as HTMLElement).getByRole("button", {
+        name: "Refresh Research storage",
+      }),
+    );
+
+    expect(screen.getByText("Configured and populated")).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "The request succeeded with 2 source records.",
+      ),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "Request research-initial-success",
+      ),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).getByRole("status"),
+    ).toHaveTextContent(
+      "Refreshing Research storage. Previous successful evidence remains visible until the new read finishes.",
+    );
+    expect(
+      within(sourceCard as HTMLElement).getByRole("button", {
+        name: "Refreshing Research storage…",
+      }),
+    ).toBeDisabled();
+
+    researchRefresh.resolve({
+      data: { runs: [researchRuns[0]] },
+      requestId: "research-refreshed-success",
+    });
+    await waitFor(() =>
+      expect(
+        within(sourceCard as HTMLElement).getByText(
+          "The request succeeded with 1 source records.",
+        ),
+      ).toBeVisible(),
+    );
+    expect(
+      within(sourceCard as HTMLElement).getByText(
+        "Request research-refreshed-success",
+      ),
+    ).toBeVisible();
+    expect(
+      within(sourceCard as HTMLElement).queryByText(
+        /Previous successful evidence remains visible/,
+      ),
+    ).not.toBeInTheDocument();
+    expect(
+      within(sourceCard as HTMLElement).getByRole("button", {
+        name: "Refresh Research storage",
+      }),
+    ).toBeEnabled();
   });
 
   it("keeps duplicate result rows visible but generates only valid ordered distinct-ID comparisons", async () => {

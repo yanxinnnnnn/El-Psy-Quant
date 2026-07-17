@@ -2324,6 +2324,16 @@ textarea[aria-invalid="true"] {
   margin-top: var(--space-3);
 }
 
+.readiness-source__pending {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label);
+  line-height: 1.5;
+}
+
 .readiness-source__actions .request-id {
   margin: 0 !important;
 }
@@ -2347,6 +2357,17 @@ textarea[aria-invalid="true"] {
   margin: var(--space-3) 0;
   color: var(--color-text-secondary);
   line-height: 1.55;
+}
+
+.attention-refresh-note,
+.technical-source__pending {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-label);
+  line-height: 1.5;
+}
+
+.attention-refresh-note {
+  margin-top: var(--space-4);
 }
 
 .dashboard-job-list {
@@ -2742,6 +2763,7 @@ textarea[aria-invalid="true"] {
   .readiness-summary,
   .readiness-source__heading,
   .readiness-source__actions,
+  .readiness-source__pending,
   .dashboard-job-card__heading,
   .dashboard-region__footer,
   .dashboard-source-list li,
