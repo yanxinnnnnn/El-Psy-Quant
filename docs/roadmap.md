@@ -111,9 +111,9 @@ M29 begins from direct Founder use rather than speculative feature work.
 |---:|---|---|
 | S161 | Founder Feedback and Product Experience Architecture | Complete |
 | S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
-| S163 | Modern Visual System Foundation | Implementation complete; Founder visual acceptance remains |
-| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Next only after S163 acceptance and merge |
-| S165 | Reliability, Idempotency, and Job Recovery Hardening | Planned |
+| S163 | Modern Visual System Foundation | Complete |
+| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Implementation complete; Founder Dashboard acceptance remains |
+| S165 | Reliability, Idempotency, and Job Recovery Hardening | Next only after S164 acceptance and merge |
 | S166 | Error Surface, Observability, and Audit Hardening | Planned |
 | S167 | Migration, Test, and Local Deployment Hardening | Planned |
 | S168 | Milestone 29 Closeout and M30 Handoff | Planned |
@@ -166,12 +166,26 @@ typography, a modern responsive workspace shell, persistent Standard/Demo
 identity, and shared action, status, card, panel, table, form, disclosure,
 audit-detail, and state contracts across every current route. Operational state
 remains distinct from financial performance; localized meaning remains paired
-with raw transport/audit values. No S164 Dashboard restructuring or product
-behavior was added.
+with raw transport/audit values. Founder local rendered visual acceptance and
+the merge decision are complete.
 
-Founder local rendered visual acceptance remains pending in both locales and
-modes at representative narrow, tablet, and desktop widths. S164 must not begin
-before Sprint 163 is accepted and merged.
+### Sprint 164 implementation
+
+Sprint 164 replaces Overview feature-directory behavior with a bounded
+decision-navigation Dashboard. It composes only existing process-health, Demo
+descriptor, research, evidence, and Paper Job list contracts. Independent
+regions preserve partial success, source-specific error identity and retry,
+backend order and duplicates, exact job/result links, explicit repeated ordered
+comparison parameters for two to four distinct nonblank IDs, complete raw
+Evidence Manifest identity, separate research/evidence authority, generic
+Standard workflow choices, and descriptor-driven Demo relationships.
+
+No backend contract, database schema, domain behavior, authentication, gateway,
+locale routing, Paper Job command, lifecycle command, financial calculation,
+ranking, recommendation, polling, or durable lifecycle read model was added.
+Founder local Standard/Demo Dashboard acceptance remains pending at
+representative `360px`, `768px`, and `1280px+` widths. S165 becomes next only
+after that acceptance and the Sprint 164 merge.
 
 ## Codex and Founder Verification Boundary
 

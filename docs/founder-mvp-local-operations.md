@@ -243,6 +243,48 @@ Sprint 163 or starting Sprint 164.
 The exact token and component contract is documented in
 `docs/product/visual-system.md`.
 
+## Sprint 164 Founder Dashboard Acceptance
+
+Sprint 164 deterministic tests do not replace Founder browser review. In
+Standard and Demo, verify `English` and `简体中文` at approximately `360px`,
+`768px`, and `1280px+`:
+
+- confirm Dashboard identity agrees with the persistent shell identity and Demo
+  shows descriptor-owned identity plus the disposable-example warning;
+- confirm process health is described as process health only and failed
+  research, evidence, or product-database reads produce partial/unavailable
+  readiness rather than aggregate health;
+- exercise healthy-empty, populated, unavailable, invalid, and partial states,
+  keeping raw error code, sanitized detail, request ID, localized guidance, and
+  an individual retry action;
+- confirm one failed region does not erase independent successful regions and
+  explicit refresh does not poll or send a command;
+- inspect the bounded Paper Job list for exact backend order, duplicates, job/run
+  IDs, localized plus raw job and attempt status, submitted/updated UTC values,
+  and exact job/result links;
+- confirm queued, failed, running/interrupted, result-available,
+  healthy-no-evidence, and dependency-failure attention conditions are
+  operational only;
+- select result candidates in a deliberate non-source order, including a
+  duplicate if present, and confirm the Comparison URL repeats `job_id` in the
+  exact selection order;
+- confirm no result is auto-selected, ranked, scored, recommended, called a
+  winner, or financially recalculated;
+- confirm research and evidence remain separate source-ordered regions and no
+  unified chronology is implied;
+- confirm Standard workflow choices are generic while every Demo journey link
+  and raw identity comes from the descriptor;
+- confirm no Run, Retry, Recover, Cancel, submission, lifecycle proposal, or
+  human-review command is available from Dashboard cards;
+- use keyboard-only navigation to operate region links, disclosures, named read
+  retries, comparison checkboxes, and visible focus; and
+- confirm long English/Chinese copy, IDs, badges, cards, and controls wrap
+  without global horizontal page overflow.
+
+There is no durable lifecycle GET/list/current-state contract, so Dashboard must
+not claim a persistent pending lifecycle review. Record local Dashboard
+acceptance before merging Sprint 164 or beginning Sprint 165.
+
 For service state and bounded logs:
 
 ```powershell

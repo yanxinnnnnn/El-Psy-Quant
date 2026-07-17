@@ -143,15 +143,15 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current sprint is:
 
 ```text
-Sprint 163 — Modern Visual System Foundation
+Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
 ```
 
-Sprints 161 and 162 are complete. Sprint 163 implementation is complete in its
-review branch. Founder Standard/Demo rendered visual acceptance and the merge
+Sprints 161, 162, and 163 are complete. Sprint 164 implementation is complete in
+its review branch. Founder Standard/Demo Dashboard acceptance and the merge
 decision remain pending. Do not begin the next sprint until both are complete:
 
 ```text
-Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
+Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
 ```
 
 ## M29 Product Outcome
@@ -197,6 +197,7 @@ docs/product/founder-dashboard-information-architecture.md
 docs/product/milestone-029-product-feedback-and-hardening-plan.md
 docs/product/visual-system.md
 docs/sprints/sprint-163-modern-visual-system-foundation.md
+docs/sprints/sprint-164-founder-dashboard-and-workflow-information-architecture-refresh.md
 ```
 
 Approved internationalization direction:
@@ -241,6 +242,28 @@ Implemented Sprint 163 contract:
   profitability or execution authority; and
 - representative layout contracts cover `360px`, `768px`, and `1280px+` with
   bounded table/navigation scrolling and reduced-motion behavior.
+
+Implemented Sprint 164 contract:
+
+- one bounded frontend composition uses the existing health, Demo descriptor,
+  research-run, evidence-manifest, and Paper Job list contracts with no backend
+  or generated-contract change;
+- Dashboard regions independently expose loading, empty, available, partial,
+  unavailable, invalid, and failed-read meaning with source-specific retry and
+  stale-response suppression;
+- attention is limited to approved operational conditions and never becomes
+  strategy ranking, recommendation, approval, capital, or live-readiness advice;
+- Paper Job activity preserves backend order, duplicates, raw identity,
+  localized/raw job and attempt status, timestamps, and `result_available`;
+- explicit comparison selection keeps duplicate source rows visible while
+  preserving two to four distinct nonblank IDs in user order and repeated
+  `job_id` parameters without auto-selection or browser metric calculation;
+- readiness classifies all five independent sources and Evidence Manifest cards
+  retain label plus complete raw audit identity;
+- research and evidence remain separate ordered sources, Standard workflow
+  remains generic, and Demo workflow identity remains descriptor-driven; and
+- Dashboard actions navigate, inspect, or refresh reads only; no Paper Job or
+  lifecycle command is issued from Overview.
 
 ## Approved Product Architecture
 

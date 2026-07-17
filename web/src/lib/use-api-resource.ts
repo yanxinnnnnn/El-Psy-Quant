@@ -4,20 +4,35 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiClientError, type ApiResult } from "@/lib/api-client";
 
-export type ApiResourceState<Data> =
-  | { status: "loading"; sequence: number }
+export type SettledApiResourceState<Data> =
   | { status: "success"; data: Data; requestId: string | null; sequence: number }
   | { status: "error"; message: string; requestId: string | null; code: string; sequence: number };
+
+export type ApiResourceState<Data> =
+  | {
+      status: "loading";
+      sequence: number;
+      previous: SettledApiResourceState<Data> | null;
+    }
+  | SettledApiResourceState<Data>;
 
 export function useApiResource<Data>(
   request: () => Promise<ApiResult<Data>>,
 ): { state: ApiResourceState<Data>; retry: () => number } {
-  const [state, setState] = useState<ApiResourceState<Data>>({ status: "loading", sequence: 0 });
+  const [state, setState] = useState<ApiResourceState<Data>>({
+    status: "loading",
+    sequence: 0,
+    previous: null,
+  });
   const requestSequence = useRef(0);
 
   const load = useCallback(() => {
     const sequence = ++requestSequence.current;
-    setState({ status: "loading", sequence });
+    setState((current) => ({
+      status: "loading",
+      sequence,
+      previous: current.status === "loading" ? current.previous : current,
+    }));
     void request()
       .then((result) => {
         if (sequence === requestSequence.current) {

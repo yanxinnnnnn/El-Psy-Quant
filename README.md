@@ -24,17 +24,17 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current implementation sprint is:
 
 ```text
-Sprint 163 — Modern Visual System Foundation
+Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
 ```
 
-Sprints 161 and 162 are complete. Sprint 163 implements one coherent modern
-bilingual visual system across the complete Founder workspace. Implementation is
-complete in the Sprint 163 branch; Founder local Standard/Demo rendered visual
-acceptance and the merge decision remain pending. The next sprint may begin only
-after both:
+Sprints 161, 162, and 163 are complete. Sprint 164 implementation turns Overview
+into a bilingual bounded Founder decision-navigation Dashboard using existing
+authoritative endpoints and independent read states. Founder local Standard/Demo
+Dashboard acceptance and the merge decision remain pending. The next sprint may
+begin only after both:
 
 ```text
-Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
+Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
 ```
 
 ## Product Direction
@@ -128,6 +128,7 @@ docs/product/milestone-029-product-feedback-and-hardening-plan.md
 docs/sprints/sprint-162-multilingual-foundation-and-simplified-chinese-workspace.md
 docs/product/visual-system.md
 docs/sprints/sprint-163-modern-visual-system-foundation.md
+docs/sprints/sprint-164-founder-dashboard-and-workflow-information-architecture-refresh.md
 ```
 
 Key approved directions:
@@ -160,6 +161,25 @@ Implemented Sprint 163 direction:
   contracts cover the complete existing workflow; and
 - raw values, product behavior, API/domain authority, and human-control
   boundaries remain unchanged.
+
+Implemented Sprint 164 direction:
+
+- Overview composes process health, workspace identity, research, evidence, and
+  bounded Paper Job reads without a new aggregate backend contract;
+- workspace identity, readiness, attention, activity, results, research,
+  evidence, workflow continuation, and technical recovery remain independently
+  visible under partial failure;
+- Paper Job order, duplicates, exact IDs, timestamps, localized/raw statuses,
+  result availability, and exact detail links remain authoritative;
+- comparison continuation keeps duplicate backend rows visible but uses only
+  explicit ordered selections of two to four distinct nonblank IDs and repeated
+  `job_id` parameters, without ranking or browser calculation;
+- evidence cards keep labels alongside raw manifest ID, schema version, type,
+  artifact key, reference count, and exact detail links;
+- Demo workflow links and identities remain descriptor-driven while Standard
+  mode never connects unrelated records; and
+- all Dashboard actions are navigation or explicit read refresh, never Paper Job
+  or lifecycle commands.
 
 ## Quick Start
 

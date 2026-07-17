@@ -3,19 +3,19 @@
 import { useTranslations } from "next-intl";
 
 import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
-import type { PaperJobStatus } from "@/lib/api-client";
-
-export function PaperJobStatusValue({ value }: { value: PaperJobStatus }) {
+export function PaperJobStatusValue({ value }: { value: string }) {
   const t = useTranslations("paperJobs.statuses");
   const label = value === "queued" ? t("queued")
     : value === "running" ? t("running")
       : value === "succeeded" ? t("succeeded")
         : value === "failed" ? t("failed")
-          : t("canceled");
+          : value === "canceled" ? t("canceled")
+            : t("unknown");
   const tone: StatusTone = value === "succeeded" ? "success"
     : value === "failed" ? "danger"
       : value === "canceled" ? "unavailable"
-        : "info";
+        : value === "queued" || value === "running" ? "info"
+          : "neutral";
   return <StatusBadge label={label} rawValue={value} tone={tone} />;
 }
 

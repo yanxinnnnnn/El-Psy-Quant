@@ -25,11 +25,19 @@ multi-user account system. On a shared machine, close all browser windows for
 this local site when you finish because browsers may retain the credentials for
 the session.
 
-## Check Workspace Availability
+## Use the Founder Dashboard
 
-The Overview page shows whether the local application is reachable. If it is
-unavailable, use the displayed retry action. A request ID may appear with an
-error; keep it when reporting a problem.
+Overview is a bounded Founder decision-navigation Dashboard. It identifies the
+workspace and active language, reports API process health separately from
+research, evidence, and product-database readiness, shows allow-listed
+operational attention, preserves a bounded backend-ordered Paper Job view, and
+offers safe read-only workflow continuation.
+
+Each source loads and fails independently. If one source is unavailable or
+invalid, successful regions remain visible and readiness says **Partially
+available** rather than claiming the whole product is healthy. Use the failed
+source's named retry action. Keep its raw error code and request ID when
+reporting a problem. Refresh is explicit; Overview does not poll.
 
 An empty page and an unavailable page mean different things:
 
@@ -53,11 +61,11 @@ artifact text, user-entered text, and quantitative values remain visible and
 unchanged. When a localized date or number is shown, use its accompanying raw
 value for exact audit comparison.
 
-On a healthy new standard workspace, Overview states that the application is
-running but no workspace evidence has been loaded. It offers two operator-owned
-paths: start the isolated Demo Workspace with the documented terminal commands,
-or load/create real artifacts through the documented workflows. The browser
-does not seed data, initialize the database, or run an installer.
+On a healthy new Standard Workspace, Overview reports configured-empty sources
+separately and creates only the allow-listed no-research/evidence attention
+condition. Generic browse actions do not claim that unrelated real records form
+one chain. The browser does not seed data, initialize the database, run an
+installer, or infer a current record.
 
 ## Choose Standard or Demo
 
@@ -70,6 +78,14 @@ data. Overview provides exact links from the backend descriptor through the
 Moving Average Crossover strategy, saved research and governance evidence, two
 succeeded paper results, comparison, lifecycle review, and human decision
 evidence. These identities are not guessed by the browser.
+
+The Dashboard's result area uses only the backend `result_available` flag.
+Select comparison candidates explicitly in the desired order; each choice
+becomes one repeated `job_id` parameter, including a repeated ID if the source
+contains duplicates. Overview never auto-selects, ranks, recommends, declares a
+winner, or recalculates financial metrics. Paper Job Run, Retry, Recover,
+Cancel, submission, and lifecycle commands remain on their existing exact
+workspaces, never on Dashboard cards.
 
 Standard and Demo use different storage volumes but the same loopback ports, so
 an operator must stop one before starting the other. See the

@@ -2,11 +2,13 @@
 
 ## Purpose
 
-This document defines the bounded information architecture for Sprint 164 —
-Founder Dashboard and Workflow Information Architecture Refresh.
+This document defines and records the implemented bounded information
+architecture for Sprint 164 — Founder Dashboard and Workflow Information
+Architecture Refresh.
 
-It does not add runtime components, aggregate APIs, ranking logic, or automatic
-workflow decisions.
+The implementation adds frontend composition and presentation components. It
+does not add aggregate APIs, ranking logic, automatic workflow decisions, or a
+durable lifecycle read model.
 
 ## Product Question
 
@@ -128,7 +130,12 @@ Rules:
 - no automatic “best result” selection;
 - no metric recomputation;
 - no ranking, recommendation, or score;
-- preserve explicit selection and order; and
+- preserve every backend row, including duplicate rows, in endpoint order;
+- accept only two to four distinct nonblank selected job IDs under the existing
+  Comparison contract;
+- preserve the Founder's valid selection order;
+- reconcile selection after a successful refresh by removing missing,
+  no-longer-result-available, blank, or accidental duplicate IDs; and
 - generic records are not assumed to belong to one research/governance chain.
 
 ### 5. Human-attention area
@@ -357,3 +364,141 @@ healthy aggregate when a required dependency failed.
 - Primary and audit information are clearly separated.
 - The complete M28 workflow remains reachable.
 - Regression and production build gates pass.
+
+## Sprint 164 Implementation Record
+
+### Runtime ownership
+
+Overview uses one bounded frontend composition over:
+
+```text
+GET /api/v1/demo-workspace
+GET /api/v1/health
+GET /api/v1/research-runs
+GET /api/v1/evidence-manifests
+GET /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
+GET /api/v1/paper-jobs?limit=8
+```
+
+The shared workspace shell owns the single Demo descriptor read and exposes its
+state to the Dashboard. The Dashboard owns independent health, research,
+evidence, and Paper Job read resources. Because the existing evidence list
+contract does not include `schema_version`, each of the at most five visible
+Evidence Manifest cards uses its existing exact detail read to display the raw
+schema without changing the backend or fabricating a value. Existing sequence
+guards suppress stale responses after explicit refresh. There is no background
+polling, global client cache, local-storage persistence, aggregate readiness
+endpoint, or mutation.
+
+### Implemented regions and state
+
+The page implements:
+
+1. workspace identity;
+2. product readiness and configuration;
+3. human attention;
+4. recent Paper Job activity;
+5. result and comparison continuation;
+6. separate research evidence entry;
+7. separate governance/report evidence entry;
+8. guided workflow continuation; and
+9. technical detail and operator read recovery.
+
+Each authoritative source retains its own loading, empty, available,
+unavailable, invalid-response, request-failure, and retry meaning. Readiness may
+be partially available when successful sources coexist with a failed source.
+Process health is labeled as process health only and cannot make failed product
+dependencies appear ready. The aggregate summary treats all five sources
+independently: mixed success and error is partial; `API unreachable` is reserved
+for an actual process-health `api_unavailable` failure with no successful read;
+other error-only evidence is unavailable; and an in-flight refresh retains the
+last completed success or failure evidence. A pending refresh is shown as a
+separate localized state with its source action still visible and disabled.
+Successful evidence keeps its prior count and request identity; failed evidence
+keeps its stable code, request identity, backend detail, explanation, and
+recovery. Attention and technical detail continue to use that same settled
+evidence until the new read settles, then all three surfaces replace it with the
+new outcome. Sequence guards continue to reject stale responses.
+
+Stable raw error codes, sanitized backend detail, and request IDs remain visible
+where returned. Error surfaces use localized explanation and bounded recovery
+copy; they do not expose paths, SQL, credentials, stack traces, or internal
+exceptions.
+
+### Attention allow-list
+
+Dashboard attention is generated only for:
+
+- queued Paper Jobs awaiting an explicit decision on the exact detail page;
+- failed Paper Jobs available for inspection;
+- running or interrupted attempts available through existing manual detail-page
+  recovery;
+- succeeded Paper Jobs with backend-owned `result_available=true`;
+- configured healthy workspaces with no research or evidence; and
+- unavailable or invalid read dependencies.
+
+Attention never represents profitability, quality, approval, capital
+allocation, or live-trading readiness. There is no durable lifecycle GET/list
+contract, so Overview never claims a persistent pending lifecycle review.
+
+### Activity, result, and evidence authority
+
+The bounded Paper Job list preserves endpoint order, duplicates, exact job/run
+identity, localized plus raw job and attempt statuses, submitted/updated UTC
+values, and backend-owned result availability. It links to exact Paper Job and
+Portfolio Record routes but exposes no Run, Retry, Recover, Cancel, or submit
+command.
+
+Result selection is explicit, keyboard-operable, side-effect free, and stored
+only in component memory. Duplicate backend rows remain visible in exact source
+order, while the existing Comparison contract accepts only two to four distinct
+nonblank job IDs. The Dashboard preserves valid click order, prevents a second
+duplicate row from adding the same ID, disables a fifth distinct selection, and
+reconciles missing or no-longer-available results after successful refresh. The
+URL uses the existing repeated ordered `job_id` query contract and is enabled
+only when `comparisonSelectionErrorKey` accepts the selection. Nothing is
+auto-selected, ranked, scored, recommended, declared a winner, or financially
+recomputed.
+
+Research and evidence are separate ordered regions. Each preserves its own
+endpoint order, duplicates, raw identities, schema versions, manifest types,
+artifact keys, exact detail links, and independent empty/error states. A
+presentation label never replaces the raw manifest ID. No unified chronology or
+implicit Standard workflow relationship is created.
+
+### Standard, Demo, and action behavior
+
+Standard mode provides generic browse and continuation choices without selecting
+or connecting records. Demo mode uses only the validated descriptor for exact
+strategy, research, manifest, Paper Job, result, comparison, lifecycle example,
+human-decision, and submission-example identities.
+
+All Dashboard actions navigate, inspect, create an ordered comparison URL, or
+explicitly refresh a read. No Dashboard action sends a domain command.
+
+### Bilingual, responsive, and accessible behavior
+
+English and Simplified Chinese catalogs have exact key parity. Semantic region
+headings, landmarks, statuses, alerts, loading announcements, named retry
+buttons, checkbox/fieldset comparison selection, keyboard focus, and raw values
+remain available in both locales.
+
+The Sprint 163 token system owns the Dashboard styling. Its two-column desktop
+grid becomes one column at tablet/narrow widths; cards, source rows, controls,
+IDs, and Chinese copy wrap without fixed text heights. Representative Founder
+acceptance remains required at approximately `360px`, `768px`, and `1280px+`.
+
+### Known limitations and handoff
+
+- readiness is composed from multiple endpoint reads rather than one aggregate
+  contract;
+- the Paper Job activity window is bounded to eight backend-ordered records;
+- research and evidence entry lists are each bounded to five source-ordered
+  records with a link to the complete list;
+- there is no cross-source chronology or durable lifecycle attention source;
+- deterministic layout tests do not replace rendered browser acceptance; and
+- Founder local Standard/Demo Dashboard acceptance remains pending before merge.
+
+Sprint 165 becomes next only after Sprint 164 is accepted and merged. It owns
+reliability, idempotency, and job-recovery hardening; Sprint 164 does not begin
+that work.
