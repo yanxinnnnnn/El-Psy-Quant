@@ -19,6 +19,37 @@ export function PaperJobStatusValue({ value }: { value: PaperJobStatus }) {
   return <StatusBadge label={label} rawValue={value} tone={tone} />;
 }
 
+export function PaperJobAttemptStatusValue({ value }: { value: string }) {
+  const t = useTranslations("paperJobs.attemptStatuses");
+  const label = value === "running" ? t("running")
+    : value === "succeeded" ? t("succeeded")
+      : value === "failed" ? t("failed")
+        : value === "interrupted" ? t("interrupted")
+          : t("unknown");
+  const tone: StatusTone = value === "running" ? "info"
+    : value === "succeeded" ? "success"
+      : value === "failed" ? "danger"
+        : value === "interrupted" ? "warning"
+          : "neutral";
+  return <StatusBadge label={label} rawValue={value} tone={tone} />;
+}
+
+export function PaperJobAttemptSummary({
+  attemptNumber,
+  status,
+}: {
+  attemptNumber: number;
+  status: string;
+}) {
+  const t = useTranslations("paperJobs.attemptStatuses");
+  return (
+    <span className="paper-attempt-summary">
+      <span>{t("attemptNumber", { number: attemptNumber })}</span>
+      <PaperJobAttemptStatusValue value={status} />
+    </span>
+  );
+}
+
 export function AttemptErrorValue({ code }: { code: string | null }) {
   const t = useTranslations("paperJobs.attemptErrors");
   const common = useTranslations("common.states");

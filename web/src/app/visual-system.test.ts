@@ -82,6 +82,12 @@ describe("Founder Web visual-system contract", () => {
     expect(css).toContain("transition-duration: 0.01ms !important");
   });
 
+  it("uses the opaque semantic focus token for language-switcher options", () => {
+    const rule = css.match(/\.language-switcher__option:focus-visible\s*\{([^}]*)\}/)?.[1];
+    expect(rule).toBeDefined();
+    expect(rule).toMatch(/outline:\s*3px solid var\(--color-focus\);/);
+  });
+
   it("keeps body, interaction, operational-state, and Demo text at AA contrast", () => {
     for (const [foreground, background] of [
       ["--color-text-primary", "--color-surface-primary"],

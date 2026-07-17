@@ -6,6 +6,14 @@
     "failed": "Failed",
     "canceled": "Canceled"
   },
+  "attemptStatuses": {
+    "running": "Running",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "interrupted": "Interrupted",
+    "unknown": "Unknown attempt status",
+    "attemptNumber": "Attempt #{number}"
+  },
   "attemptErrors": {
     "workflow_validation_failed": "Workflow validation failed",
     "output_conflict": "Output conflict",

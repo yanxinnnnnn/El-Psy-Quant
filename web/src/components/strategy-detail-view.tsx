@@ -6,6 +6,7 @@ import { useCallback } from "react";
 
 import { ErrorState, LoadingState } from "@/components/data-states";
 import { SectionNavigation } from "@/components/section-navigation";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { fetchStrategyDetail } from "@/lib/api-client";
 import { formatDefault } from "@/lib/formatters";
 import { parseLocale } from "@/i18n/config";
@@ -55,9 +56,7 @@ export function StrategyDetailView({ strategyName }: { strategyName: string }) {
               </div>
               <p>{t("parametersBoundary")}</p>
             </div>
-            <div className="table-scroll">
-              <table>
-                <caption>{t("caption", { displayName: state.data.display_name })}</caption>
+            <ScrollableTable caption={t("caption", { displayName: state.data.display_name })}>
                 <thead>
                   <tr>
                     <th scope="col">{t("name")}</th>
@@ -76,8 +75,7 @@ export function StrategyDetailView({ strategyName }: { strategyName: string }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+            </ScrollableTable>
           </section>
 
           <section className="related-panel" aria-labelledby="strategy-research-title">

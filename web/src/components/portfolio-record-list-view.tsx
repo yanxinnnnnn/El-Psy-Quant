@@ -5,7 +5,11 @@ import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-states";
-import { AttemptErrorValue, PaperJobStatusValue } from "@/components/domain-values";
+import {
+  AttemptErrorValue,
+  PaperJobAttemptSummary,
+  PaperJobStatusValue,
+} from "@/components/domain-values";
 import { LocalizedTimestamp } from "@/components/localized-values";
 import { useErrorPresentation } from "@/i18n/errors";
 import { fetchPaperJobs, type PaperJobResponse } from "@/lib/api-client";
@@ -26,7 +30,7 @@ function PortfolioRecordCard({ job }: { job: PaperJobResponse }) {
           <div><dt>{t("submitted")}</dt><dd><LocalizedTimestamp value={job.submitted_timestamp} /></dd></div>
           <div><dt>{t("updated")}</dt><dd><LocalizedTimestamp value={job.updated_timestamp} /></dd></div>
           <div><dt>{t("attemptCount")}</dt><dd>{job.attempt_count}</dd></div>
-          <div><dt>{t("latestAttempt")}</dt><dd>{job.latest_attempt ? `#${job.latest_attempt.attempt_number} ${job.latest_attempt.status}` : common("notAvailable")}</dd></div>
+          <div><dt>{t("latestAttempt")}</dt><dd>{job.latest_attempt ? <PaperJobAttemptSummary attemptNumber={job.latest_attempt.attempt_number} status={job.latest_attempt.status} /> : common("notAvailable")}</dd></div>
           <div><dt>{t("latestError")}</dt><dd><AttemptErrorValue code={job.latest_attempt?.error_code ?? null} /></dd></div>
           <div><dt>{t("resultAvailable")}</dt><dd>{job.result_available ? common("yes") : common("no")}</dd></div>
         </dl>

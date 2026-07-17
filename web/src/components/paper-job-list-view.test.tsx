@@ -45,7 +45,11 @@ describe("PaperJobListView", () => {
     expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual(["run-first", "run-second"]);
     const first = screen.getByRole("heading", { name: "run-first" }).closest("li");
     expect(first).not.toBeNull();
-    expect(within(first as HTMLElement).getByText("#2 failed")).toBeVisible();
+    const attemptSummary = within(first as HTMLElement).getByText("Attempt #2").closest(".paper-attempt-summary");
+    expect(attemptSummary).not.toBeNull();
+    const attemptBadge = within(attemptSummary as HTMLElement).getByText("Failed").closest(".status-badge");
+    expect(attemptBadge).toHaveClass("status-badge--danger");
+    expect(within(attemptBadge as HTMLElement).getByText("failed", { selector: "code" })).toBeVisible();
     expect(within(first as HTMLElement).getByText("Output conflict (output_conflict)")).toBeVisible();
     expect(within(first as HTMLElement).getByText("No")).toBeVisible();
   });

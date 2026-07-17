@@ -6,6 +6,7 @@ import { useCallback } from "react";
 
 import { ErrorState, LoadingState } from "@/components/data-states";
 import { LocalizedNumber, LocalizedTimestamp } from "@/components/localized-values";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { useErrorPresentation } from "@/i18n/errors";
 import {
   fetchPaperJobResult,
@@ -30,9 +31,7 @@ function PositionTable({
     return <p className="reference-empty">{emptyMessage}</p>;
   }
   return (
-    <div className="table-scroll">
-      <table>
-        <caption>{caption}</caption>
+    <ScrollableTable caption={caption}>
         <thead><tr><th scope="col">{t("row")}</th><th scope="col">{t("symbol")}</th><th scope="col">{t("quantity")}</th></tr></thead>
         <tbody>
           {positions.map((position, index) => (
@@ -43,8 +42,7 @@ function PositionTable({
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+    </ScrollableTable>
   );
 }
 
@@ -54,9 +52,7 @@ function PositionChangeTable({ changes }: { changes: readonly PaperPositionChang
     return <p className="reference-empty">{t("noChanges")}</p>;
   }
   return (
-    <div className="table-scroll">
-      <table>
-        <caption>{t("changesCaption")}</caption>
+    <ScrollableTable caption={t("changesCaption")}>
         <thead><tr><th scope="col">{t("row")}</th><th scope="col">{t("symbol")}</th><th scope="col">{t("startingQuantity")}</th><th scope="col">{t("endingQuantity")}</th><th scope="col">{t("quantityChange")}</th></tr></thead>
         <tbody>
           {changes.map((change, index) => (
@@ -69,8 +65,7 @@ function PositionChangeTable({ changes }: { changes: readonly PaperPositionChang
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+    </ScrollableTable>
   );
 }
 
@@ -190,7 +185,7 @@ function ResultContent({ result }: { result: PaperJobResultResponse }) {
         {artifact.orders.length === 0 ? (
           <p className="reference-empty">{t("noOrders")}</p>
         ) : (
-          <div className="table-scroll"><table><caption>{t("ordersCaption")}</caption><thead><tr><th scope="col">{t("row")}</th><th scope="col">{t("orderId")}</th><th scope="col">{t("timestamp")}</th><th scope="col">{t("symbol")}</th><th scope="col">{t("side")}</th><th scope="col">{t("quantity")}</th><th scope="col">{t("status")}</th></tr></thead><tbody>{artifact.orders.map((order, index) => <tr key={`${order.order_id}-${index}`}><th scope="row">{index + 1}</th><td>{order.order_id}</td><td><LocalizedTimestamp value={order.timestamp} /></td><td>{order.symbol}</td><td>{order.side}</td><td><LocalizedNumber value={order.quantity} /></td><td>{order.status}</td></tr>)}</tbody></table></div>
+          <ScrollableTable caption={t("ordersCaption")}><thead><tr><th scope="col">{t("row")}</th><th scope="col">{t("orderId")}</th><th scope="col">{t("timestamp")}</th><th scope="col">{t("symbol")}</th><th scope="col">{t("side")}</th><th scope="col">{t("quantity")}</th><th scope="col">{t("status")}</th></tr></thead><tbody>{artifact.orders.map((order, index) => <tr key={`${order.order_id}-${index}`}><th scope="row">{index + 1}</th><td>{order.order_id}</td><td><LocalizedTimestamp value={order.timestamp} /></td><td>{order.symbol}</td><td>{order.side}</td><td><LocalizedNumber value={order.quantity} /></td><td>{order.status}</td></tr>)}</tbody></ScrollableTable>
         )}
       </section>
 
@@ -200,7 +195,7 @@ function ResultContent({ result }: { result: PaperJobResultResponse }) {
         {artifact.fills.length === 0 ? (
           <p className="reference-empty">{t("noFills")}</p>
         ) : (
-          <div className="table-scroll"><table><caption>{t("fillsCaption")}</caption><thead><tr><th scope="col">{t("row")}</th><th scope="col">{t("timestamp")}</th><th scope="col">{t("symbol")}</th><th scope="col">{t("side")}</th><th scope="col">{t("quantity")}</th><th scope="col">{t("price")}</th><th scope="col">{t("orderId")}</th></tr></thead><tbody>{artifact.fills.map((fill, index) => <tr key={`${fill.timestamp}-${fill.symbol}-${fill.order_id ?? "none"}-${index}`}><th scope="row">{index + 1}</th><td><LocalizedTimestamp value={fill.timestamp} /></td><td>{fill.symbol}</td><td>{fill.side}</td><td><LocalizedNumber value={fill.quantity} /></td><td><LocalizedNumber value={fill.price} /></td><td>{fill.order_id ?? common("notAvailable")}</td></tr>)}</tbody></table></div>
+          <ScrollableTable caption={t("fillsCaption")}><thead><tr><th scope="col">{t("row")}</th><th scope="col">{t("timestamp")}</th><th scope="col">{t("symbol")}</th><th scope="col">{t("side")}</th><th scope="col">{t("quantity")}</th><th scope="col">{t("price")}</th><th scope="col">{t("orderId")}</th></tr></thead><tbody>{artifact.fills.map((fill, index) => <tr key={`${fill.timestamp}-${fill.symbol}-${fill.order_id ?? "none"}-${index}`}><th scope="row">{index + 1}</th><td><LocalizedTimestamp value={fill.timestamp} /></td><td>{fill.symbol}</td><td>{fill.side}</td><td><LocalizedNumber value={fill.quantity} /></td><td><LocalizedNumber value={fill.price} /></td><td>{fill.order_id ?? common("notAvailable")}</td></tr>)}</tbody></ScrollableTable>
         )}
       </section>
 

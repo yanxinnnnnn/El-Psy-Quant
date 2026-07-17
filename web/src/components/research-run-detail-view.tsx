@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import { ErrorState, LoadingState } from "@/components/data-states";
 import { LocalizedNumber } from "@/components/localized-values";
 import { SectionNavigation } from "@/components/section-navigation";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { fetchResearchRunDetail } from "@/lib/api-client";
 import { useApiResource } from "@/lib/use-api-resource";
 
@@ -132,9 +133,7 @@ export function ResearchRunDetailView({
               </div>
               <p>{t("metricsBoundary")}</p>
             </div>
-            <div className="table-scroll">
-              <table>
-                <caption>{t("metricsCaption", { experimentName: state.data.experiment_name })}</caption>
+            <ScrollableTable caption={t("metricsCaption", { experimentName: state.data.experiment_name })}>
                 <thead>
                   <tr>
                     <th scope="col">{t("symbol")}</th>
@@ -163,8 +162,7 @@ export function ResearchRunDetailView({
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+            </ScrollableTable>
           </section>
 
           <section className="related-panel" aria-labelledby="research-evidence-next-title">

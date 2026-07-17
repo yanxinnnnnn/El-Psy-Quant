@@ -60,11 +60,27 @@ describe("PaperJobDetailView", () => {
     const fetcher = initialFetcher({ ...baseJob, status: "succeeded", attempt_count: 2, latest_attempt: attempts[1], result_available: true, result_url: `/api/v1/paper-jobs/${jobId}/result` }, attempts);
     vi.stubGlobal("fetch", fetcher);
     render(<PaperJobDetailView jobId={jobId} />);
+    const region = await screen.findByRole("region", { name: "Attempts in exact API order" });
+    expect(region).toHaveAttribute("tabindex", "0");
     const table = await screen.findByRole("table", { name: "Attempts in exact API order" });
+    expect(within(region).getByRole("table", { name: "Attempts in exact API order" })).toBe(table);
+    expect(table.querySelector("caption")).toHaveTextContent("Attempts in exact API order");
+    expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
+      "Attempt ID",
+      "Number",
+      "Status",
+      "Started",
+      "Completed",
+      "Error code",
+    ]);
     const rows = within(table).getAllByRole("row").slice(1);
-    expect(rows.map((row) => within(row).getAllByRole("cell")[0]?.textContent ?? within(row).getByRole("rowheader").textContent)).toHaveLength(2);
+    expect(rows.map((row) => within(row).getByRole("rowheader").textContent)).toEqual(["a-first", "a-second"]);
     expect(rows[0]).toHaveTextContent("a-first");
     expect(rows[1]).toHaveTextContent("a-second");
+    const interruptedBadge = within(rows[0]).getByText("Interrupted").closest(".status-badge");
+    expect(interruptedBadge).toHaveClass("status-badge--warning");
+    expect(within(interruptedBadge as HTMLElement).getByText("interrupted", { selector: "code" })).toBeVisible();
+    expect(within(rows[1]).getByText("succeeded", { selector: "code" })).toBeVisible();
     expect(rows[0]).toHaveTextContent("Not available");
     expect(rows[0]).toHaveTextContent("Interrupted without output (interrupted_without_output)");
     expect(screen.getByRole("link", { name: "Inspect portfolio record for run-155" })).toHaveAttribute(
@@ -72,6 +88,31 @@ describe("PaperJobDetailView", () => {
       `/portfolio-records/${jobId}`,
     );
     expect(fetcher.mock.calls.filter(([url]) => String(url).endsWith("/result"))).toHaveLength(0);
+  });
+
+  it("uses the localized Simplified Chinese caption and interrupted attempt label", async () => {
+    const interruptedAttempt = {
+      attempt_id: "attempt-interrupted",
+      attempt_number: 1,
+      status: "interrupted",
+      started_timestamp: "2026-07-15T10:00:00Z",
+      completed_timestamp: null,
+      error_code: "interrupted_without_output",
+    };
+    vi.stubGlobal("fetch", initialFetcher({
+      ...baseJob,
+      status: "failed",
+      attempt_count: 1,
+      latest_attempt: interruptedAttempt,
+    }, [interruptedAttempt]));
+
+    render(<PaperJobDetailView jobId={jobId} />, { locale: "zh-CN" });
+
+    const region = await screen.findByRole("region", { name: "按准确 API 顺序排列的尝试记录" });
+    expect(region).toHaveAttribute("tabindex", "0");
+    const badge = within(region).getByText("已中断").closest(".status-badge");
+    expect(badge).toHaveClass("status-badge--warning");
+    expect(within(badge as HTMLElement).getByText("interrupted", { selector: "code" })).toBeVisible();
   });
 
   it("shows no result link when backend-owned availability is false", async () => {

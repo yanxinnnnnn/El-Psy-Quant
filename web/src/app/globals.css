@@ -341,8 +341,9 @@ pre {
 }
 
 .language-switcher__option:focus-visible {
-  outline: 3px solid var(--color-focus-halo);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--color-focus-halo);
 }
 
 .language-switcher__option:disabled {
@@ -1151,8 +1152,9 @@ h2 {
 }
 
 .table-scroll:focus-within {
-  outline: 3px solid var(--color-focus-halo);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--color-focus-halo);
 }
 
 table {
@@ -1271,6 +1273,13 @@ tbody th {
   font-size: 0.6875rem;
   font-weight: 650;
   opacity: 0.88;
+}
+
+.paper-attempt-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .status-badge--loading {
