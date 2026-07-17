@@ -72,5 +72,213 @@
     "comparisonStep": "{step}. Compare the two ordered demo results",
     "lifecycleStep": "{step}. Prepare a proposal and record explicit human decision evidence",
     "demoBoundary": "Each link comes from the validated backend descriptor. No fixture identity or evidence payload is defined in the browser."
+  },
+  "dashboard": {
+    "hero": {
+      "eyebrow": "Founder Dashboard · Decision navigation",
+      "title": "See workspace truth, then choose the next safe review.",
+      "summary": "Independent read regions preserve backend order, raw values, partial availability, and explicit human control. This Dashboard never runs a command, ranks a strategy, or claims live-trading readiness.",
+      "paperJobs": "Browse Paper Jobs",
+      "research": "Inspect research",
+      "lifecycle": "Open Lifecycle Review"
+    },
+    "identity": {
+      "eyebrow": "Workspace identity",
+      "title": "What workspace am I in?",
+      "description": "Mode, active language, and local access framing remain explicit.",
+      "loading": "Discovering the workspace descriptor…",
+      "demo": "Demo Workspace",
+      "demoWarning": "Disposable example evidence only. It is not real user data or trading advice.",
+      "standard": "Standard Workspace",
+      "standardTitle": "Founder Paper Trading workspace",
+      "standardDescription": "Standard mode uses local product storage. Independent records are not assumed to form one workflow chain.",
+      "dataset": "Dataset ID",
+      "version": "Dataset version",
+      "locale": "Active locale",
+      "access": "Access",
+      "founderOnly": "Authenticated local Founder",
+      "unavailable": "Workspace identity unavailable",
+      "retry": "Retry workspace identity"
+    },
+    "readiness": {
+      "eyebrow": "Readiness and configuration",
+      "title": "Is the product healthy and configured?",
+      "description": "Process health and product dependencies remain separate. A successful health request is not complete product readiness.",
+      "processOnly": "The FastAPI process responded. Research, evidence, and product-database readiness are reported separately.",
+      "identityResolved": "Workspace mode resolved through the bounded Demo descriptor behavior.",
+      "emptySource": "The request succeeded and this source is healthy but empty.",
+      "availableSource": "The request succeeded with {count} source records.",
+      "loadingSource": "Checking this source…",
+      "retrySource": "Retry {source}",
+      "refreshSource": "Refresh {source}",
+      "states": {
+        "loading": "Checking",
+        "empty": "Healthy · empty",
+        "available": "Available",
+        "invalid": "Invalid response",
+        "unavailable": "Unavailable"
+      },
+      "summary": {
+        "apiUnavailable": "API unreachable",
+        "partial": "Partially available",
+        "unavailable": "Dependencies unavailable",
+        "loading": "Readiness in progress",
+        "populated": "Configured and populated",
+        "healthyEmpty": "Configured and empty"
+      },
+      "summaryDetail": {
+        "apiUnavailable": "Process health failed. Other successful reads remain visible, but the Dashboard does not claim product readiness.",
+        "partial": "At least one product source succeeded and at least one failed. Inspect and retry only the failed source.",
+        "unavailable": "Required product sources failed. This is not an empty workspace.",
+        "loading": "Independent sources are loading. Completed regions appear without waiting for one aggregate response.",
+        "populated": "All required reads succeeded and at least one source returned records. This says nothing about strategy quality.",
+        "healthyEmpty": "All required reads succeeded and returned no records. Empty is a valid configured state."
+      },
+      "sources": {
+        "process": "API process",
+        "identity": "Workspace identity",
+        "research": "Research storage",
+        "evidence": "Evidence storage",
+        "jobs": "Product database"
+      }
+    },
+    "attention": {
+      "eyebrow": "Operational attention",
+      "title": "Which explicit conditions may need attention?",
+      "description": "Only allow-listed backend conditions appear. Attention is workflow navigation, not an opinion about performance.",
+      "loading": "Checking authoritative workflow conditions…",
+      "empty": "No allow-listed attention condition is currently visible from the loaded reads.",
+      "inspect": "Inspect the authoritative source",
+      "boundary": "The Dashboard has no durable lifecycle current-state contract and never claims persistent pending lifecycle reviews.",
+      "items": {
+        "queued": "Queued Paper Job",
+        "failed": "Failed Paper Job",
+        "running": "Running Paper Job",
+        "interrupted": "Interrupted attempt",
+        "result": "Result available for review",
+        "emptyEvidence": "Healthy workspace without research or evidence",
+        "dependency": "Product dependency needs operator attention"
+      },
+      "details": {
+        "queued": "Inspect the exact job before making an explicit Run decision on its detail page.",
+        "failed": "Inspect the exact failure and available manual controls on the job detail page.",
+        "running": "Inspect the active job and its latest attempt. The Dashboard does not poll or recover it.",
+        "interrupted": "Inspect the existing manual recovery workflow on the exact job page.",
+        "result": "The backend-owned result_available flag permits exact Portfolio Record inspection.",
+        "emptyEvidence": "Choose a documented workflow or browse the separate research and evidence areas.",
+        "dependency": "Inspect the failed read, stable code, request ID, and bounded recovery guidance."
+      }
+    },
+    "jobs": {
+      "eyebrow": "Recent Paper Job activity",
+      "title": "What Paper Job activity exists?",
+      "description": "A bounded list preserves exact backend order and duplicates. Operational success is not financial success.",
+      "loading": "Loading the bounded Paper Job list…",
+      "unavailable": "Paper Job activity unavailable",
+      "retry": "Retry Paper Job activity",
+      "empty": "The product database request succeeded and returned no Paper Jobs.",
+      "submit": "Open queued-job submission",
+      "ariaLabel": "Recent Paper Jobs in backend order",
+      "submitted": "Submitted",
+      "updated": "Updated",
+      "latestAttempt": "Latest attempt",
+      "result": "Result available",
+      "inspectJob": "Inspect exact job",
+      "inspectResult": "Inspect Portfolio Record",
+      "allJobs": "Open the complete Paper Job list",
+      "refresh": "Refresh Paper Job reads"
+    },
+    "results": {
+      "eyebrow": "Results and comparison",
+      "title": "Continue explicit result review",
+      "description": "Only backend-owned result availability creates a candidate. Selection is manual, ordered, repeatable, and side-effect free.",
+      "loading": "Checking result availability from Paper Jobs…",
+      "unavailable": "Result continuation unavailable",
+      "retry": "Retry result candidates",
+      "empty": "No loaded Paper Job currently reports result_available=true.",
+      "browse": "Browse Portfolio Records",
+      "legend": "Select available results in the order to compare",
+      "helper": "Each choice appends one repeated job_id. Duplicate IDs remain separate choices when the backend list contains duplicates.",
+      "inspect": "Inspect exact result",
+      "selected": "{count, plural, =0 {No results selected} one {# result selected} other {# results selected}}",
+      "selectionOrder": "Explicit comparison selection order",
+      "compare": "Open ordered comparison",
+      "chooseTwo": "Select at least two results",
+      "boundary": "No result is auto-selected, ranked, scored, recommended, or recomputed in the browser."
+    },
+    "research": {
+      "eyebrow": "Research evidence entry point",
+      "title": "Saved research in source order",
+      "description": "This source remains separate from governance evidence; no cross-source chronology is fabricated.",
+      "loading": "Loading research runs…",
+      "unavailable": "Research runs unavailable",
+      "retry": "Retry research runs",
+      "empty": "The research request succeeded and returned no saved runs.",
+      "ariaLabel": "Research runs in exact endpoint order",
+      "inspect": "Inspect exact research run",
+      "browse": "Browse all research runs",
+      "refresh": "Refresh research"
+    },
+    "evidence": {
+      "eyebrow": "Governance and report evidence",
+      "title": "Saved evidence manifests in source order",
+      "description": "Manifest type, artifact key, schema, raw identity, order, and duplicates remain authoritative.",
+      "loading": "Loading evidence manifests…",
+      "unavailable": "Evidence manifests unavailable",
+      "retry": "Retry evidence manifests",
+      "empty": "The evidence request succeeded and returned no manifests.",
+      "ariaLabel": "Evidence manifests in exact endpoint order",
+      "references": "{count, plural, one {# reference} other {# references}}",
+      "inspect": "Inspect exact manifest",
+      "browse": "Browse all evidence manifests",
+      "refresh": "Refresh evidence"
+    },
+    "workflow": {
+      "eyebrow": "Guided workflow continuation",
+      "title": "What safe workflow action can I choose next?",
+      "description": "Demo uses exact descriptor relationships. Standard mode offers generic browse choices without connecting unrelated records.",
+      "loading": "Loading workflow identity…",
+      "unavailable": "Workflow identity unavailable",
+      "retry": "Retry workflow identity",
+      "standardBoundary": "Choose a product area deliberately. Standard records remain independent unless an authoritative contract relates them.",
+      "commandBoundary": "Dashboard actions navigate, inspect, refresh reads, or prepare a comparison URL. They never submit, Run, Retry, Recover, Cancel, propose, or review a command.",
+      "standard": {
+        "strategies": "{step}. Browse strategy definitions",
+        "research": "{step}. Browse research runs",
+        "evidence": "{step}. Browse governance and report evidence",
+        "jobs": "{step}. Browse or open Paper Job submission",
+        "results": "{step}. Browse authoritative Portfolio Records",
+        "comparison": "{step}. Begin an explicit comparison",
+        "lifecycle": "{step}. Open the non-executing Lifecycle Review workspace"
+      },
+      "demo": {
+        "strategy": "{step}. Inspect the canonical strategy",
+        "research": "{step}. Inspect the exact research run",
+        "evidence": "{step}. Inspect descriptor evidence",
+        "job": "{step}. Inspect an exact Paper Job",
+        "result": "{step}. Inspect its exact Portfolio Record",
+        "comparison": "{step}. Open the descriptor-ordered comparison",
+        "lifecycle": "{step}. Open Lifecycle Review with descriptor examples",
+        "audit": "Descriptor-provided workflow identities",
+        "proposal": "Proposal example",
+        "humanDecision": "Human-decision evidence",
+        "submission": "Submission example idempotency key"
+      }
+    },
+    "technical": {
+      "eyebrow": "Technical detail and recovery",
+      "title": "Explicit read ownership",
+      "description": "Each source can be refreshed independently. Newer explicit reads suppress stale responses.",
+      "loading": "Reading…",
+      "refresh": "Refresh {source}",
+      "boundary": "There is no background polling, global Dashboard cache, local-storage persistence, aggregate readiness API, or Dashboard command request.",
+      "sources": {
+        "identity": "Workspace identity",
+        "process": "API process",
+        "research": "Research",
+        "evidence": "Evidence",
+        "jobs": "Paper Jobs"
+      }
+    }
   }
 }

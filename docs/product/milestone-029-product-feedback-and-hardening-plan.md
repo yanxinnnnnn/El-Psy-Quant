@@ -4,9 +4,9 @@
 
 Milestone 29 is **In Progress**.
 
-Sprints 161 and 162 are complete. Sprint 163 implementation is complete in its
-review branch; Founder Standard/Demo rendered visual acceptance and the merge
-decision remain pending. Sprint 164 must not begin before both are complete.
+Sprints 161, 162, and 163 are complete. Sprint 164 implementation is complete in
+its review branch; Founder Standard/Demo Dashboard acceptance and the merge
+decision remain pending. Sprint 165 must not begin before both are complete.
 
 ## Milestone Objective
 
@@ -212,11 +212,10 @@ Review the complete Demo journey in both languages at desktop and narrow widths.
 
 **Implementation status**
 
-Complete in the Sprint 163 review branch. One exact semantic token system,
-bilingual-safe system typography, the responsive workspace shell, persistent
-Standard/Demo identity, and shared action/status/state/table/form/audit contracts
-cover every existing route. Founder local rendered visual acceptance and the
-merge decision remain pending; Sprint 164 is not authorized before both.
+Complete and merged. One exact semantic token system, bilingual-safe system
+typography, the responsive workspace shell, persistent Standard/Demo identity,
+and shared action/status/state/table/form/audit contracts cover every existing
+route. Founder local rendered visual acceptance is complete.
 
 ### Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
 
@@ -267,6 +266,21 @@ possible.
 
 Confirm the Dashboard improves daily navigation without overstating what the
 backend knows.
+
+**Implementation status**
+
+Implementation complete in the Sprint 164 review branch. Overview now composes
+the existing process-health, Demo descriptor, research-run list,
+evidence-manifest list, and Paper Job list contracts into independently stateful
+regions. Partial availability, stable error identity, individual retry,
+backend order and duplicates, exact job/result links, explicit repeated ordered
+comparison selection, separate research/evidence authority, Standard generic
+workflow choices, and Demo descriptor relationships are preserved.
+
+No backend or generated contract, database, domain, authentication, gateway,
+locale-routing, command, financial-calculation, polling, or durable lifecycle
+read-model change was made. Founder local Standard/Demo Dashboard acceptance and
+the merge decision remain pending. Sprint 165 becomes next only after both.
 
 ### Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
 

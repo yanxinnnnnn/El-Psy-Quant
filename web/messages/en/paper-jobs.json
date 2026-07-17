@@ -4,7 +4,8 @@
     "running": "Running",
     "succeeded": "Succeeded",
     "failed": "Failed",
-    "canceled": "Canceled"
+    "canceled": "Canceled",
+    "unknown": "Unknown job status"
   },
   "attemptStatuses": {
     "running": "Running",

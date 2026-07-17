@@ -73,9 +73,9 @@ working local MVP
 |---:|---|---|
 | S161 | Founder Feedback and Product Experience Architecture | Complete |
 | S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
-| S163 | Modern Visual System Foundation | Implementation complete; Founder visual acceptance remains |
-| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Next only after S163 acceptance and merge |
-| S165 | Reliability, Idempotency, and Job Recovery Hardening | Planned |
+| S163 | Modern Visual System Foundation | Complete |
+| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Implementation complete; Founder Dashboard acceptance remains |
+| S165 | Reliability, Idempotency, and Job Recovery Hardening | Next only after S164 acceptance and merge |
 | S166 | Error Surface, Observability, and Audit Hardening | Planned |
 | S167 | Migration, Test, and Local Deployment Hardening | Planned |
 | S168 | Milestone 29 Closeout and M30 Handoff | Planned |
@@ -138,8 +138,7 @@ Sprint 163 implements that direction with one exact Web-owned semantic token
 system; bilingual-safe system typography; a modern responsive shell; persistent
 Standard/Paper and Demo identity; standardized action, status, state, table,
 form, disclosure, and audit patterns; and deterministic responsive/accessibility
-contracts. Founder local rendered visual acceptance remains pending. Sprint 164
-becomes next only after that acceptance and the Sprint 163 merge.
+contracts. Founder local rendered visual acceptance and merge are complete.
 
 ### Founder Dashboard
 
@@ -159,6 +158,20 @@ allocation is permitted.
 
 Existing APIs must be used without inventing relationships or lifecycle state.
 Any missing aggregate/read contract requires a separate authoritative Issue.
+
+Sprint 164 implements this Dashboard through bounded frontend composition of
+the existing health, Demo descriptor, research-run list, evidence-manifest list,
+and Paper Job list contracts. Regions retain independent states and read retry;
+Paper Job activity preserves backend order, duplicates, raw status, timestamps,
+attempt detail, result authority, and exact links; comparison continuation is
+explicit and preserves repeated ordered `job_id` values; research and evidence
+remain separate; Standard guidance stays generic; and Demo relationships remain
+descriptor-driven.
+
+The implementation adds no backend contract, durable lifecycle state, unified
+cross-source chronology, ranking, recommendation, browser financial
+calculation, polling, or Dashboard command. Founder local Dashboard acceptance
+remains before merge; S165 becomes next only after that acceptance and merge.
 
 ## Product and Architecture Records
 

@@ -3,10 +3,16 @@
 The Founder workflow turns a strategy idea into a reviewable chain of evidence.
 It does not turn that evidence into an automatic decision.
 
-In Demo Workspace mode, Overview supplies one coherent versioned journey using
-exact backend-provided references. In a standard workspace, choose and verify
-each real record yourself; generic pages do not claim that unrelated records
-belong to one chain.
+In Demo Workspace mode, the Founder Dashboard supplies one coherent versioned
+journey using exact backend-provided references. In a Standard Workspace, its
+generic workflow choices do not claim that unrelated records belong to one
+chain; choose and verify each real record yourself.
+
+Before starting, use Dashboard readiness and attention only as operational
+navigation. Process health is not complete product readiness, `succeeded` is not
+profitability, and “needs attention” is not strategy advice. A failed source
+does not erase successful independent regions. Refresh reads manually; all
+domain commands remain on the exact Paper Job or Lifecycle workspace.
 
 ```text
 Strategy
@@ -96,6 +102,11 @@ facts, not as an investment conclusion.
 Open **Comparisons**, select two to four distinct succeeded jobs with available
 results, and choose **Compare selected results**. Review the side-by-side cash,
 session, audit, position, and position-change facts.
+
+You may begin the same comparison from Dashboard results by explicitly selecting
+backend-available candidates. Dashboard preserves selection order in repeated
+`job_id` query parameters and performs no product mutation. Inspect exact
+Portfolio Records before drawing any conclusion.
 
 The comparison does not align trades, calculate cross-run differences, rank
 runs, or choose a winner. Open each linked Portfolio Record for the full orders
