@@ -2,12 +2,11 @@
 
 ## Status
 
-Implementation complete; Founder local bilingual browser acceptance and merge
-remain pending.
+Complete. Founder local bilingual Standard/Demo browser acceptance is recorded
+and the implementation PR is merged.
 
 Milestone 29 — Product Feedback and Hardening remains **In Progress**. Sprint
-163 must not begin until Sprint 162 is merged and the Founder has accepted the
-English and Simplified Chinese Standard/Demo journeys.
+163 began only after this merge and Founder acceptance gate completed.
 
 ## Objective
 

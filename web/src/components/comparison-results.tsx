@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { RequestId } from "@/components/data-states";
 import { LocalizedNumber, LocalizedTimestamp } from "@/components/localized-values";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { useErrorPresentation } from "@/i18n/errors";
 import type { PaperJobResultResponse } from "@/lib/api-client";
 import type { ComparisonFailure } from "@/lib/comparisons";
@@ -59,9 +60,7 @@ function ComparisonMatrix({
 }) {
   const t = useTranslations("comparisons.results");
   return (
-    <div className="table-scroll comparison-matrix">
-      <table>
-        <caption>{caption}</caption>
+    <ScrollableTable caption={caption} className="comparison-matrix">
         <thead>
           <tr>
             <th scope="col">{t("backendField")}</th>
@@ -84,8 +83,7 @@ function ComparisonMatrix({
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+    </ScrollableTable>
   );
 }
 
@@ -149,9 +147,7 @@ function PositionTable({
     return <p className="reference-empty">{t("emptyRows", { caption })}</p>;
   }
   return (
-    <div className="table-scroll">
-      <table>
-        <caption>{caption}</caption>
+    <ScrollableTable caption={caption}>
         <thead><tr><th scope="col">{t("row")}</th><th scope="col">{t("symbol")}</th><th scope="col">{t("quantity")}</th></tr></thead>
         <tbody>
           {positions.map((position, index) => (
@@ -160,8 +156,7 @@ function PositionTable({
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+    </ScrollableTable>
   );
 }
 
@@ -177,9 +172,7 @@ function PositionChangeTable({
     return <p className="reference-empty">{t("emptyRows", { caption })}</p>;
   }
   return (
-    <div className="table-scroll">
-      <table>
-        <caption>{caption}</caption>
+    <ScrollableTable caption={caption}>
         <thead><tr><th scope="col">{t("row")}</th><th scope="col">{t("symbol")}</th><th scope="col">{t("startingQuantity")}</th><th scope="col">{t("endingQuantity")}</th><th scope="col">{t("quantityChange")}</th></tr></thead>
         <tbody>
           {changes.map((change, index) => (
@@ -188,8 +181,7 @@ function PositionChangeTable({
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+    </ScrollableTable>
   );
 }
 
@@ -287,7 +279,7 @@ export function ComparisonResults({
               <ComparisonErrorDetail error={slot.error} />
               <p className="identity-line">{slot.jobId}</p>
               <RequestId value={slot.error.requestId} />
-              <button className="retry-button" type="button" onClick={() => onRetry(index)}>
+              <button className="secondary-button" type="button" onClick={() => onRetry(index)}>
                 {t("retry", { jobId: slot.jobId })}
               </button>
               <SlotSourceLinks jobId={slot.jobId} />

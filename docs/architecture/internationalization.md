@@ -2,9 +2,8 @@
 
 ## Decision Status
 
-Implemented by Sprint 162 — Multilingual Foundation and Simplified Chinese
-Workspace. Founder local Standard/Demo bilingual browser acceptance remains
-pending.
+Implemented and Founder-accepted by Sprint 162 — Multilingual Foundation and
+Simplified Chinese Workspace.
 
 ## Context
 

@@ -24,16 +24,17 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current implementation sprint is:
 
 ```text
-Sprint 162 — Multilingual Foundation and Simplified Chinese Workspace
+Sprint 163 — Modern Visual System Foundation
 ```
 
-Sprint 161 is complete. Sprint 162 implements its approved internationalization
-architecture and glossary across the complete Founder workspace. Implementation
-is complete in the Sprint 162 branch; Founder bilingual browser acceptance and
-the merge decision remain pending. The next sprint may begin only after both:
+Sprints 161 and 162 are complete. Sprint 163 implements one coherent modern
+bilingual visual system across the complete Founder workspace. Implementation is
+complete in the Sprint 163 branch; Founder local Standard/Demo rendered visual
+acceptance and the merge decision remain pending. The next sprint may begin only
+after both:
 
 ```text
-Sprint 163 — Modern Visual System Foundation
+Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
 ```
 
 ## Product Direction
@@ -125,6 +126,8 @@ docs/product/product-experience-direction.md
 docs/product/founder-dashboard-information-architecture.md
 docs/product/milestone-029-product-feedback-and-hardening-plan.md
 docs/sprints/sprint-162-multilingual-foundation-and-simplified-chinese-workspace.md
+docs/product/visual-system.md
+docs/sprints/sprint-163-modern-visual-system-foundation.md
 ```
 
 Key approved directions:
@@ -145,6 +148,18 @@ Key approved directions:
   dashboard or autonomous trading terminal; and
 - Dashboard guidance remains operational navigation, not strategy ranking,
   approval, or capital recommendation.
+
+Implemented Sprint 163 direction:
+
+- exact semantic tokens own the light neutral palette, bilingual system
+  typography, spacing, shape, elevation, controls, focus, motion, and responsive
+  thresholds;
+- the modern shell keeps Standard/Paper or persistent Demo identity and the
+  language switcher visible across every route and representative viewport;
+- shared action, status, card, panel, table, form, disclosure, audit, and state
+  contracts cover the complete existing workflow; and
+- raw values, product behavior, API/domain authority, and human-control
+  boundaries remain unchanged.
 
 ## Quick Start
 

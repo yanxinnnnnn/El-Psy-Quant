@@ -118,7 +118,7 @@ export function HealthPanel() {
       )}
 
       <button
-        className="retry-button"
+        className="secondary-button"
         type="button"
         onClick={() => void checkHealth()}
         disabled={health.status === "loading"}

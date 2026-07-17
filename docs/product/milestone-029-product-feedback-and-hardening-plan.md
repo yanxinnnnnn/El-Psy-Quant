@@ -4,9 +4,9 @@
 
 Milestone 29 is **In Progress**.
 
-Sprint 161 is complete. Sprint 162 implementation is complete in its review
-branch; Founder bilingual Standard/Demo acceptance and the merge decision remain
-pending. Sprint 163 must not begin before both are complete.
+Sprints 161 and 162 are complete. Sprint 163 implementation is complete in its
+review branch; Founder Standard/Demo rendered visual acceptance and the merge
+decision remain pending. Sprint 164 must not begin before both are complete.
 
 ## Milestone Objective
 
@@ -157,12 +157,12 @@ and error states.
 
 **Implementation status**
 
-Complete in the Sprint 162 review branch. The implementation uses pinned
+Complete and merged. The implementation uses pinned
 `next-intl`, static matching `en` and `zh-CN` catalogs, validated cookie/browser
 locale resolution, an accessible same-origin shell switcher, localized metadata
 and complete workspace copy, display-only localized formatting with raw values,
 static error-code explanations, and deterministic catalog validation. Founder
-local runtime verification remains pending.
+local bilingual runtime acceptance is complete.
 
 ### Sprint 163 — Modern Visual System Foundation
 
@@ -209,6 +209,14 @@ bilingual product system without changing workflow or domain semantics.
 **Founder verification**
 
 Review the complete Demo journey in both languages at desktop and narrow widths.
+
+**Implementation status**
+
+Complete in the Sprint 163 review branch. One exact semantic token system,
+bilingual-safe system typography, the responsive workspace shell, persistent
+Standard/Demo identity, and shared action/status/state/table/form/audit contracts
+cover every existing route. Founder local rendered visual acceptance and the
+merge decision remain pending; Sprint 164 is not authorized before both.
 
 ### Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
 

@@ -110,9 +110,9 @@ M29 begins from direct Founder use rather than speculative feature work.
 | Sprint | Deliverable | Status |
 |---:|---|---|
 | S161 | Founder Feedback and Product Experience Architecture | Complete |
-| S162 | Multilingual Foundation and Simplified Chinese Workspace | Implementation complete; Founder bilingual acceptance pending |
-| S163 | Modern Visual System Foundation | Next after S162 merge and Founder acceptance |
-| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Planned |
+| S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
+| S163 | Modern Visual System Foundation | Implementation complete; Founder visual acceptance remains |
+| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Next only after S163 acceptance and merge |
 | S165 | Reliability, Idempotency, and Job Recovery Hardening | Planned |
 | S166 | Error Surface, Observability, and Audit Hardening | Planned |
 | S167 | Migration, Test, and Local Deployment Hardening | Planned |
@@ -156,9 +156,22 @@ formatting with visible raw audit values, static error-code explanations, and a
 deterministic catalog gate. Existing unprefixed routes and all M28 authority
 boundaries remain unchanged.
 
-Founder local Standard/Demo startup and full bilingual browser acceptance remain
-pending. S163 must not begin before Sprint 162 is merged and that acceptance is
-recorded.
+Founder local Standard/Demo bilingual browser acceptance is complete and Sprint
+162 is merged.
+
+### Sprint 163 implementation
+
+Sprint 163 now provides one exact semantic token system, bilingual-safe system
+typography, a modern responsive workspace shell, persistent Standard/Demo
+identity, and shared action, status, card, panel, table, form, disclosure,
+audit-detail, and state contracts across every current route. Operational state
+remains distinct from financial performance; localized meaning remains paired
+with raw transport/audit values. No S164 Dashboard restructuring or product
+behavior was added.
+
+Founder local rendered visual acceptance remains pending in both locales and
+modes at representative narrow, tablet, and desktop widths. S164 must not begin
+before Sprint 163 is accepted and merged.
 
 ## Codex and Founder Verification Boundary
 

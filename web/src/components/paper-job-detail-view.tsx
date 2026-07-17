@@ -5,8 +5,14 @@ import { useTranslations } from "next-intl";
 import { useCallback, useRef, useState } from "react";
 
 import { ErrorState, LoadingState, RequestId } from "@/components/data-states";
-import { AttemptErrorValue, PaperJobStatusValue } from "@/components/domain-values";
+import {
+  AttemptErrorValue,
+  PaperJobAttemptStatusValue,
+  PaperJobAttemptSummary,
+  PaperJobStatusValue,
+} from "@/components/domain-values";
 import { LocalizedTimestamp } from "@/components/localized-values";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { useErrorPresentation } from "@/i18n/errors";
 import {
   ApiClientError,
@@ -35,6 +41,13 @@ function allowedActions(status: PaperJobResponse["status"]): readonly JobAction[
   if (status === "running") return ["recover"];
   if (status === "failed") return ["retry"];
   return [];
+}
+
+function actionClassName(action: JobAction): string {
+  if (action === "cancel") return "danger-button";
+  if (action === "recover") return "warning-button";
+  if (action === "retry") return "secondary-button";
+  return "primary-button";
 }
 
 function MutationErrorNotice({ code, message, requestId }: { code: string; message: string; requestId: string | null }) {
@@ -160,7 +173,7 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
               <div><dt>{t("submitted")}</dt><dd><LocalizedTimestamp value={job.submitted_timestamp} /></dd></div>
               <div><dt>{t("updated")}</dt><dd><LocalizedTimestamp value={job.updated_timestamp} /></dd></div>
               <div><dt>{t("attemptCount")}</dt><dd>{job.attempt_count}</dd></div>
-              <div><dt>{t("latestAttempt")}</dt><dd>{job.latest_attempt ? `#${job.latest_attempt.attempt_number} ${job.latest_attempt.status}` : common("notAvailable")}</dd></div>
+              <div><dt>{t("latestAttempt")}</dt><dd>{job.latest_attempt ? <PaperJobAttemptSummary attemptNumber={job.latest_attempt.attempt_number} status={job.latest_attempt.status} /> : common("notAvailable")}</dd></div>
               <div><dt>{t("latestAttemptId")}</dt><dd>{job.latest_attempt?.attempt_id ?? common("notAvailable")}</dd></div>
               <div><dt>{t("latestStarted")}</dt><dd>{job.latest_attempt?.started_timestamp ? <LocalizedTimestamp value={job.latest_attempt.started_timestamp} /> : common("notAvailable")}</dd></div>
               <div><dt>{t("latestCompleted")}</dt><dd>{job.latest_attempt?.completed_timestamp ? <LocalizedTimestamp value={job.latest_attempt.completed_timestamp} /> : common("notAvailable")}</dd></div>
@@ -180,7 +193,7 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
             ) : mutation.status === "confirming" || mutation.status === "pending" ? null : allowedActions(job.status).length === 0 ? (
               <p className="reference-empty">{t("noControl", { status: job.status })}</p>
             ) : (
-              <div className="control-actions">{allowedActions(job.status).map((action) => <button className={action === "cancel" ? "danger-button" : "primary-button"} type="button" key={action} onClick={() => confirm(action)}>{actionLabel(action)}</button>)}</div>
+              <div className="control-actions">{allowedActions(job.status).map((action) => <button className={actionClassName(action)} type="button" key={action} onClick={() => confirm(action)}>{actionLabel(action)}</button>)}</div>
             )}
 
             {(mutation.status === "confirming" || mutation.status === "pending") ? (
@@ -191,7 +204,7 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
                 {mutation.action === "run" ? <p>{t("runConfirmation")}</p> : null}
                 {mutation.action === "retry" ? <p>{t("retryConfirmation")}</p> : null}
                 {mutation.action === "recover" ? <div className="recovery-input"><label htmlFor="stale-before">{t("staleBefore")}</label><input id="stale-before" value={staleBefore} onChange={(event) => setStaleBefore(event.target.value)} placeholder="2026-07-15T10:00:00Z" aria-describedby={recoveryFieldError ? "stale-before-guidance stale-before-error" : "stale-before-guidance"} aria-invalid={recoveryFieldError ? true : undefined} /><span className="field-guidance" id="stale-before-guidance">{t("staleGuidance")}</span>{recoveryFieldError ? <span className="field-error" id="stale-before-error">{recoveryFieldError}</span> : null}</div> : null}
-                <div className="control-actions"><button className="primary-button" type="button" disabled={mutation.status === "pending"} onClick={() => execute(mutation.action)}>{mutation.status === "pending" ? t("pending", { action: actionLabel(mutation.action) }) : t("confirm", { action: actionLabel(mutation.action) })}</button><button className="secondary-button" type="button" disabled={mutation.status === "pending"} onClick={() => setMutation({ status: "idle" })}>{t("keep")}</button></div>
+                <div className="control-actions"><button className={actionClassName(mutation.action)} type="button" disabled={mutation.status === "pending"} onClick={() => execute(mutation.action)}>{mutation.status === "pending" ? t("pending", { action: actionLabel(mutation.action) }) : t("confirm", { action: actionLabel(mutation.action) })}</button><button className="quiet-button" type="button" disabled={mutation.status === "pending"} onClick={() => setMutation({ status: "idle" })}>{t("keep")}</button></div>
               </div>
             ) : null}
             {mutation.status === "success" ? <div className="mutation-notice mutation-notice--success" role="status"><strong>{t("response", { action: actionLabel(mutation.action) })}</strong><p>{mutation.message}</p><RequestId value={mutation.requestId} /></div> : null}
@@ -200,7 +213,7 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
 
           <section className="content-panel" aria-labelledby="attempts-title">
             <div className="section-heading"><div><p className="eyebrow">{t("attemptsEyebrow")}</p><h2 id="attempts-title">{t("attemptsTitle")}</h2></div><p>{t("attemptsBoundary")}</p></div>
-            {attemptsResource.state.status === "loading" ? <div className="inline-loading" role="status" aria-busy="true">{t("loadingAttempts")}</div> : attemptsResource.state.status === "error" ? <MutationErrorNotice code={attemptsResource.state.code} message={attemptsResource.state.message} requestId={attemptsResource.state.requestId} /> : attemptsResource.state.data.length === 0 ? <p className="reference-empty">{t("emptyAttempts")}</p> : <div className="table-scroll"><table className="attempts-table"><caption>{t("attemptsCaption")}</caption><thead><tr><th>{t("attemptId")}</th><th>{t("number")}</th><th>{t("status")}</th><th>{t("started")}</th><th>{t("completed")}</th><th>{t("errorCode")}</th></tr></thead><tbody>{attemptsResource.state.data.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td>{attempt.status}</td><td><LocalizedTimestamp value={attempt.started_timestamp} /></td><td>{attempt.completed_timestamp ? <LocalizedTimestamp value={attempt.completed_timestamp} /> : common("notAvailable")}</td><td><AttemptErrorValue code={attempt.error_code} /></td></tr>)}</tbody></table></div>}
+            {attemptsResource.state.status === "loading" ? <div className="inline-loading" role="status" aria-busy="true">{t("loadingAttempts")}</div> : attemptsResource.state.status === "error" ? <MutationErrorNotice code={attemptsResource.state.code} message={attemptsResource.state.message} requestId={attemptsResource.state.requestId} /> : attemptsResource.state.data.length === 0 ? <p className="reference-empty">{t("emptyAttempts")}</p> : <ScrollableTable caption={t("attemptsCaption")} tableClassName="attempts-table"><thead><tr><th scope="col">{t("attemptId")}</th><th scope="col">{t("number")}</th><th scope="col">{t("status")}</th><th scope="col">{t("started")}</th><th scope="col">{t("completed")}</th><th scope="col">{t("errorCode")}</th></tr></thead><tbody>{attemptsResource.state.data.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td><PaperJobAttemptStatusValue value={attempt.status} /></td><td><LocalizedTimestamp value={attempt.started_timestamp} /></td><td>{attempt.completed_timestamp ? <LocalizedTimestamp value={attempt.completed_timestamp} /> : common("notAvailable")}</td><td><AttemptErrorValue code={attempt.error_code} /></td></tr>)}</tbody></ScrollableTable>}
           </section>
           <section className="related-panel" aria-labelledby="paper-comparison-next-title">
             <div><p className="eyebrow">{t("relatedEyebrow")}</p><h2 id="paper-comparison-next-title">{t("relatedTitle")}</h2><p>{t("relatedDescription")}</p></div>

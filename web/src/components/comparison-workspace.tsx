@@ -181,7 +181,7 @@ function CandidateCard({
   const inputId = `comparison-candidate-${index}`;
   const disabled = !job.result_available || (selectionLimitReached && !selected);
   return (
-    <li className="record-card comparison-candidate-card">
+    <li className="record-card">
       <div>
         <div className="comparison-candidate-select">
           <input

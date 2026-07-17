@@ -72,9 +72,9 @@ working local MVP
 | Sprint | Deliverable | Status |
 |---:|---|---|
 | S161 | Founder Feedback and Product Experience Architecture | Complete |
-| S162 | Multilingual Foundation and Simplified Chinese Workspace | Implementation complete; Founder bilingual acceptance pending |
-| S163 | Modern Visual System Foundation | Next after S162 merge and Founder acceptance |
-| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Planned |
+| S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
+| S163 | Modern Visual System Foundation | Implementation complete; Founder visual acceptance remains |
+| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Next only after S163 acceptance and merge |
 | S165 | Reliability, Idempotency, and Job Recovery Hardening | Planned |
 | S166 | Error Surface, Observability, and Audit Hardening | Planned |
 | S167 | Migration, Test, and Local Deployment Hardening | Planned |
@@ -116,7 +116,7 @@ Sprint 162 implements this decision through pinned `next-intl`, exact static
 catalogs, validated request-level locale resolution, a same-origin locale-cookie
 route, and an accessible shell switcher. Existing unprefixed routes, generated
 transport, backend ownership, and Standard/Demo isolation remain unchanged.
-Founder bilingual runtime acceptance remains pending before S163 begins.
+Founder bilingual runtime acceptance is complete and Sprint 162 is merged.
 
 ### Product Experience
 
@@ -133,6 +133,13 @@ The target is an **AI Quant Decision Workspace**:
 
 It is not a marketing site, live trading terminal, academic archive, or
 autonomous AI decision engine.
+
+Sprint 163 implements that direction with one exact Web-owned semantic token
+system; bilingual-safe system typography; a modern responsive shell; persistent
+Standard/Paper and Demo identity; standardized action, status, state, table,
+form, disclosure, and audit patterns; and deterministic responsive/accessibility
+contracts. Founder local rendered visual acceptance remains pending. Sprint 164
+becomes next only after that acceptance and the Sprint 163 merge.
 
 ### Founder Dashboard
 

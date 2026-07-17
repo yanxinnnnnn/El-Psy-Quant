@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document defines the product-experience direction for Milestone 29. It
-constrains Sprint 163 and Sprint 164 without implementing production CSS,
-components, charts, or dashboard APIs.
+This document defines the product-experience direction for Milestone 29. Sprint
+163 now implements its visual-system constraints; Sprint 164 remains constrained
+without adding Dashboard APIs or product behavior here.
 
 ## Product Position
 
@@ -122,8 +122,9 @@ Desired properties:
 - no decorative gradients that reduce readability; and
 - no red/green-only meaning.
 
-The planning direction does not lock exact hex values. Sprint 163 must produce
-reviewable design tokens and test contrast.
+Sprint 163 locks the exact reviewable values in
+`docs/product/visual-system.md` and verifies semantic token ownership
+deterministically.
 
 ### Typography
 
@@ -389,3 +390,33 @@ Sprint 163 should be considered successful when:
 | Dashboard density returns through reusable cards. | Cards require coherent object/state ownership and a primary question. |
 | AI identity implies autonomous decisions. | Copy and actions preserve explicit Founder choice and human review. |
 | Visual changes accidentally alter workflow behavior. | S163 does not change API/domain semantics and retains regression coverage. |
+
+## Sprint 163 implementation record
+
+Sprint 163 implements this direction across every existing route with:
+
+- a neutral blue-accent light token system and no performance-signaling product
+  palette;
+- bilingual-safe system sans and exact-value monospace stacks;
+- a solid responsive shell with persistent Paper/Demo identity and language
+  switching;
+- standardized action, status, state, card, panel, table, form, disclosure,
+  audit, and workflow-step contracts;
+- localized status meaning paired with exact raw values, including bounded
+  neutral handling for unknown states;
+- responsive rules for representative `360px`, `768px`, and `1280px+` widths;
+  and
+- visible focus, semantic HTML, text-plus-color state, and reduced-motion
+  behavior.
+
+The exact tokens, component inventory, state semantics, responsive and
+accessibility rules, raw audit treatment, limitations, and Founder acceptance
+checklist are authoritative in:
+
+```text
+docs/product/visual-system.md
+```
+
+This implementation does not change Overview information architecture, add
+Dashboard aggregation, introduce charts, or alter backend/domain authority.
+Founder local Standard/Demo visual acceptance remains pending before Sprint 164.

@@ -122,7 +122,8 @@ describe("PortfolioRecordListView", () => {
     const availableCard = screen.getByRole("heading", { name: "run-available" }).closest("li");
     expect(availableCard).not.toBeNull();
     expect(within(availableCard as HTMLElement).getByText("available / job")).toBeVisible();
-    expect(within(availableCard as HTMLElement).getByText("succeeded")).toBeVisible();
+    expect(within(availableCard as HTMLElement).getAllByText("succeeded", { selector: "code" }))
+      .toHaveLength(2);
     expect(within(availableCard as HTMLElement).getByText("2026-07-15T10:00:00Z")).toBeVisible();
     expect(within(availableCard as HTMLElement).getByRole("link", { name: "检查 run-available 的结果" })).toHaveAttribute(
       "href",

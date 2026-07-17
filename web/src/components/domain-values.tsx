@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import type { PaperJobStatus } from "@/lib/api-client";
 
 export function PaperJobStatusValue({ value }: { value: PaperJobStatus }) {
@@ -11,7 +12,42 @@ export function PaperJobStatusValue({ value }: { value: PaperJobStatus }) {
       : value === "succeeded" ? t("succeeded")
         : value === "failed" ? t("failed")
           : t("canceled");
-  return <span className={`job-status job-status--${value}`}><span>{label}</span> <code>{value}</code></span>;
+  const tone: StatusTone = value === "succeeded" ? "success"
+    : value === "failed" ? "danger"
+      : value === "canceled" ? "unavailable"
+        : "info";
+  return <StatusBadge label={label} rawValue={value} tone={tone} />;
+}
+
+export function PaperJobAttemptStatusValue({ value }: { value: string }) {
+  const t = useTranslations("paperJobs.attemptStatuses");
+  const label = value === "running" ? t("running")
+    : value === "succeeded" ? t("succeeded")
+      : value === "failed" ? t("failed")
+        : value === "interrupted" ? t("interrupted")
+          : t("unknown");
+  const tone: StatusTone = value === "running" ? "info"
+    : value === "succeeded" ? "success"
+      : value === "failed" ? "danger"
+        : value === "interrupted" ? "warning"
+          : "neutral";
+  return <StatusBadge label={label} rawValue={value} tone={tone} />;
+}
+
+export function PaperJobAttemptSummary({
+  attemptNumber,
+  status,
+}: {
+  attemptNumber: number;
+  status: string;
+}) {
+  const t = useTranslations("paperJobs.attemptStatuses");
+  return (
+    <span className="paper-attempt-summary">
+      <span>{t("attemptNumber", { number: attemptNumber })}</span>
+      <PaperJobAttemptStatusValue value={status} />
+    </span>
+  );
 }
 
 export function AttemptErrorValue({ code }: { code: string | null }) {
@@ -36,7 +72,11 @@ export function LifecycleStateValue({ value }: { value: string }) {
         : value === "on_hold" ? t("on_hold")
           : value === "rejected" ? t("rejected")
             : null;
-  return <>{label ? <span>{label} </span> : null}<code>{value}</code></>;
+  const tone: StatusTone = value === "rejected" ? "danger"
+    : value === "on_hold" ? "warning"
+      : value === "research_review" || value === "paper_review" ? "info"
+        : "neutral";
+  return <StatusBadge label={label ?? value} rawValue={value} tone={tone} />;
 }
 
 export function ReviewOutcomeValue({ value }: { value: string }) {
@@ -45,5 +85,9 @@ export function ReviewOutcomeValue({ value }: { value: string }) {
     : value === "rejected" ? t("rejected")
       : value === "deferred" ? t("deferred")
         : null;
-  return <>{label ? <span>{label} </span> : null}<code>{value}</code></>;
+  const tone: StatusTone = value === "rejected" ? "danger"
+    : value === "deferred" ? "warning"
+      : value === "approved" ? "info"
+        : "neutral";
+  return <StatusBadge label={label ?? value} rawValue={value} tone={tone} />;
 }

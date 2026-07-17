@@ -6,6 +6,14 @@
     "failed": "失败",
     "canceled": "已取消"
   },
+  "attemptStatuses": {
+    "running": "运行中",
+    "succeeded": "已成功",
+    "failed": "已失败",
+    "interrupted": "已中断",
+    "unknown": "未知尝试状态",
+    "attemptNumber": "尝试 #{number}"
+  },
   "attemptErrors": {
     "workflow_validation_failed": "工作流验证失败",
     "output_conflict": "输出冲突",
