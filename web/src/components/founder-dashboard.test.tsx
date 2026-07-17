@@ -10,9 +10,11 @@ import {
   type DemoWorkspaceDescriptorResponse,
   type PaperJobResponse,
 } from "@/lib/api-client";
+import { comparisonSelectionErrorKey } from "@/lib/comparisons";
 
 const apiMocks = vi.hoisted(() => ({
   fetchDemoWorkspace: vi.fn(),
+  fetchEvidenceManifestDetail: vi.fn(),
   fetchEvidenceManifests: vi.fn(),
   fetchHealth: vi.fn(),
   fetchPaperJobs: vi.fn(),
@@ -118,6 +120,27 @@ function notConfigured() {
     publicMessage: "Demo workspace is not configured",
     requestId: "identity-request",
   });
+}
+
+function apiFailure(
+  code: string,
+  requestId: string,
+  status = 503,
+): ApiClientError {
+  return new ApiClientError({
+    status,
+    code,
+    publicMessage: `Bounded failure: ${code}`,
+    requestId,
+  });
+}
+
+function deferred<Data>() {
+  let resolve!: (value: Data) => void;
+  const promise = new Promise<Data>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
 }
 
 function job(
@@ -226,6 +249,18 @@ function arrangeStandard({
     data: { manifests },
     requestId: "evidence-request",
   });
+  apiMocks.fetchEvidenceManifestDetail.mockImplementation(
+    (manifestType: string, artifactKey: string) =>
+      Promise.resolve({
+        data: {
+          manifest_type: manifestType,
+          artifact_key: artifactKey,
+          manifest_id: `detail-${artifactKey}`,
+          schema_version: 1,
+        },
+        requestId: `evidence-detail-${artifactKey}`,
+      }),
+  );
   apiMocks.fetchPaperJobs.mockResolvedValue({
     data: jobs,
     requestId: "jobs-request",
@@ -364,7 +399,92 @@ describe("FounderDashboard", () => {
     expect(screen.getByText("Research A")).toBeVisible();
   });
 
-  it("creates an explicit repeated ordered comparison URL and preserves duplicate selections", async () => {
+  it.each([
+    ["api_response_invalid", "health-invalid-request"],
+    ["api_unavailable", "health-unavailable-request"],
+  ])(
+    "reports health %s with successful business reads as partially available",
+    async (code, requestId) => {
+      arrangeStandard();
+      apiMocks.fetchHealth.mockRejectedValue(
+        apiFailure(code, requestId, code === "api_response_invalid" ? 200 : 503),
+      );
+
+      renderDashboard();
+
+      expect(await screen.findByText("Partially available")).toBeVisible();
+      expect(screen.queryByText("Configured and populated")).not.toBeInTheDocument();
+      expect(screen.queryByText("Configured and empty")).not.toBeInTheDocument();
+      expect(screen.getAllByText(new RegExp(code)).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(new RegExp(requestId)).length).toBeGreaterThan(0);
+      expect(screen.getByText("Research A")).toBeVisible();
+      expect(screen.getByText("Report A")).toBeVisible();
+      expect(screen.getByText("job-queued")).toBeVisible();
+    },
+  );
+
+  it.each([
+    ["api_unavailable", "API unreachable"],
+    ["api_response_invalid", "Dependencies unavailable"],
+  ])(
+    "uses the bounded %s error-only readiness classification",
+    async (healthCode, expectedSummary) => {
+      apiMocks.fetchDemoWorkspace.mockRejectedValue(
+        apiFailure("product_database_unavailable", "identity-failure"),
+      );
+      apiMocks.fetchHealth.mockRejectedValue(
+        apiFailure(healthCode, "health-failure"),
+      );
+      apiMocks.fetchResearchRuns.mockRejectedValue(
+        apiFailure("research_artifact_root_unavailable", "research-failure"),
+      );
+      apiMocks.fetchEvidenceManifests.mockRejectedValue(
+        apiFailure("evidence_artifact_root_unavailable", "evidence-failure"),
+      );
+      apiMocks.fetchPaperJobs.mockRejectedValue(
+        apiFailure("product_database_unavailable", "jobs-failure"),
+      );
+
+      renderDashboard();
+
+      expect(await screen.findByText(expectedSummary)).toBeVisible();
+      expect(screen.queryByText("Partially available")).not.toBeInTheDocument();
+      expect(screen.queryByText("Configured and populated")).not.toBeInTheDocument();
+      expect(screen.getAllByText(/health-failure/).length).toBeGreaterThan(0);
+    },
+  );
+
+  it("retains completed failure evidence in readiness while that source refreshes", async () => {
+    arrangeStandard();
+    const healthRetry = deferred<{
+      data: { status: "ok"; service: string; api_version: "v1" };
+      requestId: string;
+    }>();
+    apiMocks.fetchHealth
+      .mockReset()
+      .mockRejectedValueOnce(
+        apiFailure("api_unavailable", "health-initial-failure"),
+      )
+      .mockReturnValueOnce(healthRetry.promise);
+    const user = userEvent.setup();
+
+    renderDashboard();
+
+    expect(await screen.findByText("Partially available")).toBeVisible();
+    await user.click(
+      screen.getByRole("button", { name: "Retry API process" }),
+    );
+    expect(screen.getByText("Partially available")).toBeVisible();
+    expect(screen.queryByText("Configured and populated")).not.toBeInTheDocument();
+
+    healthRetry.resolve({
+      data: { status: "ok", service: "el-psy-quant", api_version: "v1" },
+      requestId: "health-recovered",
+    });
+    expect(await screen.findByText("Configured and populated")).toBeVisible();
+  });
+
+  it("keeps duplicate result rows visible but generates only valid ordered distinct-ID comparisons", async () => {
     arrangeStandard({
       jobs: [
         job("duplicate-result", "run-a", "succeeded", {
@@ -376,6 +496,18 @@ describe("FounderDashboard", () => {
           attemptStatus: "succeeded",
         }),
         job("duplicate-result", "run-c", "succeeded", {
+          resultAvailable: true,
+          attemptStatus: "succeeded",
+        }),
+        job("result-c", "run-d", "succeeded", {
+          resultAvailable: true,
+          attemptStatus: "succeeded",
+        }),
+        job("result-d", "run-e", "succeeded", {
+          resultAvailable: true,
+          attemptStatus: "succeeded",
+        }),
+        job("result-e", "run-f", "succeeded", {
           resultAvailable: true,
           attemptStatus: "succeeded",
         }),
@@ -397,10 +529,71 @@ describe("FounderDashboard", () => {
         name: "Open ordered comparison",
       }),
     ).not.toBeInTheDocument();
+    expect(
+      within(results as HTMLElement).getAllByText("duplicate-result", {
+        selector: "code",
+      }),
+    ).toHaveLength(2);
+    expect(
+      within(results as HTMLElement)
+        .getAllByRole("checkbox")
+        .map((checkbox) => checkbox.parentElement?.textContent),
+    ).toEqual([
+      "duplicate-result · run-a",
+      "result-b · run-b",
+      "duplicate-result · run-c",
+      "result-c · run-d",
+      "result-d · run-e",
+      "result-e · run-f",
+    ]);
 
     await user.click(checkboxes[1]);
     await user.click(checkboxes[0]);
-    await user.click(checkboxes[2]);
+
+    const twoResultLink = within(results as HTMLElement).getByRole("link", {
+      name: "Open ordered comparison",
+    });
+    expect(twoResultLink).toHaveAttribute(
+      "href",
+      "/comparisons?job_id=result-b&job_id=duplicate-result",
+    );
+    expect(checkboxes[2]).toBeDisabled();
+    expect(
+      within(results as HTMLElement).getByText(
+        "Job ID duplicate-result is already selected from another duplicate backend row.",
+      ),
+    ).toBeVisible();
+
+    await user.click(checkboxes[3]);
+    await user.click(checkboxes[4]);
+
+    const fourResultLink = within(results as HTMLElement).getByRole("link", {
+      name: "Open ordered comparison",
+    });
+    expect(fourResultLink).toHaveAttribute(
+      "href",
+      "/comparisons?job_id=result-b&job_id=duplicate-result&job_id=result-c&job_id=result-d",
+    );
+    const selectedIds = new URL(
+      `https://dashboard.local${fourResultLink.getAttribute("href")}`,
+    ).searchParams.getAll("job_id");
+    expect(selectedIds).toEqual([
+      "result-b",
+      "duplicate-result",
+      "result-c",
+      "result-d",
+    ]);
+    expect(comparisonSelectionErrorKey(selectedIds)).toBeNull();
+    expect(checkboxes[5]).toBeDisabled();
+    expect(
+      within(results as HTMLElement).getByText(
+        "Four distinct job IDs are selected. Deselect one before choosing result-e.",
+      ),
+    ).toBeVisible();
+
+    await user.click(checkboxes[0]);
+    expect(checkboxes[5]).toBeEnabled();
+    await user.click(checkboxes[5]);
 
     expect(
       within(results as HTMLElement).getByRole("link", {
@@ -408,14 +601,116 @@ describe("FounderDashboard", () => {
       }),
     ).toHaveAttribute(
       "href",
-      "/comparisons?job_id=result-b&job_id=duplicate-result&job_id=duplicate-result",
+      "/comparisons?job_id=result-b&job_id=result-c&job_id=result-d&job_id=result-e",
     );
     const order = within(results as HTMLElement).getByRole("list", {
       name: "Explicit comparison selection order",
     });
     expect(
       within(order).getAllByRole("listitem").map((item) => item.textContent),
-    ).toEqual(["result-b", "duplicate-result", "duplicate-result"]);
+    ).toEqual(["result-b", "result-c", "result-d", "result-e"]);
+    for (const command of ["Run", "Retry", "Recover", "Cancel", "Submit"]) {
+      expect(
+        within(results as HTMLElement).queryByRole("button", {
+          name: command,
+        }),
+      ).not.toBeInTheDocument();
+    }
+  });
+
+  it("reconciles refreshed result selection without stale links and preserves remaining click order", async () => {
+    const initialJobs = [
+      job("result-a", "run-a", "succeeded", {
+        resultAvailable: true,
+        attemptStatus: "succeeded",
+      }),
+      job("result-b", "run-b", "succeeded", {
+        resultAvailable: true,
+        attemptStatus: "succeeded",
+      }),
+      job("result-c", "run-c", "succeeded", {
+        resultAvailable: true,
+        attemptStatus: "succeeded",
+      }),
+      job("result-d", "run-d", "succeeded", {
+        resultAvailable: true,
+        attemptStatus: "succeeded",
+      }),
+    ];
+    const refreshedJobs = [
+      job("result-d", "run-d-new-order", "succeeded", {
+        resultAvailable: true,
+        attemptStatus: "succeeded",
+      }),
+      job("result-a", "run-a-new-order", "succeeded", {
+        resultAvailable: true,
+        attemptStatus: "succeeded",
+      }),
+      job("result-b", "run-b-unavailable", "succeeded", {
+        resultAvailable: false,
+        attemptStatus: "succeeded",
+      }),
+      job("result-e", "run-e", "succeeded", {
+        resultAvailable: true,
+        attemptStatus: "succeeded",
+      }),
+    ];
+    arrangeStandard({ jobs: initialJobs });
+    apiMocks.fetchPaperJobs
+      .mockReset()
+      .mockResolvedValueOnce({ data: initialJobs, requestId: "jobs-initial" })
+      .mockResolvedValueOnce({ data: refreshedJobs, requestId: "jobs-refreshed" });
+    const user = userEvent.setup();
+
+    renderDashboard();
+
+    const results = (
+      await screen.findByRole("heading", {
+        name: "Continue explicit result review",
+      })
+    ).closest("section");
+    expect(results).not.toBeNull();
+    const checkboxes = within(results as HTMLElement).getAllByRole("checkbox");
+    await user.click(checkboxes[2]);
+    await user.click(checkboxes[0]);
+    await user.click(checkboxes[1]);
+    await user.click(checkboxes[3]);
+    expect(
+      within(results as HTMLElement).getByRole("link", {
+        name: "Open ordered comparison",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "/comparisons?job_id=result-c&job_id=result-a&job_id=result-b&job_id=result-d",
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Refresh Paper Job reads" }),
+    );
+
+    await waitFor(() =>
+      expect(apiMocks.fetchPaperJobs).toHaveBeenCalledTimes(2),
+    );
+    const refreshedResults = (
+      await screen.findByRole("heading", {
+        name: "Continue explicit result review",
+      })
+    ).closest("section");
+    expect(refreshedResults).not.toBeNull();
+    const reconciledLink = await within(
+      refreshedResults as HTMLElement,
+    ).findByRole("link", { name: "Open ordered comparison" });
+    expect(reconciledLink).toHaveAttribute(
+      "href",
+      "/comparisons?job_id=result-a&job_id=result-d",
+    );
+    const remainingIds = new URL(
+      `https://dashboard.local${reconciledLink.getAttribute("href")}`,
+    ).searchParams.getAll("job_id");
+    expect(remainingIds).toEqual(["result-a", "result-d"]);
+    expect(comparisonSelectionErrorKey(remainingIds)).toBeNull();
+    expect(reconciledLink.getAttribute("href")).not.toContain("result-b");
+    expect(reconciledLink.getAttribute("href")).not.toContain("result-c");
   });
 
   it("uses the exact Demo descriptor journey and localizes it without hardcoded fixture identities", async () => {
@@ -455,6 +750,113 @@ describe("FounderDashboard", () => {
     expect(screen.getByText("submission-from-descriptor")).toBeInTheDocument();
     expect(apiMocks.fetchDemoWorkspace).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    {
+      locale: "en" as const,
+      heading: "Saved evidence manifests in source order",
+      inspect: "Inspect exact manifest",
+    },
+    {
+      locale: "zh-CN" as const,
+      heading: "按来源顺序保存的证据清单",
+      inspect: "检查精确清单",
+    },
+  ])(
+    "shows complete raw Evidence Manifest identity in $locale without collapsing duplicates",
+    async ({ locale, heading, inspect }) => {
+      const evidenceRows = [
+        ...manifests,
+        {
+          artifact_key: "artifact-no-label",
+          manifest_type: "strategy_decision_manifest" as const,
+          manifest_id: "manifest-no-label",
+          reference_count: 0,
+          created_by: null,
+          created_timestamp: null,
+          label: null,
+          description: null,
+        },
+      ];
+      arrangeStandard({ jobs: [] });
+      apiMocks.fetchEvidenceManifests.mockResolvedValue({
+        data: { manifests: evidenceRows },
+        requestId: "evidence-complete-identity",
+      });
+
+      renderDashboard(locale);
+
+      const evidence = (
+        await screen.findByRole("heading", { name: heading })
+      ).closest("section");
+      expect(evidence).not.toBeNull();
+      expect(within(evidence as HTMLElement).getByText("Report A")).toBeVisible();
+      expect(
+        within(evidence as HTMLElement).getByText("Report A duplicate"),
+      ).toBeVisible();
+      expect(
+        within(evidence as HTMLElement).getAllByText("manifest-a", {
+          selector: "code",
+        }),
+      ).toHaveLength(2);
+      expect(
+        within(evidence as HTMLElement).getAllByText("manifest-no-label"),
+      ).toHaveLength(2);
+      await waitFor(() =>
+        expect(
+          within(evidence as HTMLElement).getAllByText("1", {
+            selector: "code",
+          }),
+        ).toHaveLength(3),
+      );
+      expect(
+        within(evidence as HTMLElement).getAllByText(
+          "report_artifact_manifest",
+          { selector: "code" },
+        ),
+      ).toHaveLength(2);
+      expect(
+        within(evidence as HTMLElement).getByText(
+          "strategy_decision_manifest",
+          { selector: "code" },
+        ),
+      ).toBeVisible();
+      expect(
+        within(evidence as HTMLElement).getAllByText("artifact-a", {
+          selector: "code",
+        }),
+      ).toHaveLength(2);
+      expect(
+        within(evidence as HTMLElement).getByText("artifact-no-label", {
+          selector: "code",
+        }),
+      ).toBeVisible();
+
+      const records = within(evidence as HTMLElement).getAllByRole("listitem");
+      expect(records.map((record) => record.textContent?.slice(0, 25))).toEqual([
+        expect.stringContaining("Report A"),
+        expect.stringContaining("Report A duplicate"),
+        expect.stringContaining("manifest-no-label"),
+      ]);
+      expect(
+        within(evidence as HTMLElement)
+          .getAllByRole("link", { name: inspect })
+          .map((link) => link.getAttribute("href")),
+      ).toEqual([
+        "/evidence-manifests/report_artifact_manifest/artifact-a",
+        "/evidence-manifests/report_artifact_manifest/artifact-a",
+        "/evidence-manifests/strategy_decision_manifest/artifact-no-label",
+      ]);
+      await waitFor(() =>
+        expect(apiMocks.fetchEvidenceManifestDetail).toHaveBeenCalledTimes(3),
+      );
+      expect(apiMocks.fetchEvidenceManifestDetail.mock.calls).toEqual([
+        ["report_artifact_manifest", "artifact-a"],
+        ["report_artifact_manifest", "artifact-a"],
+        ["strategy_decision_manifest", "artifact-no-label"],
+      ]);
+    },
+  );
 
   it("shows healthy-empty state and only the allow-listed empty-evidence attention condition", async () => {
     arrangeStandard({ jobs: [] });

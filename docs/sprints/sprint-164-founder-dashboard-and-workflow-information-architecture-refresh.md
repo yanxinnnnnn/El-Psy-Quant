@@ -119,9 +119,15 @@ It provides no Run, Retry, Recover, Cancel, or submit command.
 - exact Portfolio Record inspection remains available;
 - checkboxes make selection explicit and keyboard-operable;
 - selection order is the user's action order;
-- duplicates remain selectable as distinct source rows;
+- duplicate backend rows remain visible in exact source order;
+- only two to four distinct nonblank job IDs may be selected;
+- a duplicate row cannot add an already selected ID;
+- a fifth distinct selection is disabled until another ID is deselected;
+- successful refresh removes missing, unavailable, blank, or accidental
+  duplicate selections while preserving remaining click order;
 - the Comparison URL uses repeated ordered `job_id` parameters; and
-- selection remains component-local and side-effect free.
+- the link is enabled only when the existing shared Comparison validator accepts
+  the selection; selection remains component-local and side-effect free.
 
 Nothing is auto-selected, ranked, scored, recommended, declared a winner, or
 financially recomputed.
@@ -132,9 +138,13 @@ Research and evidence remain separate independently stateful regions.
 
 - each preserves endpoint order and duplicates;
 - research preserves exact experiment slug and run ID;
-- evidence preserves exact manifest type, artifact key, manifest identity, and
-  reference count; the list contract exposes no schema value, so schema remains
-  on the exact detail route rather than being fabricated on Overview;
+- evidence preserves its optional presentation label while always showing the
+  exact raw manifest ID, schema version, manifest type, artifact key, and
+  reference count;
+- because the list response has no schema field, the at-most-five visible cards
+  use the existing exact manifest-detail read for raw `schema_version`; loading
+  or failed detail reads remain bounded and retryable without hiding the list
+  record;
 - each links to exact existing detail routes;
 - each has separate loading, empty, invalid, unavailable, and retry behavior;
   and
@@ -201,10 +211,14 @@ Focused tests cover:
 - neutral unknown future status presentation;
 - exact job/result links;
 - backend result availability;
-- explicit ordered repeated comparison parameters, including duplicates;
+- explicit ordered repeated comparison parameters for two to four distinct
+  nonblank job IDs;
+- duplicate-row, maximum-selection, deselection, and successful-refresh
+  reconciliation behavior;
 - no auto-selection, command controls, ranking, winner, recommendation, or
   browser calculation;
-- separate research/evidence ordering and duplicates;
+- separate research/evidence ordering and duplicates, including complete raw
+  Evidence Manifest audit identity in both locales;
 - generic Standard workflow;
 - descriptor-driven Demo workflow without hardcoded identities;
 - English and Simplified Chinese;

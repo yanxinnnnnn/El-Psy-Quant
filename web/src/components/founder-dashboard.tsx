@@ -15,16 +15,22 @@ import { useWorkspaceEnvironment } from "@/components/workspace-shell";
 import { useErrorPresentation } from "@/i18n/errors";
 import {
   fetchEvidenceManifests,
+  fetchEvidenceManifestDetail,
   fetchHealth,
   fetchPaperJobs,
   fetchResearchRuns,
   type DemoWorkspaceDescriptorResponse,
   type EvidenceManifestListResponse,
+  type EvidenceManifestDetailResponse,
   type HealthResponse,
   type PaperJobListResponse,
   type PaperJobResponse,
   type ResearchRunListResponse,
 } from "@/lib/api-client";
+import {
+  comparisonHref,
+  comparisonSelectionErrorKey,
+} from "@/lib/comparisons";
 import {
   useApiResource,
   type ApiResourceState,
@@ -55,10 +61,67 @@ type Selection = {
   jobId: string;
 };
 
-function comparisonHref(jobIds: readonly string[]): string {
-  const query = new URLSearchParams();
-  jobIds.forEach((jobId) => query.append("job_id", jobId));
-  return `/comparisons?${query.toString()}`;
+type ResultCandidate = {
+  job: PaperJobResponse;
+  sourceIndex: number;
+  rowKey: string;
+};
+
+function effectiveResourceState<Data>(
+  state: ApiResourceState<Data>,
+): ApiResourceState<Data> {
+  return state.status === "loading" && state.previous !== null
+    ? state.previous
+    : state;
+}
+
+function reconcileComparisonSelection(
+  current: Selection[],
+  candidates: readonly ResultCandidate[],
+): Selection[] {
+  const candidatesByRow = new Map(
+    candidates.map((candidate) => [candidate.rowKey, candidate]),
+  );
+  const firstCandidateById = new Map<string, ResultCandidate>();
+  candidates.forEach((candidate) => {
+    if (
+      candidate.job.job_id.trim().length > 0 &&
+      !firstCandidateById.has(candidate.job.job_id)
+    ) {
+      firstCandidateById.set(candidate.job.job_id, candidate);
+    }
+  });
+
+  const seenIds = new Set<string>();
+  const reconciled: Selection[] = [];
+  current.forEach((item) => {
+    if (
+      reconciled.length >= 4 ||
+      item.jobId.trim().length === 0 ||
+      seenIds.has(item.jobId)
+    ) {
+      return;
+    }
+    const exactRow = candidatesByRow.get(item.rowKey);
+    const candidate =
+      exactRow?.job.job_id === item.jobId
+        ? exactRow
+        : firstCandidateById.get(item.jobId);
+    if (candidate === undefined) {
+      return;
+    }
+    seenIds.add(item.jobId);
+    reconciled.push({ rowKey: candidate.rowKey, jobId: item.jobId });
+  });
+
+  return reconciled.length === current.length &&
+    reconciled.every(
+      (item, index) =>
+        item.rowKey === current[index]?.rowKey &&
+        item.jobId === current[index]?.jobId,
+    )
+    ? current
+    : reconciled;
 }
 
 function isStandardWorkspace(
@@ -295,23 +358,41 @@ function ReadinessRegion({
 }) {
   const t = useTranslations("overview.dashboard.readiness");
   const identity = environmentDependencyState(environment);
-  const sources = [identity, research, evidence, jobs];
+  const effectiveHealth = effectiveResourceState(health);
+  const effectiveIdentity = environmentDependencyState(
+    effectiveResourceState(environment),
+  );
+  const effectiveResearch = effectiveResourceState(research);
+  const effectiveEvidence = effectiveResourceState(evidence);
+  const effectiveJobs = effectiveResourceState(jobs);
+  const sources = [
+    effectiveHealth,
+    effectiveIdentity,
+    effectiveResearch,
+    effectiveEvidence,
+    effectiveJobs,
+  ];
   const successCount = sources.filter((source) => source.status === "success").length;
   const errorCount = sources.filter((source) => source.status === "error").length;
-  const loadingCount = sources.filter((source) => source.status === "loading").length;
+  const unresolvedLoadingCount = sources.filter(
+    (source) => source.status === "loading",
+  ).length;
   const populated =
-    (sourceCount(research) ?? 0) +
-      (sourceCount(evidence) ?? 0) +
-      (sourceCount(jobs) ?? 0) >
+    (sourceCount(effectiveResearch) ?? 0) +
+      (sourceCount(effectiveEvidence) ?? 0) +
+      (sourceCount(effectiveJobs) ?? 0) >
     0;
+  const healthUnavailable =
+    effectiveHealth.status === "error" &&
+    effectiveHealth.code === "api_unavailable";
   const summaryKey =
-    health.status === "error"
-      ? "apiUnavailable"
-      : errorCount > 0 && successCount > 0
-        ? "partial"
+    errorCount > 0 && successCount > 0
+      ? "partial"
+      : errorCount > 0 && healthUnavailable
+        ? "apiUnavailable"
         : errorCount > 0
           ? "unavailable"
-          : loadingCount > 0 || health.status === "loading"
+          : unresolvedLoadingCount > 0
             ? "loading"
             : populated
               ? "populated"
@@ -635,17 +716,45 @@ function ResultsRegion({
   retry: Retry;
 }) {
   const t = useTranslations("overview.dashboard.results");
+  const comparisonErrors = useTranslations("comparisons.selectionErrors");
   const error = useErrorPresentation(
     state.status === "error" ? state.code : null,
   );
-  const [selection, setSelection] = useState<Selection[]>([]);
-  const candidates =
+  const [selectionState, setSelectionState] = useState<{
+    items: Selection[];
+    sourceSequence: number | null;
+  }>({ items: [], sourceSequence: null });
+  const selection = selectionState.items;
+  const candidates = useMemo<ResultCandidate[]>(
+    () =>
+      state.status === "success"
+        ? state.data
+            .map((job, sourceIndex) => ({
+              job,
+              sourceIndex,
+              rowKey: `${sourceIndex}:${job.job_id}`,
+            }))
+            .filter(({ job }) => job.result_available)
+        : [],
+    [state],
+  );
+  const reconciledSelection =
     state.status === "success"
-      ? state.data
-          .map((job, sourceIndex) => ({ job, sourceIndex }))
-          .filter(({ job }) => job.result_available)
-      : [];
-  const selectedIds = selection.map((item) => item.jobId);
+      ? reconcileComparisonSelection(selection, candidates)
+      : selection;
+  if (
+    state.status === "success" &&
+    selectionState.sourceSequence !== state.sequence
+  ) {
+    setSelectionState({
+      items: reconciledSelection,
+      sourceSequence: state.sequence,
+    });
+  }
+  const selectedIds = reconciledSelection.map((item) => item.jobId);
+  const selectionError = comparisonSelectionErrorKey(selectedIds);
+  const comparisonReady =
+    selectedIds.length >= 2 && selectionError === null;
 
   return (
     <section
@@ -682,23 +791,86 @@ function ResultsRegion({
             <ul>
               {candidates.map(({ job, sourceIndex }) => {
                 const rowKey = `${sourceIndex}:${job.job_id}`;
-                const checked = selection.some((item) => item.rowKey === rowKey);
+                const checked = reconciledSelection.some(
+                  (item) => item.rowKey === rowKey,
+                );
+                const selectedOnDuplicateRow = reconciledSelection.some(
+                  (item) =>
+                    item.jobId === job.job_id && item.rowKey !== rowKey,
+                );
+                const blankId = job.job_id.trim().length === 0;
+                const maximumReached = reconciledSelection.length >= 4;
+                const disabled =
+                  !checked &&
+                  (blankId || selectedOnDuplicateRow || maximumReached);
+                const constraintKey = blankId
+                  ? "blankUnavailable"
+                  : selectedOnDuplicateRow
+                    ? "duplicateSelected"
+                    : maximumReached
+                      ? "maximumSelected"
+                      : null;
+                const constraintId =
+                  constraintKey === null
+                    ? undefined
+                    : `comparison-constraint-${sourceIndex}`;
                 return (
                   <li key={rowKey}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(event) => {
-                          setSelection((current) =>
-                            event.target.checked
-                              ? [...current, { rowKey, jobId: job.job_id }]
-                              : current.filter((item) => item.rowKey !== rowKey),
-                          );
-                        }}
-                      />
-                      <span><code>{job.job_id}</code> · <code>{job.run_id}</code></span>
-                    </label>
+                    <div className="comparison-selection__choice">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={disabled}
+                          aria-describedby={constraintId}
+                          onChange={(event) => {
+                            setSelectionState((current) => {
+                              const validCurrent =
+                                reconcileComparisonSelection(
+                                  current.items,
+                                  candidates,
+                                );
+                              if (!event.target.checked) {
+                                return {
+                                  items: validCurrent.filter(
+                                    (item) => item.rowKey !== rowKey,
+                                  ),
+                                  sourceSequence: state.sequence,
+                                };
+                              }
+                              if (
+                                job.job_id.trim().length === 0 ||
+                                validCurrent.length >= 4 ||
+                                validCurrent.some(
+                                  (item) => item.jobId === job.job_id,
+                                )
+                              ) {
+                                return {
+                                  items: validCurrent,
+                                  sourceSequence: state.sequence,
+                                };
+                              }
+                              return {
+                                items: [
+                                  ...validCurrent,
+                                  { rowKey, jobId: job.job_id },
+                                ],
+                                sourceSequence: state.sequence,
+                              };
+                            });
+                          }}
+                        />
+                        <span><code>{job.job_id}</code> · <code>{job.run_id}</code></span>
+                      </label>
+                      {constraintKey === null ? null : (
+                        <span
+                          className="comparison-selection__constraint"
+                          id={constraintId}
+                        >
+                          {t(constraintKey, { jobId: job.job_id })}
+                        </span>
+                      )}
+                    </div>
                     <Link className="text-link" href={`/portfolio-records/${encodeURIComponent(job.job_id)}`}>
                       {t("inspect")}
                     </Link>
@@ -708,20 +880,24 @@ function ResultsRegion({
             </ul>
           </fieldset>
           <div className="comparison-selection__summary" aria-live="polite">
-            <p>{t("selected", { count: selection.length })}</p>
-            {selection.length > 0 ? (
+            <p>{t("selected", { count: reconciledSelection.length })}</p>
+            {reconciledSelection.length > 0 ? (
               <ol aria-label={t("selectionOrder")}>
-                {selection.map((item, index) => (
+                {reconciledSelection.map((item, index) => (
                   <li key={`${item.rowKey}-${index}`}><code>{item.jobId}</code></li>
                 ))}
               </ol>
             ) : null}
-            {selection.length >= 2 ? (
+            {comparisonReady ? (
               <Link className="primary-link" href={comparisonHref(selectedIds)}>
                 {t("compare")}
               </Link>
             ) : (
-              <span className="disabled-action" aria-disabled="true">{t("chooseTwo")}</span>
+              <span className="disabled-action" aria-disabled="true">
+                {selectionError === null
+                  ? t("chooseTwo")
+                  : comparisonErrors(selectionError)}
+              </span>
             )}
           </div>
         </>
@@ -821,18 +997,14 @@ function EvidenceRegion({
         <div className="dashboard-state dashboard-state--empty"><p>{t("empty")}</p></div>
       ) : (
         <ol className="dashboard-source-list" aria-label={t("ariaLabel")}>
-          {state.data.manifests.slice(0, DASHBOARD_SOURCE_LIMIT).map((manifest, index) => (
-            <li key={`${manifest.manifest_type}-${manifest.artifact_key}-${index}`}>
-              <div>
-                <strong>{manifest.label ?? manifest.manifest_id}</strong>
-                <code>{manifest.manifest_type} / {manifest.artifact_key}</code>
-                <span>{t("references", { count: manifest.reference_count })}</span>
-              </div>
-              <Link className="text-link" href={`/evidence-manifests/${encodeURIComponent(manifest.manifest_type)}/${encodeURIComponent(manifest.artifact_key)}`}>
-                {t("inspect")}
-              </Link>
-            </li>
-          ))}
+          {state.data.manifests
+            .slice(0, DASHBOARD_SOURCE_LIMIT)
+            .map((manifest, index) => (
+              <EvidenceManifestCard
+                key={`${manifest.manifest_type}-${manifest.artifact_key}-${index}`}
+                manifest={manifest}
+              />
+            ))}
         </ol>
       )}
       <div className="dashboard-region__footer">
@@ -840,6 +1012,88 @@ function EvidenceRegion({
         {state.status === "success" ? <button className="quiet-button" type="button" onClick={retry}>{t("refresh")}</button> : null}
       </div>
     </section>
+  );
+}
+
+function EvidenceManifestCard({
+  manifest,
+}: {
+  manifest: EvidenceManifestListResponse["manifests"][number];
+}) {
+  const t = useTranslations("overview.dashboard.evidence");
+  const common = useTranslations("common");
+  const request = useCallback(
+    (): Promise<{
+      data: EvidenceManifestDetailResponse;
+      requestId: string | null;
+    }> =>
+      fetchEvidenceManifestDetail(
+        manifest.manifest_type,
+        manifest.artifact_key,
+      ),
+    [manifest.artifact_key, manifest.manifest_type],
+  );
+  const detail = useApiResource(request);
+  const detailError = useErrorPresentation(
+    detail.state.status === "error" ? detail.state.code : null,
+  );
+
+  return (
+    <li>
+      <div>
+        <strong>{manifest.label ?? manifest.manifest_id}</strong>
+        <dl className="dashboard-definitions dashboard-source-definitions">
+          <div>
+            <dt>{t("manifestId")}</dt>
+            <dd><code>{manifest.manifest_id}</code></dd>
+          </div>
+          <div>
+            <dt>{t("schemaVersion")}</dt>
+            <dd>
+              {detail.state.status === "loading" ? (
+                <span role="status" aria-live="polite">{t("schemaLoading")}</span>
+              ) : detail.state.status === "error" ? (
+                <span className="dashboard-source-value-state">
+                  <code>{common("errorCode", { code: detail.state.code })}</code>
+                  <span>{detailError.explanation}</span>
+                  <span>{detailError.recovery}</span>
+                  {detail.state.requestId ? (
+                    <code>{common("requestId", { requestId: detail.state.requestId })}</code>
+                  ) : null}
+                  <button
+                    className="quiet-button"
+                    type="button"
+                    onClick={detail.retry}
+                  >
+                    {t("retrySchema")}
+                  </button>
+                </span>
+              ) : (
+                <code>{detail.state.data.schema_version}</code>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>{t("manifestType")}</dt>
+            <dd><code>{manifest.manifest_type}</code></dd>
+          </div>
+          <div>
+            <dt>{t("artifactKey")}</dt>
+            <dd><code>{manifest.artifact_key}</code></dd>
+          </div>
+          <div>
+            <dt>{t("referenceCount")}</dt>
+            <dd>{t("references", { count: manifest.reference_count })}</dd>
+          </div>
+        </dl>
+      </div>
+      <Link
+        className="text-link"
+        href={`/evidence-manifests/${encodeURIComponent(manifest.manifest_type)}/${encodeURIComponent(manifest.artifact_key)}`}
+      >
+        {t("inspect")}
+      </Link>
+    </li>
   );
 }
 

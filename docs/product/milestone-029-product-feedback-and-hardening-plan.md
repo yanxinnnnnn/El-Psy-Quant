@@ -274,8 +274,9 @@ the existing process-health, Demo descriptor, research-run list,
 evidence-manifest list, and Paper Job list contracts into independently stateful
 regions. Partial availability, stable error identity, individual retry,
 backend order and duplicates, exact job/result links, explicit repeated ordered
-comparison selection, separate research/evidence authority, Standard generic
-workflow choices, and Demo descriptor relationships are preserved.
+comparison selection for two to four distinct nonblank job IDs, complete raw
+Evidence Manifest identity, separate research/evidence authority, Standard
+generic workflow choices, and Demo descriptor relationships are preserved.
 
 No backend or generated contract, database, domain, authentication, gateway,
 locale-routing, command, financial-calculation, polling, or durable lifecycle

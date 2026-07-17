@@ -255,8 +255,11 @@ Implemented Sprint 164 contract:
   strategy ranking, recommendation, approval, capital, or live-readiness advice;
 - Paper Job activity preserves backend order, duplicates, raw identity,
   localized/raw job and attempt status, timestamps, and `result_available`;
-- explicit comparison selection preserves user selection order and repeated
+- explicit comparison selection keeps duplicate source rows visible while
+  preserving two to four distinct nonblank IDs in user order and repeated
   `job_id` parameters without auto-selection or browser metric calculation;
+- readiness classifies all five independent sources and Evidence Manifest cards
+  retain label plus complete raw audit identity;
 - research and evidence remain separate ordered sources, Standard workflow
   remains generic, and Demo workflow identity remains descriptor-driven; and
 - Dashboard actions navigate, inspect, or refresh reads only; no Paper Job or

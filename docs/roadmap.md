@@ -176,8 +176,9 @@ decision-navigation Dashboard. It composes only existing process-health, Demo
 descriptor, research, evidence, and Paper Job list contracts. Independent
 regions preserve partial success, source-specific error identity and retry,
 backend order and duplicates, exact job/result links, explicit repeated ordered
-comparison parameters, separate research/evidence authority, generic Standard
-workflow choices, and descriptor-driven Demo relationships.
+comparison parameters for two to four distinct nonblank IDs, complete raw
+Evidence Manifest identity, separate research/evidence authority, generic
+Standard workflow choices, and descriptor-driven Demo relationships.
 
 No backend contract, database schema, domain behavior, authentication, gateway,
 locale routing, Paper Job command, lifecycle command, financial calculation,

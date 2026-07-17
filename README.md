@@ -171,8 +171,11 @@ Implemented Sprint 164 direction:
   visible under partial failure;
 - Paper Job order, duplicates, exact IDs, timestamps, localized/raw statuses,
   result availability, and exact detail links remain authoritative;
-- comparison continuation uses only explicit ordered selections and repeated
+- comparison continuation keeps duplicate backend rows visible but uses only
+  explicit ordered selections of two to four distinct nonblank IDs and repeated
   `job_id` parameters, without ranking or browser calculation;
+- evidence cards keep labels alongside raw manifest ID, schema version, type,
+  artifact key, reference count, and exact detail links;
 - Demo workflow links and identities remain descriptor-driven while Standard
   mode never connects unrelated records; and
 - all Dashboard actions are navigation or explicit read refresh, never Paper Job

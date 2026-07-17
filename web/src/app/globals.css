@@ -2448,6 +2448,24 @@ textarea[aria-invalid="true"] {
   cursor: pointer;
 }
 
+.comparison-selection__choice {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.comparison-selection__choice:has(input:disabled) label {
+  color: var(--color-state-disabled);
+  cursor: not-allowed;
+}
+
+.comparison-selection__constraint {
+  padding-left: calc(1.15rem + var(--space-3));
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-caption);
+  line-height: 1.45;
+}
+
 .comparison-selection input {
   width: 1.15rem;
   height: 1.15rem;
@@ -2510,6 +2528,19 @@ textarea[aria-invalid="true"] {
 .dashboard-source-list span {
   color: var(--color-text-secondary);
   font-size: var(--font-size-label);
+}
+
+.dashboard-source-definitions {
+  margin-top: var(--space-2);
+}
+
+.dashboard-source-value-state {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.dashboard-source-value-state .quiet-button {
+  justify-self: start;
 }
 
 .dashboard-workflow {

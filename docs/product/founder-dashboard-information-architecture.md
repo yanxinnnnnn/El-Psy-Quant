@@ -130,7 +130,12 @@ Rules:
 - no automatic “best result” selection;
 - no metric recomputation;
 - no ranking, recommendation, or score;
-- preserve explicit selection and order; and
+- preserve every backend row, including duplicate rows, in endpoint order;
+- accept only two to four distinct nonblank selected job IDs under the existing
+  Comparison contract;
+- preserve the Founder's valid selection order;
+- reconcile selection after a successful refresh by removing missing,
+  no-longer-result-available, blank, or accidental duplicate IDs; and
 - generic records are not assumed to belong to one research/governance chain.
 
 ### 5. Human-attention area
@@ -371,14 +376,19 @@ GET /api/v1/demo-workspace
 GET /api/v1/health
 GET /api/v1/research-runs
 GET /api/v1/evidence-manifests
+GET /api/v1/evidence-manifests/{manifest_type}/{artifact_key}
 GET /api/v1/paper-jobs?limit=8
 ```
 
 The shared workspace shell owns the single Demo descriptor read and exposes its
 state to the Dashboard. The Dashboard owns independent health, research,
-evidence, and Paper Job read resources. Existing sequence guards suppress stale
-responses after explicit refresh. There is no background polling, global client
-cache, local-storage persistence, aggregate readiness endpoint, or mutation.
+evidence, and Paper Job read resources. Because the existing evidence list
+contract does not include `schema_version`, each of the at most five visible
+Evidence Manifest cards uses its existing exact detail read to display the raw
+schema without changing the backend or fabricating a value. Existing sequence
+guards suppress stale responses after explicit refresh. There is no background
+polling, global client cache, local-storage persistence, aggregate readiness
+endpoint, or mutation.
 
 ### Implemented regions and state
 
@@ -398,7 +408,11 @@ Each authoritative source retains its own loading, empty, available,
 unavailable, invalid-response, request-failure, and retry meaning. Readiness may
 be partially available when successful sources coexist with a failed source.
 Process health is labeled as process health only and cannot make failed product
-dependencies appear ready.
+dependencies appear ready. The aggregate summary treats all five sources
+independently: mixed success and error is partial; `API unreachable` is reserved
+for an actual process-health `api_unavailable` failure with no successful read;
+other error-only evidence is unavailable; and an in-flight refresh retains the
+last completed success or failure evidence.
 
 Stable raw error codes, sanitized backend detail, and request IDs remain visible
 where returned. Error surfaces use localized explanation and bounded recovery
@@ -430,14 +444,21 @@ Portfolio Record routes but exposes no Run, Retry, Recover, Cancel, or submit
 command.
 
 Result selection is explicit, keyboard-operable, side-effect free, and stored
-only in component memory. Selection order and duplicate job IDs are appended to
-the existing repeated `job_id` query contract. Nothing is auto-selected,
-ranked, scored, recommended, declared a winner, or financially recomputed.
+only in component memory. Duplicate backend rows remain visible in exact source
+order, while the existing Comparison contract accepts only two to four distinct
+nonblank job IDs. The Dashboard preserves valid click order, prevents a second
+duplicate row from adding the same ID, disables a fifth distinct selection, and
+reconciles missing or no-longer-available results after successful refresh. The
+URL uses the existing repeated ordered `job_id` query contract and is enabled
+only when `comparisonSelectionErrorKey` accepts the selection. Nothing is
+auto-selected, ranked, scored, recommended, declared a winner, or financially
+recomputed.
 
 Research and evidence are separate ordered regions. Each preserves its own
-endpoint order, duplicates, raw identities, exact detail links, and independent
-empty/error states. No unified chronology or implicit Standard workflow
-relationship is created.
+endpoint order, duplicates, raw identities, schema versions, manifest types,
+artifact keys, exact detail links, and independent empty/error states. A
+presentation label never replaces the raw manifest ID. No unified chronology or
+implicit Standard workflow relationship is created.
 
 ### Standard, Demo, and action behavior
 

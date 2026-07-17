@@ -164,9 +164,10 @@ the existing health, Demo descriptor, research-run list, evidence-manifest list,
 and Paper Job list contracts. Regions retain independent states and read retry;
 Paper Job activity preserves backend order, duplicates, raw status, timestamps,
 attempt detail, result authority, and exact links; comparison continuation is
-explicit and preserves repeated ordered `job_id` values; research and evidence
-remain separate; Standard guidance stays generic; and Demo relationships remain
-descriptor-driven.
+explicit and preserves two to four distinct nonblank IDs as repeated ordered
+`job_id` values; Evidence Manifest label and complete raw identity remain
+visible; research and evidence remain separate; Standard guidance stays
+generic; and Demo relationships remain descriptor-driven.
 
 The implementation adds no backend contract, durable lifecycle state, unified
 cross-source chronology, ranking, recommendation, browser financial
