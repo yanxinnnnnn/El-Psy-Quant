@@ -24,17 +24,18 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current implementation sprint is:
 
 ```text
-Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
+Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
 ```
 
-Sprints 161, 162, and 163 are complete. Sprint 164 implementation turns Overview
-into a bilingual bounded Founder decision-navigation Dashboard using existing
-authoritative endpoints and independent read states. Founder local Standard/Demo
-Dashboard acceptance and the merge decision remain pending. The next sprint may
-begin only after both:
+Sprints 161–164 are complete. Sprint 165 implementation hardens explicit Paper
+Job submission outcomes, synchronous Run claims, Retry/Recover semantics,
+collision protection, bilingual guidance, and deterministic concurrency
+coverage. Founder local Standard/Demo reliability acceptance remains pending.
+The next sprint may begin only after Sprint 165 is merged and that acceptance is
+complete:
 
 ```text
-Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
+Sprint 166 — Error Surface, Observability, and Audit Hardening
 ```
 
 ## Product Direction
@@ -129,6 +130,7 @@ docs/sprints/sprint-162-multilingual-foundation-and-simplified-chinese-workspace
 docs/product/visual-system.md
 docs/sprints/sprint-163-modern-visual-system-foundation.md
 docs/sprints/sprint-164-founder-dashboard-and-workflow-information-architecture-refresh.md
+docs/sprints/sprint-165-reliability-idempotency-and-job-recovery-hardening.md
 ```
 
 Key approved directions:
@@ -180,6 +182,22 @@ Implemented Sprint 164 direction:
   mode never connects unrelated records; and
 - all Dashboard actions are navigation or explicit read refresh, never Paper Job
   or lifecycle commands.
+
+Implemented Sprint 165 direction:
+
+- durable submission reports `created` or `replayed` while preserving the exact
+  original current job and never starting execution;
+- Run preflights authoritative outputs and compact references, then atomically
+  commits `queued -> running` plus one numbered attempt before HTTP 202;
+- the post-response task executes that existing claim without claiming again;
+- Retry remains clean-output `failed -> queued`, creates no attempt, and
+  executes nothing; Recover reports `requeued`, `succeeded`, or `failed` from
+  explicit UTC reconciliation;
+- one centralized Web action matrix owns the bounded status controls, and
+  English/Simplified Chinese guidance preserves raw status, attempt, code,
+  request-ID, and timestamp evidence; and
+- no migration, new status, worker, lease, heartbeat, scheduler, polling,
+  cleanup, overwrite, financial calculation, or lifecycle automation was added.
 
 ## Quick Start
 

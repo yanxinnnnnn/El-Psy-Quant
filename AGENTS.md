@@ -143,15 +143,16 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current sprint is:
 
 ```text
-Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
+Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
 ```
 
-Sprints 161, 162, and 163 are complete. Sprint 164 implementation is complete in
-its review branch. Founder Standard/Demo Dashboard acceptance and the merge
-decision remain pending. Do not begin the next sprint until both are complete:
+Sprints 161, 162, 163, and 164 are complete. Sprint 165 implementation is
+complete in its review branch; Founder Standard/Demo reliability acceptance and
+the merge decision remain pending. Do not begin the next sprint until both are
+complete:
 
 ```text
-Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
+Sprint 166 — Error Surface, Observability, and Audit Hardening
 ```
 
 ## M29 Product Outcome
@@ -198,6 +199,7 @@ docs/product/milestone-029-product-feedback-and-hardening-plan.md
 docs/product/visual-system.md
 docs/sprints/sprint-163-modern-visual-system-foundation.md
 docs/sprints/sprint-164-founder-dashboard-and-workflow-information-architecture-refresh.md
+docs/sprints/sprint-165-reliability-idempotency-and-job-recovery-hardening.md
 ```
 
 Approved internationalization direction:
@@ -264,6 +266,25 @@ Implemented Sprint 164 contract:
   remains generic, and Demo workflow identity remains descriptor-driven; and
 - Dashboard actions navigate, inspect, or refresh reads only; no Paper Job or
   lifecycle command is issued from Overview.
+
+Implemented Sprint 165 contract:
+
+- one bounded frontend action policy presents `queued -> Run/Cancel`,
+  `running -> Recover`, `failed -> Retry`, and no terminal/unknown mutation;
+- submission reports `created` or `replayed` without echoing key/digest or
+  creating execution side effects;
+- Run preflights outputs/references and atomically commits the running job plus
+  one active attempt before returning HTTP 202;
+- the FastAPI post-response task executes an already-claimed attempt and remains
+  a non-durable local callback, not an exactly-once worker guarantee;
+- Retry remains non-executing and attempt-free; Recover reports the explicit
+  `requeued`, `succeeded`, or `failed` reconciliation outcome from a
+  Founder-supplied exact UTC threshold;
+- collision and rollback paths preserve files, compact references, attempts,
+  and recoverable running state; and
+- migration head remains `0005_paper_job_result_references`; no table, column,
+  migration, lease, heartbeat, worker, scheduler, polling, cleanup, overwrite,
+  or Sprint 166 behavior was added.
 
 ## Approved Product Architecture
 

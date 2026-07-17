@@ -10,6 +10,26 @@ export const paperJobStatuses: readonly PaperJobStatus[] = [
 
 export const paperJobLimits = [25, 50, 100, 200] as const;
 
+export type PaperJobAction = "run" | "cancel" | "retry" | "recover";
+
+const paperJobActionMatrix: Readonly<
+  Record<PaperJobStatus, readonly PaperJobAction[]>
+> = {
+  queued: ["run", "cancel"],
+  running: ["recover"],
+  failed: ["retry"],
+  succeeded: [],
+  canceled: [],
+};
+
+export function paperJobActionsForStatus(
+  status: string,
+): readonly PaperJobAction[] {
+  return Object.prototype.hasOwnProperty.call(paperJobActionMatrix, status)
+    ? paperJobActionMatrix[status as PaperJobStatus]
+    : [];
+}
+
 export function paperJobErrorTitle(code: string, list = false): string {
   const titles: Readonly<Record<string, string>> = {
     product_database_unavailable: "Product database unavailable",
@@ -68,4 +88,20 @@ export function isExplicitUtcTimestamp(value: string): boolean {
   const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
   const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   return day >= 1 && day <= daysInMonth[month - 1];
+}
+
+export function isExplicitUtcTimestampAtOrAfter(
+  value: string,
+  minimum: string,
+): boolean {
+  if (!isExplicitUtcTimestamp(value) || !isExplicitUtcTimestamp(minimum)) {
+    return false;
+  }
+  const instant = Date.parse(value);
+  const minimumInstant = Date.parse(minimum);
+  return (
+    Number.isFinite(instant) &&
+    Number.isFinite(minimumInstant) &&
+    instant >= minimumInstant
+  );
 }

@@ -76,8 +76,8 @@
   },
   "paper_job_idempotency_conflict": {
     "title": "Idempotency key conflicts with another request",
-    "explanation": "The same idempotency key is already bound to different request content.",
-    "recovery": "Use the original exact request for replay or choose a new intentional key."
+    "explanation": "The same key was already used for a different canonical request. The backend does not expose a field-level difference.",
+    "recovery": "Preserve the form and exact entered key. Use the original exact request for replay or deliberately enter a different key; nothing is resubmitted automatically."
   },
   "paper_job_conflict": {
     "title": "Paper job conflicts with an existing job",
@@ -87,17 +87,17 @@
   "paper_job_state_conflict": {
     "title": "Paper job state changed",
     "explanation": "Another action or execution changed the job before this command completed.",
-    "recovery": "Refresh status manually before deciding what to do next."
+    "recovery": "The last loaded job and attempts remain visible. Refresh status manually before deciding what to do next."
   },
   "paper_job_output_conflict": {
     "title": "Existing paper output conflicts with this operation",
-    "explanation": "Authoritative output already exists or conflicts with the requested operation.",
-    "recovery": "Inspect the job and outputs; do not overwrite or delete them automatically."
+    "explanation": "Authoritative output or a compact result reference already conflicts with the requested operation. Existing evidence was preserved and no overwrite occurred.",
+    "recovery": "Inspect the job and evidence. No cleanup or force-overwrite action is available."
   },
   "paper_job_recovery_failed": {
     "title": "Paper job recovery inspection failed",
-    "explanation": "The backend could not complete the explicit interrupted-job inspection.",
-    "recovery": "Review the stale threshold and current job state before retrying recovery."
+    "explanation": "The backend could not safely complete the explicit interrupted-job inspection, so terminal state is uncertain.",
+    "recovery": "The job remains running until explicitly reconciled. Review the threshold, evidence, and current state before deciding again."
   },
   "paper_job_result_unavailable": {
     "title": "Paper job result unavailable",

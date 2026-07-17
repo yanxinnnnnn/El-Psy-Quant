@@ -786,6 +786,28 @@
         "title": "PaperJobRecoveryRequest",
         "type": "object"
       },
+      "PaperJobRecoveryResponse": {
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/PaperJobResponse"
+          },
+          "recovery_outcome": {
+            "enum": [
+              "requeued",
+              "succeeded",
+              "failed"
+            ],
+            "title": "Recovery Outcome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "recovery_outcome",
+          "job"
+        ],
+        "title": "PaperJobRecoveryResponse",
+        "type": "object"
+      },
       "PaperJobResponse": {
         "properties": {
           "attempt_count": {
@@ -1040,6 +1062,27 @@
           "audit"
         ],
         "title": "PaperJobResultSummaryResponse",
+        "type": "object"
+      },
+      "PaperJobSubmissionResponse": {
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/PaperJobResponse"
+          },
+          "submission_outcome": {
+            "enum": [
+              "created",
+              "replayed"
+            ],
+            "title": "Submission Outcome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "submission_outcome",
+          "job"
+        ],
+        "title": "PaperJobSubmissionResponse",
         "type": "object"
       },
       "PaperOrderCommandRequest": {
@@ -2804,7 +2847,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaperJobResponse"
+                  "$ref": "#/components/schemas/PaperJobSubmissionResponse"
                 }
               }
             },
@@ -2974,7 +3017,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaperJobResponse"
+                  "$ref": "#/components/schemas/PaperJobRecoveryResponse"
                 }
               }
             },

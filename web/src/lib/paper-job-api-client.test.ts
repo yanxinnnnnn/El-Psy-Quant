@@ -87,10 +87,17 @@ describe("paper job endpoint clients", () => {
   });
 
   it("uses the generated request body and omits or preserves idempotency exactly", async () => {
-    const blankFetcher = vi.fn<typeof fetch>().mockResolvedValue(response(job));
-    const keyedFetcher = vi.fn<typeof fetch>().mockResolvedValue(response(job));
-    await submitPaperJob(command, "", blankFetcher);
-    await submitPaperJob(command, "Founder.Key:155", keyedFetcher);
+    const blankFetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response({ submission_outcome: "created", job }),
+    );
+    const keyedFetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response({ submission_outcome: "replayed", job }),
+    );
+    expect((await submitPaperJob(command, "", blankFetcher)).data.submission_outcome).toBe("created");
+    expect(
+      (await submitPaperJob(command, "Founder.Key:155", keyedFetcher)).data
+        .submission_outcome,
+    ).toBe("replayed");
     expect(blankFetcher.mock.calls[0][1]).toEqual({
       method: "POST",
       cache: "no-store",
@@ -110,9 +117,23 @@ describe("paper job endpoint clients", () => {
   });
 
   it("accepts the generated 202 Run response and sends no JSON body", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(job, 202));
+    const runningJob = {
+      ...job,
+      status: "running" as const,
+      attempt_count: 1,
+      latest_attempt: {
+        attempt_id: "22222222-2222-4222-8222-222222222222",
+        attempt_number: 1,
+        status: "running" as const,
+        started_timestamp: "2026-07-15T10:00:01Z",
+        completed_timestamp: null,
+        error_code: null,
+      },
+    };
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(runningJob, 202));
     const accepted: PaperJobRunAcceptedResponse = (await runPaperJob(job.job_id, fetcher)).data;
-    expect(accepted.status).toBe("queued");
+    expect(accepted.status).toBe("running");
+    expect(accepted.latest_attempt?.attempt_number).toBe(1);
     expect(fetcher).toHaveBeenCalledWith(
       `/api/backend/api/v1/paper-jobs/${job.job_id}/run`,
       { method: "POST", cache: "no-store", headers: { Accept: "application/json" } },
@@ -120,7 +141,15 @@ describe("paper job endpoint clients", () => {
   });
 
   it("keeps every mutation endpoint specific and sends exact UTC recovery input", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockImplementation(() => Promise.resolve(response(job)));
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input) =>
+      Promise.resolve(
+        response(
+          String(input).endsWith("/recover")
+            ? { recovery_outcome: "requeued", job }
+            : job,
+        ),
+      ),
+    );
     const recovery: PaperJobRecoveryRequest = { stale_before: "2026-07-15T10:00:00Z" };
     await cancelPaperJob(job.job_id, fetcher);
     await retryPaperJob(job.job_id, fetcher);
@@ -131,6 +160,26 @@ describe("paper job endpoint clients", () => {
       `/api/backend/api/v1/paper-jobs/${job.job_id}/recover`,
     ]);
     expect(fetcher.mock.calls[2][1]).toMatchObject({ body: JSON.stringify(recovery) });
+  });
+
+  it("rejects unknown submission and recovery outcomes", async () => {
+    const submissionFetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response({ submission_outcome: "duplicate", job }),
+    );
+    const recoveryFetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response({ recovery_outcome: "uncertain", job }),
+    );
+
+    await expect(
+      submitPaperJob(command, "Founder.Key:155", submissionFetcher),
+    ).rejects.toMatchObject({ code: "api_response_invalid" });
+    await expect(
+      recoverPaperJob(
+        job.job_id,
+        { stale_before: "2026-07-15T10:00:00Z" },
+        recoveryFetcher,
+      ),
+    ).rejects.toMatchObject({ code: "api_response_invalid" });
   });
 
   it.each([

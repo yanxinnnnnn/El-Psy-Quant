@@ -22,6 +22,7 @@ from el_psy_quant.application import (
     list_paper_job_attempts,
     list_paper_jobs,
     submit_paper_job,
+    submit_paper_job_with_outcome,
 )
 from el_psy_quant.persistence import (
     SqlAlchemyPaperJobRepository,
@@ -100,11 +101,19 @@ def test_idempotency_key_validation_is_exact(value: object) -> None:
 def test_no_key_preserves_duplicate_run_conflict(
     session_factory,
 ) -> None:
-    first = submit_paper_job(session_factory=session_factory, command=_command())
+    first_result = submit_paper_job_with_outcome(
+        session_factory=session_factory,
+        command=_command(),
+    )
+    first = first_result.job
 
     with pytest.raises(PaperJobConflictError):
-        submit_paper_job(session_factory=session_factory, command=_command())
+        submit_paper_job_with_outcome(
+            session_factory=session_factory,
+            command=_command(),
+        )
 
+    assert first_result.outcome == "created"
     assert list_paper_jobs(session_factory=session_factory) == (first,)
 
 
@@ -132,6 +141,30 @@ def test_first_keyed_submission_creates_one_job_and_compact_mapping(
             session.scalar(select(func.count()).select_from(PaperJobSubmissionKeyRow))
             == 1
         )
+
+
+def test_submission_result_reports_created_then_exact_replayed(
+    session_factory,
+) -> None:
+    created = submit_paper_job_with_outcome(
+        session_factory=session_factory,
+        command=_command(),
+        idempotency_key="client:outcome",
+    )
+    replayed = submit_paper_job_with_outcome(
+        session_factory=session_factory,
+        command=_command(),
+        idempotency_key="client:outcome",
+    )
+
+    assert created.outcome == "created"
+    assert replayed.outcome == "replayed"
+    assert replayed.job == created.job
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=created.job.job_id,
+    ) == ()
+    assert list_paper_jobs(session_factory=session_factory) == (created.job,)
 
 
 def test_key_mapping_failure_rolls_back_job_and_mapping_atomically(
@@ -314,7 +347,7 @@ def test_concurrent_same_key_same_request_converges_on_one_job(
 
     def submit():
         barrier.wait()
-        return submit_paper_job(
+        return submit_paper_job_with_outcome(
             session_factory=session_factory,
             command=_command(),
             idempotency_key="client:race",
@@ -323,8 +356,9 @@ def test_concurrent_same_key_same_request_converges_on_one_job(
     with ThreadPoolExecutor(max_workers=2) as executor:
         results = tuple(executor.map(lambda _: submit(), range(2)))
 
-    assert results[0] == results[1]
-    assert list_paper_jobs(session_factory=session_factory) == (results[0],)
+    assert {result.outcome for result in results} == {"created", "replayed"}
+    assert results[0].job == results[1].job
+    assert list_paper_jobs(session_factory=session_factory) == (results[0].job,)
 
 
 def test_concurrent_same_key_different_requests_has_winner_and_conflict(

@@ -112,9 +112,9 @@ M29 begins from direct Founder use rather than speculative feature work.
 | S161 | Founder Feedback and Product Experience Architecture | Complete |
 | S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
 | S163 | Modern Visual System Foundation | Complete |
-| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Implementation complete; Founder Dashboard acceptance remains |
-| S165 | Reliability, Idempotency, and Job Recovery Hardening | Next only after S164 acceptance and merge |
-| S166 | Error Surface, Observability, and Audit Hardening | Planned |
+| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Complete |
+| S165 | Reliability, Idempotency, and Job Recovery Hardening | Implementation complete; Founder reliability acceptance remains |
+| S166 | Error Surface, Observability, and Audit Hardening | Next only after S165 acceptance and merge |
 | S167 | Migration, Test, and Local Deployment Hardening | Planned |
 | S168 | Milestone 29 Closeout and M30 Handoff | Planned |
 
@@ -183,9 +183,26 @@ Standard workflow choices, and descriptor-driven Demo relationships.
 No backend contract, database schema, domain behavior, authentication, gateway,
 locale routing, Paper Job command, lifecycle command, financial calculation,
 ranking, recommendation, polling, or durable lifecycle read model was added.
-Founder local Standard/Demo Dashboard acceptance remains pending at
-representative `360px`, `768px`, and `1280px+` widths. S165 becomes next only
-after that acceptance and the Sprint 164 merge.
+Founder local Standard/Demo Dashboard acceptance and merge are complete.
+
+### Sprint 165 implementation
+
+Sprint 165 makes durable Paper Job commands explicit under replay, duplicate
+clicks, races, interruption, recovery, and output/reference collision.
+Submission now reports `created` or `replayed`; Run atomically claims the queued
+job and creates one running attempt before HTTP 202; Retry remains a clean,
+attempt-free `failed -> queued` transition; and Recover reports `requeued`,
+`succeeded`, or `failed` from a Founder-supplied exact UTC threshold.
+
+The Web uses one bounded status/action matrix, preserves settled job and attempt
+evidence on command failure, distinguishes request-read retry from the Paper Job
+Retry command, and presents matching English/Simplified Chinese collision and
+recovery guidance. Existing files are never overwritten or cleaned, and
+terminal job/attempt/reference finalization remains one transaction. No
+migration, new durable status, worker, lease, heartbeat, scheduler, polling, or
+automatic command was added. Founder local Standard/Demo reliability acceptance
+remains pending; S166 becomes next only after that acceptance and the Sprint 165
+merge.
 
 ## Codex and Founder Verification Boundary
 

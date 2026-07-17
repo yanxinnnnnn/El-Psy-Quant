@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from threading import Barrier
+from uuid import uuid4
 
 import pytest
 from alembic import command as alembic_command
@@ -14,21 +15,26 @@ import el_psy_quant.application.paper_jobs as service
 from el_psy_quant.application import (
     PaperAccountStateCommandInput,
     PaperJobExecutionError,
+    PaperJobOutputConflictError,
     PaperJobResultInvalidError,
     PaperJobResultUnavailableError,
     PaperJobStateConflictError,
     PaperRunCommand,
+    claim_product_paper_job,
+    execute_claimed_product_paper_job,
     get_paper_job,
     get_paper_job_result_reference,
     list_paper_job_attempts,
     read_paper_job_result,
     recover_product_paper_job,
+    retry_product_paper_job,
     run_paper_job_once,
     run_product_paper_job_once,
     submit_paper_job,
 )
 from el_psy_quant.persistence import (
     SqlAlchemyPaperJobResultReferenceRepository,
+    create_paper_job_result_reference,
     create_product_database_engine,
     create_product_session_factory,
     resolve_product_database_config,
@@ -117,6 +123,197 @@ def test_product_execution_atomically_completes_job_attempt_and_reference(
     )
     assert (root / reference.artifact_relative_path).is_file()
     assert (root / reference.result_summary_relative_path).is_file()
+
+
+def test_product_claim_commits_running_attempt_before_execution(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    root.mkdir()
+
+    claim = claim_product_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+        paper_artifact_root=root,
+    )
+
+    persisted = get_paper_job(session_factory=session_factory, job_id=job.job_id)
+    attempts = list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    )
+    assert claim.job.status == persisted.status == "running"
+    assert claim.attempt.status == "running"
+    assert attempts == (claim.attempt,)
+    assert not (
+        root / "jobs" / JOB_ID / "paper" / "paper_run_artifact.json"
+    ).exists()
+
+    completed = execute_claimed_product_paper_job(
+        session_factory=session_factory,
+        claim=claim,
+    )
+    assert completed.job.status == "succeeded"
+    with pytest.raises(PaperJobStateConflictError):
+        execute_claimed_product_paper_job(
+            session_factory=session_factory,
+            claim=claim,
+        )
+    assert len(
+        list_paper_job_attempts(
+            session_factory=session_factory,
+            job_id=job.job_id,
+        )
+    ) == 1
+
+
+def test_product_claim_rejects_output_or_reference_without_state_change(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    output_dir = root / "jobs" / output_job.job_id / "paper"
+    output_dir.mkdir(parents=True)
+    output_path = output_dir / "paper_run_artifact.json"
+    output_path.write_text("preserve", encoding="utf-8")
+
+    with pytest.raises(PaperJobOutputConflictError):
+        claim_product_paper_job(
+            session_factory=session_factory,
+            job_id=output_job.job_id,
+            paper_artifact_root=root,
+        )
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=output_job.job_id,
+    ).status == "queued"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=output_job.job_id,
+    ) == ()
+    assert output_path.read_text(encoding="utf-8") == "preserve"
+
+    monkeypatch.setattr(service, "_new_job_id", lambda: str(uuid4()))
+    reference_job = submit_paper_job(
+        session_factory=session_factory,
+        command=_command("run-reference-conflict"),
+    )
+    with session_factory.begin() as session:
+        SqlAlchemyPaperJobResultReferenceRepository(session=session).add(
+            reference=create_paper_job_result_reference(
+                job_id=reference_job.job_id,
+                created_timestamp=datetime.now(timezone.utc),
+            )
+        )
+    (root / "jobs" / reference_job.job_id / "paper").mkdir(parents=True)
+
+    with pytest.raises(PaperJobOutputConflictError):
+        claim_product_paper_job(
+            session_factory=session_factory,
+            job_id=reference_job.job_id,
+            paper_artifact_root=root,
+        )
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=reference_job.job_id,
+    ).status == "queued"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=reference_job.job_id,
+    ) == ()
+
+
+def test_claimed_callback_failure_leaves_recoverable_running_state(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    root.mkdir()
+    claim = claim_product_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+        paper_artifact_root=root,
+    )
+    monkeypatch.setattr(
+        service,
+        "run_paper_workflow_request",
+        lambda **_kwargs: (_ for _ in ()).throw(RuntimeError("interrupted")),
+    )
+
+    with pytest.raises(RuntimeError, match="interrupted"):
+        execute_claimed_product_paper_job(
+            session_factory=session_factory,
+            claim=claim,
+        )
+
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ).status == "running"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == (claim.attempt,)
+
+
+def test_product_retry_reference_conflict_preserves_failed_audit(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    root.mkdir()
+    monkeypatch.setattr(
+        service,
+        "run_paper_workflow_request",
+        lambda **_kwargs: (_ for _ in ()).throw(ValueError("expected")),
+    )
+    with pytest.raises(PaperJobExecutionError):
+        run_product_paper_job_once(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            paper_artifact_root=root,
+        )
+    before_attempts = list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    )
+    with session_factory.begin() as session:
+        reference = create_paper_job_result_reference(
+            job_id=job.job_id,
+            created_timestamp=datetime.now(timezone.utc),
+        )
+        SqlAlchemyPaperJobResultReferenceRepository(session=session).add(
+            reference=reference
+        )
+
+    with pytest.raises(PaperJobOutputConflictError):
+        retry_product_paper_job(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            paper_artifact_root=root,
+        )
+
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ).status == "failed"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == before_attempts
+    assert get_paper_job_result_reference(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == reference
 
 
 def test_reference_failure_rolls_back_terminal_state_but_preserves_files(

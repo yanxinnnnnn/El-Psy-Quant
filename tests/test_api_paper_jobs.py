@@ -1,8 +1,9 @@
 """HTTP tests for the Sprint 150 durable paper-job boundary."""
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from pathlib import Path
-from threading import Event
+from threading import Barrier, Event
 from uuid import UUID, uuid4
 
 import pytest
@@ -16,11 +17,14 @@ from sqlalchemy.orm import Session, sessionmaker
 from el_psy_quant.api.app import create_app
 from el_psy_quant.api.middleware import REQUEST_ID_HEADER
 from el_psy_quant.api.paper_job_schemas import (
+    PaperJobRecoveryResponse,
     PaperJobResponse,
     PaperJobResultResponse,
+    PaperJobSubmissionResponse,
 )
 from el_psy_quant.api.paper_run_schemas import PaperRunCommandRequest
 from el_psy_quant.api.routes.paper_runs import paper_run_command_from_request
+import el_psy_quant.api.routes.paper_jobs as paper_job_routes
 from el_psy_quant.application import submit_paper_job
 from el_psy_quant.persistence import (
     PaperJobAttemptRecord,
@@ -203,8 +207,12 @@ def test_submission_replay_list_detail_run_attempts_and_result(configured_app) -
         )
 
         assert created.status_code == replay.status_code == 200
-        created_job = PaperJobResponse.model_validate(created.json())
-        replay_job = PaperJobResponse.model_validate(replay.json())
+        created_submission = PaperJobSubmissionResponse.model_validate(created.json())
+        replay_submission = PaperJobSubmissionResponse.model_validate(replay.json())
+        assert created_submission.submission_outcome == "created"
+        assert replay_submission.submission_outcome == "replayed"
+        created_job = created_submission.job
+        replay_job = replay_submission.job
         assert replay_job == created_job
         assert created_job.status == "queued"
         assert created_job.attempt_count == 0
@@ -218,7 +226,12 @@ def test_submission_replay_list_detail_run_attempts_and_result(configured_app) -
 
         run = client.post(f"/api/v1/paper-jobs/{created_job.job_id}/run")
         assert run.status_code == 202
-        assert run.json()["job_id"] == created_job.job_id
+        accepted_job = PaperJobResponse.model_validate(run.json())
+        assert accepted_job.job_id == created_job.job_id
+        assert accepted_job.status == "running"
+        assert accepted_job.attempt_count == 1
+        assert accepted_job.latest_attempt is not None
+        assert accepted_job.latest_attempt.status == "running"
 
         completed = client.get(f"/api/v1/paper-jobs/{created_job.job_id}")
         attempts = client.get(
@@ -252,6 +265,143 @@ def test_submission_replay_list_detail_run_attempts_and_result(configured_app) -
         assert "paper-root" not in result.text
 
 
+def test_concurrent_run_requests_have_one_claimed_202_winner(
+    configured_app,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    barrier = Barrier(2)
+    original_claim = paper_job_routes.claim_product_paper_job
+
+    def synchronized_claim(**kwargs):
+        barrier.wait(timeout=5)
+        return original_claim(**kwargs)
+
+    monkeypatch.setattr(
+        paper_job_routes,
+        "claim_product_paper_job",
+        synchronized_claim,
+    )
+    monkeypatch.setattr(
+        paper_job_routes,
+        "execute_claimed_product_paper_job",
+        lambda **_kwargs: None,
+    )
+    with TestClient(configured_app) as client:
+        submitted = client.post(
+            "/api/v1/paper-jobs",
+            json=_payload("concurrent-run"),
+        ).json()["job"]
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            responses = tuple(
+                executor.map(
+                    lambda _index: client.post(
+                        f"/api/v1/paper-jobs/{submitted['job_id']}/run"
+                    ),
+                    range(2),
+                )
+            )
+
+    assert sorted(response.status_code for response in responses) == [202, 409]
+    winner = next(response for response in responses if response.status_code == 202)
+    accepted = PaperJobResponse.model_validate(winner.json())
+    assert accepted.status == "running"
+    assert accepted.attempt_count == 1
+    assert accepted.latest_attempt is not None
+    assert accepted.latest_attempt.status == "running"
+    loser = next(response for response in responses if response.status_code == 409)
+    assert loser.json()["error"]["code"] == "paper_job_state_conflict"
+
+
+def test_recovery_response_reports_explicit_outcome(
+    configured_app,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        paper_job_routes,
+        "execute_claimed_product_paper_job",
+        lambda **_kwargs: None,
+    )
+    with TestClient(configured_app) as client:
+        submitted = client.post(
+            "/api/v1/paper-jobs",
+            json=_payload("recovery-outcome"),
+        ).json()["job"]
+        accepted = client.post(
+            f"/api/v1/paper-jobs/{submitted['job_id']}/run"
+        ).json()
+        stale_before = (
+            PaperJobResponse.model_validate(accepted).updated_timestamp
+            + timedelta(seconds=1)
+        ).isoformat()
+        recovered = client.post(
+            f"/api/v1/paper-jobs/{submitted['job_id']}/recover",
+            json={"stale_before": stale_before},
+        )
+
+    assert recovered.status_code == 200
+    response = PaperJobRecoveryResponse.model_validate(recovered.json())
+    assert response.recovery_outcome == "requeued"
+    assert response.job.status == "queued"
+    assert response.job.latest_attempt is not None
+    assert response.job.latest_attempt.status == "interrupted"
+
+
+def test_run_and_cancel_race_has_one_transition_winner(
+    configured_app,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    barrier = Barrier(2)
+    original_claim = paper_job_routes.claim_product_paper_job
+    original_cancel = paper_job_routes.cancel_paper_job
+
+    def synchronized_claim(**kwargs):
+        barrier.wait(timeout=5)
+        return original_claim(**kwargs)
+
+    def synchronized_cancel(**kwargs):
+        barrier.wait(timeout=5)
+        return original_cancel(**kwargs)
+
+    monkeypatch.setattr(
+        paper_job_routes,
+        "claim_product_paper_job",
+        synchronized_claim,
+    )
+    monkeypatch.setattr(
+        paper_job_routes,
+        "cancel_paper_job",
+        synchronized_cancel,
+    )
+    monkeypatch.setattr(
+        paper_job_routes,
+        "execute_claimed_product_paper_job",
+        lambda **_kwargs: None,
+    )
+    with TestClient(configured_app) as client:
+        submitted = client.post(
+            "/api/v1/paper-jobs",
+            json=_payload("run-cancel-race"),
+        ).json()["job"]
+        paths = (
+            f"/api/v1/paper-jobs/{submitted['job_id']}/run",
+            f"/api/v1/paper-jobs/{submitted['job_id']}/cancel",
+        )
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            responses = tuple(executor.map(client.post, paths))
+        settled = client.get(
+            f"/api/v1/paper-jobs/{submitted['job_id']}"
+        ).json()
+
+    assert sum(response.status_code == 409 for response in responses) == 1
+    assert sum(response.status_code in {200, 202} for response in responses) == 1
+    if settled["status"] == "running":
+        assert settled["attempt_count"] == 1
+    else:
+        assert settled["status"] == "canceled"
+        assert settled["attempt_count"] == 0
+
+
 def test_submission_conflicts_and_validation_are_sanitized(configured_app) -> None:
     with TestClient(configured_app) as client:
         assert client.post(
@@ -281,7 +431,7 @@ def test_submission_conflicts_and_validation_are_sanitized(configured_app) -> No
 
 def test_manual_controls_and_no_path_inputs(configured_app) -> None:
     with TestClient(configured_app) as client:
-        first = client.post("/api/v1/paper-jobs", json=_payload()).json()
+        first = client.post("/api/v1/paper-jobs", json=_payload()).json()["job"]
         canceled = client.post(f"/api/v1/paper-jobs/{first['job_id']}/cancel")
         assert canceled.status_code == 200
         assert canceled.json()["status"] == "canceled"
@@ -293,7 +443,7 @@ def test_manual_controls_and_no_path_inputs(configured_app) -> None:
 
         second = client.post(
             "/api/v1/paper-jobs", json=_payload("paper-run-002")
-        ).json()
+        ).json()["job"]
         _assert_error(
             client.post(f"/api/v1/paper-jobs/{second['job_id']}/retry"),
             409,
@@ -351,7 +501,7 @@ def test_durable_configuration_failures_are_503_and_missing_db_is_not_created(
     command.upgrade(Config(str(PROJECT_ROOT / "alembic.ini")), "head")
     no_root_app = create_app(product_database_path=database_path)
     with TestClient(no_root_app) as client:
-        submitted = client.post("/api/v1/paper-jobs", json=_payload()).json()
+        submitted = client.post("/api/v1/paper-jobs", json=_payload()).json()["job"]
         no_root = client.post(f"/api/v1/paper-jobs/{submitted['job_id']}/run")
 
     _assert_error(absent_config, 503, "product_database_unavailable")
@@ -502,6 +652,8 @@ def test_openapi_has_only_explicit_durable_job_schemas_and_methods() -> None:
     assert set(paths["/api/v1/paper-jobs/{job_id}"]) == {"get"}
     schemas = document["components"]["schemas"]
     assert "PaperJobResponse" in schemas
+    assert "PaperJobSubmissionResponse" in schemas
+    assert "PaperJobRecoveryResponse" in schemas
     assert "PaperJobResultResponse" in schemas
     assert "PaperRunCommandRequest" in schemas
     assert not any("Row" in name or "Session" == name for name in schemas)

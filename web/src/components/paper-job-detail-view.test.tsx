@@ -183,8 +183,11 @@ describe("PaperJobDetailView", () => {
     expect(pending).toBeDisabled();
     await user.click(pending);
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
-    resolveRun?.(response(baseJob, 202));
-    expect(await screen.findByText(/Execution was accepted, not completed/)).toBeVisible();
+    resolveRun?.(response(runningJob, 202));
+    expect(
+      await screen.findByText(/The job was synchronously claimed as running/),
+    ).toBeVisible();
+    expect(screen.getByText(/attempt #1 \(attempt-running\)/)).toBeVisible();
     expect(fetcher.mock.calls[2][0]).toBe(`/api/backend/api/v1/paper-jobs/${jobId}/run`);
     expect(screen.getByText(/Displayed job state is stale/)).toBeVisible();
     expect(screen.getByText(/Refresh status is required/)).toBeVisible();
@@ -230,7 +233,11 @@ describe("PaperJobDetailView", () => {
     const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
       const url = String(input);
       if (url.endsWith("/attempts")) return Promise.resolve(response([]));
-      if (init?.method === "POST") return Promise.resolve(response(running));
+      if (init?.method === "POST") {
+        return Promise.resolve(
+          response({ recovery_outcome: "requeued", job: running }),
+        );
+      }
       return Promise.resolve(response(running));
     });
     vi.stubGlobal("fetch", fetcher);
@@ -239,17 +246,27 @@ describe("PaperJobDetailView", () => {
     await user.click(await screen.findByRole("button", { name: "Recover" }));
     await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T10:00:00");
     await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
-    expect(await screen.findByText(/full UTC date and time/)).toBeVisible();
+    expect(await screen.findByText(/Enter exact UTC/)).toBeVisible();
     expect(fetcher).toHaveBeenCalledTimes(2);
     await user.clear(screen.getByLabelText("Stale before (exact UTC)"));
     await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-02-30T10:00:00Z");
     await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
     expect(fetcher).toHaveBeenCalledTimes(2);
     await user.clear(screen.getByLabelText("Stale before (exact UTC)"));
+    await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T09:59:59Z");
+    await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(
+      within(
+        screen.getByRole("group", { name: "Confirm Recover for run-155" }),
+      ).getByText(baseJob.updated_timestamp, { selector: "code" }),
+    ).toBeVisible();
+    await user.clear(screen.getByLabelText("Stale before (exact UTC)"));
     await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T10:00:00.123+00:00");
     await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
     await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(3));
     expect(JSON.parse(String((fetcher.mock.calls[2][1] as RequestInit).body))).toEqual({ stale_before: "2026-07-15T10:00:00.123+00:00" });
+    expect(await screen.findByText(/Recovery outcome: requeued/)).toBeVisible();
   });
 
   it("keeps loaded job data visible when attempts and mutation requests fail", async () => {

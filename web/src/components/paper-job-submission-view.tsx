@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { RequestId } from "@/components/data-states";
+import { PaperJobStatusValue } from "@/components/domain-values";
 import { useErrorPresentation } from "@/i18n/errors";
 import {
   ApiClientError,
@@ -13,6 +13,7 @@ import {
   submitPaperJob,
   type DemoWorkspaceDescriptorResponse,
   type PaperJobSubmissionRequest,
+  type PaperJobSubmissionResponse,
 } from "@/lib/api-client";
 
 type PositionRow = { key: number; symbol: string; quantity: string };
@@ -153,7 +154,6 @@ function AccountSection({
 export function PaperJobSubmissionView() {
   const t = useTranslations("paperJobs.submission");
   const common = useTranslations("common");
-  const router = useRouter();
   const keyCounter = useRef(0);
   const pendingRef = useRef(false);
   const [runId, setRunId] = useState("");
@@ -166,6 +166,10 @@ export function PaperJobSubmissionView() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [pending, setPending] = useState(false);
   const [serverError, setServerError] = useState<{ code: string; message: string; requestId: string | null } | null>(null);
+  const [submissionResult, setSubmissionResult] = useState<{
+    response: PaperJobSubmissionResponse;
+    requestId: string | null;
+  } | null>(null);
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoDiscoveryError, setDemoDiscoveryError] = useState<string | null>(null);
   const serverErrorPresentation = useErrorPresentation(serverError?.code);
@@ -373,8 +377,12 @@ export function PaperJobSubmissionView() {
         pendingRef.current = true;
         setPending(true);
         setServerError(null);
+        setSubmissionResult(null);
         void submitPaperJob(request, idempotencyKey).then((result) => {
-          router.push(`/paper-jobs/${encodeURIComponent(result.data.job_id)}`);
+          setSubmissionResult({
+            response: result.data,
+            requestId: result.requestId,
+          });
         }).catch((error: unknown) => {
           if (error instanceof ApiClientError) {
             setServerError({ code: error.code, message: error.publicMessage, requestId: error.requestId });
@@ -388,6 +396,29 @@ export function PaperJobSubmissionView() {
       }}>
         {Object.keys(errors).length > 0 ? <div className="form-alert" role="alert"><strong>{t("attentionTitle")}</strong><span>{t("attentionDescription")}</span></div> : null}
         {serverError ? <div className="form-alert form-alert--server" role="alert"><strong>{serverErrorPresentation.title}</strong><span>{serverErrorPresentation.explanation} {serverErrorPresentation.recovery}</span><code>{serverError.code}</code><details><summary>{common("backendDetail")}</summary><p>{serverError.message}</p></details><RequestId value={serverError.requestId} /></div> : null}
+        {submissionResult ? (
+          <div className="mutation-notice mutation-notice--success" role="status">
+            <strong>
+              {submissionResult.response.submission_outcome === "created"
+                ? t("createdTitle")
+                : t("replayedTitle")}
+            </strong>
+            <p>
+              {submissionResult.response.submission_outcome === "created"
+                ? t("createdDescription")
+                : t("replayedDescription")}
+            </p>
+            <p>{t("returnedStatus")} <PaperJobStatusValue value={submissionResult.response.job.status} /></p>
+            <p className="identity-line">{submissionResult.response.job.job_id}</p>
+            <Link
+              className="primary-link"
+              href={`/paper-jobs/${encodeURIComponent(submissionResult.response.job.job_id)}`}
+            >
+              {t("inspectJob")}
+            </Link>
+            <RequestId value={submissionResult.requestId} />
+          </div>
+        ) : null}
 
         <fieldset className="form-section">
           <legend>{t("runIdentity")}</legend>

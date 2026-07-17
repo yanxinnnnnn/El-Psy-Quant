@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@/test/render";
+import { fireEvent, render, screen, within } from "@/test/render";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -11,13 +11,9 @@ vi.mock("@/lib/api-client", async (importOriginal) => {
   return { ...actual, fetchDemoWorkspace: demoApiMock.fetchDemoWorkspace };
 });
 
-const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
-
 afterEach(() => {
   vi.unstubAllGlobals();
   demoApiMock.fetchDemoWorkspace.mockReset();
-  push.mockReset();
 });
 
 function response(body: unknown, status = 200): Response {
@@ -136,7 +132,6 @@ describe("PaperJobSubmissionView", () => {
     expect(within(screen.getByRole("group", { name: "Orders" })).getByLabelText("Order ID")).toHaveValue("descriptor-order");
     expect(demoApiMock.fetchDemoWorkspace).toHaveBeenCalledTimes(1);
     expect(fetcher).not.toHaveBeenCalled();
-    expect(push).not.toHaveBeenCalled();
   });
 
   it("blocks duplicate position symbols before submission", async () => {
@@ -266,7 +261,9 @@ describe("PaperJobSubmissionView", () => {
   });
 
   it("converts finite numbers, preserves row order, sends null fill order ID, and never runs", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(queuedJob));
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response({ submission_outcome: "created", job: queuedJob }),
+    );
     vi.stubGlobal("fetch", fetcher);
     const user = userEvent.setup();
     render(<PaperJobSubmissionView />);
@@ -298,7 +295,15 @@ describe("PaperJobSubmissionView", () => {
     await user.type(within(fillRow as HTMLElement).getByLabelText("Price"), "123.45");
 
     await user.click(screen.getByRole("button", { name: "Submit queued job" }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith(`/paper-jobs/${queuedJob.job_id}`));
+    expect(await screen.findByText("Created")).toBeVisible();
+    expect(screen.getByText(/new queued Paper Job/)).toBeVisible();
+    expect(screen.getByText("queued", { selector: "code" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Inspect the exact Paper Job" })).toHaveAttribute(
+      "href",
+      `/paper-jobs/${queuedJob.job_id}`,
+    );
+    expect(screen.getByLabelText("Run ID")).toHaveValue("run-155");
+    expect(screen.getByLabelText(/Idempotency key/)).toHaveValue("founder-key-155");
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(fetcher.mock.calls[0][0]).toBe("/api/backend/api/v1/paper-jobs");
     const init = fetcher.mock.calls[0][1] as RequestInit;
@@ -312,6 +317,27 @@ describe("PaperJobSubmissionView", () => {
     expect(String(fetcher.mock.calls[0][0])).not.toContain("/run");
   }, 20_000);
 
+  it("presents exact replay without navigating, running, or clearing form state", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response({ submission_outcome: "replayed", job: { ...queuedJob, status: "failed" } }),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobSubmissionView />);
+    await fillBaseFields(user);
+    await user.type(screen.getByLabelText(/Idempotency key/), "exact-key");
+
+    await user.click(screen.getByRole("button", { name: "Submit queued job" }));
+
+    expect(await screen.findByText("Exact replay")).toBeVisible();
+    expect(screen.getByText(/No new job, attempt, execution, output/)).toBeVisible();
+    expect(screen.getByText("failed", { selector: "code" })).toBeVisible();
+    expect(screen.getByLabelText("Run ID")).toHaveValue("run-155");
+    expect(screen.getByLabelText(/Idempotency key/)).toHaveValue("exact-key");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(String(fetcher.mock.calls[0][0])).not.toContain("/run");
+  });
+
   it("prevents duplicate pending submissions and keeps bounded server errors safe", async () => {
     let resolveFetch: ((value: Response) => void) | undefined;
     const fetcher = vi.fn<typeof fetch>().mockImplementation(() => new Promise((resolve) => { resolveFetch = resolve; }));
@@ -319,6 +345,7 @@ describe("PaperJobSubmissionView", () => {
     const user = userEvent.setup();
     render(<PaperJobSubmissionView />);
     await fillBaseFields(user);
+    await user.type(screen.getByLabelText(/Idempotency key/), "conflicting-key");
     const submit = screen.getByRole("button", { name: "Submit queued job" });
     await user.click(submit);
     expect(await screen.findByRole("button", { name: "Submitting queued job…" })).toBeDisabled();
@@ -327,5 +354,7 @@ describe("PaperJobSubmissionView", () => {
     resolveFetch?.(response({ error: { code: "paper_job_idempotency_conflict", message: "Safe conflict" }, request_id: "body" }, 409));
     expect(await screen.findByText("Idempotency key conflicts with another request")).toBeVisible();
     expect(screen.getByText("Request submit-request")).toBeVisible();
+    expect(screen.getByLabelText("Run ID")).toHaveValue("run-155");
+    expect(screen.getByLabelText(/Idempotency key/)).toHaveValue("conflicting-key");
   });
 });
