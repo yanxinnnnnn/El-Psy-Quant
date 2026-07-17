@@ -34,21 +34,25 @@ export function paperJobActionsForStatus(
 }
 
 export function reconcilePaperJobAttempts(
-  attempts: readonly PaperJobAttemptListResponse[number][],
-  latestAttempt: PaperJobAttemptListResponse[number] | null,
+  sourceAttempts: readonly PaperJobAttemptListResponse[number][],
+  mutationAttempts: readonly PaperJobAttemptListResponse[number][],
 ): PaperJobAttemptListResponse {
-  if (latestAttempt === null) {
-    return [...attempts];
-  }
-  const matchingIndex = attempts.findIndex(
-    (attempt) => attempt.attempt_id === latestAttempt.attempt_id,
+  const mutationById = new Map(
+    mutationAttempts.map((attempt) => [attempt.attempt_id, attempt]),
   );
-  if (matchingIndex === -1) {
-    return [...attempts, latestAttempt];
-  }
-  return attempts.map((attempt, index) =>
-    index === matchingIndex ? latestAttempt : attempt
+  const sourceIds = new Set(
+    sourceAttempts.map((attempt) => attempt.attempt_id),
   );
+  const reconciled = sourceAttempts.map(
+    (attempt) => mutationById.get(attempt.attempt_id) ?? attempt,
+  );
+  for (const attempt of mutationAttempts) {
+    if (!sourceIds.has(attempt.attempt_id)) {
+      reconciled.push(attempt);
+      sourceIds.add(attempt.attempt_id);
+    }
+  }
+  return reconciled;
 }
 
 export function paperJobErrorTitle(code: string, list = false): string {

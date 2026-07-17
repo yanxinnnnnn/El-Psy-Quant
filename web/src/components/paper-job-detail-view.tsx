@@ -42,7 +42,7 @@ type MutationState =
   | { status: "error"; action: PaperJobAction; code: string; message: string; requestId: string | null };
 
 type AttemptsOverride = {
-  data: PaperJobAttemptListResponse;
+  mutationAttempts: PaperJobAttemptListResponse;
   settledThroughSequence: number;
 };
 
@@ -116,7 +116,10 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
     && attemptsResource.state.status === "success"
     && attemptsResource.state.sequence > attemptsOverride.settledThroughSequence;
   const visibleAttempts = attemptsOverride !== null && !attemptsOverrideSuperseded
-    ? attemptsOverride.data
+    ? reconcilePaperJobAttempts(
+        resourceAttempts ?? [],
+        attemptsOverride.mutationAttempts,
+      )
     : resourceAttempts;
 
   function refresh() {
@@ -179,22 +182,17 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
       setMutationJob(result.job);
       if (action === "run" || action === "recover") {
         const attemptsState = attemptsStateRef.current;
-        const settledAttempts = attemptsState.status === "success"
-          ? attemptsState.data
-          : attemptsState.status === "loading"
-            && attemptsState.previous?.status === "success"
-            ? attemptsState.previous.data
-            : [];
         setAttemptsOverride((current) => {
           const currentIsSuperseded = current !== null
             && attemptsState.status === "success"
             && attemptsState.sequence > current.settledThroughSequence;
+          const latestAttempt = result.job.latest_attempt;
           return {
-            data: reconcilePaperJobAttempts(
+            mutationAttempts: reconcilePaperJobAttempts(
               current !== null && !currentIsSuperseded
-                ? current.data
-                : settledAttempts,
-              result.job.latest_attempt,
+                ? current.mutationAttempts
+                : [],
+              latestAttempt === null ? [] : [latestAttempt],
             ),
             settledThroughSequence: attemptsState.sequence,
           };

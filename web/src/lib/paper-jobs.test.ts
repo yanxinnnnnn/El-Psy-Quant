@@ -76,7 +76,7 @@ describe("reconcilePaperJobAttempts", () => {
     };
     const replaced = reconcilePaperJobAttempts(
       [first, second],
-      interrupted,
+      [interrupted],
     );
 
     expect(replaced.map((attempt) => attempt.attempt_id)).toEqual([
@@ -84,9 +84,9 @@ describe("reconcilePaperJobAttempts", () => {
       "attempt-2",
     ]);
     expect(replaced[0]).toEqual(interrupted);
-    expect(reconcilePaperJobAttempts(replaced, interrupted)).toEqual(replaced);
+    expect(reconcilePaperJobAttempts(replaced, [interrupted])).toEqual(replaced);
 
-    const appended = reconcilePaperJobAttempts([], first);
+    const appended = reconcilePaperJobAttempts([], [first, first]);
     expect(appended).toEqual([first]);
   });
 });
