@@ -188,6 +188,16 @@ describe("PaperJobDetailView", () => {
       await screen.findByText(/The job was synchronously claimed as running/),
     ).toBeVisible();
     expect(screen.getByText(/attempt #1 \(attempt-running\)/)).toBeVisible();
+    const claimedAttempts = await screen.findByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(claimedAttempts).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(claimedAttempts).getByRole("rowheader", {
+        name: "attempt-running",
+      }),
+    ).toBeVisible();
+    expect(screen.queryByText("No attempts exist.")).not.toBeInTheDocument();
     expect(fetcher.mock.calls[2][0]).toBe(`/api/backend/api/v1/paper-jobs/${jobId}/run`);
     expect(screen.getByText(/Displayed job state is stale/)).toBeVisible();
     expect(screen.getByText(/Refresh status is required/)).toBeVisible();
@@ -207,14 +217,40 @@ describe("PaperJobDetailView", () => {
     expect(detailReads).toBe(2);
     expect(attemptsReads).toBe(2);
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+    const refreshedAttempts = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(refreshedAttempts).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(refreshedAttempts).getAllByRole("rowheader", {
+        name: "attempt-running",
+      }),
+    ).toHaveLength(1);
   });
 
   it("Retry returns queued without calling Run", async () => {
-    const failed = { ...baseJob, status: "failed" };
-    const queued = { ...baseJob, status: "queued", updated_timestamp: "2026-07-15T12:00:00Z" };
+    const failedAttempt = {
+      attempt_id: "attempt-failed",
+      attempt_number: 1,
+      status: "failed",
+      started_timestamp: "2026-07-15T11:00:00Z",
+      completed_timestamp: "2026-07-15T11:01:00Z",
+      error_code: "workflow_validation_failed",
+    };
+    const failed = {
+      ...baseJob,
+      status: "failed",
+      attempt_count: 1,
+      latest_attempt: failedAttempt,
+    };
+    const queued = {
+      ...failed,
+      status: "queued",
+      updated_timestamp: "2026-07-15T12:00:00Z",
+    };
     const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
       const url = String(input);
-      if (url.endsWith("/attempts")) return Promise.resolve(response([]));
+      if (url.endsWith("/attempts")) return Promise.resolve(response([failedAttempt]));
       if (init?.method === "POST") return Promise.resolve(response(queued));
       return Promise.resolve(response(failed));
     });
@@ -226,6 +262,81 @@ describe("PaperJobDetailView", () => {
     expect(await screen.findByText(/returned to queued/)).toBeVisible();
     expect(fetcher.mock.calls.filter(([url]) => String(url).endsWith("/run"))).toHaveLength(0);
     expect(screen.getByRole("button", { name: "Run" })).toBeVisible();
+    const attempts = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(attempts).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(attempts).getByRole("rowheader", { name: "attempt-failed" }),
+    ).toBeVisible();
+  });
+
+  it("Recover reconciles the terminal attempt in both summary and audit", async () => {
+    const runningAttempt = {
+      attempt_id: "attempt-recovered",
+      attempt_number: 1,
+      status: "running",
+      started_timestamp: "2026-07-15T10:00:00Z",
+      completed_timestamp: null,
+      error_code: null,
+    };
+    const interruptedAttempt = {
+      ...runningAttempt,
+      status: "interrupted",
+      completed_timestamp: "2026-07-15T10:05:00Z",
+      error_code: "interrupted_without_output",
+    };
+    const running = {
+      ...baseJob,
+      status: "running",
+      attempt_count: 1,
+      latest_attempt: runningAttempt,
+    };
+    const requeued = {
+      ...running,
+      status: "queued",
+      updated_timestamp: "2026-07-15T10:05:00Z",
+      latest_attempt: interruptedAttempt,
+    };
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) {
+        return Promise.resolve(response([runningAttempt]));
+      }
+      if (init?.method === "POST") {
+        return Promise.resolve(
+          response({ recovery_outcome: "requeued", job: requeued }),
+        );
+      }
+      return Promise.resolve(response(running));
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Recover" }));
+    await user.type(
+      screen.getByLabelText("Stale before (exact UTC)"),
+      "2026-07-15T10:00:00Z",
+    );
+    await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
+
+    expect(await screen.findByText(/Recovery outcome: requeued/)).toBeVisible();
+    const attempts = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(attempts).getAllByRole("row")).toHaveLength(2);
+    const row = within(attempts)
+      .getByRole("rowheader", { name: "attempt-recovered" })
+      .closest("tr");
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).getByText("interrupted", {
+      selector: "code",
+    })).toBeVisible();
+    expect(within(row as HTMLElement).queryByText("running", {
+      selector: "code",
+    })).not.toBeInTheDocument();
+    expect(screen.getAllByText("interrupted", { selector: "code" }).length).toBeGreaterThanOrEqual(2);
   });
 
   it("Recover rejects incompatible UTC input then sends the exact Founder-supplied valid value", async () => {
@@ -287,5 +398,58 @@ describe("PaperJobDetailView", () => {
     expect(screen.getByText(/Refresh status manually/)).toBeVisible();
     expect(screen.getByRole("heading", { name: "run-155" })).toBeVisible();
     expect(screen.getAllByText("Request detail-request").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("preserves settled job and attempt evidence when a mutation fails", async () => {
+    const priorAttempt = {
+      attempt_id: "attempt-prior",
+      attempt_number: 1,
+      status: "interrupted",
+      started_timestamp: "2026-07-15T09:00:00Z",
+      completed_timestamp: "2026-07-15T09:05:00Z",
+      error_code: "interrupted_without_output",
+    };
+    const queued = {
+      ...baseJob,
+      attempt_count: 1,
+      latest_attempt: priorAttempt,
+    };
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) {
+        return Promise.resolve(response([priorAttempt]));
+      }
+      if (init?.method === "POST") {
+        return Promise.resolve(
+          response({
+            error: {
+              code: "paper_job_state_conflict",
+              message: "State conflict",
+            },
+            request_id: "body",
+          }, 409),
+        );
+      }
+      return Promise.resolve(response(queued));
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Run" }));
+    await user.click(screen.getByRole("button", { name: "Confirm Run" }));
+
+    expect(await screen.findByText("Paper job state changed")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "run-155" })).toBeVisible();
+    const attempts = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(attempts).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(attempts).getByRole("rowheader", { name: "attempt-prior" }),
+    ).toBeVisible();
+    expect(
+      screen.getAllByText("queued", { selector: "code" }).length,
+    ).toBeGreaterThanOrEqual(1);
   });
 });

@@ -9,6 +9,7 @@ from uuid import uuid4
 import pytest
 from alembic import command as alembic_command
 from alembic.config import Config
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 import el_psy_quant.application.paper_jobs as service
@@ -87,6 +88,26 @@ def _command(run_id: str = "run-1") -> PaperRunCommand:
 def _submit(session_factory, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(service, "_new_job_id", lambda: JOB_ID)
     return submit_paper_job(session_factory=session_factory, command=_command())
+
+
+def _add_result_reference(session_factory, *, job_id: str):
+    reference = create_paper_job_result_reference(
+        job_id=job_id,
+        created_timestamp=datetime(2026, 7, 14, 13, 0, tzinfo=timezone.utc),
+    )
+    with session_factory.begin() as session:
+        SqlAlchemyPaperJobResultReferenceRepository(session=session).add(
+            reference=reference
+        )
+    return reference
+
+
+def _file_payloads(root: Path) -> dict[str, bytes]:
+    return {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
 
 
 def test_product_execution_atomically_completes_job_attempt_and_reference(
@@ -286,14 +307,7 @@ def test_product_retry_reference_conflict_preserves_failed_audit(
         session_factory=session_factory,
         job_id=job.job_id,
     )
-    with session_factory.begin() as session:
-        reference = create_paper_job_result_reference(
-            job_id=job.job_id,
-            created_timestamp=datetime.now(timezone.utc),
-        )
-        SqlAlchemyPaperJobResultReferenceRepository(session=session).add(
-            reference=reference
-        )
+    reference = _add_result_reference(session_factory, job_id=job.job_id)
 
     with pytest.raises(PaperJobOutputConflictError):
         retry_product_paper_job(
@@ -314,6 +328,281 @@ def test_product_retry_reference_conflict_preserves_failed_audit(
         session_factory=session_factory,
         job_id=job.job_id,
     ) == reference
+
+
+def test_product_retry_reference_insertion_race_rolls_back_requeue(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    root.mkdir()
+    monkeypatch.setattr(
+        service,
+        "run_paper_workflow_request",
+        lambda **_kwargs: (_ for _ in ()).throw(ValueError("expected")),
+    )
+    with pytest.raises(PaperJobExecutionError):
+        run_product_paper_job_once(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            paper_artifact_root=root,
+        )
+    before_attempts = list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    )
+    original_transition = service.SqlAlchemyPaperJobRepository.transition_status
+    inserted_reference = None
+
+    def transition_after_reference_insert(repository, **kwargs):
+        nonlocal inserted_reference
+        if (
+            inserted_reference is None
+            and kwargs["expected_status"] == "failed"
+            and kwargs["target_status"] == "queued"
+        ):
+            inserted_reference = _add_result_reference(
+                session_factory,
+                job_id=job.job_id,
+            )
+        return original_transition(repository, **kwargs)
+
+    monkeypatch.setattr(
+        service.SqlAlchemyPaperJobRepository,
+        "transition_status",
+        transition_after_reference_insert,
+    )
+
+    with pytest.raises(PaperJobOutputConflictError):
+        retry_product_paper_job(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            paper_artifact_root=root,
+        )
+
+    assert inserted_reference is not None
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ).status == "failed"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == before_attempts
+    assert get_paper_job_result_reference(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == inserted_reference
+
+
+@pytest.mark.parametrize("outputs", ("none", "partial", "invalid", "valid"))
+def test_product_recovery_existing_reference_preserves_running_state_and_evidence(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    outputs: str,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    root.mkdir()
+    claim = claim_product_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+        paper_artifact_root=root,
+    )
+    paths = service.create_configured_paper_run_output_paths(run_dir=claim.run_dir)
+    if outputs == "partial":
+        paths.paper_run_artifact_path.write_bytes(b"partial-authoritative-output")
+    elif outputs == "invalid":
+        paths.paper_run_artifact_path.write_bytes(b"{invalid")
+        paths.paper_run_result_summary_path.write_bytes(b"{}")
+    elif outputs == "valid":
+        service.run_paper_workflow_request(
+            request=claim.job.request,
+            run_dir=claim.run_dir,
+            output_write_mode="exclusive",
+        )
+    reference = _add_result_reference(session_factory, job_id=job.job_id)
+    before_files = _file_payloads(root)
+    before_attempts = list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    )
+
+    with pytest.raises(PaperJobOutputConflictError):
+        recover_product_paper_job(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            paper_artifact_root=root,
+            stale_before=claim.job.updated_timestamp,
+        )
+
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ).status == "running"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == before_attempts == (claim.attempt,)
+    assert get_paper_job_result_reference(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == reference
+    assert _file_payloads(root) == before_files
+
+
+def test_product_recovery_reference_conflict_creates_no_synthetic_attempt(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    root.mkdir()
+    run_dir = service._product_paper_job_run_dir(
+        paper_artifact_root=root,
+        job_id=job.job_id,
+        create=True,
+    )
+    del run_dir
+    with session_factory.begin() as session:
+        running = service.SqlAlchemyPaperJobRepository(
+            session=session
+        ).transition_status(
+            job_id=job.job_id,
+            expected_status="queued",
+            target_status="running",
+            updated_timestamp=job.updated_timestamp,
+        )
+    assert running is not None
+    reference = _add_result_reference(session_factory, job_id=job.job_id)
+
+    with pytest.raises(PaperJobOutputConflictError):
+        recover_product_paper_job(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            paper_artifact_root=root,
+            stale_before=running.updated_timestamp,
+        )
+
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == running
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == ()
+    assert get_paper_job_result_reference(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == reference
+
+
+def test_product_recovery_reference_insertion_race_rolls_back_finalization(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    root.mkdir()
+    claim = claim_product_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+        paper_artifact_root=root,
+    )
+    original_transition = service.SqlAlchemyPaperJobRepository.transition_status
+    inserted_reference = None
+
+    def transition_after_reference_insert(repository, **kwargs):
+        nonlocal inserted_reference
+        if (
+            inserted_reference is None
+            and kwargs["expected_status"] == "running"
+        ):
+            inserted_reference = _add_result_reference(
+                session_factory,
+                job_id=job.job_id,
+            )
+        return original_transition(repository, **kwargs)
+
+    monkeypatch.setattr(
+        service.SqlAlchemyPaperJobRepository,
+        "transition_status",
+        transition_after_reference_insert,
+    )
+
+    with pytest.raises(PaperJobOutputConflictError):
+        recover_product_paper_job(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            paper_artifact_root=root,
+            stale_before=claim.job.updated_timestamp,
+        )
+
+    assert inserted_reference is not None
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ).status == "running"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == (claim.attempt,)
+    assert get_paper_job_result_reference(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == inserted_reference
+
+
+def test_recovery_reference_integrity_failure_is_stable_output_conflict(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _submit(session_factory, monkeypatch)
+    root = tmp_path / "paper-root"
+    root.mkdir()
+    claim = claim_product_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+        paper_artifact_root=root,
+    )
+    service.run_paper_workflow_request(
+        request=claim.job.request,
+        run_dir=claim.run_dir,
+        output_write_mode="exclusive",
+    )
+    before_files = _file_payloads(root)
+    monkeypatch.setattr(
+        SqlAlchemyPaperJobResultReferenceRepository,
+        "add",
+        lambda self, *, reference: (_ for _ in ()).throw(
+            IntegrityError("duplicate reference", {}, ValueError("duplicate"))
+        ),
+    )
+
+    with pytest.raises(PaperJobOutputConflictError):
+        recover_product_paper_job(
+            session_factory=session_factory,
+            job_id=job.job_id,
+            paper_artifact_root=root,
+            stale_before=claim.job.updated_timestamp,
+        )
+
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ).status == "running"
+    assert list_paper_job_attempts(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ) == (claim.attempt,)
+    assert _file_payloads(root) == before_files
 
 
 def test_reference_failure_rolls_back_terminal_state_but_preserves_files(

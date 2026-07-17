@@ -1,7 +1,7 @@
 """HTTP tests for the Sprint 150 durable paper-job boundary."""
 
 from concurrent.futures import ThreadPoolExecutor
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from threading import Barrier, Event
 from uuid import UUID, uuid4
@@ -31,6 +31,8 @@ from el_psy_quant.persistence import (
     PaperJobRecord,
     SqlAlchemyPaperJobAttemptRepository,
     SqlAlchemyPaperJobRepository,
+    SqlAlchemyPaperJobResultReferenceRepository,
+    create_paper_job_result_reference,
     create_product_database_engine,
     create_product_session_factory,
     create_running_paper_job_attempt,
@@ -182,6 +184,22 @@ def _durable_state(
             session=session
         ).list_for_job(job_id=job_id)
     return job, attempts
+
+
+def _add_direct_reference(
+    session_factory: sessionmaker[Session],
+    *,
+    job_id: str,
+):
+    reference = create_paper_job_result_reference(
+        job_id=job_id,
+        created_timestamp=datetime(2026, 7, 17, 10, 0, tzinfo=timezone.utc),
+    )
+    with session_factory.begin() as session:
+        SqlAlchemyPaperJobResultReferenceRepository(session=session).add(
+            reference=reference
+        )
+    return reference
 
 
 def _assert_0004_schema_unchanged(engine) -> None:
@@ -345,6 +363,78 @@ def test_recovery_response_reports_explicit_outcome(
     assert response.job.status == "queued"
     assert response.job.latest_attempt is not None
     assert response.job.latest_attempt.status == "interrupted"
+
+
+def test_existing_reference_retry_and_recover_return_stable_output_conflict(
+    configured_app,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        paper_job_routes,
+        "execute_claimed_product_paper_job",
+        lambda **_kwargs: None,
+    )
+    session_factory = configured_app.state.product_session_factory
+    paper_root = configured_app.state.paper_artifact_root
+    assert session_factory is not None
+    assert paper_root is not None
+    with TestClient(configured_app) as client:
+        recovery_job = client.post(
+            "/api/v1/paper-jobs",
+            json=_payload("reference-recovery-conflict"),
+        ).json()["job"]
+        accepted = client.post(
+            f"/api/v1/paper-jobs/{recovery_job['job_id']}/run"
+        ).json()
+        recovery_reference = _add_direct_reference(
+            session_factory,
+            job_id=recovery_job["job_id"],
+        )
+        recovery_before = _durable_state(
+            session_factory,
+            job_id=recovery_job["job_id"],
+        )
+        recovered = client.post(
+            f"/api/v1/paper-jobs/{recovery_job['job_id']}/recover",
+            json={"stale_before": accepted["updated_timestamp"]},
+        )
+
+        retry_job = _submit_direct(
+            session_factory,
+            run_id="reference-retry-conflict",
+        )
+        failed, _ = _transition_direct(
+            session_factory,
+            job=retry_job,
+            target_status="failed",
+        )
+        (Path(paper_root) / "jobs" / failed.job_id / "paper").mkdir(parents=True)
+        retry_reference = _add_direct_reference(
+            session_factory,
+            job_id=failed.job_id,
+        )
+        retry_before = _durable_state(
+            session_factory,
+            job_id=failed.job_id,
+        )
+        retried = client.post(f"/api/v1/paper-jobs/{failed.job_id}/retry")
+
+    _assert_error(recovered, 409, "paper_job_output_conflict")
+    _assert_error(retried, 409, "paper_job_output_conflict")
+    assert _durable_state(
+        session_factory,
+        job_id=recovery_job["job_id"],
+    ) == recovery_before
+    assert _durable_state(
+        session_factory,
+        job_id=failed.job_id,
+    ) == retry_before
+    with session_factory() as session:
+        references = SqlAlchemyPaperJobResultReferenceRepository(session=session)
+        assert references.get_by_job_id(
+            job_id=recovery_job["job_id"]
+        ) == recovery_reference
+        assert references.get_by_job_id(job_id=failed.job_id) == retry_reference
 
 
 def test_run_and_cancel_race_has_one_transition_winner(

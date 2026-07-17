@@ -345,6 +345,7 @@ def _transition_job(
     job_id: str,
     expected_status: PaperJobStatus,
     target_status: PaperJobStatus,
+    result_reference_must_be_absent: bool = False,
 ) -> PaperJobRecord:
     with session_factory.begin() as session:
         repository = SqlAlchemyPaperJobRepository(session=session)
@@ -356,6 +357,13 @@ def _transition_job(
         )
         if transitioned is None:
             _raise_transition_conflict(repository=repository, job_id=job_id)
+        if result_reference_must_be_absent and (
+            SqlAlchemyPaperJobResultReferenceRepository(
+                session=session
+            ).get_by_job_id(job_id=job_id)
+            is not None
+        ):
+            raise PaperJobOutputConflictError()
         return transitioned
 
 
@@ -950,6 +958,12 @@ def _finalize_recovery(
         )
         if job is None:
             _raise_transition_conflict(repository=jobs, job_id=observed_job.job_id)
+        references = SqlAlchemyPaperJobResultReferenceRepository(session=session)
+        if (
+            result_reference_factory is not None
+            and references.get_by_job_id(job_id=observed_job.job_id) is not None
+        ):
+            raise PaperJobOutputConflictError()
         attempts = SqlAlchemyPaperJobAttemptRepository(session=session)
         existing_attempts = attempts.list_for_job(job_id=observed_job.job_id)
         running_attempts = tuple(
@@ -979,9 +993,10 @@ def _finalize_recovery(
         if completed_attempt is None:
             raise PaperJobStateConflictError()
         if outcome == "succeeded" and result_reference_factory is not None:
-            SqlAlchemyPaperJobResultReferenceRepository(session=session).add(
-                reference=result_reference_factory(timestamp)
-            )
+            try:
+                references.add(reference=result_reference_factory(timestamp))
+            except IntegrityError as exc:
+                raise PaperJobOutputConflictError() from exc
         return PaperJobRecoveryResult(
             outcome=outcome,
             job=job,
@@ -1096,6 +1111,22 @@ def retry_failed_paper_job(
     run_dir: str | Path,
 ) -> PaperJobRecord:
     """Explicitly requeue one failed job after clean-output preflight."""
+    return _retry_failed_paper_job(
+        session_factory=session_factory,
+        job_id=job_id,
+        run_dir=run_dir,
+        result_reference_must_be_absent=False,
+    )
+
+
+def _retry_failed_paper_job(
+    *,
+    session_factory: sessionmaker[Session],
+    job_id: str,
+    run_dir: str | Path,
+    result_reference_must_be_absent: bool,
+) -> PaperJobRecord:
+    """Preflight files, then atomically validate reference absence and requeue."""
     validated_run_dir = _preflight_run_dir(run_dir)
     del validated_run_dir
     return _transition_job(
@@ -1103,6 +1134,7 @@ def retry_failed_paper_job(
         job_id=_validate_job_id(job_id),
         expected_status="failed",
         target_status="queued",
+        result_reference_must_be_absent=result_reference_must_be_absent,
     )
 
 
@@ -1119,20 +1151,16 @@ def retry_product_paper_job(
         job_id=validated_job_id,
     ).status != "failed":
         raise PaperJobStateConflictError()
-    if get_paper_job_result_reference(
-        session_factory=session_factory,
-        job_id=validated_job_id,
-    ) is not None:
-        raise PaperJobOutputConflictError()
     run_dir = _product_paper_job_run_dir(
         paper_artifact_root=paper_artifact_root,
         job_id=validated_job_id,
         create=False,
     )
-    return retry_failed_paper_job(
+    return _retry_failed_paper_job(
         session_factory=session_factory,
         job_id=validated_job_id,
         run_dir=run_dir,
+        result_reference_must_be_absent=True,
     )
 
 

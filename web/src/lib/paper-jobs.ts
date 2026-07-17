@@ -1,4 +1,7 @@
-import type { PaperJobStatus } from "@/lib/api-client";
+import type {
+  PaperJobAttemptListResponse,
+  PaperJobStatus,
+} from "@/lib/api-client";
 
 export const paperJobStatuses: readonly PaperJobStatus[] = [
   "queued",
@@ -28,6 +31,24 @@ export function paperJobActionsForStatus(
   return Object.prototype.hasOwnProperty.call(paperJobActionMatrix, status)
     ? paperJobActionMatrix[status as PaperJobStatus]
     : [];
+}
+
+export function reconcilePaperJobAttempts(
+  attempts: readonly PaperJobAttemptListResponse[number][],
+  latestAttempt: PaperJobAttemptListResponse[number] | null,
+): PaperJobAttemptListResponse {
+  if (latestAttempt === null) {
+    return [...attempts];
+  }
+  const matchingIndex = attempts.findIndex(
+    (attempt) => attempt.attempt_id === latestAttempt.attempt_id,
+  );
+  if (matchingIndex === -1) {
+    return [...attempts, latestAttempt];
+  }
+  return attempts.map((attempt, index) =>
+    index === matchingIndex ? latestAttempt : attempt
+  );
 }
 
 export function paperJobErrorTitle(code: string, list = false): string {

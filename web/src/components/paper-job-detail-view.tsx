@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ErrorState, LoadingState, RequestId } from "@/components/data-states";
 import {
@@ -23,11 +23,13 @@ import {
   retryPaperJob,
   runPaperJob,
   type ApiResult,
+  type PaperJobAttemptListResponse,
   type PaperJobResponse,
 } from "@/lib/api-client";
 import {
   isExplicitUtcTimestampAtOrAfter,
   paperJobActionsForStatus,
+  reconcilePaperJobAttempts,
   type PaperJobAction,
 } from "@/lib/paper-jobs";
 import { useApiResource } from "@/lib/use-api-resource";
@@ -38,6 +40,11 @@ type MutationState =
   | { status: "pending"; action: PaperJobAction }
   | { status: "success"; action: PaperJobAction; message: string; requestId: string | null }
   | { status: "error"; action: PaperJobAction; code: string; message: string; requestId: string | null };
+
+type AttemptsOverride = {
+  data: PaperJobAttemptListResponse;
+  settledThroughSequence: number;
+};
 
 function actionClassName(action: PaperJobAction): string {
   if (action === "cancel") return "danger-button";
@@ -84,7 +91,12 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
   const [recoveryFieldError, setRecoveryFieldError] = useState<string | null>(null);
   const [runRefreshRequired, setRunRefreshRequired] = useState(false);
   const [runRefreshSequence, setRunRefreshSequence] = useState<number | null>(null);
+  const [attemptsOverride, setAttemptsOverride] = useState<AttemptsOverride | null>(null);
   const pendingRef = useRef(false);
+  const attemptsStateRef = useRef(attemptsResource.state);
+  useEffect(() => {
+    attemptsStateRef.current = attemptsResource.state;
+  }, [attemptsResource.state]);
   const runRefreshSatisfied = runRefreshRequired
     && runRefreshSequence !== null
     && jobResource.state.status === "success"
@@ -94,6 +106,18 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
     ? jobResource.state.data
     : null;
   const job = refreshedRunJob ?? mutationJob ?? (jobResource.state.status === "success" ? jobResource.state.data : null);
+  const resourceAttempts = attemptsResource.state.status === "success"
+    ? attemptsResource.state.data
+    : attemptsResource.state.status === "loading"
+      && attemptsResource.state.previous?.status === "success"
+      ? attemptsResource.state.previous.data
+      : null;
+  const attemptsOverrideSuperseded = attemptsOverride !== null
+    && attemptsResource.state.status === "success"
+    && attemptsResource.state.sequence > attemptsOverride.settledThroughSequence;
+  const visibleAttempts = attemptsOverride !== null && !attemptsOverrideSuperseded
+    ? attemptsOverride.data
+    : resourceAttempts;
 
   function refresh() {
     if (runRefreshLocked) {
@@ -153,6 +177,29 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
     }
     void request.then((result) => {
       setMutationJob(result.job);
+      if (action === "run" || action === "recover") {
+        const attemptsState = attemptsStateRef.current;
+        const settledAttempts = attemptsState.status === "success"
+          ? attemptsState.data
+          : attemptsState.status === "loading"
+            && attemptsState.previous?.status === "success"
+            ? attemptsState.previous.data
+            : [];
+        setAttemptsOverride((current) => {
+          const currentIsSuperseded = current !== null
+            && attemptsState.status === "success"
+            && attemptsState.sequence > current.settledThroughSequence;
+          return {
+            data: reconcilePaperJobAttempts(
+              current !== null && !currentIsSuperseded
+                ? current.data
+                : settledAttempts,
+              result.job.latest_attempt,
+            ),
+            settledThroughSequence: attemptsState.sequence,
+          };
+        });
+      }
       if (action === "run") {
         setRunRefreshRequired(true);
         setRunRefreshSequence(null);
@@ -252,7 +299,9 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
 
           <section className="content-panel" aria-labelledby="attempts-title">
             <div className="section-heading"><div><p className="eyebrow">{t("attemptsEyebrow")}</p><h2 id="attempts-title">{t("attemptsTitle")}</h2></div><p>{t("attemptsBoundary")}</p></div>
-            {attemptsResource.state.status === "loading" ? <div className="inline-loading" role="status" aria-busy="true">{t("loadingAttempts")}</div> : attemptsResource.state.status === "error" ? <MutationErrorNotice code={attemptsResource.state.code} message={attemptsResource.state.message} requestId={attemptsResource.state.requestId} /> : attemptsResource.state.data.length === 0 ? <p className="reference-empty">{t("emptyAttempts")}</p> : <ScrollableTable caption={t("attemptsCaption")} tableClassName="attempts-table"><thead><tr><th scope="col">{t("attemptId")}</th><th scope="col">{t("number")}</th><th scope="col">{t("status")}</th><th scope="col">{t("started")}</th><th scope="col">{t("completed")}</th><th scope="col">{t("errorCode")}</th></tr></thead><tbody>{attemptsResource.state.data.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td><PaperJobAttemptStatusValue value={attempt.status} /></td><td><LocalizedTimestamp value={attempt.started_timestamp} /></td><td>{attempt.completed_timestamp ? <LocalizedTimestamp value={attempt.completed_timestamp} /> : common("notAvailable")}</td><td><AttemptErrorValue code={attempt.error_code} /></td></tr>)}</tbody></ScrollableTable>}
+            {attemptsResource.state.status === "loading" && visibleAttempts === null ? <div className="inline-loading" role="status" aria-busy="true">{t("loadingAttempts")}</div> : null}
+            {attemptsResource.state.status === "error" ? <MutationErrorNotice code={attemptsResource.state.code} message={attemptsResource.state.message} requestId={attemptsResource.state.requestId} /> : null}
+            {visibleAttempts?.length === 0 ? <p className="reference-empty">{t("emptyAttempts")}</p> : visibleAttempts ? <ScrollableTable caption={t("attemptsCaption")} tableClassName="attempts-table"><thead><tr><th scope="col">{t("attemptId")}</th><th scope="col">{t("number")}</th><th scope="col">{t("status")}</th><th scope="col">{t("started")}</th><th scope="col">{t("completed")}</th><th scope="col">{t("errorCode")}</th></tr></thead><tbody>{visibleAttempts.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td><PaperJobAttemptStatusValue value={attempt.status} /></td><td><LocalizedTimestamp value={attempt.started_timestamp} /></td><td>{attempt.completed_timestamp ? <LocalizedTimestamp value={attempt.completed_timestamp} /> : common("notAvailable")}</td><td><AttemptErrorValue code={attempt.error_code} /></td></tr>)}</tbody></ScrollableTable> : null}
           </section>
           <section className="related-panel" aria-labelledby="paper-comparison-next-title">
             <div><p className="eyebrow">{t("relatedEyebrow")}</p><h2 id="paper-comparison-next-title">{t("relatedTitle")}</h2><p>{t("relatedDescription")}</p></div>
