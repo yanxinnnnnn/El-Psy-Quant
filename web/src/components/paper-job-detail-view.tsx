@@ -92,10 +92,33 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
   const [runRefreshRequired, setRunRefreshRequired] = useState(false);
   const [runRefreshSequence, setRunRefreshSequence] = useState<number | null>(null);
   const [attemptsOverride, setAttemptsOverride] = useState<AttemptsOverride | null>(null);
+  const [settledAttempts, setSettledAttempts] = useState<PaperJobAttemptListResponse | null>(null);
   const pendingRef = useRef(false);
   const attemptsStateRef = useRef(attemptsResource.state);
   useEffect(() => {
     attemptsStateRef.current = attemptsResource.state;
+  }, [attemptsResource.state]);
+  useEffect(() => {
+    if (attemptsResource.state.status !== "success") {
+      return;
+    }
+    const settledState = attemptsResource.state;
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) {
+        return;
+      }
+      setSettledAttempts(settledState.data);
+      setAttemptsOverride((current) => (
+        current !== null
+        && settledState.sequence > current.settledThroughSequence
+          ? null
+          : current
+      ));
+    });
+    return () => {
+      active = false;
+    };
   }, [attemptsResource.state]);
   const runRefreshSatisfied = runRefreshRequired
     && runRefreshSequence !== null
@@ -111,7 +134,7 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
     : attemptsResource.state.status === "loading"
       && attemptsResource.state.previous?.status === "success"
       ? attemptsResource.state.previous.data
-      : null;
+      : settledAttempts;
   const attemptsOverrideSuperseded = attemptsOverride !== null
     && attemptsResource.state.status === "success"
     && attemptsResource.state.sequence > attemptsOverride.settledThroughSequence;

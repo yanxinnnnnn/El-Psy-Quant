@@ -369,6 +369,121 @@ describe("PaperJobDetailView", () => {
     });
   });
 
+  it("permanently retires a Run overlay after a newer successful Attempts refresh", async () => {
+    const runningAttempt = {
+      attempt_id: "attempt-retired-overlay",
+      attempt_number: 1,
+      status: "running",
+      started_timestamp: "2026-07-15T10:01:00Z",
+      completed_timestamp: null,
+      error_code: null,
+    };
+    const succeededAttempt = {
+      ...runningAttempt,
+      status: "succeeded",
+      completed_timestamp: "2026-07-15T10:02:00Z",
+    };
+    const runningJob = {
+      ...baseJob,
+      status: "running",
+      updated_timestamp: "2026-07-15T10:01:00Z",
+      attempt_count: 1,
+      latest_attempt: runningAttempt,
+    };
+    const succeededJob = {
+      ...runningJob,
+      status: "succeeded",
+      updated_timestamp: "2026-07-15T10:02:00Z",
+      latest_attempt: succeededAttempt,
+      result_available: true,
+      result_url: `/api/v1/paper-jobs/${jobId}/result`,
+    };
+    let rejectLaterAttempts: ((reason?: unknown) => void) | undefined;
+    const laterAttempts = new Promise<Response>((_resolve, reject) => {
+      rejectLaterAttempts = reject;
+    });
+    let detailReads = 0;
+    let attemptReads = 0;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) {
+        attemptReads += 1;
+        if (attemptReads === 1) return Promise.resolve(response([]));
+        if (attemptReads === 2) {
+          return Promise.resolve(response([succeededAttempt]));
+        }
+        return laterAttempts;
+      }
+      if (init?.method === "POST") {
+        return Promise.resolve(response(runningJob, 202));
+      }
+      detailReads += 1;
+      return Promise.resolve(response(detailReads === 1 ? baseJob : succeededJob));
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Run" }));
+    await user.click(screen.getByRole("button", { name: "Confirm Run" }));
+
+    const overlayTable = await screen.findByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(
+      within(overlayTable).getByText("running", { selector: "code" }),
+    ).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Refresh status" }));
+
+    await waitFor(() => {
+      const table = screen.getByRole("table", {
+        name: "Attempts in exact API order",
+      });
+      expect(
+        within(table).getByText("succeeded", { selector: "code" }),
+      ).toBeVisible();
+      expect(
+        within(table).queryByText("running", { selector: "code" }),
+      ).not.toBeInTheDocument();
+      expect(
+        within(table).getAllByRole("rowheader", {
+          name: "attempt-retired-overlay",
+        }),
+      ).toHaveLength(1);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Refresh status" }));
+
+    const loadingTable = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(
+      within(loadingTable).getByText("succeeded", { selector: "code" }),
+    ).toBeVisible();
+    expect(
+      within(loadingTable).queryByText("running", { selector: "code" }),
+    ).not.toBeInTheDocument();
+
+    rejectLaterAttempts?.(new TypeError("Attempts refresh failed"));
+
+    expect(await screen.findByText("Error code: api_unavailable")).toBeVisible();
+    const failedRefreshTable = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(
+      within(failedRefreshTable).getByText("succeeded", { selector: "code" }),
+    ).toBeVisible();
+    expect(
+      within(failedRefreshTable).queryByText("running", { selector: "code" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(failedRefreshTable).getAllByRole("rowheader", {
+        name: "attempt-retired-overlay",
+      }),
+    ).toHaveLength(1);
+  });
+
   it("Retry returns queued without calling Run", async () => {
     const failedAttempt = {
       attempt_id: "attempt-failed",
