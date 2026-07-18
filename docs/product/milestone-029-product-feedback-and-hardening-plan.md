@@ -2,19 +2,24 @@
 
 ## Status
 
-Milestone 29 is **In Progress**.
+**Complete.**
 
-Sprints 161 through 166 are complete. Sprint 166 was merged at
-`ca2a5873406b934d246dcb13c215a59970ef1b46`. Sprint 167 implementation is
-complete; Founder Standard/Demo migration/deployment acceptance and the merge
-decision remain pending. Sprint 168 must not begin before both are complete.
+Milestone 29 closed through Sprint 168 after Founder acceptance of S161–S167 and
+formal documentation of the M30–M36 handoff.
+
+Closeout records:
+
+```text
+docs/milestones/milestone-029-product-feedback-and-hardening.md
+docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
+```
 
 ## Milestone Objective
 
 Turn the completed M28 local Founder Web MVP into a bilingual, modern,
 actionable, and dependable product suitable for routine Founder use.
 
-M29 does not pursue new quantitative capability. It hardens the existing
+M29 did not pursue new quantitative capability. It hardened the existing
 Strategy-to-Human-Decision workflow.
 
 ```text
@@ -25,11 +30,12 @@ usable local MVP
   -> understandable job and recovery workflows
   -> actionable errors and audit detail
   -> reliable local upgrade and deployment
+  -> formal closeout and runtime-roadmap handoff
 ```
 
 ## Product Boundaries
 
-The product remains:
+The completed product remains:
 
 - local-first;
 - Founder-only;
@@ -39,7 +45,7 @@ The product remains:
 - a modular monolith; and
 - explicitly human-controlled.
 
-M29 does not add:
+M29 did not add:
 
 - new strategy research capability;
 - financial calculations in the browser;
@@ -47,509 +53,167 @@ M29 does not add:
 - automatic lifecycle transitions;
 - automatic approval or capital allocation;
 - broker, QMT, MiniQMT, or live trading;
+- a stateful market-driven Paper Trading runtime;
 - SaaS, multi-tenancy, or complex RBAC;
 - Kubernetes, Kafka, Redis clusters, or microservices; or
 - real-money readiness claims.
 
-## Success Measures
-
-By M29 closeout:
+## Success Measures and Closeout Result
 
-- every Founder workflow is complete in `en` and `zh-CN`;
-- supported locales do not expose missing-key mixed-language pages;
-- the active language is explicit, persistent, and accessible;
-- raw domain, API, artifact, and audit values remain unchanged;
-- the product uses one coherent bilingual visual system;
-- Overview communicates workspace mode, readiness, relevant paper activity,
-  bounded attention conditions, and safe workflow continuation;
-- Paper Job replay, retry, recovery, and state conflicts are understandable;
-- supported failures provide localized explanation, stable technical identity,
-  request ID where available, and bounded next steps;
-- migrations and Standard/Demo Compose workflows are safe and reproducible;
-- the complete Strategy-to-Human-Decision journey remains intact; and
-- the full repository quality gate passes.
+| Success measure | Closeout result |
+|---|---|
+| Every Founder workflow is complete in `en` and `zh-CN`. | Complete through static catalogs, bilingual route/component coverage, and Founder Standard/Demo acceptance. |
+| Supported locales do not expose mixed missing-key pages. | Complete through exact locale/namespace/key validation. |
+| Active language is explicit, persistent, and accessible. | Complete through the validated locale cookie and route-preserving switcher. |
+| Raw domain, API, artifact, and audit values remain unchanged. | Complete; localization is display-only and raw values remain visible. |
+| One coherent bilingual visual system is used. | Complete across every current route and representative viewport. |
+| Overview supports bounded daily decision navigation. | Complete without ranking, recommendation, or invented relationships. |
+| Paper Job replay, retry, recovery, and conflicts are understandable. | Complete through explicit outcome/state/action contracts and settled-evidence preservation. |
+| Supported failures provide localized meaning and stable technical identity. | Complete through the stable error inventory, request IDs, audit detail, and safe guidance. |
+| Migrations and Standard/Demo local operation are safe and reproducible. | Complete through the exact upgrade matrix, fail-closed startup, locked inputs, isolated volumes, verification, and runbooks. |
+| The Strategy-to-Human-Decision journey remains intact. | Complete in both locales and both workspace modes. |
+| The full repository quality gate passes. | Complete for each implementation sprint and required for the closeout PR. |
 
-M29 success is not based on profitability, alpha, approval rate, or live-trading
-activity.
+M29 success is not based on profitability, alpha, Sharpe improvement, approval
+rate, trading volume, live execution, or external-user acquisition.
 
-## Sprint Sequence
+## Completed Sprint Sequence
 
-### Sprint 161 — Founder Feedback and Product Experience Architecture
+### S161 — Founder Feedback and Product Experience Architecture
 
-**Objective**
+Defined direct Founder feedback, success measures, internationalization,
+terminology, product-experience direction, Dashboard boundaries, architecture
+rules, implementation sequence, and risk register.
 
-Convert direct Founder feedback into the product, internationalization, visual,
-Dashboard, risk, and implementation contracts for M29.
+### S162 — Multilingual Foundation and Simplified Chinese Workspace
 
-**Deliverables**
+Delivered complete `en` and `zh-CN` product catalogs, validated locale
+resolution, accessible route-preserving language switching, localized metadata
+and copy, raw-value preservation, and deterministic catalog validation.
 
-- Founder feedback register;
-- M29 principles and measurable outcomes;
-- internationalization architecture decision;
-- English/Simplified Chinese glossary;
-- product-experience direction;
-- Founder Dashboard information architecture;
-- S162–S167 implementation contracts; and
-- M29 risk register.
+### S163 — Modern Visual System Foundation
 
-**Boundary**
+Delivered one bilingual-safe responsive visual system covering the shell,
+navigation, cards, tables, forms, controls, states, disclosures, status, audit,
+accessibility, and representative viewport behavior.
 
-Documentation only. No runtime, dependency, component, API, migration, or
-reliability implementation.
+### S164 — Founder Dashboard and Workflow Information Architecture Refresh
 
-**Founder verification**
+Replaced the feature-directory Overview with bounded decision navigation using
+existing authoritative reads. Independent regions preserve partial success,
+source-specific failure, explicit refresh, raw identity, ordered comparison
+selection, and descriptor-driven Demo relationships.
 
-Review terminology, locale strategy, product direction, Dashboard scope, and
-M29 sequence before merge.
+### S165 — Reliability, Idempotency, and Job Recovery Hardening
 
-### Sprint 162 — Multilingual Foundation and Simplified Chinese Workspace
+Clarified and hardened Paper Job submission replay, Run claim, state conflict,
+Retry, Recover, output/reference collision, concurrency, optimistic
+reconciliation, and settled evidence without adding hidden automation.
 
-**Objective**
+Merge record:
 
-Implement complete English and Simplified Chinese product localization before
-the visual system is finalized.
+```text
+PR #328
+61cd11ad7f680509d44e27180bfb33c8a9193896
+```
 
-**Major deliverables**
+### S166 — Error Surface, Observability, and Audit Hardening
 
-- approved App Router internationalization dependency and configuration;
-- supported locale allow-list: `en`, `zh-CN`;
-- cookie/browser/fallback locale resolution;
-- persistent accessible language switcher;
-- no locale-prefixed URL change;
-- modular translation catalogs;
-- complete translation of navigation, metadata, pages, forms, states,
-  confirmations, accessibility labels, Demo identity, and stable frontend error
-  explanations;
-- localized display formatting with raw audit values preserved;
-- catalog completeness/static validation;
-- English and Simplified Chinese component and route tests; and
-- updated user documentation.
+Delivered a complete stable error inventory, bilingual title/explanation/recovery,
+semantic categories, shared technical audit presentation, request correlation,
+sanitized standard-library product events, and complete attempt-error guidance.
 
-**Dependencies**
+Merge record:
 
-- `docs/architecture/internationalization.md`;
-- `docs/product/localization-glossary.md`; and
-- existing Next.js App Router and generated API contracts.
+```text
+PR #330
+ca2a5873406b934d246dcb13c215a59970ef1b46
+```
 
-**Acceptance themes**
+### S167 — Migration, Test, and Local Deployment Hardening
 
-- complete bilingual workflows;
-- correct `<html lang>` and metadata;
-- no missing-key mixed page;
-- route/query preservation;
-- no transport or domain mutation;
-- no form loss without an explicit bounded design;
-- Standard and Demo coverage; and
-- full quality gate.
+Delivered the exact migration-head contract, historical upgrade and preservation
+matrix, read-only Standard/Demo verification, fail-closed startup, locked build
+and runtime inputs, static volume isolation, non-mutating bilingual smoke, cold
+backup guidance, Demo-only reset, and return-to-Standard workflow.
 
-**Out of scope**
+Merge record:
 
-- broad visual refresh;
-- Dashboard redesign;
-- backend-translated responses;
-- locale-prefixed routes;
-- database locale preferences; and
-- financial or lifecycle changes.
+```text
+PR #332
+63d39ae7182502bd3fd673ac4e053fa35aa5410b
+```
 
-**Founder verification**
+### S168 — Milestone 29 Closeout and M30–M36 Handoff
 
-Use both locales across the full Demo journey and representative Standard empty
-and error states.
+Documentation-only closeout that:
 
-**Implementation status**
+- records the completed M29 product and Founder acceptance;
+- verifies every success measure and preserved boundary;
+- records remaining product debt honestly;
+- creates the formal milestone and closeout records; and
+- establishes the approved route to market-driven and continuous Paper Trading.
 
-Complete and merged. The implementation uses pinned
-`next-intl`, static matching `en` and `zh-CN` catalogs, validated cookie/browser
-locale resolution, an accessible same-origin shell switcher, localized metadata
-and complete workspace copy, display-only localized formatting with raw values,
-static error-code explanations, and deterministic catalog validation. Founder
-local bilingual runtime acceptance is complete.
-
-### Sprint 163 — Modern Visual System Foundation
-
-**Objective**
-
-Replace the current academic/internal-tool presentation with a coherent modern
-bilingual product system without changing workflow or domain semantics.
-
-**Major deliverables**
-
-- design tokens for color, typography, spacing, radius, elevation, borders, and
-  state presentation;
-- bilingual-safe system font stack or separately reviewed font dependency;
-- modern workspace shell and navigation treatment;
-- standardized cards, tables, forms, buttons, status indicators, empty states,
-  error states, and audit-detail patterns;
-- responsive behavior;
-- contrast and accessibility verification;
-- persistent unmistakable Demo identity; and
-- representative English/Chinese visual regression or layout coverage.
-
-**Dependencies**
-
-- S162 localization runtime and complete catalogs;
-- `docs/product/product-experience-direction.md`.
-
-**Acceptance themes**
-
-- coherent system across all existing routes;
-- Chinese and English both fit without clipping or fixed-height failures;
-- raw audit data remains accessible;
-- no operational status is mistaken for financial performance;
-- no workflow behavior change; and
-- full quality gate.
-
-**Out of scope**
-
-- new Dashboard aggregation;
-- new chart platform without authoritative data;
-- new financial calculations;
-- marketing-site redesign; and
-- broker/live terminal behavior.
-
-**Founder verification**
-
-Review the complete Demo journey in both languages at desktop and narrow widths.
-
-**Implementation status**
-
-Complete and merged. One exact semantic token system, bilingual-safe system
-typography, the responsive workspace shell, persistent Standard/Demo identity,
-and shared action/status/state/table/form/audit contracts cover every existing
-route. Founder local rendered visual acceptance is complete.
-
-### Sprint 164 — Founder Dashboard and Workflow Information Architecture Refresh
-
-**Objective**
-
-Turn Overview from a feature directory into a bounded decision-navigation
-workspace using the S163 visual system and existing authoritative data where
-possible.
-
-**Major deliverables**
-
-- workspace mode and product readiness summary;
-- recent paper activity;
-- authoritative result/review continuation;
-- explicit operational/human-attention conditions;
-- research/governance evidence entry points;
-- Demo descriptor-driven exact journey;
-- Standard generic workflow guidance without false record relationships;
-- clear distinction between existing API coverage and any newly approved thin
-  backend contract; and
-- bilingual accessible responsive layout.
-
-**Dependencies**
-
-- S162 localization;
-- S163 visual system;
-- `docs/product/founder-dashboard-information-architecture.md`.
-
-**Acceptance themes**
-
-- answers the five Dashboard questions;
-- no ranking or recommendation;
-- no unsupported persistent lifecycle state;
-- no hidden job/lifecycle commands;
-- partial failures remain visible;
-- no browser financial recomputation; and
-- full quality gate.
-
-**Out of scope**
-
-- auto-run, auto-retry, auto-recover, auto-approve;
-- strategy ranking;
-- capital allocation;
-- live market widgets; and
-- implicit cross-record relationships.
-
-**Founder verification**
-
-Confirm the Dashboard improves daily navigation without overstating what the
-backend knows.
-
-**Implementation status**
-
-Complete and merged. Overview composes
-the existing process-health, Demo descriptor, research-run list,
-evidence-manifest list, and Paper Job list contracts into independently stateful
-regions. Partial availability, stable error identity, individual retry,
-backend order and duplicates, exact job/result links, explicit repeated ordered
-comparison selection for two to four distinct nonblank job IDs, complete raw
-Evidence Manifest identity, separate research/evidence authority, Standard
-generic workflow choices, and Demo descriptor relationships are preserved.
-
-No backend or generated contract, database, domain, authentication, gateway,
-locale-routing, command, financial-calculation, polling, or durable lifecycle
-read-model change was made. Founder local Standard/Demo Dashboard acceptance is
-complete.
-
-### Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
-
-**Objective**
-
-Make existing durable Paper Job semantics understandable and dependable for
-routine Founder operation.
-
-**Major deliverables**
-
-- review and harden keyed replay behavior and conflict explanations;
-- clear submission versus Run semantics;
-- clearer status-dependent available actions;
-- safe Retry versus Recover guidance;
-- explicit stale-time input and validation experience;
-- stronger concurrent/state-conflict tests;
-- bounded result/artifact collision handling;
-- no hidden automatic retry or recovery; and
-- bilingual user and operations documentation.
-
-**Dependencies**
-
-- S162 localized copy/error mapping;
-- S163 action and form system;
-- existing M27 durable job contracts.
-
-**Acceptance themes**
-
-- no exactly-once claim;
-- no state transition weakening;
-- deterministic idempotency conflicts;
-- safe manual control;
-- clear operational audit; and
-- full quality gate.
-
-**Out of scope**
-
-- distributed queues;
-- automatic job scheduler;
-- multiple workers;
-- broker execution; and
-- lifecycle automation.
-
-**Founder verification**
-
-Exercise submit/replay/conflict, Run, failure, Retry, and Recover scenarios.
-
-**Implementation status**
-
-Complete and merged at `61cd11ad7f680509d44e27180bfb33c8a9193896`.
-Submission
-reports `created` or `replayed`; Run atomically commits one running job and
-attempt before HTTP 202; the non-durable post-response task executes the
-existing claim; Retry stays clean-output, non-executing, and attempt-free; and
-Recover reports `requeued`, `succeeded`, or `failed` from the exact
-Founder-supplied UTC threshold. One centralized bilingual Web action policy,
-conflict guidance, collision protection, optimistic reconciliation, and focused
-concurrency/rollback coverage preserve settled evidence and artifact authority.
-
-No migration, table, column, status, lease, heartbeat, worker, scheduler,
-polling, cleanup, force overwrite, financial calculation, lifecycle automation,
-or Sprint 166 behavior was added. Founder Standard/Demo reliability acceptance
-and the Sprint 165 merge are complete.
-
-### Sprint 166 — Error Surface, Observability, and Audit Hardening
-
-**Objective**
-
-Make failures and audit evidence actionable without exposing sensitive internal
-detail or introducing a distributed observability platform.
-
-**Major deliverables**
-
-- inventory and classify stable product error codes;
-- localized error title/explanation/recovery mapping;
-- consistent request-ID display;
-- bounded operation/job correlation detail;
-- clearer unavailable versus invalid versus empty states;
-- audit detail presentation patterns;
-- operator troubleshooting matrix;
-- sanitized logging review; and
-- deterministic error/regression coverage.
-
-**Dependencies**
-
-- S162 localization/error catalogs;
-- S163 visual error/audit patterns;
-- existing request ID and sanitized API error contracts.
-
-**Acceptance themes**
-
-- errors remain stable and bounded;
-- no internal exception leakage;
-- recovery guidance is safe;
-- raw error code/request ID remain available;
-- no hidden telemetry dependency; and
-- full quality gate.
-
-**Out of scope**
-
-- cloud APM;
-- distributed tracing infrastructure;
-- user analytics;
-- external log service; and
-- credentials or payload logging.
-
-**Founder verification**
-
-Trigger representative unavailable, invalid, not-found, conflict, and job
-failure cases in both languages.
-
-**Implementation status**
-
-Complete and merged at `ca2a5873406b934d246dcb13c215a59970ef1b46`.
-One static backend error inventory and matching complete Web
-inventory preserve the exact public envelope and request-ID contract while
-adding bilingual title, explanation, safe recovery, category, unknown-code
-fallback, and raw technical audit presentation.
-
-Standard-library-only logging emits bounded sanitized request completion,
-successful Paper Job command, and terminal claimed-execution events. Static
-operation/route catalogs, the logging denylist, persisted approved attempt
-codes, and the fixed `internal_execution_failure` sentinel prevent sensitive
-or arbitrary internal detail from entering product events. All six attempt
-errors have bilingual meaning and recovery guidance.
-
-Migration head remains `0005_paper_job_result_references`. No migration,
-durable audit/log record, telemetry platform, remote reporting, worker, queue,
-scheduler, polling, lifecycle automation, public debug field, cleanup, force
-overwrite, financial calculation, or broker behavior was added. Founder
-Standard/Demo error-surface and observability acceptance is complete.
-
-### Sprint 167 — Migration, Test, and Local Deployment Hardening
-
-**Objective**
-
-Make local installation, upgrade, startup, verification, and reset dependable
-for daily use and future milestone handoff.
-
-**Major deliverables**
-
-- migration-chain and upgrade-path verification;
-- Standard and Demo data-volume isolation regression coverage;
-- Compose build/start/health/smoke hardening;
-- deterministic reinstall and safe Demo reset;
-- standard real-data preservation guidance;
-- bilingual end-to-end verification;
-- fresh-checkout and existing-volume test matrix;
-- dependency/offline-install risk review;
-- local backup/restore or export guidance only where current contracts support it;
-- consolidated operations runbook.
-
-**Dependencies**
-
-- S162–S166 product behavior;
-- existing Alembic, Compose, Demo installer, and quality gates.
-
-**Acceptance themes**
-
-- no real data deletion during Demo operations;
-- migration failures are bounded;
-- startup is reproducible;
-- smoke path covers both locales and modes;
-- documented commands match actual behavior; and
-- full quality gate.
-
-**Out of scope**
-
-- cloud deployment;
-- Kubernetes;
-- production SaaS backup systems;
-- multi-machine coordination; and
-- live broker operations.
-
-**Founder verification**
-
-Test fresh Standard startup, Demo startup/reset, return to Standard, and an
-upgrade of an existing local volume.
-
-**Implementation status**
-
-Implementation complete; Founder Standard/Demo migration and local deployment
-acceptance remains. The exact Alembic head and linear upgrade matrix,
-read-only workspace verification, fail-closed startup ordering, static Compose
-isolation, exact runtime dependency export, bilingual non-mutating smoke, and
-cold backup/upgrade/recovery runbook are implemented.
-
-No migration, schema, domain, API, financial, lifecycle, worker, queue,
-scheduler, polling, broker, cloud, proxy, automatic restore, or destructive
-Standard reset behavior was added. S168 becomes next only after Founder
-acceptance and the Sprint 167 merge.
-
-### Sprint 168 — Milestone 29 Closeout and M30 Handoff
-
-**Objective**
-
-Verify the bilingual modernized product and daily-use hardening, record remaining
-limitations, and decide the next portfolio-level review scope.
-
-**Major deliverables**
-
-- Founder acceptance across both locales and modes;
-- completed M29 success-measure review;
-- authority and non-goal verification;
-- final operations/user documentation;
-- remaining product-debt register;
-- Milestone 29 closeout record; and
-- explicit M30 handoff decision.
-
-**Boundary**
-
-Documentation and verification closeout unless a separately approved blocker
-must be fixed first.
-
-## Cross-Sprint Architecture Rules
+## Preserved Architecture Rules
 
 ```text
 Browser
-  -> Next.js Founder workspace
+  -> Next.js Founder Workspace
   -> fixed same-origin /api/backend gateway
   -> versioned FastAPI API
   -> thin application services
-  -> existing repositories, domain modules, and artifact readers
+  -> existing domain modules and artifact readers
   -> isolated SQLite and authoritative artifact roots
 ```
 
 - Domain modules remain financial and governance authority.
-- Artifact files remain completed-output payload authority.
+- Completed files remain artifact payload authority.
 - SQLite remains compact metadata and operational state.
-- Raw API values remain unchanged by localization.
-- Paper-job state remains separate from lifecycle governance.
+- Raw values remain unchanged by localization.
+- Paper Job state remains separate from lifecycle governance.
 - Lifecycle proposals remain non-executing.
 - Human review remains explicit evidence.
 - Demo and Standard storage remain isolated.
-- No browser access to SQLite, files, Python, QMT, or broker.
+- No browser access to SQLite, files, Python, QMT, or broker exists.
 - Every command remains explicit and user-controlled.
 
-## Milestone Risk Register
+## Remaining Product Debt
 
-| Risk | Primary sprint | Mitigation |
-|---|---:|---|
-| Partial translation creates mixed pages. | S162 | Catalog equality checks and complete locale route tests. |
-| Hardcoded English remains hidden in components/tests. | S162 | Inventory, static search/checks, and both-locale coverage. |
-| Translation changes financial/governance meaning. | S162 | Approved glossary and raw-value preservation. |
-| Locale switch loses unsaved form state. | S162 | Explicit Paper Job/Lifecycle tests and bounded switching architecture. |
-| Server/client locale disagreement causes hydration errors. | S162 | One validated request locale source and provider contract. |
-| Chinese typography breaks English-sized layouts. | S163 | Bilingual design tokens and representative content tests. |
-| Visual refresh hides audit data. | S163 | Progressive disclosure with exact detail retained. |
-| Dashboard requires unavailable backend truth. | S164 | API coverage matrix; no inferred relationships/state. |
-| Workflow guidance is interpreted as investment advice. | S164 | Operational navigation only; no ranking or recommendation. |
-| Hardening introduces hidden automation. | S165 | Explicit manual commands and state transition regression tests. |
-| Error detail leaks sensitive internals. | S166 | Stable sanitized contracts and logging review. |
-| Dependency additions weaken local/offline builds. | S162/S167 | Pinned lockfiles, deterministic install, and build verification. |
-| Migration/reset damages real data. | S167 | Volume isolation, refusal rules, upgrade matrix, and destructive-command warnings. |
-| Product polish weakens Demo identity. | S163/S164 | Persistent semantic Demo label and warning in both locales. |
+M29 intentionally closes with these known limitations:
 
-## Founder Review Gates
+- Paper Job execution still uses a non-durable post-response callback;
+- no persistent Paper Account cash/position ledger exists across sessions;
+- no market-data replay/session-clock runtime exists;
+- no automatic strategy-signal-to-order pipeline exists;
+- no pre-trade risk engine owns automatically generated orders;
+- no runtime order lifecycle or execution simulator exists;
+- no durable multi-session worker/checkpoint/recovery loop exists;
+- no continuous multi-day Paper Trading exists;
+- authentication remains local single-Founder and minimal; and
+- backup and restore remain explicit manual operations with documented limits.
 
-Founder review is required after each implementation PR. No M29 PR is merged by
-Codex or the CTO.
+These limitations define the next roadmap. They do not invalidate M29's product
+hardening outcome.
 
-Particular product gates:
+## Handoff
 
-- S162: terminology and complete bilingual experience;
-- S163: visual identity and bilingual layouts;
-- S164: Dashboard usefulness and non-recommendation boundary;
-- S165: operational replay/retry/recovery clarity;
-- S166: actionable and safe errors;
-- S167: fresh and existing local deployment workflows; and
-- S168: milestone closeout.
+The approved sequence is:
+
+```text
+M30 Portfolio-Level Decision Review Foundation
+M31 Stateful Paper Account and Ledger Foundation
+M32 Market Data Replay, Trading Calendar, and Session Clock
+M33 Strategy-to-Order and Pre-Trade Risk Pipeline
+M34 Paper Execution Simulator and First True Paper Trading
+M35 Durable Paper Runtime and Recovery
+M36 Multi-day Paper Operations and Acceptance
+```
+
+Authoritative plan:
+
+```text
+docs/strategy/paper-trading-runtime-roadmap.md
+```
+
+M34 is the first genuine market/strategy-driven Paper Trading gate. M36 is the
+continuous multi-day Paper Trading gate.
