@@ -13,63 +13,15 @@ operate, and improve trading ideas before real capital is deployed.
 
 ## Current Status
 
-Milestones 1–28 are **Complete**.
+Milestones 1–29 are **Complete**.
 
-The active milestone is:
-
-```text
-Milestone 29 — Product Feedback and Hardening — In Progress
-```
-
-The current implementation sprint is:
+The next milestone is:
 
 ```text
-Sprint 167 — Migration, Test, and Local Deployment Hardening
+M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Sprints 161–166 are complete. Sprint 166 was merged at
-`ca2a5873406b934d246dcb13c215a59970ef1b46`. Sprint 167 implementation is
-complete; Founder Standard/Demo migration and local deployment acceptance
-remains. After this implementation is merged and Founder acceptance completes,
-the next sprint is:
-
-```text
-Sprint 168 — Milestone 29 Closeout and M30 Handoff
-```
-
-## Product Direction
-
-Milestone 28 delivered the first usable local Founder Web MVP:
-
-- local Next.js Founder workspace;
-- versioned FastAPI API;
-- paired minimal Founder authentication;
-- SQLite product/job persistence through Alembic and SQLAlchemy;
-- authoritative research, governance, and paper artifact reads;
-- explicit Paper Job submit, run, cancel, retry, recover, status, attempts, and
-  result workflows;
-- ordered result comparison without ranking or browser recomputation;
-- non-executing lifecycle proposal and human-review workflows;
-- reproducible Standard Docker Compose startup;
-- isolated disposable Demo Workspace startup; and
-- one complete guided Strategy-to-Human-Decision journey.
-
-Milestone 29 turns that working MVP into a product suitable for routine Founder
-use:
-
-```text
-complete English / Simplified Chinese experience
-  -> modern AI Quant Decision Workspace visual system
-  -> Founder Dashboard and workflow information architecture
-  -> clearer idempotency, retry, and recovery
-  -> actionable errors and audit information
-  -> hardened migrations, tests, and local deployment
-```
-
-The target product remains local-first, Founder-only, minimally authenticated,
-Paper Trading only, review-oriented, and explicitly human-controlled.
-
-## M29 Sprint Sequence
+Milestone 29 completed the product-feedback and hardening sequence:
 
 ```text
 S161 Founder Feedback and Product Experience Architecture
@@ -79,164 +31,123 @@ S164 Founder Dashboard and Workflow Information Architecture Refresh
 S165 Reliability, Idempotency, and Job Recovery Hardening
 S166 Error Surface, Observability, and Audit Hardening
 S167 Migration, Test, and Local Deployment Hardening
-S168 Milestone 29 Closeout and M30 Handoff
+S168 Milestone 29 Closeout and M30–M36 Handoff
 ```
 
-Internationalization precedes the visual system so English and Simplified
-Chinese both shape typography, component sizing, spacing, and content hierarchy.
+## Product Delivered Through M29
+
+The current product provides:
+
+- a local Founder-only Next.js workspace;
+- a versioned FastAPI API through a fixed same-origin gateway;
+- paired minimal Founder authentication;
+- complete English and Simplified Chinese product support;
+- a modern responsive AI Quant Decision Workspace visual system;
+- a bounded Founder Dashboard for operational attention and workflow navigation;
+- authoritative strategy, research, governance, report, Paper Job, result,
+  comparison, and lifecycle-review inspection;
+- explicit Paper Job submit, replay, Run, Cancel, Retry, Recover, attempt, and
+  result workflows;
+- stable localized error meaning with raw codes, request IDs, and technical audit
+  details;
+- sanitized local request and Paper Job correlation events;
+- SQLite/Alembic persistence through one exact migration chain;
+- fail-closed Standard and Demo startup with read-only workspace verification;
+- locked Python build/runtime inputs and `npm ci` for the Web image;
+- isolated persistent Standard and disposable Demo storage;
+- non-mutating bilingual runtime smoke verification; and
+- cold-backup, upgrade, Demo-only reset, and return-to-Standard guidance.
+
+The complete current user journey remains:
+
+```text
+Strategy
+  -> Research Evidence
+  -> Governance Evidence
+  -> Paper Run
+  -> Portfolio Result
+  -> Comparison
+  -> Lifecycle Review
+  -> Human Decision Evidence
+```
+
+## What the Current Product Is Not Yet
+
+The current Paper workflow is auditable and operationally controlled, but it is
+not yet a continuous market-driven Paper Trading runtime.
+
+It does not yet provide:
+
+- a persistent Paper Account cash/position ledger across sessions;
+- market-data replay tied to a trading calendar and session clock;
+- automatic strategy-signal-to-order conversion;
+- pre-trade risk checks for automatically generated orders;
+- a runtime order lifecycle and execution simulator;
+- a durable worker/checkpoint/recovery loop; or
+- continuous multi-day Paper Trading.
+
+## Approved Route to Genuine Paper Trading
+
+```text
+M30 Portfolio-Level Decision Review Foundation
+  -> M31 Stateful Paper Account and Ledger Foundation
+  -> M32 Market Data Replay, Trading Calendar, and Session Clock
+  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
+  -> M34 Paper Execution Simulator and First True Paper Trading
+  -> M35 Durable Paper Runtime and Recovery
+  -> M36 Multi-day Paper Operations and Acceptance
+```
+
+Two product gates define progress:
+
+### M34 — First true Paper Trading
+
+The Founder selects an approved strategy, account, symbols, and historical market
+session. The platform itself reads market data, evaluates the strategy, derives
+orders, applies risk checks, simulates fills, updates the durable account, and
+records complete evidence. Orders and fills are no longer pre-supplied as the
+transaction script.
+
+### M36 — Continuous Paper Trading
+
+The same account advances across multiple sessions and trading days with durable
+checkpoints, reconciliation, explicit controls, duplicate prevention, and
+interruption recovery.
+
+See:
+
+```text
+docs/strategy/paper-trading-runtime-roadmap.md
+```
 
 ## Approved Architecture
 
 ```text
 Browser
-  -> Next.js Founder workspace
+  -> Next.js Founder Workspace
   -> fixed same-origin /api/backend gateway
   -> versioned FastAPI API
   -> thin application services / use cases
   -> existing domain modules and artifact readers
-  -> SQLite product repositories and local Paper Job runner
+  -> isolated SQLite product state and authoritative artifact roots
 ```
 
 Authority rules:
 
-- existing domain modules own financial, paper, comparison, governance, and
+- domain modules own financial, Paper Trading, comparison, governance, and
   lifecycle behavior;
-- API handlers and the Web layer must not duplicate domain calculations;
+- API handlers and the Web layer do not duplicate financial calculations;
 - completed artifact files remain payload authority;
-- SQLite stores compact indexes, references, idempotency data, attempts, jobs,
+- SQLite stores compact indexes, references, idempotency records, attempts, jobs,
   and operational state rather than complete artifact payloads;
 - Paper Job state remains separate from lifecycle governance;
 - lifecycle proposals remain non-executing;
-- human review records remain governance evidence and do not silently mutate an
-  independently authoritative current state;
-- the browser never directly accesses SQLite, artifact directories, Python
-  modules, QMT, MiniQMT, or a broker; and
+- human review remains explicit governance evidence;
+- raw IDs, states, versions, timestamps, codes, and artifact content remain
+  authoritative and untranslated;
+- the browser never directly accesses SQLite, artifact directories, Python, QMT,
+  MiniQMT, or a broker; and
 - Demo data remains isolated from real user data.
-
-## M29 Product Architecture Documents
-
-Sprint 161 establishes the M29 contracts in:
-
-```text
-docs/sprints/sprint-161-founder-feedback-and-product-experience-architecture.md
-docs/product/founder-feedback-register.md
-docs/architecture/internationalization.md
-docs/product/localization-glossary.md
-docs/product/product-experience-direction.md
-docs/product/founder-dashboard-information-architecture.md
-docs/product/milestone-029-product-feedback-and-hardening-plan.md
-docs/sprints/sprint-162-multilingual-foundation-and-simplified-chinese-workspace.md
-docs/product/visual-system.md
-docs/sprints/sprint-163-modern-visual-system-foundation.md
-docs/sprints/sprint-164-founder-dashboard-and-workflow-information-architecture-refresh.md
-docs/sprints/sprint-165-reliability-idempotency-and-job-recovery-hardening.md
-docs/sprints/sprint-166-error-surface-observability-and-audit-hardening.md
-docs/operations/error-observability-and-audit.md
-```
-
-Key approved directions:
-
-- supported locales are `en` and `zh-CN`;
-- English is the default and fallback;
-- existing routes remain unchanged without locale prefixes;
-- locale is stored as a local browser/cookie preference, not database state;
-- `next-intl` is the approved Sprint 162 implementation direction;
-- backend API values and error codes remain stable and untranslated;
-- raw IDs, states, versions, timestamps, and artifact content remain
-  authoritative;
-- the persistent `English` / `简体中文` switcher updates a validated same-origin
-  locale cookie without changing the current route or ordered query parameters;
-- deterministic catalog validation enforces exact locale, namespace, and key
-  parity before the Web quality gate proceeds;
-- the target experience is an **AI Quant Decision Workspace**, not a marketing
-  dashboard or autonomous trading terminal; and
-- Dashboard guidance remains operational navigation, not strategy ranking,
-  approval, or capital recommendation.
-
-Implemented Sprint 163 direction:
-
-- exact semantic tokens own the light neutral palette, bilingual system
-  typography, spacing, shape, elevation, controls, focus, motion, and responsive
-  thresholds;
-- the modern shell keeps Standard/Paper or persistent Demo identity and the
-  language switcher visible across every route and representative viewport;
-- shared action, status, card, panel, table, form, disclosure, audit, and state
-  contracts cover the complete existing workflow; and
-- raw values, product behavior, API/domain authority, and human-control
-  boundaries remain unchanged.
-
-Implemented Sprint 164 direction:
-
-- Overview composes process health, workspace identity, research, evidence, and
-  bounded Paper Job reads without a new aggregate backend contract;
-- workspace identity, readiness, attention, activity, results, research,
-  evidence, workflow continuation, and technical recovery remain independently
-  visible under partial failure;
-- Paper Job order, duplicates, exact IDs, timestamps, localized/raw statuses,
-  result availability, and exact detail links remain authoritative;
-- comparison continuation keeps duplicate backend rows visible but uses only
-  explicit ordered selections of two to four distinct nonblank IDs and repeated
-  `job_id` parameters, without ranking or browser calculation;
-- evidence cards keep labels alongside raw manifest ID, schema version, type,
-  artifact key, reference count, and exact detail links;
-- Demo workflow links and identities remain descriptor-driven while Standard
-  mode never connects unrelated records; and
-- all Dashboard actions are navigation or explicit read refresh, never Paper Job
-  or lifecycle commands.
-
-Implemented Sprint 165 direction:
-
-- durable submission reports `created` or `replayed` while preserving the exact
-  original current job and never starting execution;
-- Run preflights authoritative outputs and compact references, then atomically
-  commits `queued -> running` plus one numbered attempt before HTTP 202;
-- the post-response task executes that existing claim without claiming again;
-- Retry remains clean-output `failed -> queued`, creates no attempt, and
-  executes nothing; Recover reports `requeued`, `succeeded`, or `failed` from
-  explicit UTC reconciliation;
-- one centralized Web action matrix owns the bounded status controls, and
-  English/Simplified Chinese guidance preserves raw status, attempt, code,
-  request-ID, and timestamp evidence; and
-- no migration, new status, worker, lease, heartbeat, scheduler, polling,
-  cleanup, overwrite, financial calculation, or lifecycle automation was added.
-
-Implemented Sprint 166 direction:
-
-- one static backend error inventory and matching complete `en` / `zh-CN` Web
-  inventory preserve the existing envelope, code, message, and request-ID
-  contract while adding localized explanation and safe recovery;
-- reusable error and technical-audit surfaces distinguish empty, not found,
-  invalid, unavailable, conflict, protocol, internal, and unknown states while
-  preserving exact raw operation, entity, code, request ID, and backend detail;
-- standard-library-only product events correlate handled requests, successful
-  Paper Job commands, and terminal Run callback outcomes through bounded static
-  fields and approved persisted attempt codes;
-- all six Paper Job attempt errors have bilingual meaning and recovery guidance
-  without implying cleanup, overwrite, automatic Retry/Recover, execution
-  authority, or financial conclusions; and
-- migration head remains `0005_paper_job_result_references`; no durable logs,
-  telemetry platform, remote reporting, worker, queue, scheduler, polling,
-  public debug field, or automation was added.
-
-Implemented Sprint 167 direction:
-
-- one application-owned current schema revision is verified against Alembic's
-  single exact `0001` through `0005` chain and shared by API, Demo, and local
-  workspace preflight;
-- deterministic migration coverage upgrades every historical revision while
-  preserving representative rows and repeat-at-head files/state;
-- `el-psy-quant verify-local-workspace` verifies Standard or Demo storage
-  read-only, and the backend serves only after migrate/install and verification;
-- exact Standard/Demo Compose identity, volume, roots, loopback, authentication,
-  and non-destructive reset boundaries are statically covered;
-- the backend wheel is built without isolation from an exact committed build
-  export, the final image uses only the exact runtime export derived from
-  `uv.lock`, and CI refuses either export or lock drift;
-- bilingual same-origin smoke verifies both locales, stable raw identities,
-  request IDs on authenticated backend responses, and sanitized failures
-  without Paper Job or lifecycle commands; and
-- cold backup, existing-volume upgrade, Demo-only reset, return-to-Standard,
-  and restore limitations are consolidated in the operations runbook.
 
 ## Quick Start
 
@@ -250,7 +161,6 @@ Prerequisites:
 
 ```powershell
 Copy-Item .env.example .env
-# Edit .env and replace EL_PSY_QUANT_FOUNDER_PASSWORD.
 docker compose up --build --detach
 docker compose ps
 ```
@@ -261,43 +171,30 @@ Open:
 http://127.0.0.1:3000
 ```
 
-Run the authenticated smoke verification:
+Run read-only verification and bilingual smoke:
 
 ```powershell
 docker compose exec backend el-psy-quant verify-local-workspace --mode standard --workspace-root /data
 docker compose exec web node /app/verify-mvp.mjs
 ```
 
-Stop while preserving the standard `mvp-data` volume:
-
-```powershell
-docker compose down
-```
-
-The Standard workspace remains unseeded.
-
 ### Isolated Demo Workspace
 
-Stop the Standard instance first because both modes publish the same loopback
-ports:
+Stop Standard without deleting its volume, then start Demo:
 
 ```powershell
 docker compose down
 docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
-docker compose -f compose.yaml -f compose.demo.yaml ps
 ```
 
-The Demo overlay uses a separate Compose project and `demo-data` volume. The
-backend validates and installs the versioned deterministic Demo dataset before
-serving.
-
-Stop while preserving Demo storage:
+Verify:
 
 ```powershell
-docker compose -f compose.yaml -f compose.demo.yaml down
+docker compose -f compose.yaml -f compose.demo.yaml exec backend el-psy-quant verify-local-workspace --mode demo --workspace-root /data/workspace
+docker compose -f compose.yaml -f compose.demo.yaml exec web node /app/verify-mvp.mjs
 ```
 
-Reset only disposable Demo storage:
+Reset only Demo storage:
 
 ```powershell
 docker compose -f compose.yaml -f compose.demo.yaml down --volumes
@@ -306,17 +203,17 @@ docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
 
 Never run a volume-removing command against the Standard project.
 
-See:
+Operations guidance:
 
 ```text
 docs/founder-mvp-local-operations.md
 docs/operations/local-install-upgrade-and-recovery.md
-docs/user-guide/README.md
+docs/operations/error-observability-and-audit.md
 ```
 
-## Direct Development and Quality Gate
+## Development
 
-Install Python and Web dependencies:
+Install exact reviewed dependencies:
 
 ```bash
 uv sync --locked
@@ -329,31 +226,29 @@ Run the complete repository gate:
 uv run python scripts/check.py
 ```
 
-The gate includes lock and exact runtime-export parity, Python tests and
-linting, package/CLI checks, OpenAPI and generated TypeScript freshness,
-catalog validation, ESLint, TypeScript, Web tests, and production build.
+The gate verifies lock/export parity, Python tests and linting, package/CLI
+behavior, OpenAPI/generated TypeScript freshness, message catalogs, ESLint,
+strict TypeScript, Web tests, and the production Next.js build.
+
+## Key Records
+
+```text
+docs/milestones/milestone-029-product-feedback-and-hardening.md
+docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
+docs/product/milestone-029-product-feedback-and-hardening-plan.md
+docs/strategy/future-platform-roadmap.md
+docs/strategy/paper-trading-runtime-roadmap.md
+docs/roadmap.md
+```
 
 ## Explicitly Deferred
 
-Unless a future milestone changes the boundary, do not add:
+Unless a future milestone explicitly approves them:
 
-- broker integration;
-- QMT or MiniQMT runtime integration;
-- live or real-money trading;
-- automatic strategy ranking or recommendation;
-- automatic lifecycle transition or approval;
-- capital allocation;
-- multi-tenancy or complex RBAC;
-- cloud SaaS hosting;
-- microservices, Kubernetes, Kafka, or Redis clusters; or
+- broker, QMT, or MiniQMT integration;
+- real-money execution;
+- automatic strategy ranking, approval, or capital allocation;
+- public SaaS, multi-tenancy, or complex RBAC;
+- microservices, Kubernetes, Kafka, or Redis clusters;
+- distributed job infrastructure; and
 - broad real-time trading-terminal behavior.
-
-## Project Documentation
-
-```text
-docs/roadmap.md
-docs/strategy/future-platform-roadmap.md
-docs/milestones/milestone-028-founder-paper-trading-web-workspace.md
-docs/closeouts/milestone-028-founder-paper-trading-web-workspace-closeout.md
-docs/product/milestone-029-product-feedback-and-hardening-plan.md
-```
