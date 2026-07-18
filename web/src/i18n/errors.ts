@@ -59,7 +59,10 @@ const CONTEXTUAL_TITLE_ERROR_CODES: ReadonlySet<string> = new Set([
 
 export function useErrorPresentation(code: string | null | undefined) {
   const t = useTranslations("errors");
-  const known = Boolean(code && code in ERROR_PRESENTATION_INVENTORY);
+  const known = Boolean(
+    code
+    && Object.prototype.hasOwnProperty.call(ERROR_PRESENTATION_INVENTORY, code),
+  );
   const key: SupportedErrorCode | "unknown" = known
     ? code as SupportedErrorCode
     : "unknown";

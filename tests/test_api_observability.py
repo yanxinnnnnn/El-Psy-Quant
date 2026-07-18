@@ -3,6 +3,8 @@
 from concurrent.futures import ThreadPoolExecutor
 import logging
 from logging import LogRecord
+import subprocess
+import sys
 
 import pytest
 from fastapi import FastAPI
@@ -109,6 +111,67 @@ def test_duplicate_error_codes_and_operation_names_fail_deterministically() -> N
         build_operation_indexes((first, ApiOperation("GET", "/two", "one.read")))
 
     assert len(API_OPERATIONS) == len({item.operation for item in API_OPERATIONS})
+
+
+def test_uvicorn_console_emits_all_info_correlation_events_without_caplog() -> None:
+    script = """
+from logging.config import dictConfig
+from uvicorn.config import LOGGING_CONFIG
+
+dictConfig(LOGGING_CONFIG)
+
+from el_psy_quant.api.observability import (
+    log_api_request_completed,
+    log_paper_job_command_completed,
+    log_paper_job_execution_terminal,
+)
+
+log_api_request_completed(
+    request_id="startup-request",
+    method="GET",
+    operation="health.read",
+    route_template="/api/v1/health",
+    status_code=200,
+    duration_ms=7,
+    error_code=None,
+)
+log_paper_job_command_completed(
+    request_id="startup-request",
+    command="run",
+    job_id="startup-job",
+    durable_status="running",
+    attempt_id="startup-attempt",
+    attempt_number=1,
+)
+log_paper_job_execution_terminal(
+    event="paper_job_execution_completed",
+    request_id="startup-request",
+    job_id="startup-job",
+    attempt_id="startup-attempt",
+    attempt_number=1,
+    durable_status="succeeded",
+    error_code=None,
+)
+"""
+    completed = subprocess.run(
+        [sys.executable, "-c", script],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.stdout == ""
+    assert "api_request_completed request_id=startup-request" in completed.stderr
+    assert (
+        "paper_job_command_completed request_id=startup-request"
+        in completed.stderr
+    )
+    assert (
+        "paper_job_execution_completed request_id=startup-request"
+        in completed.stderr
+    )
+    assert "job_id=startup-job" in completed.stderr
+    assert "durable_status=succeeded" in completed.stderr
 
 
 @pytest.mark.parametrize(

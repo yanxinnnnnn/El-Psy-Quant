@@ -9,7 +9,19 @@ from typing import Literal, TypeAlias
 from starlette.routing import compile_path
 
 PRODUCT_LOGGER_NAME = "el_psy_quant.product_events"
-PRODUCT_LOGGER = logging.getLogger(PRODUCT_LOGGER_NAME)
+UVICORN_ERROR_LOGGER_NAME = "uvicorn.error"
+
+
+def _configured_product_logger() -> logging.Logger:
+    """Route bounded INFO events through Uvicorn's existing console handler."""
+    logger = logging.getLogger(PRODUCT_LOGGER_NAME)
+    logger.setLevel(logging.INFO)
+    logger.parent = logging.getLogger(UVICORN_ERROR_LOGGER_NAME)
+    logger.propagate = True
+    return logger
+
+
+PRODUCT_LOGGER = _configured_product_logger()
 UNMATCHED_OPERATION = "unmatched"
 UNMATCHED_ROUTE_TEMPLATE = "unmatched"
 MAX_DURATION_MS = 2_147_483_647
@@ -157,7 +169,17 @@ def log_api_request_completed(
 ) -> None:
     PRODUCT_LOGGER.log(
         request_log_level(status_code),
-        "api_request_completed",
+        (
+            "api_request_completed request_id=%s method=%s operation=%s "
+            "route_template=%s status_code=%s duration_ms=%s error_code=%s"
+        ),
+        request_id,
+        method,
+        operation,
+        route_template,
+        status_code,
+        duration_ms,
+        error_code,
         extra={
             "event": "api_request_completed",
             "request_id": request_id,
@@ -183,7 +205,19 @@ def log_paper_job_command_completed(
     recovery_outcome: RecoveryOutcome | None = None,
 ) -> None:
     PRODUCT_LOGGER.info(
-        "paper_job_command_completed",
+        (
+            "paper_job_command_completed request_id=%s command=%s job_id=%s "
+            "durable_status=%s attempt_id=%s attempt_number=%s "
+            "submission_outcome=%s recovery_outcome=%s"
+        ),
+        request_id,
+        command,
+        job_id,
+        durable_status,
+        attempt_id,
+        attempt_number,
+        submission_outcome,
+        recovery_outcome,
         extra={
             "event": "paper_job_command_completed",
             "request_id": request_id,
@@ -221,7 +255,17 @@ def log_paper_job_execution_terminal(
     )
     PRODUCT_LOGGER.log(
         level,
+        (
+            "%s request_id=%s job_id=%s attempt_id=%s attempt_number=%s "
+            "durable_status=%s error_code=%s"
+        ),
         event,
+        request_id,
+        job_id,
+        attempt_id,
+        attempt_number,
+        durable_status,
+        error_code,
         extra={
             "event": event,
             "request_id": request_id,
@@ -238,6 +282,7 @@ __all__ = [
     "API_OPERATIONS",
     "MAX_DURATION_MS",
     "PRODUCT_LOGGER_NAME",
+    "UVICORN_ERROR_LOGGER_NAME",
     "UNMATCHED_OPERATION",
     "UNMATCHED_ROUTE_TEMPLATE",
     "approved_route_template_for_path",

@@ -81,7 +81,9 @@ use bounded fallback guidance.
 
 Observability uses Python standard-library logging through the dedicated
 `el_psy_quant.product_events` logger. Application code installs no handler,
-remote exporter, file sink, telemetry SDK, or durable log record.
+remote exporter, file sink, telemetry SDK, or durable log record. The logger
+emits at INFO through the existing `uvicorn.error` console hierarchy used by
+Standard and Demo startup.
 
 Every handled API request emits one completion event with only:
 

@@ -56,6 +56,9 @@ error_code, command, job_id, durable_status, attempt_id, attempt_number,
 submission_outcome, recovery_outcome
 ```
 
+Standard and Demo Uvicorn startup displays these INFO events through its
+existing local console handler; no additional persistent or remote sink exists.
+
 The `internal_execution_failure` value is a fixed sentinel for an unexpected or
 unverifiable callback outcome. It is not a persisted attempt error code.
 

@@ -78,10 +78,10 @@ describe("error surface and audit presentation", () => {
     ).toHaveAttribute("open");
   });
 
-  it("uses a safe unknown fallback and never invents a request ID", () => {
+  it("uses a safe unknown fallback for a prototype key and never invents a request ID", () => {
     render(
       <ErrorState
-        code="future_error_code"
+        code="toString"
         title="Context-specific failure"
         message={null}
         requestId={null}
@@ -93,7 +93,7 @@ describe("error surface and audit presentation", () => {
       screen.getByRole("heading", { name: "Context-specific failure" }),
     ).toBeVisible();
     expect(screen.getByText("Unknown error")).toBeVisible();
-    expect(screen.getByText("Error code: future_error_code")).toBeVisible();
+    expect(screen.getByText("Error code: toString")).toBeVisible();
     expect(screen.queryByText("Server request ID")).not.toBeInTheDocument();
   });
 
