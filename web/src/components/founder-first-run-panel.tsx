@@ -19,7 +19,14 @@ type StandardWorkspaceState =
   | { status: "loading" }
   | { status: "empty" }
   | { status: "populated" }
-  | { status: "error"; code: string | null; message: string | null; requestId: string | null };
+  | {
+      status: "error";
+      code: string | null;
+      message: string | null;
+      requestId: string | null;
+      httpStatus: number | null;
+      operation: string;
+    };
 
 type ManifestTypeLabelKey =
   | "reportArtifact"
@@ -106,11 +113,20 @@ export function FounderFirstRunPanel() {
       setStandardState({ status: empty ? "empty" : "populated" });
     }).catch((error: unknown) => {
       if (current !== sequence.current) return;
+      const code = error instanceof ApiClientError ? error.code : null;
       setStandardState({
         status: "error",
-        code: error instanceof ApiClientError ? error.code : null,
+        code,
         message: error instanceof ApiClientError ? error.publicMessage : null,
         requestId: error instanceof ApiClientError ? error.requestId : null,
+        httpStatus: error instanceof ApiClientError && error.status > 0 ? error.status : null,
+        operation: code?.startsWith("research_")
+          ? "research_run.list"
+          : code?.startsWith("evidence_")
+            ? "evidence_manifest.list"
+            : code?.startsWith("paper_") || code === "product_database_unavailable"
+              ? "paper_job.list"
+              : "unmatched",
       });
     });
   }, []);
@@ -136,6 +152,8 @@ export function FounderFirstRunPanel() {
         title={t("identityUnavailable")}
         message={descriptorState.message}
         requestId={descriptorState.requestId}
+        httpStatus={descriptorState.httpStatus}
+        operation="demo_workspace.read"
         onRetry={retryDescriptor}
         retryLabel={t("retryDiscovery")}
       />
@@ -152,6 +170,8 @@ export function FounderFirstRunPanel() {
         title={t("dataUnavailableTitle")}
         message={standardState.message}
         requestId={standardState.requestId}
+        httpStatus={standardState.httpStatus}
+        operation={standardState.operation}
         onRetry={inspectStandard}
         retryLabel={t("retryEvidence")}
       />

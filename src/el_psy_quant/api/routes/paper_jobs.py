@@ -4,7 +4,7 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import Annotated, Literal, NoReturn
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Request
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -15,6 +15,10 @@ from el_psy_quant.api.dependencies import (
     product_database_unavailable,
 )
 from el_psy_quant.api.errors import PublicApiError
+from el_psy_quant.api.observability import (
+    log_paper_job_command_completed,
+    log_paper_job_execution_terminal,
+)
 from el_psy_quant.api.paper_job_schemas import (
     PaperJobAttemptResponse,
     PaperJobRecoveryRequest,
@@ -44,6 +48,7 @@ from el_psy_quant.application import (
     PaperJobResultInvalidError,
     PaperJobResultUnavailableError,
     PaperJobResultView,
+    PaperJobRunResult,
     PaperJobStateConflictError,
     PaperJobStatusView,
     PaperRunInvalidError,
@@ -58,6 +63,9 @@ from el_psy_quant.application import (
     retry_product_paper_job,
     submit_paper_job_with_outcome,
 )
+from el_psy_quant.persistence.paper_job_attempts import (
+    SUPPORTED_PAPER_JOB_ERROR_CODES,
+)
 
 router = APIRouter(prefix="/paper-jobs")
 SessionFactory = Annotated[
@@ -65,6 +73,7 @@ SessionFactory = Annotated[
 ]
 PaperRoot = Annotated[Path, Depends(get_paper_artifact_root)]
 JobStatusFilter = Literal["queued", "running", "succeeded", "failed", "canceled"]
+INTERNAL_EXECUTION_FAILURE = "internal_execution_failure"
 
 
 def _raise_application_error(exc: Exception) -> NoReturn:
@@ -209,29 +218,138 @@ def _status_after(
     )
 
 
+def _server_request_id(request: Request) -> str:
+    request_id = getattr(request.state, "request_id", None)
+    if not isinstance(request_id, str):
+        raise RuntimeError("server request ID is unavailable")
+    return request_id
+
+
+def _execution_audit_after(
+    *,
+    session_factory: sessionmaker[Session],
+    claim: PaperJobClaim,
+) -> tuple[str | None, str | None]:
+    """Read only the exact claimed attempt's sanitized durable outcome."""
+    try:
+        view = get_paper_job_status_view(
+            session_factory=session_factory,
+            job_id=claim.job.job_id,
+        )
+        attempts = list_paper_job_attempts(
+            session_factory=session_factory,
+            job_id=claim.job.job_id,
+        )
+    except Exception:
+        return None, None
+    attempt = next(
+        (
+            item
+            for item in attempts
+            if item.attempt_id == claim.attempt.attempt_id
+        ),
+        None,
+    )
+    error_code = None if attempt is None else attempt.error_code
+    return view.job.status, error_code
+
+
+def _log_uncertain_execution(
+    *,
+    request_id: str,
+    session_factory: sessionmaker[Session],
+    claim: PaperJobClaim,
+) -> None:
+    durable_status, _persisted_error = _execution_audit_after(
+        session_factory=session_factory,
+        claim=claim,
+    )
+    log_paper_job_execution_terminal(
+        event="paper_job_execution_uncertain",
+        request_id=request_id,
+        job_id=claim.job.job_id,
+        attempt_id=claim.attempt.attempt_id,
+        attempt_number=claim.attempt.attempt_number,
+        durable_status=durable_status,
+        error_code=INTERNAL_EXECUTION_FAILURE,
+    )
+
+
 def _run_selected_job(
     *,
+    request_id: str,
     session_factory: sessionmaker[Session],
     claim: PaperJobClaim,
 ) -> None:
     try:
-        execute_claimed_product_paper_job(
+        result = execute_claimed_product_paper_job(
             session_factory=session_factory,
             claim=claim,
         )
+    except PaperJobExecutionError:
+        durable_status, error_code = _execution_audit_after(
+            session_factory=session_factory,
+            claim=claim,
+        )
+        if (
+            durable_status == "failed"
+            and error_code in SUPPORTED_PAPER_JOB_ERROR_CODES
+        ):
+            log_paper_job_execution_terminal(
+                event="paper_job_execution_failed",
+                request_id=request_id,
+                job_id=claim.job.job_id,
+                attempt_id=claim.attempt.attempt_id,
+                attempt_number=claim.attempt.attempt_number,
+                durable_status=durable_status,
+                error_code=error_code,
+            )
+        else:
+            _log_uncertain_execution(
+                request_id=request_id,
+                session_factory=session_factory,
+                claim=claim,
+            )
     except (
         PaperArtifactRootUnavailableError,
-        PaperJobExecutionError,
         PaperJobNotFoundError,
         PaperJobOutputConflictError,
         PaperJobStateConflictError,
     ):
-        return
+        _log_uncertain_execution(
+            request_id=request_id,
+            session_factory=session_factory,
+            claim=claim,
+        )
+    except Exception:
+        _log_uncertain_execution(
+            request_id=request_id,
+            session_factory=session_factory,
+            claim=claim,
+        )
+    else:
+        if not isinstance(result, PaperJobRunResult):
+            _log_uncertain_execution(
+                request_id=request_id,
+                session_factory=session_factory,
+                claim=claim,
+            )
+            return
+        log_paper_job_execution_terminal(
+            event="paper_job_execution_completed",
+            request_id=request_id,
+            job_id=result.job.job_id,
+            attempt_id=result.attempt.attempt_id,
+            attempt_number=result.attempt.attempt_number,
+            durable_status=result.job.status,
+            error_code=None,
+        )
 
 
 @router.post("", response_model=PaperJobSubmissionResponse)
 def post_paper_job(
-    request: PaperRunCommandRequest,
+    request: Request,
+    command_request: PaperRunCommandRequest,
     session_factory: SessionFactory,
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> PaperJobSubmissionResponse:
@@ -239,16 +357,24 @@ def post_paper_job(
     try:
         result = submit_paper_job_with_outcome(
             session_factory=session_factory,
-            command=paper_run_command_from_request(request),
+            command=paper_run_command_from_request(command_request),
             idempotency_key=idempotency_key,
         )
-        return PaperJobSubmissionResponse(
+        response = PaperJobSubmissionResponse(
             submission_outcome=result.outcome,
             job=_status_after(
                 session_factory=session_factory,
                 job_id=result.job.job_id,
             ),
         )
+        log_paper_job_command_completed(
+            request_id=_server_request_id(request),
+            command="submit",
+            job_id=response.job.job_id,
+            durable_status=response.job.status,
+            submission_outcome=response.submission_outcome,
+        )
+        return response
     except SQLAlchemyError as exc:
         raise product_database_unavailable() from exc
     except Exception as exc:
@@ -316,6 +442,7 @@ def get_paper_job_attempts(
 )
 def run_paper_job(
     job_id: str,
+    request: Request,
     background_tasks: BackgroundTasks,
     session_factory: SessionFactory,
     paper_artifact_root: PaperRoot,
@@ -330,8 +457,18 @@ def run_paper_job(
             session_factory=session_factory,
             job_id=claim.job.job_id,
         )
+        request_id = _server_request_id(request)
+        log_paper_job_command_completed(
+            request_id=request_id,
+            command="run",
+            job_id=response.job_id,
+            durable_status=response.status,
+            attempt_id=claim.attempt.attempt_id,
+            attempt_number=claim.attempt.attempt_number,
+        )
         background_tasks.add_task(
             _run_selected_job,
+            request_id=request_id,
             session_factory=session_factory,
             claim=claim,
         )
@@ -345,11 +482,19 @@ def run_paper_job(
 @router.post("/{job_id}/cancel", response_model=PaperJobResponse)
 def cancel_paper_job_route(
     job_id: str,
+    request: Request,
     session_factory: SessionFactory,
 ) -> PaperJobResponse:
     try:
         job = cancel_paper_job(session_factory=session_factory, job_id=job_id)
-        return _status_after(session_factory=session_factory, job_id=job.job_id)
+        response = _status_after(session_factory=session_factory, job_id=job.job_id)
+        log_paper_job_command_completed(
+            request_id=_server_request_id(request),
+            command="cancel",
+            job_id=response.job_id,
+            durable_status=response.status,
+        )
+        return response
     except SQLAlchemyError as exc:
         raise product_database_unavailable() from exc
     except Exception as exc:
@@ -359,6 +504,7 @@ def cancel_paper_job_route(
 @router.post("/{job_id}/retry", response_model=PaperJobResponse)
 def retry_paper_job_route(
     job_id: str,
+    request: Request,
     session_factory: SessionFactory,
     paper_artifact_root: PaperRoot,
 ) -> PaperJobResponse:
@@ -368,7 +514,14 @@ def retry_paper_job_route(
             job_id=job_id,
             paper_artifact_root=paper_artifact_root,
         )
-        return _status_after(session_factory=session_factory, job_id=job.job_id)
+        response = _status_after(session_factory=session_factory, job_id=job.job_id)
+        log_paper_job_command_completed(
+            request_id=_server_request_id(request),
+            command="retry",
+            job_id=response.job_id,
+            durable_status=response.status,
+        )
+        return response
     except SQLAlchemyError as exc:
         raise product_database_unavailable() from exc
     except Exception as exc:
@@ -378,7 +531,8 @@ def retry_paper_job_route(
 @router.post("/{job_id}/recover", response_model=PaperJobRecoveryResponse)
 def recover_paper_job_route(
     job_id: str,
-    request: PaperJobRecoveryRequest,
+    request: Request,
+    recovery_request: PaperJobRecoveryRequest,
     session_factory: SessionFactory,
     paper_artifact_root: PaperRoot,
 ) -> PaperJobRecoveryResponse:
@@ -387,15 +541,25 @@ def recover_paper_job_route(
             session_factory=session_factory,
             job_id=job_id,
             paper_artifact_root=paper_artifact_root,
-            stale_before=request.stale_before,
+            stale_before=recovery_request.stale_before,
         )
-        return PaperJobRecoveryResponse(
+        response = PaperJobRecoveryResponse(
             recovery_outcome=result.outcome,
             job=_status_after(
                 session_factory=session_factory,
                 job_id=result.job.job_id,
             ),
         )
+        log_paper_job_command_completed(
+            request_id=_server_request_id(request),
+            command="recover",
+            job_id=response.job.job_id,
+            durable_status=response.job.status,
+            attempt_id=result.attempt.attempt_id,
+            attempt_number=result.attempt.attempt_number,
+            recovery_outcome=response.recovery_outcome,
+        )
+        return response
     except SQLAlchemyError as exc:
         raise product_database_unavailable() from exc
     except Exception as exc:

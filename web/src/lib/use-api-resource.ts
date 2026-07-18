@@ -6,7 +6,14 @@ import { ApiClientError, type ApiResult } from "@/lib/api-client";
 
 export type SettledApiResourceState<Data> =
   | { status: "success"; data: Data; requestId: string | null; sequence: number }
-  | { status: "error"; message: string; requestId: string | null; code: string; sequence: number };
+  | {
+      status: "error";
+      message: string;
+      requestId: string | null;
+      code: string;
+      httpStatus: number | null;
+      sequence: number;
+    };
 
 export type ApiResourceState<Data> =
   | {
@@ -54,6 +61,7 @@ export function useApiResource<Data>(
             message: error.publicMessage,
             requestId: error.requestId,
             code: error.code,
+            httpStatus: error.status > 0 ? error.status : null,
             sequence,
           });
           return;
@@ -63,6 +71,7 @@ export function useApiResource<Data>(
           message: "The local API is unavailable.",
           requestId: null,
           code: "api_unavailable",
+          httpStatus: null,
           sequence,
         });
       });

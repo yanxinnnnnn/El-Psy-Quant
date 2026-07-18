@@ -293,6 +293,8 @@ function WorkspaceIdentityRegion({
           title={error.useContextTitle ? t("unavailable") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="demo_workspace.read"
           onRetry={retry}
           retryLabel={t("retry")}
         />
@@ -793,6 +795,8 @@ function PaperActivityRegion({
           title={error.useContextTitle ? t("unavailable") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="paper_job.list"
           onRetry={retry}
           retryLabel={t("retry")}
         />
@@ -885,6 +889,8 @@ function ResultsRegion({
           title={error.useContextTitle ? t("unavailable") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="paper_job.list"
           onRetry={retry}
           retryLabel={t("retry")}
         />
@@ -1044,6 +1050,8 @@ function ResearchRegion({
           title={error.useContextTitle ? t("unavailable") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="research_run.list"
           onRetry={retry}
           retryLabel={t("retry")}
         />
@@ -1100,6 +1108,8 @@ function EvidenceRegion({
           title={error.useContextTitle ? t("unavailable") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="evidence_manifest.list"
           onRetry={retry}
           retryLabel={t("retry")}
         />
@@ -1332,6 +1342,8 @@ function WorkflowRegion({
           title={error.useContextTitle ? t("unavailable") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="demo_workspace.read"
           onRetry={retry}
           retryLabel={t("retry")}
         />

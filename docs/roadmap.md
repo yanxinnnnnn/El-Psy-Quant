@@ -113,9 +113,9 @@ M29 begins from direct Founder use rather than speculative feature work.
 | S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
 | S163 | Modern Visual System Foundation | Complete |
 | S164 | Founder Dashboard and Workflow Information Architecture Refresh | Complete |
-| S165 | Reliability, Idempotency, and Job Recovery Hardening | Implementation complete; Founder reliability acceptance remains |
-| S166 | Error Surface, Observability, and Audit Hardening | Next only after S165 acceptance and merge |
-| S167 | Migration, Test, and Local Deployment Hardening | Planned |
+| S165 | Reliability, Idempotency, and Job Recovery Hardening | Complete; merged at `61cd11ad7f680509d44e27180bfb33c8a9193896` |
+| S166 | Error Surface, Observability, and Audit Hardening | Implementation complete; Founder error/observability acceptance remains |
+| S167 | Migration, Test, and Local Deployment Hardening | Next only after S166 acceptance and merge |
 | S168 | Milestone 29 Closeout and M30 Handoff | Planned |
 
 Internationalization precedes visual implementation so both languages determine
@@ -201,8 +201,30 @@ recovery guidance. Existing files are never overwritten or cleaned, and
 terminal job/attempt/reference finalization remains one transaction. No
 migration, new durable status, worker, lease, heartbeat, scheduler, polling, or
 automatic command was added. Founder local Standard/Demo reliability acceptance
-remains pending; S166 becomes next only after that acceptance and the Sprint 165
-merge.
+and the Sprint 165 merge are complete.
+
+### Sprint 166 implementation
+
+Sprint 166 adds one static stable-error inventory and matching complete English
+and Simplified Chinese presentation inventory. Shared error and technical-audit
+surfaces distinguish empty, not found, invalid, unavailable, conflict,
+protocol, internal, and unknown conditions while preserving raw operation,
+HTTP status, entity, stable code, request ID, and bounded public detail.
+
+Python standard-library logging now emits only bounded sanitized request
+completion, successful Paper Job command, and terminal claimed-execution
+events. Static operation and route-template catalogs prevent concrete paths or
+query strings from entering product events. Expected execution failures use
+only approved persisted attempt codes; unexpected or unverifiable outcomes use
+the fixed `internal_execution_failure` sentinel.
+
+All six Paper Job attempt error codes now have bilingual label, meaning, and
+safe recovery guidance beside their raw value. Migration head remains
+`0005_paper_job_result_references`; no durable logs, migration, telemetry
+platform, worker, queue, scheduler, polling, cleanup, overwrite, financial
+calculation, or automation was added. Founder local Standard/Demo
+error-surface and observability acceptance remains pending; S167 becomes next
+only after that acceptance and the Sprint 166 merge.
 
 ## Codex and Founder Verification Boundary
 

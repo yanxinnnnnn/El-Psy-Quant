@@ -32,6 +32,8 @@ export function EvidenceManifestListView() {
           title={error.useContextTitle ? t("list.unavailable") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="evidence_manifest.list"
           onRetry={retry}
         />
       ) : state.data.manifests.length === 0 ? (

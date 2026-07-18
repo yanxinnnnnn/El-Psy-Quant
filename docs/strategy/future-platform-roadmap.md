@@ -75,9 +75,9 @@ working local MVP
 | S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
 | S163 | Modern Visual System Foundation | Complete |
 | S164 | Founder Dashboard and Workflow Information Architecture Refresh | Complete |
-| S165 | Reliability, Idempotency, and Job Recovery Hardening | Implementation complete; Founder reliability acceptance remains |
-| S166 | Error Surface, Observability, and Audit Hardening | Next only after S165 acceptance and merge |
-| S167 | Migration, Test, and Local Deployment Hardening | Planned |
+| S165 | Reliability, Idempotency, and Job Recovery Hardening | Complete; merged at `61cd11ad7f680509d44e27180bfb33c8a9193896` |
+| S166 | Error Surface, Observability, and Audit Hardening | Implementation complete; Founder error/observability acceptance remains |
+| S167 | Migration, Test, and Local Deployment Hardening | Next only after S166 acceptance and merge |
 | S168 | Milestone 29 Closeout and M30 Handoff | Planned |
 
 Internationalization precedes visual-system implementation so English and

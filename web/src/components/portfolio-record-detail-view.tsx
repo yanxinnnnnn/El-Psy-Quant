@@ -243,6 +243,10 @@ export function PortfolioRecordDetailView({ jobId }: { jobId: string }) {
           title={error.useContextTitle ? t("unavailableTitle") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="paper_job.result"
+          entityLabel="job_id"
+          entityId={jobId}
           onRetry={notFound ? undefined : retry}
           backHref="/portfolio-records"
           backLabel={t("return")}

@@ -116,6 +116,8 @@ export function PaperJobListView() {
           title={error.useContextTitle ? t("unavailableTitle") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="paper_job.list"
           onRetry={retry}
         />
       ) : state.data.length === 0 ? (

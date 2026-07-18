@@ -103,8 +103,35 @@ retry control exists.
 ## Review Attempts and Results
 
 The Attempts table shows numbered operational attempts, timestamps, statuses,
-and approved error codes. A succeeded job exposes a Portfolio Record only when
-the backend reports **Result available: Yes**.
+and approved error codes. Each approved code keeps its raw value and adds a
+localized label, meaning, and safe recovery instruction:
+
+| Raw code | Operational meaning |
+| --- | --- |
+| `workflow_validation_failed` | The claimed workflow failed approved validation |
+| `output_conflict` | Existing reserved output was preserved and overwrite refused |
+| `filesystem_io_failed` | A bounded local file operation failed |
+| `interrupted_without_output` | Recover found no completed output; execution may still have started |
+| `partial_output_detected` | Exactly one required output was preserved |
+| `invalid_output_detected` | Outputs were preserved but invalid or inconsistent |
+
+Attempt guidance never starts Retry or Recover, deletes a file, forces success,
+or proves runtime execution. A succeeded job exposes a Portfolio Record only
+when the backend reports **Result available: Yes**.
+
+## Understand an Error
+
+The shared error panel distinguishes empty, not found, invalid, unavailable,
+conflict, unsupported request, internal, and unknown conditions. It shows safe
+localized guidance plus the raw operation, HTTP status, entity identity, stable
+error code, server request ID when present, and bounded backend message. A
+missing request ID is never fabricated.
+
+Use the exact request ID to correlate bounded local backend product events.
+Those events are transient diagnostics, not durable Paper Job state, artifact
+authority, lifecycle evidence, or proof of execution. See the
+[error and observability runbook](../../operations/error-observability-and-audit.md)
+for the troubleshooting matrix and logging denylist.
 
 There is no automatic refresh, polling, broker connection, or live order
 execution. Paper-job status is operational state and is separate from strategy

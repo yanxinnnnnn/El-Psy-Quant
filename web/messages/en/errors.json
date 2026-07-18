@@ -1,4 +1,23 @@
 {
+  "categories": {
+    "authentication": "Authentication required",
+    "not_found": "Not found",
+    "invalid": "Invalid",
+    "conflict": "Conflict",
+    "unavailable": "Unavailable",
+    "protocol": "Unsupported request",
+    "internal": "Internal error",
+    "unknown": "Unknown error"
+  },
+  "technical": {
+    "title": "Technical audit details",
+    "operation": "Operation",
+    "httpStatus": "HTTP status",
+    "entity": "Entity",
+    "errorCode": "Stable error code",
+    "requestId": "Server request ID",
+    "backendMessage": "Sanitized backend message"
+  },
   "unknown": {
     "title": "Workspace request unavailable",
     "explanation": "The request could not be completed through the local API boundary.",
@@ -19,10 +38,30 @@
     "explanation": "The response did not match the generated frontend contract.",
     "recovery": "Verify the Web and API versions match before retrying."
   },
+  "method_not_allowed": {
+    "title": "HTTP method not allowed",
+    "explanation": "The local API route exists but does not support the requested HTTP method.",
+    "recovery": "Return to the supported workspace action; do not alter or resend the request automatically."
+  },
+  "http_error": {
+    "title": "HTTP request is unsupported",
+    "explanation": "The local API rejected this request at the HTTP protocol boundary.",
+    "recovery": "Use a documented workspace route and action before making another explicit request."
+  },
+  "internal_server_error": {
+    "title": "Unexpected local error",
+    "explanation": "An unexpected implementation failure was sanitized by the local API.",
+    "recovery": "Record the stable code and server request ID, inspect sanitized local events, and preserve current evidence."
+  },
+  "founder_authentication_required": {
+    "title": "Founder authentication required",
+    "explanation": "The local API requires the configured Founder credential pair for this request.",
+    "recovery": "Verify the paired local credential configuration and authenticate again without recording or sharing the credential."
+  },
   "not_found": {
-    "title": "Strategy not found",
-    "explanation": "The requested strategy identifier is not present in the backend catalog.",
-    "recovery": "Return to the strategy list and choose an available definition."
+    "title": "Requested record not found",
+    "explanation": "The requested route or exact record is not present at the local API boundary.",
+    "recovery": "Return to the relevant list or workspace and choose an available record; do not blindly retry the missing identity."
   },
   "research_artifact_root_unavailable": {
     "title": "Research artifact root unavailable",
@@ -63,6 +102,11 @@
     "title": "Paper artifact root unavailable",
     "explanation": "Authoritative completed paper artifacts cannot currently be read.",
     "recovery": "Verify the configured paper artifact storage and retry without deleting outputs."
+  },
+  "paper_run_invalid": {
+    "title": "Paper Run request is invalid",
+    "explanation": "The synchronous Paper Run command did not satisfy the backend contract.",
+    "recovery": "Review the entered transport values and send a corrected explicit command only when ready."
   },
   "paper_job_not_found": {
     "title": "Paper job not found",

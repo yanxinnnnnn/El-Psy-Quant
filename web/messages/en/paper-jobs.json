@@ -16,13 +16,41 @@
     "attemptNumber": "Attempt #{number}"
   },
   "attemptErrors": {
-    "workflow_validation_failed": "Workflow validation failed",
-    "output_conflict": "Output conflict",
-    "filesystem_io_failed": "Filesystem I/O failed",
-    "interrupted_without_output": "Interrupted without output",
-    "partial_output_detected": "Partial output detected",
-    "invalid_output_detected": "Invalid output detected",
-    "unknown": "Operational attempt error"
+    "workflow_validation_failed": {
+      "label": "Workflow validation failed",
+      "meaning": "The explicit workflow input failed bounded backend validation.",
+      "recovery": "Review the approved input contract without exposing or copying payload contents."
+    },
+    "output_conflict": {
+      "label": "Output conflict",
+      "meaning": "Existing authoritative evidence was preserved and no overwrite occurred.",
+      "recovery": "Inspect the settled job and evidence; cleanup and force overwrite are not available."
+    },
+    "filesystem_io_failed": {
+      "label": "Filesystem I/O failed",
+      "meaning": "The local workflow could not safely complete an approved filesystem operation.",
+      "recovery": "Verify local storage availability and permissions without exposing paths or deleting outputs."
+    },
+    "interrupted_without_output": {
+      "label": "Interrupted without output",
+      "meaning": "Explicit recovery found no completed output; this does not claim execution never started.",
+      "recovery": "Review the attempt and current queued state before making another explicit Run decision."
+    },
+    "partial_output_detected": {
+      "label": "Partial output detected",
+      "meaning": "Recovery found only part of the required completed evidence.",
+      "recovery": "Preserve the files for inspection; do not clean up, repair, or force retry."
+    },
+    "invalid_output_detected": {
+      "label": "Invalid output detected",
+      "meaning": "Recovery found completed-looking evidence that failed authoritative validation.",
+      "recovery": "Preserve the files for inspection; do not recalculate, repair, delete, or force retry."
+    },
+    "unknown": {
+      "label": "Operational attempt error",
+      "meaning": "The attempt has an unrecognized future sanitized error code.",
+      "recovery": "Preserve the raw code and current evidence for operator review."
+    }
   },
   "list": {
     "eyebrow": "Paper runs · Durable operational jobs",

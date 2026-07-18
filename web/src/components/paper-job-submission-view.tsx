@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
-import { RequestId } from "@/components/data-states";
+import { ErrorState, RequestId } from "@/components/data-states";
 import { PaperJobStatusValue } from "@/components/domain-values";
-import { useErrorPresentation } from "@/i18n/errors";
 import {
   ApiClientError,
   fetchDemoWorkspace,
@@ -153,7 +152,6 @@ function AccountSection({
 
 export function PaperJobSubmissionView() {
   const t = useTranslations("paperJobs.submission");
-  const common = useTranslations("common");
   const keyCounter = useRef(0);
   const pendingRef = useRef(false);
   const [runId, setRunId] = useState("");
@@ -165,14 +163,18 @@ export function PaperJobSubmissionView() {
   const [fills, setFills] = useState<FillRow[]>([]);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [pending, setPending] = useState(false);
-  const [serverError, setServerError] = useState<{ code: string; message: string; requestId: string | null } | null>(null);
+  const [serverError, setServerError] = useState<{
+    code: string;
+    message: string;
+    requestId: string | null;
+    httpStatus: number | null;
+  } | null>(null);
   const [submissionResult, setSubmissionResult] = useState<{
     response: PaperJobSubmissionResponse;
     requestId: string | null;
   } | null>(null);
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoDiscoveryError, setDemoDiscoveryError] = useState<string | null>(null);
-  const serverErrorPresentation = useErrorPresentation(serverError?.code);
   const nextKey = () => ++keyCounter.current;
 
   function populateDemoExample(demoDescriptor: DemoWorkspaceDescriptorResponse) {
@@ -385,9 +387,19 @@ export function PaperJobSubmissionView() {
           });
         }).catch((error: unknown) => {
           if (error instanceof ApiClientError) {
-            setServerError({ code: error.code, message: error.publicMessage, requestId: error.requestId });
+            setServerError({
+              code: error.code,
+              message: error.publicMessage,
+              requestId: error.requestId,
+              httpStatus: error.status > 0 ? error.status : null,
+            });
           } else {
-            setServerError({ code: "api_unavailable", message: "The local API is unavailable.", requestId: null });
+            setServerError({
+              code: "api_unavailable",
+              message: "The local API is unavailable.",
+              requestId: null,
+              httpStatus: null,
+            });
           }
         }).finally(() => {
           pendingRef.current = false;
@@ -395,7 +407,17 @@ export function PaperJobSubmissionView() {
         });
       }}>
         {Object.keys(errors).length > 0 ? <div className="form-alert" role="alert"><strong>{t("attentionTitle")}</strong><span>{t("attentionDescription")}</span></div> : null}
-        {serverError ? <div className="form-alert form-alert--server" role="alert"><strong>{serverErrorPresentation.title}</strong><span>{serverErrorPresentation.explanation} {serverErrorPresentation.recovery}</span><code>{serverError.code}</code><details><summary>{common("backendDetail")}</summary><p>{serverError.message}</p></details><RequestId value={serverError.requestId} /></div> : null}
+        {serverError ? (
+          <ErrorState
+            className="form-alert form-alert--server"
+            title={t("attentionTitle")}
+            code={serverError.code}
+            message={serverError.message}
+            requestId={serverError.requestId}
+            httpStatus={serverError.httpStatus}
+            operation="paper_job.submit"
+          />
+        ) : null}
         {submissionResult ? (
           <div className="mutation-notice mutation-notice--success" role="status">
             <strong>

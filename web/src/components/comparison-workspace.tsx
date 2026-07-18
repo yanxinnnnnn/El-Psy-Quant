@@ -369,6 +369,8 @@ export function ComparisonWorkspace({ jobIds }: { jobIds: readonly string[] }) {
             title={candidateError.useContextTitle ? t("candidateUnavailableTitle") : candidateError.title}
             message={candidates.state.message}
             requestId={candidates.state.requestId}
+            httpStatus={candidates.state.httpStatus}
+            operation="paper_job.list"
             onRetry={candidates.retry}
           />
         ) : candidates.state.status === "success" && candidates.state.data.length === 0 ? (

@@ -146,6 +146,10 @@ export function EvidenceManifestDetailView({
           title={error.useContextTitle ? t("unavailableTitle") : error.title}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="evidence_manifest.detail"
+          entityLabel="artifact_key"
+          entityId={artifactKey}
           onRetry={state.code === "evidence_manifest_not_found" ? undefined : retry}
           backHref="/evidence-manifests"
           backLabel={t("return")}

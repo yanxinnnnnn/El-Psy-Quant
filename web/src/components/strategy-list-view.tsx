@@ -31,6 +31,8 @@ export function StrategyListView() {
           title={t("errorTitle")}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="strategy.list"
           onRetry={retry}
         />
       ) : state.data.strategies.length === 0 ? (

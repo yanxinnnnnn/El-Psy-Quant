@@ -30,6 +30,54 @@ export function EmptyState({ title, message }: { title: string; message: string 
   );
 }
 
+export function TechnicalAuditDetails({
+  operation,
+  httpStatus,
+  entityLabel,
+  entityId,
+  code,
+  requestId,
+  message,
+}: {
+  operation?: string;
+  httpStatus?: number | null;
+  entityLabel?: string;
+  entityId?: string;
+  code?: string | null;
+  requestId?: string | null;
+  message?: string | null;
+}) {
+  const t = useTranslations("errors.technical");
+  const common = useTranslations("common");
+  const hasFields = Boolean(
+    operation
+    || httpStatus
+    || (entityLabel && entityId)
+    || code
+    || requestId
+    || message,
+  );
+  if (!hasFields) return null;
+  return (
+    <section className="technical-audit-details" aria-label={t("title")}>
+      <h3>{t("title")}</h3>
+      <dl className="technical-audit-grid">
+        {operation ? <div><dt>{t("operation")}</dt><dd><code className="raw-value">{operation}</code></dd></div> : null}
+        {httpStatus ? <div><dt>{t("httpStatus")}</dt><dd>{httpStatus}</dd></div> : null}
+        {entityLabel && entityId ? <div><dt>{t("entity")}</dt><dd><span>{entityLabel}: </span><code className="raw-value">{entityId}</code></dd></div> : null}
+        {code ? <div><dt>{t("errorCode")}</dt><dd><code className="raw-value">{common("errorCode", { code })}</code></dd></div> : null}
+        {requestId ? <div><dt>{t("requestId")}</dt><dd><code className="raw-value">{common("requestId", { requestId })}</code></dd></div> : null}
+      </dl>
+      {message ? (
+        <details className="audit-disclosure" open>
+          <summary>{common("backendDetail")}</summary>
+          <p><span className="visually-hidden">{t("backendMessage")}: </span>{message}</p>
+        </details>
+      ) : null}
+    </section>
+  );
+}
+
 export function ErrorState({
   title,
   message,
@@ -40,6 +88,10 @@ export function ErrorState({
   className,
   backHref,
   backLabel,
+  operation,
+  httpStatus,
+  entityLabel,
+  entityId,
 }: {
   title: string;
   message?: string | null;
@@ -50,28 +102,33 @@ export function ErrorState({
   className?: string;
   backHref?: string;
   backLabel?: string;
+  operation?: string;
+  httpStatus?: number | null;
+  entityLabel?: string;
+  entityId?: string;
 }) {
-  const t = useTranslations("common");
+  const common = useTranslations("common");
   const presentation = useErrorPresentation(code);
   const resolvedTitle = presentation.useContextTitle ? title : presentation.title;
   return (
     <section className={`state-panel state-panel--error${className ? ` ${className}` : ""}`} role="alert">
-      <p className="eyebrow">{t("states.unavailable")}</p>
+      <p className="eyebrow">{presentation.stateLabel}</p>
       <h2>{resolvedTitle}</h2>
       <p>{presentation.explanation}</p>
       <p>{presentation.recovery}</p>
-      {code ? <p className="request-id">{t("errorCode", { code })}</p> : null}
-      {message ? (
-        <details className="audit-disclosure">
-          <summary>{t("backendDetail")}</summary>
-          <p>{message}</p>
-        </details>
-      ) : null}
-      <RequestId value={requestId} />
+      <TechnicalAuditDetails
+        operation={operation}
+        httpStatus={httpStatus}
+        entityLabel={entityLabel}
+        entityId={entityId}
+        code={code}
+        requestId={requestId}
+        message={message}
+      />
       <div className="state-panel__actions">
         {onRetry ? (
           <button className="secondary-button" type="button" onClick={onRetry}>
-            {retryLabel ?? t("actions.retry")}
+            {retryLabel ?? common("actions.retry")}
           </button>
         ) : null}
         {backHref && backLabel ? (
