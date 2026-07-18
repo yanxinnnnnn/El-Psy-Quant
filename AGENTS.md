@@ -74,6 +74,9 @@ Demo reset, return-to-Standard verification, and the merge decision.
   occurred.
 - Product guidance must not become strategy ranking, approval, or capital advice.
 - A Paper Job success is an operational outcome, not a financial conclusion.
+- A portfolio review approval is governance evidence, not capital allocation,
+  account mutation, order authorization, or execution.
+- Portfolio review scenario weights are assumptions, not Paper Account holdings.
 
 ## Definition of Done
 
@@ -125,17 +128,61 @@ docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
 
 ## Current Focus
 
-The next milestone is:
+Milestone 30 is In Progress:
 
 ```text
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-M30 is a governance and decision-review milestone. It is not permission to add
-broker integration, automatic capital allocation, live trading, or continuous
-Paper Trading.
+Sprint 169 defines the approved architecture and milestone sequence. After its PR
+is merged, the next implementation sprint is:
 
-The Founder-approved sequence toward genuine Paper Trading is:
+```text
+Sprint 170 — Portfolio Review Input and Scenario Contract Foundation
+```
+
+Authoritative M30 planning:
+
+```text
+docs/architecture/portfolio-level-decision-review.md
+docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
+docs/sprints/sprint-169-milestone-30-architecture-and-planning.md
+```
+
+The approved M30 sprint chain is:
+
+```text
+S169 architecture and planning
+  -> S170 source/input and scenario contracts
+  -> S171 concentration and review-exposure analysis
+  -> S172 interaction and proposed-impact analysis
+  -> S173 immutable review and human-decision artifacts
+  -> S174 persistence, application services, and API
+  -> S175 bilingual Founder Web workflow
+  -> S176 integration, Demo, and acceptance hardening
+  -> S177 closeout and M31 handoff
+```
+
+### M30 architecture boundary
+
+M30 must provide real domain-calculated portfolio review evidence from explicit
+aligned historical inputs. It must preserve:
+
+- explicit static non-negative scenario weights;
+- no automatic weight normalization, optimization, recommendation, or allocation;
+- concentration, review exposure, overlap, interaction, risk, drawdown,
+  contribution, and proposed-impact calculations in domain modules;
+- immutable source, analysis, and decision artifact authority;
+- compact SQLite metadata and idempotency only;
+- complete bilingual API/Web inspection without browser financial calculation;
+- one explicit `approved`, `rejected`, or `deferred` human decision; and
+- a strict handoff that keeps M31 Paper Account and ledger truth separate.
+
+M30 does not add account balances, positions, orders, fills, market data, session
+clock, strategy-to-order conversion, execution simulation, worker, scheduler,
+broker, QMT, or live behavior.
+
+## Founder-Approved Runtime Sequence
 
 ```text
 M30 Portfolio-Level Decision Review Foundation
@@ -147,7 +194,7 @@ M35 Durable Paper Runtime and Recovery
 M36 Multi-day Paper Operations and Acceptance
 ```
 
-Authoritative plan:
+Authoritative runtime plan:
 
 ```text
 docs/strategy/paper-trading-runtime-roadmap.md
@@ -174,7 +221,7 @@ Browser
   -> fixed same-origin /api/backend gateway
   -> versioned FastAPI API
   -> thin application services
-  -> existing domain modules and artifact readers
+  -> domain modules and artifact readers/writers
   -> isolated SQLite and authoritative artifact roots
 ```
 
@@ -183,6 +230,7 @@ Browser
 - SQLite remains compact metadata and operational state.
 - Raw API, domain, artifact, and audit values remain untranslated.
 - Paper Job state remains separate from lifecycle governance.
+- Portfolio review status remains separate from lifecycle and Paper Account truth.
 - Lifecycle proposals remain non-executing.
 - Human review remains explicit evidence.
 - Demo and Standard storage remain isolated.
@@ -195,7 +243,7 @@ Until a future authoritative milestone approves them:
 - broker, QMT, or MiniQMT integration;
 - real-money execution;
 - automatic strategy ranking or approval;
-- automatic capital allocation;
+- automatic portfolio optimization or capital allocation;
 - public SaaS, multi-tenancy, or complex RBAC;
 - microservices, Kubernetes, Kafka, or Redis clusters;
 - distributed job infrastructure; and

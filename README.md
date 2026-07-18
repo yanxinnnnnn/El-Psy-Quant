@@ -15,24 +15,28 @@ operate, and improve trading ideas before real capital is deployed.
 
 Milestones 1–29 are **Complete**.
 
-The next milestone is:
+Milestone 30 is **In Progress**:
 
 ```text
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Milestone 29 completed the product-feedback and hardening sequence:
+The approved M30 sequence is:
 
 ```text
-S161 Founder Feedback and Product Experience Architecture
-S162 Multilingual Foundation and Simplified Chinese Workspace
-S163 Modern Visual System Foundation
-S164 Founder Dashboard and Workflow Information Architecture Refresh
-S165 Reliability, Idempotency, and Job Recovery Hardening
-S166 Error Surface, Observability, and Audit Hardening
-S167 Migration, Test, and Local Deployment Hardening
-S168 Milestone 29 Closeout and M30–M36 Handoff
+S169 Milestone 30 Architecture and Planning
+S170 Portfolio Review Input and Scenario Contract Foundation
+S171 Concentration and Exposure Analysis Foundation
+S172 Strategy Interaction and Proposed Portfolio Impact Foundation
+S173 Portfolio Review Artifact and Human Decision Foundation
+S174 Durable Portfolio Review Persistence and Application/API Foundation
+S175 Founder Portfolio Decision Review Web Workspace
+S176 Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
+S177 Milestone 30 Closeout and M31 Handoff
 ```
+
+Sprint 169 is complete pending Founder review. Sprint 170 becomes the next
+implementation sprint after the planning PR is merged.
 
 ## Product Delivered Through M29
 
@@ -71,6 +75,20 @@ Strategy
   -> Human Decision Evidence
 ```
 
+M30 is planned to extend that product with:
+
+```text
+validated portfolio review source
+  -> explicit baseline and proposed scenarios
+  -> concentration and review exposure
+  -> strategy interaction and symbol overlap
+  -> historical portfolio impact
+  -> explicit human portfolio decision evidence
+```
+
+No M30 runtime capability is claimed until the implementation sprints are merged
+and accepted.
+
 ## What the Current Product Is Not Yet
 
 The current Paper workflow is auditable and operationally controlled, but it is
@@ -85,6 +103,9 @@ It does not yet provide:
 - a runtime order lifecycle and execution simulator;
 - a durable worker/checkpoint/recovery loop; or
 - continuous multi-day Paper Trading.
+
+M30 also does not authorize automatic strategy ranking, portfolio optimization,
+capital allocation, account mutation, order generation, or execution.
 
 ## Approved Route to Genuine Paper Trading
 
@@ -134,13 +155,15 @@ Browser
 
 Authority rules:
 
-- domain modules own financial, Paper Trading, comparison, governance, and
-  lifecycle behavior;
+- domain modules own financial, Paper Trading, comparison, governance, lifecycle,
+  and future portfolio-review calculations;
 - API handlers and the Web layer do not duplicate financial calculations;
 - completed artifact files remain payload authority;
 - SQLite stores compact indexes, references, idempotency records, attempts, jobs,
   and operational state rather than complete artifact payloads;
 - Paper Job state remains separate from lifecycle governance;
+- future portfolio-review status remains separate from strategy lifecycle and
+  future Paper Account truth;
 - lifecycle proposals remain non-executing;
 - human review remains explicit governance evidence;
 - raw IDs, states, versions, timestamps, codes, and artifact content remain
@@ -236,6 +259,9 @@ strict TypeScript, Web tests, and the production Next.js build.
 docs/milestones/milestone-029-product-feedback-and-hardening.md
 docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
 docs/product/milestone-029-product-feedback-and-hardening-plan.md
+docs/architecture/portfolio-level-decision-review.md
+docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
+docs/sprints/sprint-169-milestone-30-architecture-and-planning.md
 docs/strategy/future-platform-roadmap.md
 docs/strategy/paper-trading-runtime-roadmap.md
 docs/roadmap.md
@@ -247,7 +273,7 @@ Unless a future milestone explicitly approves them:
 
 - broker, QMT, or MiniQMT integration;
 - real-money execution;
-- automatic strategy ranking, approval, or capital allocation;
+- automatic strategy ranking, approval, optimization, or capital allocation;
 - public SaaS, multi-tenancy, or complex RBAC;
 - microservices, Kubernetes, Kafka, or Redis clusters;
 - distributed job infrastructure; and
