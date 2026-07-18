@@ -1,12 +1,12 @@
 # AGENTS.md
 
-This file defines the shared context and operating rules for AI agents working on
+This file defines the shared operating context for AI agents working on
 El-Psy-Quant.
 
 ## Project Identity
 
-El-Psy-Quant is an AI-native quantitative research and trading platform built as
-a startup product, not a one-off strategy script.
+El-Psy-Quant is an AI-native quantitative research and trading platform. It is a
+long-lived product, not a one-off strategy script.
 
 ## Mission
 
@@ -16,10 +16,10 @@ is deployed.
 
 ## Operating Model
 
-- The human Founder makes final product decisions, performs local startup
+- The human Founder makes final product decisions, performs local runtime
   acceptance, and manually merges pull requests.
-- ChatGPT acts as CTO for milestone planning, architecture boundaries, Issue
-  creation, documentation-only planning/closeout work, and PR review.
+- ChatGPT acts as CTO for milestone planning, architecture boundaries, GitHub
+  Issue creation, documentation-only planning and closeout work, and PR review.
 - Codex acts as implementation developer for coding sprints.
 - The CTO and Codex must not merge PRs unless the Founder explicitly requests it.
 - The GitHub Issue body is the authoritative implementation specification.
@@ -38,46 +38,30 @@ is deployed.
 - Keep financial calculations explicit and owned by domain modules.
 - Keep broker-specific behavior behind future adapters.
 - Do not add or modify proxy configuration in the repository.
-- Do not modify project files to accommodate a development proxy.
 - Never commit local `.env`, credentials, tokens, machine-specific paths, or
   private endpoints.
 
-## Codex Verification Boundary
+## Verification Boundary
 
-Codex must complete deterministic repository verification before opening a PR:
+Codex must run:
 
 ```text
 uv run python scripts/check.py
 ```
 
-Codex may also run non-starting, non-network-heavy static checks when required by
-an Issue, for example:
+Codex may run non-starting static checks required by an Issue, for example:
 
 ```text
 docker compose config
 docker compose -f compose.yaml -f compose.demo.yaml config
 ```
 
-Codex must **not** attempt:
+Codex must not perform Docker runtime acceptance unless the Founder explicitly
+changes this rule for the current sprint. This includes image builds or pulls,
+Compose startup, container startup, container smoke tests, and volume removal.
 
-- `docker compose build`;
-- `docker compose up`;
-- image pulls performed solely for local product acceptance;
-- container startup;
-- container-based MVP smoke verification; or
-- any equivalent Docker runtime acceptance step.
-
-Reason: Docker image dependency downloads are vulnerable to unstable local proxy
-conditions and can produce non-product timeouts.
-
-The PR must state truthfully that:
-
-- repository tests/static checks passed;
-- Docker build/start was intentionally not attempted under project policy; and
-- local Standard/Demo startup acceptance remains the Founder’s responsibility.
-
-Failure to run Docker build/start is not an implementation failure when the
-required deterministic tests and static configuration checks pass.
+The Founder owns Standard/Demo Docker startup, browser acceptance, data backup,
+Demo reset, return-to-Standard verification, and the merge decision.
 
 ## Quant and Governance Principles
 
@@ -86,9 +70,10 @@ required deterministic tests and static configuration checks pass.
 - Distinguish research, backtesting, Paper Trading, and future live execution.
 - Risk and audit context matter as much as return metrics.
 - A lifecycle proposal is non-executing.
-- A human review record is governance evidence, not proof that runtime execution
+- A human review record is governance evidence, not proof that execution
   occurred.
 - Product guidance must not become strategy ranking, approval, or capital advice.
+- A Paper Job success is an operational outcome, not a financial conclusion.
 
 ## Definition of Done
 
@@ -100,277 +85,118 @@ A task is complete only when:
 - assumptions and limitations are explicit;
 - authority boundaries remain intact;
 - `uv run python scripts/check.py` passes;
-- approved static Compose checks pass where applicable;
-- the PR records that Founder Docker startup acceptance remains pending;
+- approved static checks pass where applicable;
 - the PR is Ready for review; and
 - the PR is not merged by Codex or the CTO.
 
 ## Completed Foundations
 
-Milestones 1–28 are Complete.
+Milestones 1–29 are Complete.
 
-The completed productization sequence is:
+The productization and hardening chain is:
 
 ```text
 M25 — S137      Paper Trading Productization Planning
 M26 — S138-S144 Paper Trading Application Service Foundation
 M27 — S145-S151 Persistence and Paper Job Control Foundation
 M28 — S152-S160 Founder Paper Trading Web Workspace
+M29 — S161-S168 Product Feedback and Hardening
 ```
 
-Milestone 28 delivered:
+M29 delivered:
 
-- a local Founder-only Next.js workspace;
-- versioned FastAPI application API;
-- paired minimal Founder authentication;
-- SQLite/Alembic product persistence;
-- durable manually controlled Paper Jobs;
-- authoritative result and evidence inspection;
-- explicit ordered result comparison;
-- non-executing lifecycle proposal and human-review workflows;
-- Standard Docker Compose startup;
-- isolated disposable Demo Workspace startup; and
-- one complete Strategy-to-Human-Decision Demo journey.
+- complete English and Simplified Chinese product support;
+- a modern responsive AI Quant Decision Workspace visual system;
+- a bounded decision-navigation Founder Dashboard;
+- explicit Paper Job replay, Run, Retry, Recover, conflict, and audit behavior;
+- stable bilingual error presentation and sanitized local correlation events;
+- one exact migration chain and fail-closed Standard/Demo startup;
+- locked Python build/runtime and Web dependency inputs;
+- read-only workspace verification and non-mutating bilingual smoke;
+- isolated Standard and Demo volumes and Demo-only reset; and
+- cold-backup, upgrade, and restore-limitation guidance.
+
+Closeout records:
+
+```text
+docs/milestones/milestone-029-product-feedback-and-hardening.md
+docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
+```
 
 ## Current Focus
 
-The active milestone is:
+The next milestone is:
 
 ```text
-Milestone 29 — Product Feedback and Hardening — In Progress
+M30 — Portfolio-Level Decision Review Foundation
 ```
 
-The current sprint is:
+M30 is a governance and decision-review milestone. It is not permission to add
+broker integration, automatic capital allocation, live trading, or continuous
+Paper Trading.
+
+The Founder-approved sequence toward genuine Paper Trading is:
 
 ```text
-Sprint 167 — Migration, Test, and Local Deployment Hardening
+M30 Portfolio-Level Decision Review Foundation
+M31 Stateful Paper Account and Ledger Foundation
+M32 Market Data Replay, Trading Calendar, and Session Clock
+M33 Strategy-to-Order and Pre-Trade Risk Pipeline
+M34 Paper Execution Simulator and First True Paper Trading
+M35 Durable Paper Runtime and Recovery
+M36 Multi-day Paper Operations and Acceptance
 ```
 
-Sprints 161 through 166 are complete. Sprint 166 was merged at
-`ca2a5873406b934d246dcb13c215a59970ef1b46`. Sprint 167 implementation is
-complete in its review branch; Founder Standard/Demo migration and local
-deployment acceptance and the merge decision remain pending. Do not begin the
-next sprint until both are complete:
+Authoritative plan:
 
 ```text
-Sprint 168 — Milestone 29 Closeout and M30 Handoff
+docs/strategy/paper-trading-runtime-roadmap.md
 ```
 
-## M29 Product Outcome
+### M34 product gate
 
-M29 must turn the working M28 MVP into a product reliable enough for routine
-Founder use:
+M34 is the first genuine Paper Trading gate. Market data and strategy output must
+drive target exposure, order intent, risk checks, simulated fills, and a durable
+Paper Account update. The Founder must no longer pre-supply orders and fills as
+the transaction script.
 
-```text
-complete English / Simplified Chinese product
-  -> modern AI Quant Decision Workspace visual system
-  -> Founder Dashboard and workflow information architecture
-  -> understandable idempotency, retry, and recovery
-  -> actionable errors and audit information
-  -> hardened migrations, tests, and local deployment
-```
+### M36 product gate
 
-Approved sequence:
+M36 is the continuous multi-day Paper Trading gate. The same account must advance
+across sessions with durable checkpoints, reconciliation, explicit operational
+controls, duplicate prevention, and interruption recovery.
 
-```text
-S161 Founder Feedback and Product Experience Architecture
-S162 Multilingual Foundation and Simplified Chinese Workspace
-S163 Modern Visual System Foundation
-S164 Founder Dashboard and Workflow Information Architecture Refresh
-S165 Reliability, Idempotency, and Job Recovery Hardening
-S166 Error Surface, Observability, and Audit Hardening
-S167 Migration, Test, and Local Deployment Hardening
-S168 Milestone 29 Closeout and M30 Handoff
-```
-
-Internationalization precedes visual-system implementation so English and
-Simplified Chinese both shape component sizing, typography, spacing, and content
-hierarchy.
-
-## M29 Architecture Documents
-
-```text
-docs/sprints/sprint-161-founder-feedback-and-product-experience-architecture.md
-docs/product/founder-feedback-register.md
-docs/architecture/internationalization.md
-docs/product/localization-glossary.md
-docs/product/product-experience-direction.md
-docs/product/founder-dashboard-information-architecture.md
-docs/product/milestone-029-product-feedback-and-hardening-plan.md
-docs/product/visual-system.md
-docs/sprints/sprint-163-modern-visual-system-foundation.md
-docs/sprints/sprint-164-founder-dashboard-and-workflow-information-architecture-refresh.md
-docs/sprints/sprint-165-reliability-idempotency-and-job-recovery-hardening.md
-docs/sprints/sprint-166-error-surface-observability-and-audit-hardening.md
-docs/operations/error-observability-and-audit.md
-```
-
-Approved internationalization direction:
-
-- locales: `en`, `zh-CN`;
-- English default/fallback;
-- no locale-prefixed URLs;
-- cookie/browser/fallback locale resolution;
-- `next-intl` implementation direction;
-- complete static catalogs;
-- frontend-owned localized explanations;
-- backend contracts remain stable and untranslated; and
-- raw IDs, states, values, timestamps, schemas, and artifact content remain
-  authoritative.
-
-Implemented Sprint 162 contract:
-
-- `next-intl` owns App Router message context and locale-aware presentation;
-- supported locale values remain exactly `en` and `zh-CN`;
-- a validated `el_psy_quant_locale` cookie is changed only through the
-  same-origin `/api/locale` route;
-- the language switcher preserves unprefixed routes, ordered query parameters,
-  and in-progress Paper Job and Lifecycle form state;
-- message catalogs are static and checked for exact locale, namespace, and key
-  parity before the Web gate continues; and
-- frontend explanations may be localized, but raw transport, domain, artifact,
-  user-entered, timestamp, ordering, duplicate, and quantitative truth is never
-  translated or recomputed.
-
-Implemented Sprint 163 contract:
-
-- one Web-owned semantic token system defines the exact light palette,
-  bilingual system-font typography, spacing, radius, borders, elevation,
-  controls, focus, motion, shell dimensions, content widths, and responsive
-  thresholds;
-- the solid workspace shell, route-aware navigation, language switcher, and
-  Standard/Paper or persistent Demo identity remain visible and accessible;
-- shared actions, links, cards, panels, status badges, notices, states, tables,
-  forms, disclosures, audit details, and workflow steps cover every current
-  route and state;
-- status uses localized text plus raw values and never communicates strategy
-  profitability or execution authority; and
-- representative layout contracts cover `360px`, `768px`, and `1280px+` with
-  bounded table/navigation scrolling and reduced-motion behavior.
-
-Implemented Sprint 164 contract:
-
-- one bounded frontend composition uses the existing health, Demo descriptor,
-  research-run, evidence-manifest, and Paper Job list contracts with no backend
-  or generated-contract change;
-- Dashboard regions independently expose loading, empty, available, partial,
-  unavailable, invalid, and failed-read meaning with source-specific retry and
-  stale-response suppression;
-- attention is limited to approved operational conditions and never becomes
-  strategy ranking, recommendation, approval, capital, or live-readiness advice;
-- Paper Job activity preserves backend order, duplicates, raw identity,
-  localized/raw job and attempt status, timestamps, and `result_available`;
-- explicit comparison selection keeps duplicate source rows visible while
-  preserving two to four distinct nonblank IDs in user order and repeated
-  `job_id` parameters without auto-selection or browser metric calculation;
-- readiness classifies all five independent sources and Evidence Manifest cards
-  retain label plus complete raw audit identity;
-- research and evidence remain separate ordered sources, Standard workflow
-  remains generic, and Demo workflow identity remains descriptor-driven; and
-- Dashboard actions navigate, inspect, or refresh reads only; no Paper Job or
-  lifecycle command is issued from Overview.
-
-Implemented Sprint 165 contract:
-
-- one bounded frontend action policy presents `queued -> Run/Cancel`,
-  `running -> Recover`, `failed -> Retry`, and no terminal/unknown mutation;
-- submission reports `created` or `replayed` without echoing key/digest or
-  creating execution side effects;
-- Run preflights outputs/references and atomically commits the running job plus
-  one active attempt before returning HTTP 202;
-- the FastAPI post-response task executes an already-claimed attempt and remains
-  a non-durable local callback, not an exactly-once worker guarantee;
-- Retry remains non-executing and attempt-free; Recover reports the explicit
-  `requeued`, `succeeded`, or `failed` reconciliation outcome from a
-  Founder-supplied exact UTC threshold;
-- collision and rollback paths preserve files, compact references, attempts,
-  and recoverable running state; and
-- migration head remains `0005_paper_job_result_references`; no table, column,
-  migration, lease, heartbeat, worker, scheduler, polling, cleanup, overwrite,
-  or Sprint 166 behavior was added.
-
-Implemented Sprint 166 contract:
-
-- one static backend error inventory and complete matching Web inventory cover
-  every stable code with category, bilingual title, explanation, recovery, and
-  unknown-code fallback while preserving the public envelope and request ID;
-- reusable error and technical-audit surfaces keep localized meaning beside raw
-  operation, HTTP status, entity identity, code, request ID, and bounded public
-  message without inventing missing values;
-- one standard-library logger emits bounded sanitized request completion,
-  successful Paper Job command, and terminal claimed-execution events from
-  static operation/route catalogs;
-- expected execution failure uses only the approved persisted attempt code,
-  while unexpected or unverifiable callbacks use the fixed
-  `internal_execution_failure` sentinel without exception detail;
-- all six attempt error codes retain raw identity and add bilingual meaning and
-  safe recovery guidance; and
-- migration head remains `0005_paper_job_result_references`; no migration,
-  durable log/audit record, telemetry platform, remote reporting, worker,
-  queue, scheduler, polling, lifecycle automation, public debug field, cleanup,
-  overwrite, financial calculation, or broker behavior was added.
-
-Implemented Sprint 167 contract:
-
-- one application-owned current revision is checked against Alembic's exact
-  single linear head and shared by API, Demo, and workspace verification;
-- every historical product revision upgrades deterministically to
-  `0005_paper_job_result_references` with representative rows preserved and
-  repeat-at-head behavior unchanged;
-- `verify-local-workspace` is read-only and fail-closed for explicit Standard
-  and Demo roots, while one small backend entrypoint orders prepare,
-  migrate/install, verify, then Uvicorn;
-- Standard/Demo Compose project, volume, root, loopback, authentication, and
-  Demo-only reset isolation are statically enforced;
-- the backend wheel is built without isolation from an exact committed
-  `uv.lock` build export, the final image uses only the exact runtime export,
-  CI refuses either export or lock drift, and Web installation remains
-  `npm ci`;
-- bilingual runtime smoke performs only reads plus locale preference changes,
-  keeps raw identity stable, and sanitizes failure output; and
-- the cold-backup, upgrade, restore-limitation, Demo replay/reset, and
-  return-to-Standard runbook adds no destructive Standard helper.
-
-Migration head remains `0005_paper_job_result_references`. No migration,
-schema, product behavior, worker, queue, scheduler, polling, broker, cloud,
-proxy, automatic backup/restore, or Standard volume-reset behavior was added.
-
-## Approved Product Architecture
+## Preserved Architecture
 
 ```text
 Browser
-  -> Next.js Founder workspace
+  -> Next.js Founder Workspace
   -> fixed same-origin /api/backend gateway
-  -> versioned FastAPI application API
-  -> thin application services / use cases
+  -> versioned FastAPI API
+  -> thin application services
   -> existing domain modules and artifact readers
-  -> SQLite product repositories and local Paper Job runner
+  -> isolated SQLite and authoritative artifact roots
 ```
 
-Authority boundaries:
-
-- domain modules own financial, paper, comparison, governance, and lifecycle
-  behavior;
-- completed artifact files remain payload authority;
-- SQLite stores compact metadata and operational state;
-- Paper Job state remains separate from lifecycle governance;
-- lifecycle proposals remain non-executing;
-- human review remains explicit governance evidence;
-- the browser never directly accesses SQLite, artifact roots, Python modules,
-  QMT, MiniQMT, or a broker;
-- Standard and Demo storage remain isolated; and
-- authentication and same-origin behavior remain unchanged unless an explicit
-  future Issue changes them.
+- Domain modules remain financial and governance authority.
+- Completed files remain authoritative artifact payloads.
+- SQLite remains compact metadata and operational state.
+- Raw API, domain, artifact, and audit values remain untranslated.
+- Paper Job state remains separate from lifecycle governance.
+- Lifecycle proposals remain non-executing.
+- Human review remains explicit evidence.
+- Demo and Standard storage remain isolated.
+- The browser never directly accesses SQLite, files, Python, QMT, or a broker.
 
 ## Explicitly Deferred
 
-Do not add without a future approved milestone/Issue:
+Until a future authoritative milestone approves them:
 
-- broker or QMT/MiniQMT runtime integration;
-- live or real-money trading;
-- automatic strategy ranking or recommendation;
-- automatic lifecycle transition or approval;
-- capital allocation;
-- SaaS, multi-tenancy, or complex RBAC;
-- microservices, Kafka, Redis clusters, or Kubernetes; or
-- broad live-market trading-terminal behavior.
+- broker, QMT, or MiniQMT integration;
+- real-money execution;
+- automatic strategy ranking or approval;
+- automatic capital allocation;
+- public SaaS, multi-tenancy, or complex RBAC;
+- microservices, Kubernetes, Kafka, or Redis clusters;
+- distributed job infrastructure; and
+- broad real-time trading-terminal behavior.
