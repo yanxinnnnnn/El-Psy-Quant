@@ -19,6 +19,12 @@ from el_psy_quant.demo_workspace import (
     install_demo_workspace,
     resolve_workspace_mode,
 )
+from el_psy_quant.local_workspace import (
+    LocalWorkspaceError,
+    format_verification_success,
+    start_local_backend,
+    verify_local_workspace,
+)
 from el_psy_quant.outputs import create_experiment_output_layout
 from el_psy_quant.strategies import resolve_strategy
 
@@ -148,12 +154,57 @@ def _build_parser() -> argparse.ArgumentParser:
     demo_parser.add_argument("--source-root", type=Path, required=True)
     demo_parser.add_argument("--workspace-root", type=Path, required=True)
     demo_parser.add_argument("--alembic-config", type=Path, required=True)
+    verify_parser = subparsers.add_parser(
+        "verify-local-workspace",
+        help="read-only verification of one explicit Standard or Demo workspace",
+    )
+    verify_parser.add_argument(
+        "--mode",
+        choices=("standard", "demo"),
+        required=True,
+    )
+    verify_parser.add_argument("--workspace-root", type=Path, required=True)
+    startup_parser = subparsers.add_parser(
+        "start-local-backend",
+        help="prepare, verify, and start the local container backend",
+    )
+    startup_parser.add_argument(
+        "--mode",
+        choices=("standard", "demo"),
+        required=True,
+    )
+    startup_parser.add_argument("--workspace-root", type=Path, required=True)
+    startup_parser.add_argument("--alembic-config", type=Path, required=True)
+    startup_parser.add_argument("--demo-source-root", type=Path)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the command-line interface."""
     args = _build_parser().parse_args(argv)
+    if args.command == "verify-local-workspace":
+        try:
+            result = verify_local_workspace(
+                mode=args.mode,
+                workspace_root=args.workspace_root,
+            )
+        except LocalWorkspaceError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 1
+        print(format_verification_success(result))
+        return 0
+    if args.command == "start-local-backend":
+        try:
+            start_local_backend(
+                mode=args.mode,
+                workspace_root=args.workspace_root,
+                alembic_config_path=args.alembic_config,
+                demo_source_root=args.demo_source_root,
+            )
+        except LocalWorkspaceError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 1
+        return 0
     if args.command == "install-demo-workspace":
         try:
             result = install_demo_workspace(

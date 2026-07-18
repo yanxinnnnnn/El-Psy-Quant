@@ -64,6 +64,26 @@ The workspace has no polling, scheduled refresh, automatic retry, WebSocket, or
 live dashboard. Use the explicit refresh and retry actions, especially after a
 paper Run response.
 
+## Local Upgrade and Backup Limits
+
+The product supports one forward Alembic chain to
+`0005_paper_job_result_references` and a read-only Standard/Demo workspace
+verifier. It does not provide automatic backup, rollback, downgrade, repair,
+restore, retention, encryption/key management, cloud snapshots, or production
+disaster recovery.
+
+A complete Standard backup requires the backend to be stopped and the entire
+`/data` set—SQLite plus research, evidence, and paper roots—to be copied
+together. Copying only SQLite or copying it live is not a complete,
+transactionally consistent workspace backup. Restore must be staged into a
+new empty reviewed workspace first; never merge or overwrite an active
+non-empty Standard volume. External backup storage security remains the
+Founder's responsibility. Demo data should normally be reinstalled.
+
+Committed dependency locks make reviewed versions reproducible but do not make
+a cold image build offline. Uncached base images and package artifacts remain
+external availability risks, and upstream image tags are not content-addressed.
+
 ## Presentation Localization Only
 
 English and Simplified Chinese catalogs translate product-owned interface copy.

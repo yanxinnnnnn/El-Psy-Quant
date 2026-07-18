@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import shutil
+import sqlite3
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -15,7 +16,6 @@ from uuid import UUID
 
 from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
-from alembic.migration import MigrationContext
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from el_psy_quant.application.artifact_index import refresh_artifact_index
@@ -66,6 +66,10 @@ from el_psy_quant.persistence import (
     resolve_product_database_config,
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
+from el_psy_quant.persistence.schema import (
+    CURRENT_PRODUCT_SCHEMA_REVISION,
+    verify_product_schema,
+)
 from el_psy_quant.strategies import resolve_strategy
 
 DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 1
@@ -887,6 +891,60 @@ def _populate_database(
         engine.dispose()
 
 
+def _populate_upgraded_demo_result_references(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    """Materialize deterministic Demo references introduced by revision 0005."""
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    session_factory = create_product_session_factory(engine=engine)
+    try:
+        with session_factory.begin() as session:
+            jobs = SqlAlchemyPaperJobRepository(session=session)
+            attempts = SqlAlchemyPaperJobAttemptRepository(session=session)
+            references = SqlAlchemyPaperJobResultReferenceRepository(session=session)
+            installed_jobs = jobs.list()
+            if tuple(job.job_id for job in installed_jobs) != tuple(
+                job.job_id for job in source.manifest.paper_jobs
+            ):
+                raise DemoWorkspaceUnavailableError(
+                    "demo upgraded job identity is inconsistent"
+                )
+            for source_job, installed_job in zip(
+                source.manifest.paper_jobs,
+                installed_jobs,
+                strict=True,
+            ):
+                installed_attempts = attempts.list_for_job(job_id=source_job.job_id)
+                if (
+                    installed_job.run_id != source_job.run_id
+                    or installed_job.status != "succeeded"
+                    or len(installed_attempts) != 1
+                    or installed_attempts[0].attempt_id != source_job.attempt_id
+                    or installed_attempts[0].status != "succeeded"
+                ):
+                    raise DemoWorkspaceUnavailableError(
+                        "demo upgraded job audit is inconsistent"
+                    )
+                if references.get_by_job_id(job_id=source_job.job_id) is not None:
+                    raise DemoWorkspaceUnavailableError(
+                        "demo upgraded result reference is inconsistent"
+                    )
+                references.add(
+                    reference=create_paper_job_result_reference(
+                        job_id=source_job.job_id,
+                        created_timestamp=_utc_timestamp(
+                            source_job.completed_timestamp
+                        ),
+                    )
+                )
+    finally:
+        engine.dispose()
+
+
 def _write_json(path: Path, payload: object) -> None:
     path.write_text(
         json.dumps(payload, indent=2, allow_nan=False, ensure_ascii=False) + "\n",
@@ -947,22 +1005,54 @@ def _install_marker(source: _ValidatedDemoSource) -> dict[str, object]:
     }
 
 
-def _database_revision(database_path: Path) -> str | None:
-    engine = create_product_database_engine(
-        config=resolve_product_database_config(database_path=database_path)
-    )
+def _database_revision(database_path: Path) -> str:
+    connection: sqlite3.Connection | None = None
     try:
-        with engine.connect() as connection:
-            return MigrationContext.configure(connection).get_current_revision()
+        resolved = database_path.resolve(strict=True)
+        if database_path.is_symlink() or not resolved.is_file():
+            raise DemoWorkspaceUnavailableError("demo database is unavailable")
+        connection = sqlite3.connect(
+            f"{resolved.as_uri()}?mode=ro",
+            uri=True,
+            timeout=1.0,
+        )
+        revisions = connection.execute(
+            "SELECT version_num FROM alembic_version"
+        ).fetchall()
+        if (
+            len(revisions) != 1
+            or len(revisions[0]) != 1
+            or not isinstance(revisions[0][0], str)
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "demo database revision is invalid"
+            )
+        return revisions[0][0]
+    except DemoWorkspaceUnavailableError:
+        raise
+    except (OSError, RuntimeError, sqlite3.Error, ValueError) as exc:
+        raise DemoWorkspaceUnavailableError("demo database is unavailable") from exc
     finally:
-        engine.dispose()
+        if connection is not None:
+            try:
+                connection.close()
+            except sqlite3.Error as exc:
+                raise DemoWorkspaceUnavailableError(
+                    "demo database is unavailable"
+                ) from exc
 
 
 def _validate_installed_workspace(
     *, paths: DemoWorkspacePaths, source: _ValidatedDemoSource
 ) -> None:
-    if _database_revision(paths.database_path) != "0005_paper_job_result_references":
+    if _database_revision(paths.database_path) != CURRENT_PRODUCT_SCHEMA_REVISION:
         raise DemoWorkspaceUnavailableError("demo database schema is unavailable")
+    try:
+        verify_product_schema(paths.database_path)
+    except Exception as exc:
+        raise DemoWorkspaceUnavailableError(
+            "demo database schema is unavailable"
+        ) from exc
     get_research_run_detail(
         artifact_root=paths.research_root,
         experiment_slug=source.manifest.research_run.experiment_slug,
@@ -1010,6 +1100,26 @@ def _read_marker(path: Path) -> dict[str, Any]:
     }
     if set(marker) != expected:
         raise DemoWorkspaceUnavailableError("demo install marker is invalid")
+    if (
+        marker["schema_version"] != DEMO_WORKSPACE_INSTALL_SCHEMA_VERSION
+        or marker["workspace_mode"] != DEMO_WORKSPACE_MODE
+        or type(marker["dataset_version"]) is not int
+        or marker["dataset_version"] < 1
+    ):
+        raise DemoWorkspaceUnavailableError("demo install marker is invalid")
+    try:
+        _normalized_text(marker["dataset_id"])
+    except DemoWorkspaceSourceInvalidError as exc:
+        raise DemoWorkspaceUnavailableError(
+            "demo install marker is invalid"
+        ) from exc
+    digest = marker["source_digest"]
+    if (
+        not isinstance(digest, str)
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+    ):
+        raise DemoWorkspaceUnavailableError("demo install marker is invalid")
     return marker
 
 
@@ -1056,6 +1166,10 @@ def install_demo_workspace(
             raise DemoWorkspaceTargetRefusedError(
                 "installed demo workspace contains unrelated data"
             )
+        prior_revision = _database_revision(paths.database_path)
+        _upgrade_database(paths.database_path, config_path)
+        if prior_revision == "0004_paper_job_recovery_audit":
+            _populate_upgraded_demo_result_references(paths=paths, source=source)
         _validate_installed_workspace(paths=paths, source=source)
         return DemoWorkspaceInstallResult(
             dataset_id=source.manifest.dataset_id,
@@ -1157,6 +1271,74 @@ def load_demo_workspace_descriptor(
         raise DemoWorkspaceUnavailableError("demo workspace is unavailable") from exc
 
 
+def validate_installed_demo_workspace(
+    workspace_root: str | Path,
+) -> DemoWorkspaceDescriptor:
+    """Read all descriptor-owned Demo references without changing the workspace."""
+    paths = DemoWorkspacePaths.from_root(workspace_root)
+    try:
+        if (
+            paths.root.is_symlink()
+            or not paths.root.is_dir()
+            or set(_existing_entries(paths.root)) != set(_INSTALLED_CHILDREN)
+        ):
+            raise DemoWorkspaceUnavailableError("demo workspace layout is invalid")
+        root = paths.root.resolve(strict=True)
+        for child in (
+            paths.research_root,
+            paths.evidence_root,
+            paths.paper_root,
+        ):
+            resolved = child.resolve(strict=True)
+            if child.is_symlink() or not resolved.is_dir() or not resolved.is_relative_to(root):
+                raise DemoWorkspaceUnavailableError(
+                    "demo workspace layout is invalid"
+                )
+        if paths.database_path.is_symlink():
+            raise DemoWorkspaceUnavailableError("demo database schema is unavailable")
+        verify_product_schema(paths.database_path)
+        descriptor = load_demo_workspace_descriptor(paths.root)
+        payload = descriptor.to_dict()
+        research = payload["research_run"]
+        get_research_run_detail(
+            artifact_root=paths.research_root,
+            experiment_slug=research["experiment_slug"],
+            run_id=research["run_id"],
+        )
+        for reference in payload["evidence_manifests"]:
+            get_evidence_manifest_detail(
+                artifact_root=paths.evidence_root,
+                manifest_type=reference["manifest_type"],
+                artifact_key=reference["artifact_key"],
+            )
+        engine = create_product_database_engine(
+            config=resolve_product_database_config(
+                database_path=paths.database_path
+            )
+        )
+        factory = create_product_session_factory(engine=engine)
+        try:
+            for job in payload["paper_jobs"]:
+                result = read_paper_job_result(
+                    session_factory=factory,
+                    job_id=job["job_id"],
+                    paper_artifact_root=paths.paper_root,
+                )
+                if result.run_id != job["run_id"]:
+                    raise DemoWorkspaceUnavailableError(
+                        "demo paper result is inconsistent"
+                    )
+        finally:
+            engine.dispose()
+        return descriptor
+    except DemoWorkspaceUnavailableError:
+        raise
+    except Exception as exc:
+        raise DemoWorkspaceUnavailableError(
+            "demo workspace verification failed"
+        ) from exc
+
+
 __all__ = [
     "DEMO_WORKSPACE_ROOT_ENV",
     "WORKSPACE_MODE_ENV",
@@ -1170,5 +1352,6 @@ __all__ = [
     "load_demo_workspace_descriptor",
     "resolve_demo_workspace_root",
     "resolve_workspace_mode",
+    "validate_installed_demo_workspace",
     "validate_demo_workspace_source",
 ]

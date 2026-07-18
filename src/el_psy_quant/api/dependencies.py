@@ -1,6 +1,5 @@
 """Explicit reusable composition dependencies for durable local routes."""
 
-import sqlite3
 from http import HTTPStatus
 from pathlib import Path
 
@@ -10,18 +9,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from el_psy_quant.api.errors import PublicApiError
 from el_psy_quant.application import PaperArtifactRootUnavailableError
 from el_psy_quant.application.paper_jobs import validate_paper_artifact_root
-
-PRODUCT_SCHEMA_REVISION = "0005_paper_job_result_references"
-_REQUIRED_PRODUCT_SCHEMA_PROBES = (
-    "SELECT job_id, status, request_payload, updated_timestamp "
-    "FROM paper_jobs LIMIT 0",
-    "SELECT idempotency_key, job_id, request_digest "
-    "FROM paper_job_submission_keys LIMIT 0",
-    "SELECT attempt_id, job_id, attempt_number, status, completed_timestamp, "
-    "error_code FROM paper_job_attempts LIMIT 0",
-    "SELECT job_id, root_type, artifact_relative_path, "
-    "result_summary_relative_path FROM paper_job_result_references LIMIT 0",
-)
+from el_psy_quant.persistence.schema import product_schema_is_compatible
 
 
 def product_database_unavailable() -> PublicApiError:
@@ -42,34 +30,7 @@ def paper_artifact_root_unavailable() -> PublicApiError:
 
 def _product_schema_is_compatible(path: Path) -> bool:
     """Probe the exact durable-route schema through one read-only connection."""
-    connection: sqlite3.Connection | None = None
-    compatible = False
-    try:
-        resolved = path.resolve(strict=True)
-        if not resolved.is_file():
-            return False
-        connection = sqlite3.connect(
-            f"{resolved.as_uri()}?mode=ro",
-            uri=True,
-            timeout=1.0,
-        )
-        revisions = connection.execute(
-            "SELECT version_num FROM alembic_version"
-        ).fetchall()
-        if revisions != [(PRODUCT_SCHEMA_REVISION,)]:
-            return False
-        for statement in _REQUIRED_PRODUCT_SCHEMA_PROBES:
-            connection.execute(statement).fetchall()
-        compatible = True
-    except (OSError, RuntimeError, sqlite3.Error, ValueError):
-        compatible = False
-    finally:
-        if connection is not None:
-            try:
-                connection.close()
-            except sqlite3.Error:
-                compatible = False
-    return compatible
+    return product_schema_is_compatible(path)
 
 
 def get_product_session_factory(request: Request) -> sessionmaker[Session]:

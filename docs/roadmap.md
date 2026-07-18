@@ -114,9 +114,9 @@ M29 begins from direct Founder use rather than speculative feature work.
 | S163 | Modern Visual System Foundation | Complete |
 | S164 | Founder Dashboard and Workflow Information Architecture Refresh | Complete |
 | S165 | Reliability, Idempotency, and Job Recovery Hardening | Complete; merged at `61cd11ad7f680509d44e27180bfb33c8a9193896` |
-| S166 | Error Surface, Observability, and Audit Hardening | Implementation complete; Founder error/observability acceptance remains |
-| S167 | Migration, Test, and Local Deployment Hardening | Next only after S166 acceptance and merge |
-| S168 | Milestone 29 Closeout and M30 Handoff | Planned |
+| S166 | Error Surface, Observability, and Audit Hardening | Complete |
+| S167 | Migration, Test, and Local Deployment Hardening | Implementation complete; Founder migration/deployment acceptance remains |
+| S168 | Milestone 29 Closeout and M30 Handoff | Next only after S167 acceptance and merge |
 
 Internationalization precedes visual implementation so both languages determine
 component sizing, typography, spacing, and content hierarchy.
@@ -223,8 +223,23 @@ safe recovery guidance beside their raw value. Migration head remains
 `0005_paper_job_result_references`; no durable logs, migration, telemetry
 platform, worker, queue, scheduler, polling, cleanup, overwrite, financial
 calculation, or automation was added. Founder local Standard/Demo
-error-surface and observability acceptance remains pending; S167 becomes next
-only after that acceptance and the Sprint 166 merge.
+error-surface and observability acceptance is complete. Sprint 166 merged at
+`ca2a5873406b934d246dcb13c215a59970ef1b46`.
+
+### Sprint 167 implementation
+
+Sprint 167 centralizes the exact `0005_paper_job_result_references` head,
+verifies every historical upgrade with preservation evidence, adds a read-only
+Standard/Demo workspace verifier, and sequences backend startup as
+migrate/install then verify then serve. Static isolation coverage preserves the
+exact Compose projects and named volumes, the backend image installs a current
+exact `uv.lock` runtime export, and bilingual smoke no longer issues product
+commands.
+
+Cold backup, existing Standard upgrade, Demo-only reset, return to Standard,
+and restore limitations are consolidated without a destructive Standard helper.
+Implementation is complete; Founder migration/deployment acceptance and merge
+remain. S168 becomes next only after both complete.
 
 ## Codex and Founder Verification Boundary
 

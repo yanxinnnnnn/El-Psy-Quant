@@ -76,9 +76,9 @@ working local MVP
 | S163 | Modern Visual System Foundation | Complete |
 | S164 | Founder Dashboard and Workflow Information Architecture Refresh | Complete |
 | S165 | Reliability, Idempotency, and Job Recovery Hardening | Complete; merged at `61cd11ad7f680509d44e27180bfb33c8a9193896` |
-| S166 | Error Surface, Observability, and Audit Hardening | Implementation complete; Founder error/observability acceptance remains |
-| S167 | Migration, Test, and Local Deployment Hardening | Next only after S166 acceptance and merge |
-| S168 | Milestone 29 Closeout and M30 Handoff | Planned |
+| S166 | Error Surface, Observability, and Audit Hardening | Complete |
+| S167 | Migration, Test, and Local Deployment Hardening | Implementation complete; Founder migration/deployment acceptance remains |
+| S168 | Milestone 29 Closeout and M30 Handoff | Next only after S167 acceptance and merge |
 
 Internationalization precedes visual-system implementation so English and
 Simplified Chinese both shape typography, spacing, component sizing, and content
@@ -190,7 +190,26 @@ job/attempt/reference terminal transaction preserve artifact authority and
 rollback recoverability. Migration head remains `0005`; no cleanup, overwrite,
 worker, lease, heartbeat, scheduler, polling, automatic command, financial
 ranking, or lifecycle behavior is added. Founder reliability acceptance remains
-before merge; S166 becomes next only after acceptance and merge.
+complete, and Sprint 165 is merged.
+
+### Error, observability, and local deployment hardening
+
+Sprint 166 is complete and merged at
+`ca2a5873406b934d246dcb13c215a59970ef1b46`. It preserves the stable API
+envelope while adding the complete bilingual error inventory, bounded request
+and Paper Job correlation events, safe attempt guidance, and sanitized
+operator troubleshooting.
+
+Sprint 167 implementation centralizes the exact
+`0005_paper_job_result_references` head, proves the full historical upgrade and
+preservation matrix, adds read-only Standard/Demo verification, and refuses
+backend service until migration/installation and verification succeed. Static
+Compose isolation, the exact `uv.lock` runtime export, bilingual non-mutating
+smoke, and the cold-backup/upgrade/recovery runbook harden local daily use
+without adding product or trading behavior.
+
+Founder migration/deployment acceptance and the Sprint 167 merge remain.
+Sprint 168 becomes next only after both complete; M29 remains **In Progress**.
 
 ## Product and Architecture Records
 
