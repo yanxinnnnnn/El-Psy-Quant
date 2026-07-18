@@ -8,8 +8,8 @@ timeline.
 Guiding principle:
 
 ```text
-Build a reproducible research and decision platform before adding operational
-complexity or real capital.
+Build reproducible research, evidence, and control boundaries before adding
+operational complexity or real capital.
 ```
 
 ## Timeline Overview
@@ -17,11 +17,13 @@ complexity or real capital.
 ```mermaid
 flowchart LR
     M1["M1-M8<br/>Research Workflow Foundations ✅"] --> M9["M9-M15<br/>Quality, Portfolio & Execution Realism ✅"]
-    M9 --> M16["M16-M19<br/>Paper Trading & Configured Workflow ✅"]
+    M9 --> M16["M16-M19<br/>Paper Trading Evidence Foundations ✅"]
     M16 --> M20["M20-M24<br/>Governance & Review Workflow ✅"]
-    M20 --> M25["M25-M28<br/>Founder Paper Productization ✅"]
-    M25 --> M29["M29<br/>Product Feedback & Hardening 🟡"]
-    M29 --> M30["M30+<br/>Portfolio Decisions & Execution Readiness"]
+    M20 --> M25["M25-M29<br/>Founder Productization & Hardening ✅"]
+    M25 --> M30["M30<br/>Portfolio Decision Review ⏭️"]
+    M30 --> M31["M31-M34<br/>Stateful Market-Driven Paper Trading"]
+    M31 --> M35["M35-M36<br/>Durable Multi-day Paper Operations"]
+    M35 --> FUTURE["Future<br/>Execution Readiness & Broker Adapter"]
 ```
 
 ## Milestone Table
@@ -56,56 +58,34 @@ flowchart LR
 | M26 — Paper Trading Application Service Foundation | S138-144 | Complete | Thin local API boundary. | Existing capabilities are exposed through versioned schemas. |
 | M27 — Persistence and Paper Job Control Foundation | S145-151 | Complete | Durable controllable local jobs. | Product metadata and jobs are inspectable, idempotent, and recoverable. |
 | M28 — Founder Paper Trading Web Workspace | S152-160 | Complete | First usable local Founder Web MVP. | The complete paper-decision journey is usable through Web/API. |
-| M29 — Product Feedback and Hardening | S161-168 | In Progress | Bilingual product experience and daily-use reliability. | The modernized product is dependable enough for routine Founder use. |
-| M30 — Portfolio-Level Decision Review Foundation | TBD | Deferred | Portfolio-level review. | Portfolio impact and concentration are included in human decisions. |
+| M29 — Product Feedback and Hardening | S161-168 | Complete | Bilingual daily-use product reliability. | The modernized product is dependable for routine Founder use. |
+| M30 — Portfolio-Level Decision Review Foundation | TBD | Next | Portfolio-aware human decision governance. | Concentration, exposure, interaction, and portfolio impact are reviewable without automatic allocation. |
+| M31 — Stateful Paper Account and Ledger Foundation | TBD | Planned | Durable account truth. | Cash, positions, orders, fills, and snapshots persist across sessions through one auditable ledger. |
+| M32 — Market Data Replay, Trading Calendar, and Session Clock | TBD | Planned | Deterministic market-time inputs. | Validated historical market sessions can drive the Paper runtime with explicit calendars and freshness rules. |
+| M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | TBD | Planned | Account-aware automated order intent. | Strategy output becomes idempotent risk-checked Paper orders without Founder-authored orders. |
+| M34 — Paper Execution Simulator and First True Paper Trading | TBD | Planned | Market/strategy-driven Paper Trading. | The platform generates orders and fills from market data and strategy output, then updates the durable Paper Account. |
+| M35 — Durable Paper Runtime and Recovery | TBD | Planned | Reliable session execution. | Durable claims, checkpoints, explicit controls, duplicate prevention, and interruption recovery exist. |
+| M36 — Multi-day Paper Operations and Acceptance | TBD | Planned | Continuous multi-session Paper Trading. | One account can run safely across trading days with reconciliation and Founder operational acceptance. |
 
-## Completed Milestone 28
+Future sprint ranges are intentionally `TBD`. Each milestone receives its own
+planning Issue before implementation; this roadmap defines sequence and exit
+boundaries, not fixed dates.
 
-M28 delivered:
+## Completed Milestone 29
 
-```text
-Next.js Founder workspace
-  -> strategy and research inspection
-  -> governance and report inspection
-  -> durable Paper Job operation
-  -> authoritative result inspection
-  -> ordered comparison
-  -> lifecycle proposal and human review
-  -> minimal authentication and Compose startup
-  -> isolated Demo Workspace and first-run journey
-```
-
-Preserved boundaries:
-
-- domain modules remain financial and governance authority;
-- completed artifact files remain payload authority;
-- SQLite stores compact metadata and operational state;
-- Paper Job state remains separate from lifecycle governance;
-- lifecycle proposals remain non-executing;
-- the browser uses only the same-origin API boundary; and
-- Demo data remains isolated from real user data.
-
-Closeout records:
+M29 turned the M28 working MVP into a product suitable for routine Founder use:
 
 ```text
-docs/milestones/milestone-028-founder-paper-trading-web-workspace.md
-docs/closeouts/milestone-028-founder-paper-trading-web-workspace-closeout.md
+complete English / Simplified Chinese product
+  -> modern bilingual visual system
+  -> decision-oriented Founder Dashboard
+  -> understandable Paper Job control and recovery
+  -> actionable error and audit surfaces
+  -> safe migrations and local deployment
+  -> formal closeout and runtime-roadmap handoff
 ```
 
-## Active Milestone 29 — Product Feedback and Hardening
-
-M29 begins from direct Founder use rather than speculative feature work.
-
-### Product priorities
-
-1. Complete English and Simplified Chinese product support.
-2. Move toward an AI Quant Decision Workspace visual identity.
-3. Replace Overview feature-directory behavior with bounded decision navigation.
-4. Make idempotency, retry, recovery, errors, audit, migrations, and local
-   deployment understandable and dependable.
-5. Preserve explicit human control and all M28 authority boundaries.
-
-### M29 Sprint Sequence
+Delivered sprint sequence:
 
 | Sprint | Deliverable | Status |
 |---:|---|---|
@@ -113,191 +93,117 @@ M29 begins from direct Founder use rather than speculative feature work.
 | S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
 | S163 | Modern Visual System Foundation | Complete |
 | S164 | Founder Dashboard and Workflow Information Architecture Refresh | Complete |
-| S165 | Reliability, Idempotency, and Job Recovery Hardening | Complete; merged at `61cd11ad7f680509d44e27180bfb33c8a9193896` |
+| S165 | Reliability, Idempotency, and Job Recovery Hardening | Complete |
 | S166 | Error Surface, Observability, and Audit Hardening | Complete |
-| S167 | Migration, Test, and Local Deployment Hardening | Implementation complete; Founder migration/deployment acceptance remains |
-| S168 | Milestone 29 Closeout and M30 Handoff | Next only after S167 acceptance and merge |
+| S167 | Migration, Test, and Local Deployment Hardening | Complete |
+| S168 | Milestone 29 Closeout and M30–M36 Handoff | Complete |
 
-Internationalization precedes visual implementation so both languages determine
-component sizing, typography, spacing, and content hierarchy.
-
-### Sprint 161 decisions
+Closeout records:
 
 ```text
-Locales: en, zh-CN
-Default/fallback: en
-Routing: existing routes, no locale prefix
-Persistence: validated locale cookie
-Implementation direction: next-intl
-Backend translation: none
-Raw domain/transport values: unchanged
-Product direction: AI Quant Decision Workspace
-Dashboard direction: operational attention and workflow choices, not ranking
+docs/milestones/milestone-029-product-feedback-and-hardening.md
+docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
 ```
 
-Architecture and product records:
+## Approved Paper Trading Runtime Sequence
+
+The authoritative future plan is:
 
 ```text
-docs/sprints/sprint-161-founder-feedback-and-product-experience-architecture.md
-docs/product/founder-feedback-register.md
-docs/architecture/internationalization.md
-docs/product/localization-glossary.md
-docs/product/product-experience-direction.md
-docs/product/founder-dashboard-information-architecture.md
-docs/product/milestone-029-product-feedback-and-hardening-plan.md
+docs/strategy/paper-trading-runtime-roadmap.md
 ```
 
-### Sprint 162 implementation
+### M30 — Portfolio decision review
 
-Sprint 162 now provides complete static `en` and `zh-CN` catalogs, validated
-cookie/browser/English locale resolution, an accessible route-preserving
-language switcher, localized metadata and workspace copy, localized display
-formatting with visible raw audit values, static error-code explanations, and a
-deterministic catalog gate. Existing unprefixed routes and all M28 authority
-boundaries remain unchanged.
+M30 adds portfolio-level context to explicit human decisions before automatic
+order generation is introduced. It must not allocate capital or authorize
+execution.
 
-Founder local Standard/Demo bilingual browser acceptance is complete and Sprint
-162 is merged.
-
-### Sprint 163 implementation
-
-Sprint 163 now provides one exact semantic token system, bilingual-safe system
-typography, a modern responsive workspace shell, persistent Standard/Demo
-identity, and shared action, status, card, panel, table, form, disclosure,
-audit-detail, and state contracts across every current route. Operational state
-remains distinct from financial performance; localized meaning remains paired
-with raw transport/audit values. Founder local rendered visual acceptance and
-the merge decision are complete.
-
-### Sprint 164 implementation
-
-Sprint 164 replaces Overview feature-directory behavior with a bounded
-decision-navigation Dashboard. It composes only existing process-health, Demo
-descriptor, research, evidence, and Paper Job list contracts. Independent
-regions preserve partial success, source-specific error identity and retry,
-backend order and duplicates, exact job/result links, explicit repeated ordered
-comparison parameters for two to four distinct nonblank IDs, complete raw
-Evidence Manifest identity, separate research/evidence authority, generic
-Standard workflow choices, and descriptor-driven Demo relationships.
-
-No backend contract, database schema, domain behavior, authentication, gateway,
-locale routing, Paper Job command, lifecycle command, financial calculation,
-ranking, recommendation, polling, or durable lifecycle read model was added.
-Founder local Standard/Demo Dashboard acceptance and merge are complete.
-
-### Sprint 165 implementation
-
-Sprint 165 makes durable Paper Job commands explicit under replay, duplicate
-clicks, races, interruption, recovery, and output/reference collision.
-Submission now reports `created` or `replayed`; Run atomically claims the queued
-job and creates one running attempt before HTTP 202; Retry remains a clean,
-attempt-free `failed -> queued` transition; and Recover reports `requeued`,
-`succeeded`, or `failed` from a Founder-supplied exact UTC threshold.
-
-The Web uses one bounded status/action matrix, preserves settled job and attempt
-evidence on command failure, distinguishes request-read retry from the Paper Job
-Retry command, and presents matching English/Simplified Chinese collision and
-recovery guidance. Existing files are never overwritten or cleaned, and
-terminal job/attempt/reference finalization remains one transaction. No
-migration, new durable status, worker, lease, heartbeat, scheduler, polling, or
-automatic command was added. Founder local Standard/Demo reliability acceptance
-and the Sprint 165 merge are complete.
-
-### Sprint 166 implementation
-
-Sprint 166 adds one static stable-error inventory and matching complete English
-and Simplified Chinese presentation inventory. Shared error and technical-audit
-surfaces distinguish empty, not found, invalid, unavailable, conflict,
-protocol, internal, and unknown conditions while preserving raw operation,
-HTTP status, entity, stable code, request ID, and bounded public detail.
-
-Python standard-library logging now emits only bounded sanitized request
-completion, successful Paper Job command, and terminal claimed-execution
-events. Static operation and route-template catalogs prevent concrete paths or
-query strings from entering product events. Expected execution failures use
-only approved persisted attempt codes; unexpected or unverifiable outcomes use
-the fixed `internal_execution_failure` sentinel.
-
-All six Paper Job attempt error codes now have bilingual label, meaning, and
-safe recovery guidance beside their raw value. Migration head remains
-`0005_paper_job_result_references`; no durable logs, migration, telemetry
-platform, worker, queue, scheduler, polling, cleanup, overwrite, financial
-calculation, or automation was added. Founder local Standard/Demo
-error-surface and observability acceptance is complete. Sprint 166 merged at
-`ca2a5873406b934d246dcb13c215a59970ef1b46`.
-
-### Sprint 167 implementation
-
-Sprint 167 centralizes the exact `0005_paper_job_result_references` head,
-verifies every historical upgrade with preservation evidence, adds a read-only
-Standard/Demo workspace verifier, and sequences backend startup as
-migrate/install then verify then serve. Static isolation coverage preserves the
-exact Compose projects and named volumes, the backend image installs a current
-exact `uv.lock` runtime export, and bilingual smoke no longer issues product
-commands.
-
-Cold backup, existing Standard upgrade, Demo-only reset, return to Standard,
-and restore limitations are consolidated without a destructive Standard helper.
-Implementation is complete; Founder migration/deployment acceptance and merge
-remain. S168 becomes next only after both complete.
-
-## Codex and Founder Verification Boundary
-
-Codex runs deterministic tests and allowed static checks, but does not perform
-Docker runtime acceptance.
+### M31–M33 — Build the transaction source of truth
 
 ```text
-Codex
-  -> uv run python scripts/check.py
-  -> optional docker compose config checks
-  -> Ready-for-review PR
-
-Founder
-  -> Docker build/start
-  -> Standard/Demo runtime and browser acceptance
-  -> manual merge decision
+durable Paper Account and ledger
+  -> validated market sessions
+  -> strategy-to-order conversion
+  -> pre-trade risk
 ```
 
-Codex must not attempt `docker compose build`, `docker compose up`, container
-startup, or container smoke verification unless the Founder explicitly requests
-an exception for that sprint.
+### M34 — First genuine Paper Trading gate
 
-See:
+At M34 completion, the Founder chooses an approved strategy, account, symbols,
+and a historical session. The platform itself:
 
 ```text
-docs/engineering/codex-docker-verification-boundary.md
+reads validated market data
+  -> evaluates the strategy
+  -> derives target exposure and orders
+  -> applies pre-trade risk
+  -> simulates order lifecycle and fills
+  -> updates the durable account and ledger
+  -> records audit evidence
 ```
 
-## Founder Product Boundary
+The Founder no longer pre-supplies orders and fills as the transaction script.
+Manual session start is allowed; continuous scheduling is not yet required.
 
-The product remains:
+### M35–M36 — Make Paper Trading durable and continuous
 
-- local-first;
-- Founder-only;
-- minimally authenticated;
-- Paper Trading only;
-- review-oriented;
-- a modular monolith; and
-- explicitly human-controlled.
+M35 adds durable runtime claims, checkpoints, explicit controls, duplicate
+prevention, and interruption recovery. M36 proves multi-session and multi-day
+operation with reconciliation and Founder acceptance.
 
-It is not a live system, broker project, SaaS platform, multi-tenant product, or
-autonomous strategy/capital engine.
+M36 is the continuous Paper Trading gate.
 
-## Roadmap Principles
+## Preserved Architecture
 
-1. Reproducibility beats convenience.
-2. Evaluation discipline precedes strategy complexity.
-3. Costs, slippage, benchmarks, and risk context precede serious claims.
-4. Stable interfaces precede strategy proliferation.
-5. Paper state and auditability precede broker integration.
-6. Promotion, review, decision, and lifecycle records remain human-controlled.
-7. A proposal is not an action and approval evidence is not runtime execution.
-8. Artifact files remain authoritative for completed outputs.
-9. Product metadata must not replace domain or artifact truth.
-10. Visible failure is better than hidden automation.
-11. Real Founder feedback outranks speculative product features.
-12. Internationalization must be designed before visual-system finalization.
-13. Docker runtime acceptance belongs to the Founder, not Codex.
-14. Real capital remains deferred until research, paper evidence, portfolio review,
-    execution-risk controls, operational readiness, and explicit approval are
-    strong.
+```text
+Browser
+  -> Next.js Founder Workspace
+  -> fixed same-origin /api/backend gateway
+  -> versioned FastAPI API
+  -> thin application services
+  -> existing domain modules and artifact readers
+  -> isolated SQLite and authoritative artifact roots
+```
+
+- Domain modules remain financial and governance authority.
+- Completed files remain authoritative artifact payloads.
+- SQLite remains compact metadata and operational state.
+- Raw API, domain, artifact, and audit values remain unchanged by localization.
+- Paper Job state remains separate from lifecycle governance.
+- Lifecycle proposals remain non-executing.
+- Human review remains explicit evidence.
+- Demo and Standard storage remain isolated.
+- The browser never directly accesses SQLite, files, Python, QMT, or a broker.
+
+## Future Execution Direction
+
+Broker-specific systems remain adapters behind broker-neutral domain and
+application boundaries. No broker or live-execution work begins merely because
+M36 is complete.
+
+A later explicit roadmap decision must first establish execution-risk governance,
+live-readiness controls, operational readiness, and Founder approval.
+
+```text
+Browser
+  -> Web/API
+  -> broker-neutral execution command
+  -> isolated adapter/agent
+  -> broker runtime
+```
+
+No browser-to-QMT direct connection is allowed.
+
+## Explicitly Deferred
+
+Unless a future milestone explicitly approves them:
+
+- broker, QMT, or MiniQMT integration;
+- real-money execution;
+- automatic strategy ranking or approval;
+- automatic capital allocation;
+- public SaaS, multi-tenancy, or complex RBAC;
+- microservices, Kubernetes, Kafka, or Redis clusters;
+- distributed job infrastructure; and
+- broad real-time trading-terminal behavior.
