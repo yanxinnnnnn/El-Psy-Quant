@@ -24,6 +24,7 @@ from el_psy_quant.demo_workspace import (
 from el_psy_quant.persistence.schema import (
     CURRENT_PRODUCT_SCHEMA_REVISION,
     ProductSchemaVerificationError,
+    read_product_schema_revision,
     verify_product_schema,
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
@@ -146,6 +147,17 @@ def upgrade_product_database(
     try:
         if not alembic_config_path.resolve(strict=True).is_file():
             raise LocalWorkspaceError("Alembic configuration is unavailable")
+        if database_path.is_symlink():
+            raise LocalWorkspaceError("product database may not be a symlink")
+        try:
+            database_exists = database_path.exists()
+        except OSError as exc:
+            raise LocalWorkspaceError("product database is unavailable") from exc
+        if database_exists:
+            try:
+                read_product_schema_revision(database_path)
+            except ProductSchemaVerificationError as exc:
+                raise LocalWorkspaceError(str(exc)) from exc
         with _database_environment(database_path):
             alembic_command.upgrade(
                 AlembicConfig(str(alembic_config_path.resolve(strict=True))),

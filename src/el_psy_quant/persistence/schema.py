@@ -6,6 +6,13 @@ import sqlite3
 from pathlib import Path
 
 CURRENT_PRODUCT_SCHEMA_REVISION = "0005_paper_job_result_references"
+APPROVED_PRODUCT_SCHEMA_REVISIONS = (
+    "0001_product_baseline",
+    "0002_artifact_index",
+    "0003_paper_jobs",
+    "0004_paper_job_recovery_audit",
+    CURRENT_PRODUCT_SCHEMA_REVISION,
+)
 
 REQUIRED_PRODUCT_TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
     "artifact_index_entries": (
@@ -84,6 +91,56 @@ def _read_only_connection(database_path: Path) -> sqlite3.Connection:
         ) from exc
 
 
+def _read_product_schema_revision(connection: sqlite3.Connection) -> str:
+    try:
+        revisions = connection.execute(
+            "SELECT version_num FROM alembic_version"
+        ).fetchall()
+    except sqlite3.Error as exc:
+        raise ProductSchemaVerificationError(
+            "product database revision is unavailable"
+        ) from exc
+    if len(revisions) != 1:
+        raise ProductSchemaVerificationError(
+            "product database must contain exactly one revision"
+        )
+    revision = revisions[0][0]
+    if (
+        not isinstance(revision, str)
+        or revision not in APPROVED_PRODUCT_SCHEMA_REVISIONS
+    ):
+        raise ProductSchemaVerificationError(
+            "product database revision is not recognized"
+        )
+    return revision
+
+
+def read_product_schema_revision(database_path: str | Path) -> str:
+    """Read exactly one approved product revision without changing the database."""
+    if not isinstance(database_path, (str, Path)):
+        raise ProductSchemaVerificationError(
+            "product database path must be a local file path"
+        )
+    connection: sqlite3.Connection | None = None
+    try:
+        connection = _read_only_connection(Path(database_path))
+        return _read_product_schema_revision(connection)
+    except ProductSchemaVerificationError:
+        raise
+    except (OSError, RuntimeError, sqlite3.Error, ValueError) as exc:
+        raise ProductSchemaVerificationError(
+            "product database revision verification failed"
+        ) from exc
+    finally:
+        if connection is not None:
+            try:
+                connection.close()
+            except sqlite3.Error as exc:
+                raise ProductSchemaVerificationError(
+                    "product database revision verification failed"
+                ) from exc
+
+
 def verify_product_schema(database_path: str | Path) -> str:
     """Verify the exact current revision and API-required schema without writes."""
     if not isinstance(database_path, (str, Path)):
@@ -93,15 +150,8 @@ def verify_product_schema(database_path: str | Path) -> str:
     connection: sqlite3.Connection | None = None
     try:
         connection = _read_only_connection(Path(database_path))
-        try:
-            revisions = connection.execute(
-                "SELECT version_num FROM alembic_version"
-            ).fetchall()
-        except sqlite3.Error as exc:
-            raise ProductSchemaVerificationError(
-                "product database revision is unavailable"
-            ) from exc
-        if revisions != [(CURRENT_PRODUCT_SCHEMA_REVISION,)]:
+        revision = _read_product_schema_revision(connection)
+        if revision != CURRENT_PRODUCT_SCHEMA_REVISION:
             raise ProductSchemaVerificationError(
                 "product database revision does not match the current revision"
             )
@@ -149,9 +199,11 @@ def product_schema_is_compatible(database_path: str | Path) -> bool:
 
 
 __all__ = [
+    "APPROVED_PRODUCT_SCHEMA_REVISIONS",
     "CURRENT_PRODUCT_SCHEMA_REVISION",
     "ProductSchemaVerificationError",
     "REQUIRED_PRODUCT_TABLE_COLUMNS",
     "product_schema_is_compatible",
+    "read_product_schema_revision",
     "verify_product_schema",
 ]

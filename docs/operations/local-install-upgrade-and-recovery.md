@@ -40,18 +40,24 @@ uv sync --locked
 uv lock --check
 ```
 
-`requirements-runtime.txt` is the exact pip-compatible runtime export used by
-the backend image. Regenerate and check it with the installed reviewed `uv`
-version:
+`requirements-build.txt` and `requirements-runtime.txt` are the exact
+pip-compatible exports used by the backend image. The first contains only the
+PEP 517 backend and its build dependencies; the second contains only product
+runtime dependencies. Regenerate and check both with the installed reviewed
+`uv` version:
 
 ```powershell
+uv export --locked --only-group build --no-emit-project --no-hashes --no-annotate --no-header --output-file requirements-build.txt
 uv export --locked --no-dev --no-emit-project --no-hashes --no-annotate --no-header --output-file requirements-runtime.txt
+uv run python scripts/check_build_requirements.py
 uv run python scripts/check_runtime_requirements.py
 ```
 
-The image installs that exact runtime export, then installs the local project
-with dependency resolution disabled. The Web image continues to use
-`package-lock.json` through `npm ci`.
+The builder stage installs only the exact build export and creates the local
+wheel with dependency resolution and build isolation disabled. The final stage
+installs the exact runtime export and that wheel with dependency resolution
+disabled; build and test dependencies are not copied into the final image. The
+Web image continues to use `package-lock.json` through `npm ci`.
 
 These locks do not make a cold image build offline. Uncached base images,
 package artifacts, and floating upstream image tags still require an available
@@ -78,10 +84,16 @@ Before Uvicorn starts, the backend:
 
 ```text
 creates only absent /data/research, /data/evidence, and /data/paper directories
+  -> if product.sqlite3 exists, reads exactly one approved 0001-0005 revision
+     without writes; a missing file follows the fresh-install path
   -> runs the forward Alembic upgrade
   -> verifies /data read-only in Standard mode
   -> starts Uvicorn
 ```
+
+An existing file with a missing table, zero or multiple revision rows,
+malformed SQLite, or an unknown/newer revision is refused before Alembic and
+remains untouched.
 
 An empty research, evidence, Paper Job, or paper-output collection is valid. The
 startup path never invokes the Demo installer and never resets, truncates,
@@ -98,8 +110,10 @@ docker compose exec web node /app/verify-mvp.mjs
 The verifier prints only bounded mode/revision identity. The smoke checks
 authenticated FastAPI health, English and Simplified Chinese document identity
 and copy, locale switch/restoration, top-level and representative detail
-routes, valid empty reads, stable raw values, request IDs, and sanitized errors.
-It sends no Paper Job or lifecycle command.
+routes, valid empty reads, stable raw values, request IDs on authenticated
+backend responses and backend failures, and sanitized errors. The Web
+proxy-owned unauthenticated Basic challenge is checked without claiming a
+backend request ID. Verification sends no Paper Job or lifecycle command.
 
 ## Cold Backup Before a Standard Upgrade
 

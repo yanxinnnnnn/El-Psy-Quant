@@ -322,8 +322,10 @@ Implemented Sprint 167 contract:
   migrate/install, verify, then Uvicorn;
 - Standard/Demo Compose project, volume, root, loopback, authentication, and
   Demo-only reset isolation are statically enforced;
-- the backend uses an exact committed `uv.lock` runtime export, CI refuses lock
-  drift, and Web installation remains `npm ci`;
+- the backend wheel is built without isolation from an exact committed
+  `uv.lock` build export, the final image uses only the exact runtime export,
+  CI refuses either export or lock drift, and Web installation remains
+  `npm ci`;
 - bilingual runtime smoke performs only reads plus locale preference changes,
   keeps raw identity stable, and sanitizes failure output; and
 - the cold-backup, upgrade, restore-limitation, Demo replay/reset, and

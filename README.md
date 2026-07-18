@@ -229,11 +229,12 @@ Implemented Sprint 167 direction:
   read-only, and the backend serves only after migrate/install and verification;
 - exact Standard/Demo Compose identity, volume, roots, loopback, authentication,
   and non-destructive reset boundaries are statically covered;
-- the backend image uses the exact committed runtime export derived from
-  `uv.lock`, while CI refuses lock drift and the Web remains on `npm ci`;
+- the backend wheel is built without isolation from an exact committed build
+  export, the final image uses only the exact runtime export derived from
+  `uv.lock`, and CI refuses either export or lock drift;
 - bilingual same-origin smoke verifies both locales, stable raw identities,
-  request IDs, and sanitized failures without Paper Job or lifecycle commands;
-  and
+  request IDs on authenticated backend responses, and sanitized failures
+  without Paper Job or lifecycle commands; and
 - cold backup, existing-volume upgrade, Demo-only reset, return-to-Standard,
   and restore limitations are consolidated in the operations runbook.
 

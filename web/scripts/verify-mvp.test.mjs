@@ -34,16 +34,20 @@ function response(body, status = 200, headers = {}) {
 
 function standardFetchRecorder() {
   const calls = [];
+  const proxyChallenge = new Response("Founder authentication required", {
+    status: 401,
+    headers: {
+      "cache-control": "no-store",
+      "content-type": "text/plain; charset=utf-8",
+      "www-authenticate": 'Basic realm="el-psy-quant", charset="UTF-8"',
+    },
+  });
   const fetcher = vi.fn(async (input, options) => {
     const url = new URL(input);
     calls.push({ path: `${url.pathname}${url.search}`, options });
     if (url.pathname === "/api/backend/api/v1/health") {
       if (options.headers.Authorization === undefined) {
-        return response(
-          { error: { code: "authentication_required" } },
-          401,
-          { "www-authenticate": 'Basic realm="el-psy-quant"' },
-        );
+        return proxyChallenge;
       }
       return response({
         status: "ok",
@@ -101,7 +105,7 @@ function standardFetchRecorder() {
     }
     throw new Error(`unexpected test request ${url.pathname}${url.search}`);
   });
-  return { calls, fetcher };
+  return { calls, fetcher, proxyChallenge };
 }
 
 describe("non-mutating bilingual MVP verifier", () => {
@@ -118,12 +122,13 @@ describe("non-mutating bilingual MVP verifier", () => {
   });
 
   it("covers both locale cookies, empty Standard reads, and no product mutation", async () => {
-    const { calls, fetcher } = standardFetchRecorder();
+    const { calls, fetcher, proxyChallenge } = standardFetchRecorder();
 
     await expect(runVerification({ environment, fetchImpl: fetcher })).resolves.toBe(
       "standard",
     );
 
+    expect(proxyChallenge.headers.get("x-request-id")).toBeNull();
     const posts = calls.filter(({ options }) => options.method === "POST");
     expect(posts.map(({ path }) => path)).toEqual(["/api/locale", "/api/locale"]);
     expect(posts.map(({ options }) => JSON.parse(options.body).locale)).toEqual([

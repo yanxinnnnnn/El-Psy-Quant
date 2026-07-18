@@ -185,8 +185,10 @@ checks:
 - standard mode returns the bounded Demo-not-configured response; Demo mode
   follows descriptor-provided strategy, research, evidence, job, result, and
   comparison references
-- raw IDs, codes, and statuses remain stable across locale, while
-  representative failures retain request IDs and sanitized error identity
+- raw IDs, codes, and statuses remain stable across locale, while authenticated
+  backend responses and representative backend failures retain request IDs and
+  sanitized error identity; the Web-owned unauthenticated challenge has no
+  backend request ID
 
 Verification changes only the existing locale-preference cookie. It does not
 submit, Run, Cancel, Retry, or Recover a Paper Job; issue a lifecycle command;

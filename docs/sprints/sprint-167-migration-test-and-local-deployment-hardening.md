@@ -62,23 +62,28 @@ command, and makes no network request.
 The focused `start-local-backend` entrypoint enforces:
 
 ```text
-Standard: fixed roots -> upgrade -> Standard verify -> Uvicorn
+Standard: fixed roots -> existing-file revision preflight -> upgrade
+          -> Standard verify -> Uvicorn
 Demo: validate/install or exact replay -> upgrade -> Demo verify -> Uvicorn
 ```
 
 Any preparation, migration, installation, or verification failure prevents
-Uvicorn. Standard never configures a Demo source/root and receives no reset
-path. Demo refuses unrelated, mismatched, or Standard targets. Static tests
-preserve the exact project, volume, mount, loopback port, authentication,
-backend-origin, and healthcheck contracts.
+Uvicorn. A missing Standard database follows fresh installation; any existing
+file must expose exactly one approved `0001`-`0005` revision through a read-only
+connection before Alembic is invoked. Standard never configures a Demo
+source/root and receives no reset path. Demo refuses unrelated, mismatched, or
+Standard targets. Static tests preserve the exact project, volume, mount,
+loopback port, authentication, backend-origin, and healthcheck contracts.
 
 ## Locked Build and Smoke Inputs
 
 `uv.lock` remains development/CI authority. CI uses `uv sync --locked`, checks
-the lock, and checks the committed exact `requirements-runtime.txt` export.
-The backend image installs that runtime export before installing the local
-project with `--no-deps`; the final runtime input excludes dev dependencies.
-The Web remains on `npm ci` and `package-lock.json`.
+the lock, and checks committed exact `requirements-build.txt` and
+`requirements-runtime.txt` exports. A locked builder stage installs only the
+build export and creates the project wheel with `--no-build-isolation`; the
+final stage installs only the runtime export plus that wheel with `--no-deps`.
+Build and test dependencies stay outside the final image. The Web remains on
+`npm ci` and `package-lock.json`.
 
 Cold builds still require uncached base images and package artifacts, and
 floating upstream image tags remain an external risk. No proxy or new package
@@ -87,8 +92,10 @@ manager was added.
 The Web verifier now uses only authenticated reads plus the existing
 locale-preference endpoint. It checks both document languages and representative
 copy, route preservation, raw identity stability, Standard valid-empty and
-Demo descriptor behavior, request IDs, and sanitized errors. It issues no Paper
-Job or lifecycle command and prints no response body, credential, or private
+Demo descriptor behavior, authenticated backend request IDs, and sanitized
+errors. The proxy-owned unauthenticated challenge does not claim a backend
+request ID. It issues no Paper Job or lifecycle command and prints no response
+body, credential, or private
 header on failure.
 
 ## Operations and Recovery Guidance

@@ -10,6 +10,7 @@ NPM_EXECUTABLE = "npm.cmd" if sys.platform == "win32" else "npm"
 
 CHECKS = (
     ("uv", "lock", "--check"),
+    ("uv", "run", "python", "scripts/check_build_requirements.py"),
     ("uv", "run", "python", "scripts/check_runtime_requirements.py"),
     ("uv", "run", "pytest"),
     ("uv", "run", "ruff", "check", "."),

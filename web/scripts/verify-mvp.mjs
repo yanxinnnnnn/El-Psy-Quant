@@ -151,7 +151,6 @@ async function verifyAuthenticationAndHealth(fetchImpl, origin, authorization) {
   if (!unauthenticated.headers.get("www-authenticate")?.startsWith("Basic ")) {
     throw new Error("Unauthenticated gateway health did not return a Basic challenge");
   }
-  requireRequestId(unauthenticated, "Unauthenticated gateway health");
 
   const health = await request(
     fetchImpl,

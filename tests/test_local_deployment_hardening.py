@@ -6,7 +6,9 @@ import hashlib
 import importlib
 import json
 import shutil
+import sqlite3
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -35,6 +37,17 @@ RUNTIME_EXPORT_COMMAND = (
     "export",
     "--locked",
     "--no-dev",
+    "--no-emit-project",
+    "--no-hashes",
+    "--no-annotate",
+    "--no-header",
+)
+BUILD_EXPORT_COMMAND = (
+    "uv",
+    "export",
+    "--locked",
+    "--only-group",
+    "build",
     "--no-emit-project",
     "--no-hashes",
     "--no-annotate",
@@ -317,6 +330,118 @@ def test_standard_startup_orders_prepare_verify_serve_and_failures_never_serve(
     assert events == ["prepare"]
 
 
+@pytest.mark.parametrize(
+    ("revision_state", "expected_message"),
+    (
+        ("missing", "revision is unavailable"),
+        ("empty", "exactly one revision"),
+        ("malformed", "revision"),
+        ("multiple", "exactly one revision"),
+        ("unknown", "not recognized"),
+        ("newer", "not recognized"),
+    ),
+)
+def test_existing_invalid_standard_database_is_never_migrated_or_served(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    revision_state: str,
+    expected_message: str,
+) -> None:
+    root = tmp_path / revision_state
+    root.mkdir()
+    database = root / "product.sqlite3"
+    if revision_state == "malformed":
+        database.write_bytes(b"not-a-sqlite-database")
+    else:
+        with sqlite3.connect(database) as connection:
+            if revision_state == "missing":
+                connection.execute("CREATE TABLE unrelated (value TEXT NOT NULL)")
+                connection.execute(
+                    "INSERT INTO unrelated (value) VALUES ('preserve-me')"
+                )
+            else:
+                connection.execute(
+                    "CREATE TABLE alembic_version (version_num TEXT NOT NULL)"
+                )
+                revisions = {
+                    "empty": (),
+                    "multiple": (
+                        "0001_product_baseline",
+                        "0002_artifact_index",
+                    ),
+                    "unknown": ("unrelated_revision",),
+                    "newer": ("0006_future_revision",),
+                }[revision_state]
+                connection.executemany(
+                    "INSERT INTO alembic_version (version_num) VALUES (?)",
+                    ((revision,) for revision in revisions),
+                )
+
+    before = database.read_bytes()
+    _runtime_environment(monkeypatch, root=root, mode="standard")
+    events: list[str] = []
+    monkeypatch.setattr(
+        local_module.alembic_command,
+        "upgrade",
+        lambda *_args, **_kwargs: events.append("migrate"),
+    )
+
+    with pytest.raises(LocalWorkspaceError, match=expected_message):
+        start_local_backend(
+            mode="standard",
+            workspace_root=root,
+            alembic_config_path=ALEMBIC_CONFIG,
+            serve=lambda: events.append("serve"),
+        )
+
+    assert database.read_bytes() == before
+    assert events == []
+
+
+def test_existing_approved_standard_revision_migrates_before_serving(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "standard"
+    root.mkdir()
+    database = root / "product.sqlite3"
+    monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(database))
+    command.upgrade(Config(str(ALEMBIC_CONFIG)), "0001_product_baseline")
+    _runtime_environment(monkeypatch, root=root, mode="standard")
+    events: list[str] = []
+
+    result = start_local_backend(
+        mode="standard",
+        workspace_root=root,
+        alembic_config_path=ALEMBIC_CONFIG,
+        serve=lambda: events.append("serve"),
+    )
+
+    assert result.schema_revision == CURRENT_PRODUCT_SCHEMA_REVISION
+    assert events == ["serve"]
+
+
+def test_missing_standard_database_uses_fresh_install_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "standard"
+    root.mkdir()
+    _runtime_environment(monkeypatch, root=root, mode="standard")
+    events: list[str] = []
+
+    result = start_local_backend(
+        mode="standard",
+        workspace_root=root,
+        alembic_config_path=ALEMBIC_CONFIG,
+        serve=lambda: events.append("serve"),
+    )
+
+    assert result.schema_revision == CURRENT_PRODUCT_SCHEMA_REVISION
+    assert (root / "product.sqlite3").is_file()
+    assert events == ["serve"]
+
+
 def test_demo_startup_orders_install_verify_serve_and_failure_never_serves(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -517,36 +642,67 @@ def test_compose_and_documentation_have_no_standard_volume_reset_helper() -> Non
     )
 
 
-def test_backend_image_uses_exact_export_then_no_deps_local_install() -> None:
+def test_backend_image_uses_locked_builder_and_runtime_only_final_stage() -> None:
     dockerfile = (PROJECT_ROOT / "Dockerfile").read_text(encoding="utf-8")
     web_dockerfile = (PROJECT_ROOT / "web" / "Dockerfile").read_text(
         encoding="utf-8"
     )
-    requirements = (
+    runtime_requirements = (
         PROJECT_ROOT / "requirements-runtime.txt"
     ).read_text(encoding="utf-8")
+    build_requirements = (
+        PROJECT_ROOT / "requirements-build.txt"
+    ).read_text(encoding="utf-8")
+    project = tomllib.loads(
+        (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )
 
-    assert "COPY requirements-runtime.txt ./" in dockerfile
-    exact_install = (
+    builder, runtime = dockerfile.split(
+        "FROM python:3.11-slim AS runtime",
+        maxsplit=1,
+    )
+    normalized_runtime = " ".join(runtime.replace("\\\n", "").split())
+    assert "FROM python:3.11-slim AS builder" in builder
+    assert "COPY requirements-build.txt ./" in builder
+    assert (
+        "python -m pip install --no-cache-dir --requirement "
+        "requirements-build.txt"
+    ) in builder
+    assert "python -m pip wheel --no-cache-dir --no-deps --no-build-isolation" in (
+        builder
+    )
+    assert "COPY requirements-runtime.txt ./" in runtime
+    assert (
         "python -m pip install --no-cache-dir --requirement "
         "requirements-runtime.txt"
-    )
-    local_install = "python -m pip install --no-cache-dir --no-deps ."
-    assert exact_install in dockerfile
-    assert local_install in dockerfile
-    assert dockerfile.index(exact_install) < dockerfile.index(local_install)
-    assert "-e ." not in requirements
-    assert "el-psy-quant" not in requirements
+    ) in runtime
+    assert "COPY --from=builder /wheelhouse /wheelhouse" in runtime
+    assert (
+        "python -m pip install --no-cache-dir --no-deps "
+        "/wheelhouse/el_psy_quant-*.whl"
+    ) in normalized_runtime
+    assert "requirements-build.txt" not in runtime
+    assert "hatchling" not in runtime.lower()
+    assert "-e ." not in runtime_requirements
+    assert "el-psy-quant" not in runtime_requirements
+    assert "hatchling" not in runtime_requirements
     assert all(
         "==" in line
-        for line in requirements.splitlines()
+        for line in runtime_requirements.splitlines()
         if line and not line.startswith("#")
     )
+    assert "hatchling==1.27.0" in build_requirements.splitlines()
+    assert all(
+        "==" in line
+        for line in build_requirements.splitlines()
+        if line and not line.startswith("#")
+    )
+    assert project["build-system"]["requires"] == project["dependency-groups"]["build"]
     assert "RUN npm ci" in web_dockerfile
 
 
-def test_runtime_export_matches_uv_lock_and_ci_refuses_lock_drift() -> None:
-    generated = subprocess.run(
+def test_build_and_runtime_exports_match_lock_and_ci_refuses_lock_drift() -> None:
+    generated_runtime = subprocess.run(
         RUNTIME_EXPORT_COMMAND,
         cwd=PROJECT_ROOT,
         check=True,
@@ -554,8 +710,19 @@ def test_runtime_export_matches_uv_lock_and_ci_refuses_lock_drift() -> None:
         text=True,
         encoding="utf-8",
     ).stdout
-    committed = (
+    generated_build = subprocess.run(
+        BUILD_EXPORT_COMMAND,
+        cwd=PROJECT_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout
+    committed_runtime = (
         PROJECT_ROOT / "requirements-runtime.txt"
+    ).read_text(encoding="utf-8")
+    committed_build = (
+        PROJECT_ROOT / "requirements-build.txt"
     ).read_text(encoding="utf-8")
     workflow = (
         PROJECT_ROOT / ".github" / "workflows" / "ci.yml"
@@ -564,7 +731,9 @@ def test_runtime_export_matches_uv_lock_and_ci_refuses_lock_drift() -> None:
         encoding="utf-8"
     )
 
-    assert generated == committed
+    assert generated_runtime == committed_runtime
+    assert generated_build == committed_build
     assert "uv sync --locked" in workflow
     assert '("uv", "lock", "--check")' in quality_gate
+    assert "scripts/check_build_requirements.py" in quality_gate
     assert "scripts/check_runtime_requirements.py" in quality_gate
