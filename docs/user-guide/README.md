@@ -30,6 +30,8 @@ records do not change with the presentation language.
    - [Lifecycle review](features/lifecycle-review.md)
 4. Read the [current limitations](limitations.md) before relying on a result or
    recording a decision.
+5. Use the [error and observability runbook](../operations/error-observability-and-audit.md)
+   when a stable error code or request ID needs local correlation.
 
 ## The Workspace Journey
 

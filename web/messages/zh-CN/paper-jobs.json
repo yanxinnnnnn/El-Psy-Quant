@@ -16,13 +16,41 @@
     "attemptNumber": "尝试 #{number}"
   },
   "attemptErrors": {
-    "workflow_validation_failed": "工作流验证失败",
-    "output_conflict": "输出冲突",
-    "filesystem_io_failed": "文件系统 I/O 失败",
-    "interrupted_without_output": "中断且没有输出",
-    "partial_output_detected": "检测到部分输出",
-    "invalid_output_detected": "检测到无效输出",
-    "unknown": "运营尝试错误"
+    "workflow_validation_failed": {
+      "label": "工作流验证失败",
+      "meaning": "显式工作流输入未通过有界的后端验证。",
+      "recovery": "请检查批准的输入契约，不要暴露或复制负载内容。"
+    },
+    "output_conflict": {
+      "label": "输出冲突",
+      "meaning": "现有权威证据已保留，未发生覆盖。",
+      "recovery": "请检查已稳定的任务和证据；不提供清理或强制覆盖。"
+    },
+    "filesystem_io_failed": {
+      "label": "文件系统 I/O 失败",
+      "meaning": "本地工作流无法安全完成批准的文件系统操作。",
+      "recovery": "请核对本地存储可用性和权限，不要暴露路径或删除输出。"
+    },
+    "interrupted_without_output": {
+      "label": "中断且没有完整输出",
+      "meaning": "显式恢复未找到完整输出；这不表示执行从未开始。",
+      "recovery": "请先检查尝试记录和当前排队状态，再作出另一个显式运行决定。"
+    },
+    "partial_output_detected": {
+      "label": "检测到部分输出",
+      "meaning": "恢复只找到所需完整证据的一部分。",
+      "recovery": "请保留文件供检查；不要清理、修复或强制重试。"
+    },
+    "invalid_output_detected": {
+      "label": "检测到无效输出",
+      "meaning": "恢复发现看似完整但未通过权威验证的证据。",
+      "recovery": "请保留文件供检查；不要重新计算、修复、删除或强制重试。"
+    },
+    "unknown": {
+      "label": "运营尝试错误",
+      "meaning": "该尝试包含无法识别的未来脱敏错误码。",
+      "recovery": "请保留原始错误码和当前证据供运营检查。"
+    }
   },
   "list": {
     "eyebrow": "模拟运行 · 持久化运营任务",

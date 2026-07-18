@@ -17,6 +17,59 @@ export const REQUIRED_NAMESPACES = Object.freeze([
   "lifecycle",
   "errors",
 ]);
+export const REQUIRED_ERROR_CODES = Object.freeze([
+  "unknown",
+  "api_unavailable",
+  "api_request_failed",
+  "api_response_invalid",
+  "not_found",
+  "method_not_allowed",
+  "http_error",
+  "request_validation_error",
+  "internal_server_error",
+  "founder_authentication_required",
+  "research_artifact_root_unavailable",
+  "research_run_not_found",
+  "research_artifact_invalid",
+  "evidence_artifact_root_unavailable",
+  "evidence_manifest_not_found",
+  "evidence_artifact_invalid",
+  "paper_run_invalid",
+  "product_database_unavailable",
+  "paper_artifact_root_unavailable",
+  "paper_job_not_found",
+  "paper_job_invalid",
+  "paper_job_idempotency_conflict",
+  "paper_job_conflict",
+  "paper_job_state_conflict",
+  "paper_job_output_conflict",
+  "paper_job_recovery_failed",
+  "paper_job_result_unavailable",
+  "paper_job_result_invalid",
+  "lifecycle_transition_proposal_invalid",
+  "lifecycle_transition_record_invalid",
+  "demo_workspace_not_configured",
+  "demo_workspace_unavailable",
+]);
+const REQUIRED_ERROR_CATEGORIES = Object.freeze([
+  "authentication",
+  "not_found",
+  "invalid",
+  "conflict",
+  "unavailable",
+  "protocol",
+  "internal",
+  "unknown",
+]);
+const REQUIRED_TECHNICAL_FIELDS = Object.freeze([
+  "title",
+  "operation",
+  "httpStatus",
+  "entity",
+  "errorCode",
+  "requestId",
+  "backendMessage",
+]);
 
 function catalogError(message) {
   return new Error(`Message catalog validation failed: ${message}`);
@@ -154,6 +207,31 @@ function assertExactMembers(actual, expected, subject) {
   }
 }
 
+export function assertErrorPresentationCatalog(value, locale) {
+  assertExactMembers(
+    Object.keys(value).sort(),
+    [...REQUIRED_ERROR_CODES, "categories", "technical"].sort(),
+    `${locale}/errors.json entries must match the stable product inventory`,
+  );
+  assertExactMembers(
+    Object.keys(value.categories ?? {}).sort(),
+    [...REQUIRED_ERROR_CATEGORIES].sort(),
+    `${locale}/errors.json categories must match the semantic inventory`,
+  );
+  assertExactMembers(
+    Object.keys(value.technical ?? {}).sort(),
+    [...REQUIRED_TECHNICAL_FIELDS].sort(),
+    `${locale}/errors.json technical fields must match the audit contract`,
+  );
+  for (const code of REQUIRED_ERROR_CODES) {
+    assertExactMembers(
+      Object.keys(value[code] ?? {}).sort(),
+      ["explanation", "recovery", "title"],
+      `${locale}/errors.json ${code} fields must be complete`,
+    );
+  }
+}
+
 export async function validateMessageCatalogs(messagesRoot) {
   assertExactMembers(
     await directoryNames(messagesRoot),
@@ -179,6 +257,9 @@ export async function validateMessageCatalogs(messagesRoot) {
         const source = await readFile(path, "utf8");
         parsed = JSON.parse(source);
         assertNoDuplicateJsonKeys(source, `${locale}/${namespace}.json`);
+        if (namespace === "errors") {
+          assertErrorPresentationCatalog(parsed, locale);
+        }
       } catch (error) {
         throw catalogError(`${locale}/${namespace}.json is not valid JSON: ${error.message}`);
       }

@@ -35,6 +35,10 @@ export function StrategyDetailView({ strategyName }: { strategyName: string }) {
           title={state.code === "not_found" ? t("notFound") : t("unavailable")}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="strategy.detail"
+          entityLabel="strategy_name"
+          entityId={strategyName}
           onRetry={state.code === "not_found" ? undefined : retry}
           backHref="/strategies"
           backLabel={t("return")}

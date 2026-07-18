@@ -143,16 +143,17 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current sprint is:
 
 ```text
-Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
+Sprint 166 — Error Surface, Observability, and Audit Hardening
 ```
 
-Sprints 161, 162, 163, and 164 are complete. Sprint 165 implementation is
-complete in its review branch; Founder Standard/Demo reliability acceptance and
-the merge decision remain pending. Do not begin the next sprint until both are
-complete:
+Sprints 161 through 165 are complete. Sprint 165 was merged at
+`61cd11ad7f680509d44e27180bfb33c8a9193896`. Sprint 166 implementation is
+complete in its review branch; Founder Standard/Demo error-surface and
+observability acceptance and the merge decision remain pending. Do not begin
+the next sprint until both are complete:
 
 ```text
-Sprint 166 — Error Surface, Observability, and Audit Hardening
+Sprint 167 — Migration, Test, and Local Deployment Hardening
 ```
 
 ## M29 Product Outcome
@@ -200,6 +201,8 @@ docs/product/visual-system.md
 docs/sprints/sprint-163-modern-visual-system-foundation.md
 docs/sprints/sprint-164-founder-dashboard-and-workflow-information-architecture-refresh.md
 docs/sprints/sprint-165-reliability-idempotency-and-job-recovery-hardening.md
+docs/sprints/sprint-166-error-surface-observability-and-audit-hardening.md
+docs/operations/error-observability-and-audit.md
 ```
 
 Approved internationalization direction:
@@ -285,6 +288,27 @@ Implemented Sprint 165 contract:
 - migration head remains `0005_paper_job_result_references`; no table, column,
   migration, lease, heartbeat, worker, scheduler, polling, cleanup, overwrite,
   or Sprint 166 behavior was added.
+
+Implemented Sprint 166 contract:
+
+- one static backend error inventory and complete matching Web inventory cover
+  every stable code with category, bilingual title, explanation, recovery, and
+  unknown-code fallback while preserving the public envelope and request ID;
+- reusable error and technical-audit surfaces keep localized meaning beside raw
+  operation, HTTP status, entity identity, code, request ID, and bounded public
+  message without inventing missing values;
+- one standard-library logger emits bounded sanitized request completion,
+  successful Paper Job command, and terminal claimed-execution events from
+  static operation/route catalogs;
+- expected execution failure uses only the approved persisted attempt code,
+  while unexpected or unverifiable callbacks use the fixed
+  `internal_execution_failure` sentinel without exception detail;
+- all six attempt error codes retain raw identity and add bilingual meaning and
+  safe recovery guidance; and
+- migration head remains `0005_paper_job_result_references`; no migration,
+  durable log/audit record, telemetry platform, remote reporting, worker,
+  queue, scheduler, polling, lifecycle automation, public debug field, cleanup,
+  overwrite, financial calculation, or broker behavior was added.
 
 ## Approved Product Architecture
 

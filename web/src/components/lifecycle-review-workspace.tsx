@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
-import { RequestId } from "@/components/data-states";
+import { ErrorState, RequestId } from "@/components/data-states";
 import { useErrorPresentation } from "@/i18n/errors";
 import {
   LifecycleTimeline,
@@ -70,6 +70,7 @@ type CommandFailure = {
   code: string;
   message: string;
   requestId: string | null;
+  httpStatus: number | null;
 };
 
 const blankSnapshot = (): SnapshotDraft => ({
@@ -227,19 +228,36 @@ function commandFailure(error: unknown): CommandFailure {
       code: error.code,
       message: error.publicMessage,
       requestId: error.requestId,
+      httpStatus: error.status > 0 ? error.status : null,
     };
   }
   return {
     code: "api_unavailable",
     message: "The local API is unavailable.",
     requestId: null,
+    httpStatus: null,
   };
 }
 
-function LifecycleFailureNotice({ failure }: { failure: CommandFailure }) {
+function LifecycleFailureNotice({
+  failure,
+  operation,
+}: {
+  failure: CommandFailure;
+  operation: string;
+}) {
   const error = useErrorPresentation(failure.code);
-  const common = useTranslations("common");
-  return <div className="mutation-notice mutation-notice--error" role="alert"><h3>{error.title}</h3><p>{error.explanation}</p><p>{error.recovery}</p><p className="request-id">{common("errorCode", { code: failure.code })}</p><details><summary>{common("backendDetail")}</summary><p>{failure.message}</p></details><RequestId value={failure.requestId} /></div>;
+  return (
+    <ErrorState
+      className="mutation-notice mutation-notice--error"
+      title={error.title}
+      code={failure.code}
+      message={failure.message}
+      requestId={failure.requestId}
+      httpStatus={failure.httpStatus}
+      operation={operation}
+    />
+  );
 }
 
 function StringListEditor({
@@ -501,7 +519,7 @@ export function LifecycleReviewWorkspace() {
         </div>
       </header>
 
-      {demoLoadFailure ? <LifecycleFailureNotice failure={demoLoadFailure} /> : null}
+      {demoLoadFailure ? <LifecycleFailureNotice failure={demoLoadFailure} operation="demo_workspace.read" /> : null}
 
       <section className="boundary-card lifecycle-boundary" aria-labelledby="lifecycle-boundary-title">
         <p className="eyebrow">{t("boundaryEyebrow")}</p>
@@ -526,7 +544,7 @@ export function LifecycleReviewWorkspace() {
           <StringListEditor title={t("proposalWarnings")} singular={t("proposalWarning")} idPrefix="proposal-warning" rows={proposalDraft.warnings} setRows={(warnings) => setProposalDraft({ ...proposalDraft, warnings })} nextKey={nextKey} />
         </fieldset>
         <EvidenceEditor rows={proposalDraft.evidenceReferences} setRows={(evidenceReferences) => setProposalDraft({ ...proposalDraft, evidenceReferences })} nextKey={nextKey} />
-        {proposalFailure ? <LifecycleFailureNotice failure={proposalFailure} /> : null}
+        {proposalFailure ? <LifecycleFailureNotice failure={proposalFailure} operation="lifecycle.propose" /> : null}
         <div className="submission-actions">
           <button className="primary-button" type="submit" disabled={proposalPending}>{proposalPending ? t("creatingProposal") : t("createNonExecuting")}</button>
           <p>{t("proposalCommandBoundary")}</p>
@@ -560,7 +578,7 @@ export function LifecycleReviewWorkspace() {
               <p className="form-section__description">{t("resultingBoundary")}</p>
             </fieldset>
             {reviewDraft.includeResultingSnapshot ? <SnapshotEditor legend={t("callerResulting")} idPrefix="resulting" draft={reviewDraft.resultingSnapshot} setDraft={(resultingSnapshot) => setReviewDraft({ ...reviewDraft, resultingSnapshot })} nextKey={nextKey} /> : null}
-            {reviewFailure ? <LifecycleFailureNotice failure={reviewFailure} /> : null}
+            {reviewFailure ? <LifecycleFailureNotice failure={reviewFailure} operation="lifecycle.review" /> : null}
             <div className="submission-actions">
               <button className="primary-button" type="submit" disabled={reviewPending}>{reviewPending ? t("recordingReview") : t("recordReviewEvidence")}</button>
               <p>{t("reviewCommandBoundary")}</p>

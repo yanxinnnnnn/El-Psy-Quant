@@ -1,0 +1,74 @@
+"""Static presentation metadata for every stable public API error code."""
+
+from dataclasses import dataclass
+from typing import Literal, TypeAlias
+
+ErrorCategory: TypeAlias = Literal[
+    "authentication",
+    "not_found",
+    "invalid",
+    "conflict",
+    "unavailable",
+    "protocol",
+    "internal",
+]
+
+
+@dataclass(frozen=True)
+class StableApiError:
+    """One stable public code and its non-behavioral semantic category."""
+
+    code: str
+    category: ErrorCategory
+
+
+STABLE_API_ERRORS: tuple[StableApiError, ...] = (
+    StableApiError("not_found", "not_found"),
+    StableApiError("method_not_allowed", "protocol"),
+    StableApiError("http_error", "protocol"),
+    StableApiError("request_validation_error", "invalid"),
+    StableApiError("internal_server_error", "internal"),
+    StableApiError("founder_authentication_required", "authentication"),
+    StableApiError("research_artifact_root_unavailable", "unavailable"),
+    StableApiError("research_run_not_found", "not_found"),
+    StableApiError("research_artifact_invalid", "invalid"),
+    StableApiError("evidence_artifact_root_unavailable", "unavailable"),
+    StableApiError("evidence_manifest_not_found", "not_found"),
+    StableApiError("evidence_artifact_invalid", "invalid"),
+    StableApiError("paper_run_invalid", "invalid"),
+    StableApiError("product_database_unavailable", "unavailable"),
+    StableApiError("paper_artifact_root_unavailable", "unavailable"),
+    StableApiError("paper_job_not_found", "not_found"),
+    StableApiError("paper_job_invalid", "invalid"),
+    StableApiError("paper_job_idempotency_conflict", "conflict"),
+    StableApiError("paper_job_conflict", "conflict"),
+    StableApiError("paper_job_state_conflict", "conflict"),
+    StableApiError("paper_job_output_conflict", "conflict"),
+    StableApiError("paper_job_recovery_failed", "unavailable"),
+    StableApiError("paper_job_result_unavailable", "conflict"),
+    StableApiError("paper_job_result_invalid", "invalid"),
+    StableApiError("lifecycle_transition_proposal_invalid", "invalid"),
+    StableApiError("lifecycle_transition_record_invalid", "invalid"),
+    StableApiError("demo_workspace_not_configured", "not_found"),
+    StableApiError("demo_workspace_unavailable", "unavailable"),
+)
+
+def build_stable_error_index(
+    errors: tuple[StableApiError, ...],
+) -> dict[str, StableApiError]:
+    """Build one exact index and reject duplicate stable codes."""
+    index = {error.code: error for error in errors}
+    if len(index) != len(errors):
+        raise ValueError("stable API error codes must be unique")
+    return index
+
+
+STABLE_API_ERROR_BY_CODE = build_stable_error_index(STABLE_API_ERRORS)
+
+__all__ = [
+    "ErrorCategory",
+    "STABLE_API_ERRORS",
+    "STABLE_API_ERROR_BY_CODE",
+    "StableApiError",
+    "build_stable_error_index",
+]

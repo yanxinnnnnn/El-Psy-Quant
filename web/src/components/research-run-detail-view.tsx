@@ -46,6 +46,10 @@ export function ResearchRunDetailView({
           }
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="research_run.detail"
+          entityLabel="run_id"
+          entityId={runId}
           onRetry={state.code === "research_run_not_found" ? undefined : retry}
           backHref="/research-runs"
           backLabel={t("return")}

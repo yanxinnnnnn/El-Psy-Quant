@@ -45,6 +45,7 @@ def _error_response(
     headers: Mapping[str, str] | None = None,
 ) -> JSONResponse:
     request_id = _request_id(request)
+    request.state.error_code = code
     response_headers = dict(headers or {})
     response_headers[REQUEST_ID_HEADER] = request_id
     body = ApiErrorResponse(

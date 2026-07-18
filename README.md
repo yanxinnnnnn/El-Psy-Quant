@@ -24,18 +24,19 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current implementation sprint is:
 
 ```text
-Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
+Sprint 166 — Error Surface, Observability, and Audit Hardening
 ```
 
-Sprints 161–164 are complete. Sprint 165 implementation hardens explicit Paper
-Job submission outcomes, synchronous Run claims, Retry/Recover semantics,
-collision protection, bilingual guidance, and deterministic concurrency
-coverage. Founder local Standard/Demo reliability acceptance remains pending.
-The next sprint may begin only after Sprint 165 is merged and that acceptance is
+Sprints 161–165 are complete. Sprint 165 was merged at
+`61cd11ad7f680509d44e27180bfb33c8a9193896`. Sprint 166 implementation hardens
+the bilingual error surface, bounded request and Paper Job correlation events,
+attempt audit guidance, and safe local troubleshooting. Founder local
+Standard/Demo error-surface and observability acceptance remains pending. The
+next sprint may begin only after Sprint 166 is merged and that acceptance is
 complete:
 
 ```text
-Sprint 166 — Error Surface, Observability, and Audit Hardening
+Sprint 167 — Migration, Test, and Local Deployment Hardening
 ```
 
 ## Product Direction
@@ -131,6 +132,8 @@ docs/product/visual-system.md
 docs/sprints/sprint-163-modern-visual-system-foundation.md
 docs/sprints/sprint-164-founder-dashboard-and-workflow-information-architecture-refresh.md
 docs/sprints/sprint-165-reliability-idempotency-and-job-recovery-hardening.md
+docs/sprints/sprint-166-error-surface-observability-and-audit-hardening.md
+docs/operations/error-observability-and-audit.md
 ```
 
 Key approved directions:
@@ -198,6 +201,24 @@ Implemented Sprint 165 direction:
   request-ID, and timestamp evidence; and
 - no migration, new status, worker, lease, heartbeat, scheduler, polling,
   cleanup, overwrite, financial calculation, or lifecycle automation was added.
+
+Implemented Sprint 166 direction:
+
+- one static backend error inventory and matching complete `en` / `zh-CN` Web
+  inventory preserve the existing envelope, code, message, and request-ID
+  contract while adding localized explanation and safe recovery;
+- reusable error and technical-audit surfaces distinguish empty, not found,
+  invalid, unavailable, conflict, protocol, internal, and unknown states while
+  preserving exact raw operation, entity, code, request ID, and backend detail;
+- standard-library-only product events correlate handled requests, successful
+  Paper Job commands, and terminal Run callback outcomes through bounded static
+  fields and approved persisted attempt codes;
+- all six Paper Job attempt errors have bilingual meaning and recovery guidance
+  without implying cleanup, overwrite, automatic Retry/Recover, execution
+  authority, or financial conclusions; and
+- migration head remains `0005_paper_job_result_references`; no durable logs,
+  telemetry platform, remote reporting, worker, queue, scheduler, polling,
+  public debug field, or automation was added.
 
 ## Quick Start
 

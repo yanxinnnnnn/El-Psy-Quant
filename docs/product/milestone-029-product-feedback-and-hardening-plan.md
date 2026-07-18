@@ -4,9 +4,10 @@
 
 Milestone 29 is **In Progress**.
 
-Sprints 161, 162, 163, and 164 are complete. Sprint 165 implementation is
-complete in its review branch; Founder Standard/Demo reliability acceptance and
-the merge decision remain pending. Sprint 166 must not begin before both are
+Sprints 161 through 165 are complete. Sprint 165 was merged at
+`61cd11ad7f680509d44e27180bfb33c8a9193896`. Sprint 166 implementation is
+complete; Founder Standard/Demo error-surface and observability acceptance and
+the merge decision remain pending. Sprint 167 must not begin before both are
 complete.
 
 ## Milestone Objective
@@ -332,7 +333,8 @@ Exercise submit/replay/conflict, Run, failure, Retry, and Recover scenarios.
 
 **Implementation status**
 
-Implementation complete; Founder reliability acceptance remains. Submission
+Complete and merged at `61cd11ad7f680509d44e27180bfb33c8a9193896`.
+Submission
 reports `created` or `replayed`; Run atomically commits one running job and
 attempt before HTTP 202; the non-durable post-response task executes the
 existing claim; Retry stays clean-output, non-executing, and attempt-free; and
@@ -343,8 +345,8 @@ concurrency/rollback coverage preserve settled evidence and artifact authority.
 
 No migration, table, column, status, lease, heartbeat, worker, scheduler,
 polling, cleanup, force overwrite, financial calculation, lifecycle automation,
-or Sprint 166 behavior was added. S166 becomes next only after Sprint 165 is
-merged and Founder Standard/Demo reliability acceptance is complete.
+or Sprint 166 behavior was added. Founder Standard/Demo reliability acceptance
+and the Sprint 165 merge are complete.
 
 ### Sprint 166 — Error Surface, Observability, and Audit Hardening
 
@@ -392,6 +394,28 @@ detail or introducing a distributed observability platform.
 
 Trigger representative unavailable, invalid, not-found, conflict, and job
 failure cases in both languages.
+
+**Implementation status**
+
+Implementation complete; Founder Standard/Demo error-surface and observability
+acceptance remains. One static backend error inventory and matching complete Web
+inventory preserve the exact public envelope and request-ID contract while
+adding bilingual title, explanation, safe recovery, category, unknown-code
+fallback, and raw technical audit presentation.
+
+Standard-library-only logging emits bounded sanitized request completion,
+successful Paper Job command, and terminal claimed-execution events. Static
+operation/route catalogs, the logging denylist, persisted approved attempt
+codes, and the fixed `internal_execution_failure` sentinel prevent sensitive
+or arbitrary internal detail from entering product events. All six attempt
+errors have bilingual meaning and recovery guidance.
+
+Migration head remains `0005_paper_job_result_references`. No migration,
+durable audit/log record, telemetry platform, remote reporting, worker, queue,
+scheduler, polling, lifecycle automation, public debug field, cleanup, force
+overwrite, financial calculation, or broker behavior was added. S167 becomes
+next only after Sprint 166 is merged and Founder Standard/Demo error-surface
+and observability acceptance is complete.
 
 ### Sprint 167 — Migration, Test, and Local Deployment Hardening
 

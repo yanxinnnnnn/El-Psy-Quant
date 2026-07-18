@@ -1,4 +1,23 @@
 {
+  "categories": {
+    "authentication": "需要身份验证",
+    "not_found": "未找到",
+    "invalid": "无效",
+    "conflict": "冲突",
+    "unavailable": "不可用",
+    "protocol": "请求不受支持",
+    "internal": "内部错误",
+    "unknown": "未知错误"
+  },
+  "technical": {
+    "title": "技术审计详情",
+    "operation": "操作",
+    "httpStatus": "HTTP 状态",
+    "entity": "实体",
+    "errorCode": "稳定错误码",
+    "requestId": "服务器请求 ID",
+    "backendMessage": "已脱敏的后端消息"
+  },
   "unknown": {
     "title": "工作台请求不可用",
     "explanation": "无法通过本地 API 边界完成该请求。",
@@ -19,10 +38,30 @@
     "explanation": "响应与前端生成的契约不一致。",
     "recovery": "请确认 Web 与 API 版本一致后再重试。"
   },
+  "method_not_allowed": {
+    "title": "不允许此 HTTP 方法",
+    "explanation": "本地 API 路由存在，但不支持所请求的 HTTP 方法。",
+    "recovery": "请返回受支持的工作台操作；不要自动修改或重新发送请求。"
+  },
+  "http_error": {
+    "title": "不支持此 HTTP 请求",
+    "explanation": "本地 API 在 HTTP 协议边界拒绝了此请求。",
+    "recovery": "请先使用文档中的工作台路由和操作，再发出另一个显式请求。"
+  },
+  "internal_server_error": {
+    "title": "意外的本地错误",
+    "explanation": "本地 API 已将意外的实现故障脱敏。",
+    "recovery": "请记录稳定错误码和服务器请求 ID，检查已脱敏的本地事件，并保留当前证据。"
+  },
+  "founder_authentication_required": {
+    "title": "需要创始人身份验证",
+    "explanation": "本地 API 要求使用已配置的创始人凭据对来完成此请求。",
+    "recovery": "请核对成对的本地凭据配置并重新验证身份，不要记录或共享凭据。"
+  },
   "not_found": {
-    "title": "未找到策略",
-    "explanation": "后端策略目录中不存在所请求的策略标识。",
-    "recovery": "请返回策略列表并选择可用定义。"
+    "title": "未找到请求的记录",
+    "explanation": "本地 API 边界不存在所请求的路由或准确记录。",
+    "recovery": "请返回相关列表或工作台并选择可用记录；不要盲目重试缺失的身份。"
   },
   "research_artifact_root_unavailable": {
     "title": "研究制品目录不可用",
@@ -63,6 +102,11 @@
     "title": "模拟交易制品目录不可用",
     "explanation": "当前无法读取权威的已完成模拟制品。",
     "recovery": "请确认模拟交易制品存储并重试，不要删除输出。"
+  },
+  "paper_run_invalid": {
+    "title": "模拟运行请求无效",
+    "explanation": "同步模拟运行命令不符合后端契约。",
+    "recovery": "请检查输入的传输值，并仅在准备好后发送修正后的显式命令。"
   },
   "paper_job_not_found": {
     "title": "未找到模拟任务",

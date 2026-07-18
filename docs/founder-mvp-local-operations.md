@@ -326,8 +326,45 @@ attempt remain `running` for an explicit Recover decision. Migration head
 remains `0005_paper_job_result_references`; Sprint 165 adds no migration,
 worker, lease, heartbeat, scheduler, polling, or cleanup behavior.
 
-Record Founder local Standard/Demo reliability acceptance before merging Sprint
-165 or beginning Sprint 166.
+Founder local Standard/Demo reliability acceptance and the Sprint 165 merge are
+complete.
+
+## Sprint 166 Error and Observability Acceptance
+
+Sprint 166 deterministic checks do not replace Founder runtime acceptance. In
+isolated Standard and Demo workspaces, both locales, and representative
+`360px`, `768px`, and `1280px+` widths:
+
+- exercise a valid empty source, exact not-found entity, invalid input or
+  artifact, unavailable local dependency, state/output conflict, and sanitized
+  unexpected failure;
+- confirm each surface keeps localized category, explanation, and safe recovery
+  beside the raw operation, HTTP status, entity ID, stable code, server request
+  ID, and bounded backend detail;
+- confirm the Web never invents a missing request ID and unknown future codes
+  preserve their raw value with generic guidance;
+- inspect all six Paper Job attempt codes in English and Simplified Chinese and
+  verify Interrupted does not claim work never started, while partial/invalid
+  output guidance never authorizes cleanup or overwrite;
+- correlate the exact request ID across one request completion, one successful
+  Paper Job command, and Run completed, expected-failed, or uncertain events;
+- confirm expected execution failure uses the persisted approved attempt code
+  and uncertain execution uses only `internal_execution_failure`;
+- confirm product events contain no credentials, headers, cookies, query
+  strings, bodies, idempotency keys, paths, SQL, exception text, tracebacks,
+  financial values, or artifact payloads;
+- confirm empty, unavailable, invalid, not found, and conflict remain distinct,
+  and that Refresh, Retry, and Recover remain separate explicit actions;
+- confirm long raw values wrap, disclosures are keyboard accessible, and
+  localized guidance does not alter authoritative values; and
+- confirm Standard and Demo databases and artifact roots remain isolated.
+
+Use [the focused error and observability runbook](operations/error-observability-and-audit.md)
+for the troubleshooting matrix, event fields, denylist, transient/durable
+evidence distinction, and current limitations.
+
+Record Founder local Standard/Demo error-surface and observability acceptance
+before merging Sprint 166 or beginning Sprint 167.
 
 For service state and bounded logs:
 

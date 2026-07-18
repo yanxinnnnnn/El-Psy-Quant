@@ -2,6 +2,8 @@
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
+import logging
+from logging import LogRecord
 from pathlib import Path
 from threading import Barrier, Event
 from uuid import UUID, uuid4
@@ -16,6 +18,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from el_psy_quant.api.app import create_app
 from el_psy_quant.api.middleware import REQUEST_ID_HEADER
+from el_psy_quant.api.observability import PRODUCT_LOGGER_NAME
 from el_psy_quant.api.paper_job_schemas import (
     PaperJobRecoveryResponse,
     PaperJobResponse,
@@ -112,6 +115,14 @@ def _assert_error(response, status: int, code: str) -> None:
     assert payload["error"]["code"] == code
     request_id = response.headers[REQUEST_ID_HEADER]
     assert str(UUID(request_id)) == request_id == payload["request_id"]
+
+
+def _product_records(caplog: pytest.LogCaptureFixture) -> list[LogRecord]:
+    return [
+        record
+        for record in caplog.records
+        if record.name == PRODUCT_LOGGER_NAME
+    ]
 
 
 def _submit_direct(
@@ -747,3 +758,245 @@ def test_openapi_has_only_explicit_durable_job_schemas_and_methods() -> None:
     assert "PaperJobResultResponse" in schemas
     assert "PaperRunCommandRequest" in schemas
     assert not any("Row" in name or "Session" == name for name in schemas)
+
+
+def test_successful_paper_job_commands_emit_bounded_correlated_events(
+    configured_app,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    logging.getLogger(PRODUCT_LOGGER_NAME).disabled = False
+    caplog.set_level("INFO", logger=PRODUCT_LOGGER_NAME)
+    client = TestClient(configured_app)
+    session_factory = configured_app.state.product_session_factory
+    paper_root = configured_app.state.paper_artifact_root
+    assert session_factory is not None
+    assert paper_root is not None
+
+    secret_key = "must-not-appear-idempotency-key"
+    created = client.post(
+        "/api/v1/paper-jobs",
+        json=_payload("observability-submit"),
+        headers={"Idempotency-Key": secret_key},
+    )
+    replayed = client.post(
+        "/api/v1/paper-jobs",
+        json=_payload("observability-submit"),
+        headers={"Idempotency-Key": secret_key},
+    )
+    job_id = created.json()["job"]["job_id"]
+    canceled = client.post(f"/api/v1/paper-jobs/{job_id}/cancel")
+
+    failed = _submit_direct(session_factory, run_id="observability-retry")
+    failed, _attempts = _transition_direct(
+        session_factory,
+        job=failed,
+        target_status="failed",
+    )
+    (Path(paper_root) / "jobs" / failed.job_id / "paper").mkdir(parents=True)
+    retried = client.post(f"/api/v1/paper-jobs/{failed.job_id}/retry")
+
+    running = _submit_direct(session_factory, run_id="observability-recover")
+    running, attempts = _transition_direct(
+        session_factory,
+        job=running,
+        target_status="running",
+    )
+    (Path(paper_root) / "jobs" / running.job_id / "paper").mkdir(parents=True)
+    recovered = client.post(
+        f"/api/v1/paper-jobs/{running.job_id}/recover",
+        json={
+            "stale_before": (
+                running.updated_timestamp + timedelta(seconds=1)
+            ).isoformat()
+        },
+    )
+
+    accepted = client.post(
+        "/api/v1/paper-jobs",
+        json=_payload("observability-run"),
+    )
+    accepted_job_id = accepted.json()["job"]["job_id"]
+    monkeypatch.setattr(
+        paper_job_routes,
+        "execute_claimed_product_paper_job",
+        lambda **_kwargs: None,
+    )
+    run = client.post(f"/api/v1/paper-jobs/{accepted_job_id}/run")
+
+    assert created.json()["submission_outcome"] == "created"
+    assert replayed.json()["submission_outcome"] == "replayed"
+    assert canceled.json()["status"] == "canceled"
+    assert retried.status_code == 200, retried.text
+    assert retried.json()["status"] == "queued"
+    assert recovered.json()["recovery_outcome"] == "requeued"
+    assert run.status_code == 202
+
+    records = [
+        record
+        for record in _product_records(caplog)
+        if record.event == "paper_job_command_completed"
+    ]
+    assert [record.command for record in records] == [
+        "submit",
+        "submit",
+        "cancel",
+        "retry",
+        "recover",
+        "submit",
+        "run",
+    ]
+    assert records[0].submission_outcome == "created"
+    assert records[1].submission_outcome == "replayed"
+    assert records[4].recovery_outcome == "requeued"
+    assert records[4].attempt_id == attempts[0].attempt_id
+    assert records[-1].attempt_id is not None
+    assert records[-1].attempt_number == 1
+    assert records[-1].durable_status == "running"
+    response_ids = {
+        response.headers[REQUEST_ID_HEADER]
+        for response in (
+            created,
+            replayed,
+            canceled,
+            retried,
+            recovered,
+            accepted,
+            run,
+        )
+    }
+    assert {record.request_id for record in records} == response_ids
+    rendered = " ".join(str(record.__dict__) for record in _product_records(caplog))
+    assert secret_key not in rendered
+    assert "observability-submit" not in rendered
+
+
+def test_paper_job_execution_terminal_events_use_durable_audit_state(
+    configured_app,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    logging.getLogger(PRODUCT_LOGGER_NAME).disabled = False
+    caplog.set_level("INFO", logger=PRODUCT_LOGGER_NAME)
+    client = TestClient(configured_app)
+
+    succeeded = client.post(
+        "/api/v1/paper-jobs",
+        json=_payload("observability-success"),
+    )
+    succeeded_job_id = succeeded.json()["job"]["job_id"]
+    succeeded_run = client.post(f"/api/v1/paper-jobs/{succeeded_job_id}/run")
+    assert succeeded_run.status_code == 202
+
+    def fail_with_durable_audit(*, session_factory, claim):
+        with session_factory.begin() as session:
+            jobs = SqlAlchemyPaperJobRepository(session=session)
+            attempts = SqlAlchemyPaperJobAttemptRepository(session=session)
+            failed = jobs.transition_status(
+                job_id=claim.job.job_id,
+                expected_status="running",
+                target_status="failed",
+                updated_timestamp=claim.job.updated_timestamp,
+            )
+            assert failed is not None
+            completed = attempts.complete_attempt(
+                attempt_id=claim.attempt.attempt_id,
+                status="failed",
+                completed_timestamp=claim.job.updated_timestamp,
+                error_code="workflow_validation_failed",
+            )
+            assert completed is not None
+        raise paper_job_routes.PaperJobExecutionError()
+
+    failed = client.post(
+        "/api/v1/paper-jobs",
+        json=_payload("observability-failed"),
+    )
+    failed_job_id = failed.json()["job"]["job_id"]
+    monkeypatch.setattr(
+        paper_job_routes,
+        "execute_claimed_product_paper_job",
+        fail_with_durable_audit,
+    )
+    failed_run = client.post(f"/api/v1/paper-jobs/{failed_job_id}/run")
+    assert failed_run.status_code == 202
+
+    uncertain = client.post(
+        "/api/v1/paper-jobs",
+        json=_payload("observability-uncertain"),
+    )
+    uncertain_job_id = uncertain.json()["job"]["job_id"]
+
+    def raise_unexpected(**_kwargs):
+        raise RuntimeError(
+            "private failure C:\\artifact\\secret.json SELECT * Traceback"
+        )
+
+    monkeypatch.setattr(
+        paper_job_routes,
+        "execute_claimed_product_paper_job",
+        raise_unexpected,
+    )
+    uncertain_run = client.post(f"/api/v1/paper-jobs/{uncertain_job_id}/run")
+    assert uncertain_run.status_code == 202
+
+    terminal = [
+        record
+        for record in _product_records(caplog)
+        if record.event.startswith("paper_job_execution_")
+    ]
+    assert [record.event for record in terminal] == [
+        "paper_job_execution_completed",
+        "paper_job_execution_failed",
+        "paper_job_execution_uncertain",
+    ]
+    assert terminal[0].durable_status == "succeeded"
+    assert terminal[0].error_code is None
+    assert terminal[1].durable_status == "failed"
+    assert terminal[1].error_code == "workflow_validation_failed"
+    assert terminal[2].durable_status == "running"
+    assert terminal[2].error_code == "internal_execution_failure"
+    assert terminal[0].request_id == succeeded_run.headers[REQUEST_ID_HEADER]
+    assert terminal[1].request_id == failed_run.headers[REQUEST_ID_HEADER]
+    assert terminal[2].request_id == uncertain_run.headers[REQUEST_ID_HEADER]
+    rendered = " ".join(str(record.__dict__) for record in terminal)
+    for forbidden in (
+        "private failure",
+        "artifact\\secret",
+        "SELECT *",
+        "Traceback",
+    ):
+        assert forbidden not in rendered
+
+
+def test_rejected_paper_job_command_emits_no_success_correlation_event(
+    configured_app,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    logging.getLogger(PRODUCT_LOGGER_NAME).disabled = False
+    caplog.set_level("INFO", logger=PRODUCT_LOGGER_NAME)
+    client = TestClient(configured_app)
+    submitted = client.post(
+        "/api/v1/paper-jobs",
+        json=_payload("observability-rejected"),
+    )
+    job_id = submitted.json()["job"]["job_id"]
+    assert client.post(f"/api/v1/paper-jobs/{job_id}/cancel").status_code == 200
+
+    rejected = client.post(f"/api/v1/paper-jobs/{job_id}/run")
+
+    _assert_error(rejected, 409, "paper_job_state_conflict")
+    commands = [
+        record.command
+        for record in _product_records(caplog)
+        if record.event == "paper_job_command_completed"
+    ]
+    assert commands == ["submit", "cancel"]
+    rejected_request = [
+        record
+        for record in _product_records(caplog)
+        if record.event == "api_request_completed"
+        and record.request_id == rejected.headers[REQUEST_ID_HEADER]
+    ]
+    assert len(rejected_request) == 1
+    assert rejected_request[0].error_code == "paper_job_state_conflict"

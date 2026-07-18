@@ -10,7 +10,13 @@ import { ApiClientError, fetchHealth } from "@/lib/api-client";
 type HealthState =
   | { status: "loading" }
   | { status: "available"; requestId: string | null }
-  | { status: "unavailable"; code: string | null; message: string | null; requestId: string | null };
+  | {
+      status: "unavailable";
+      code: string | null;
+      message: string | null;
+      requestId: string | null;
+      httpStatus: number | null;
+    };
 
 export function HealthPanel() {
   const t = useTranslations("overview.health");
@@ -36,6 +42,7 @@ export function HealthPanel() {
           code: error.code,
           message: error.publicMessage,
           requestId: error.requestId,
+          httpStatus: error.status > 0 ? error.status : null,
         });
       } else {
         setHealth({
@@ -43,6 +50,7 @@ export function HealthPanel() {
           code: null,
           message: null,
           requestId: null,
+          httpStatus: null,
         });
       }
     }
@@ -66,6 +74,7 @@ export function HealthPanel() {
             code: error.code,
             message: error.publicMessage,
             requestId: error.requestId,
+            httpStatus: error.status > 0 ? error.status : null,
           });
         } else {
           setHealth({
@@ -73,6 +82,7 @@ export function HealthPanel() {
             code: null,
             message: null,
             requestId: null,
+            httpStatus: null,
           });
         }
       });
@@ -114,6 +124,8 @@ export function HealthPanel() {
           title={errorPresentation.title}
           message={health.message}
           requestId={health.requestId}
+          httpStatus={health.httpStatus}
+          operation="health.read"
         />
       )}
 

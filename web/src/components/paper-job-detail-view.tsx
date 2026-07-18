@@ -39,7 +39,14 @@ type MutationState =
   | { status: "confirming"; action: PaperJobAction }
   | { status: "pending"; action: PaperJobAction }
   | { status: "success"; action: PaperJobAction; message: string; requestId: string | null }
-  | { status: "error"; action: PaperJobAction; code: string; message: string; requestId: string | null };
+  | {
+      status: "error";
+      action: PaperJobAction;
+      code: string;
+      message: string;
+      requestId: string | null;
+      httpStatus: number | null;
+    };
 
 type AttemptsOverride = {
   mutationAttempts: PaperJobAttemptListResponse;
@@ -53,10 +60,35 @@ function actionClassName(action: PaperJobAction): string {
   return "primary-button";
 }
 
-function MutationErrorNotice({ code, message, requestId }: { code: string; message: string; requestId: string | null }) {
+function MutationErrorNotice({
+  action,
+  code,
+  message,
+  requestId,
+  httpStatus,
+  jobId,
+}: {
+  action: PaperJobAction;
+  code: string;
+  message: string;
+  requestId: string | null;
+  httpStatus: number | null;
+  jobId: string;
+}) {
   const error = useErrorPresentation(code);
-  const common = useTranslations("common");
-  return <div className="mutation-notice mutation-notice--error" role="alert"><strong>{error.title}</strong><p>{error.explanation}</p><p>{message}</p><p>{error.recovery}</p><p className="request-id">{common("errorCode", { code })}</p><RequestId value={requestId} /></div>;
+  return (
+    <ErrorState
+      className="mutation-notice mutation-notice--error"
+      title={error.title}
+      code={code}
+      message={message}
+      requestId={requestId}
+      httpStatus={httpStatus}
+      operation={`paper_job.${action}`}
+      entityLabel="job_id"
+      entityId={jobId}
+    />
+  );
 }
 
 export function PaperJobDetailView({ jobId }: { jobId: string }) {
@@ -236,9 +268,23 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
       });
     }).catch((error: unknown) => {
       if (error instanceof ApiClientError) {
-        setMutation({ status: "error", action, code: error.code, message: error.publicMessage, requestId: error.requestId });
+        setMutation({
+          status: "error",
+          action,
+          code: error.code,
+          message: error.publicMessage,
+          requestId: error.requestId,
+          httpStatus: error.status > 0 ? error.status : null,
+        });
       } else {
-        setMutation({ status: "error", action, code: "api_unavailable", message: "The local API is unavailable.", requestId: null });
+        setMutation({
+          status: "error",
+          action,
+          code: "api_unavailable",
+          message: "The local API is unavailable.",
+          requestId: null,
+          httpStatus: null,
+        });
       }
     }).finally(() => { pendingRef.current = false; });
   }
@@ -256,6 +302,10 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
           title={jobError.useContextTitle ? t("unavailableTitle") : jobError.title}
           message={jobResource.state.message}
           requestId={jobResource.state.requestId}
+          httpStatus={jobResource.state.httpStatus}
+          operation="paper_job.detail"
+          entityLabel="job_id"
+          entityId={jobId}
           onRetry={initialNotFound ? undefined : jobResource.retry}
           backHref="/paper-jobs"
           backLabel={t("return")}
@@ -315,13 +365,35 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
               </div>
             ) : null}
             {mutation.status === "success" ? <div className="mutation-notice mutation-notice--success" role="status"><strong>{t("response", { action: actionLabel(mutation.action) })}</strong><p>{mutation.message}</p><RequestId value={mutation.requestId} /></div> : null}
-            {mutation.status === "error" ? <MutationErrorNotice code={mutation.code} message={mutation.message} requestId={mutation.requestId} /> : null}
+            {mutation.status === "error" ? (
+              <MutationErrorNotice
+                action={mutation.action}
+                code={mutation.code}
+                message={mutation.message}
+                requestId={mutation.requestId}
+                httpStatus={mutation.httpStatus}
+                jobId={jobId}
+              />
+            ) : null}
           </section>
 
           <section className="content-panel" aria-labelledby="attempts-title">
             <div className="section-heading"><div><p className="eyebrow">{t("attemptsEyebrow")}</p><h2 id="attempts-title">{t("attemptsTitle")}</h2></div><p>{t("attemptsBoundary")}</p></div>
             {attemptsResource.state.status === "loading" && visibleAttempts === null ? <div className="inline-loading" role="status" aria-busy="true">{t("loadingAttempts")}</div> : null}
-            {attemptsResource.state.status === "error" ? <MutationErrorNotice code={attemptsResource.state.code} message={attemptsResource.state.message} requestId={attemptsResource.state.requestId} /> : null}
+            {attemptsResource.state.status === "error" ? (
+              <ErrorState
+                code={attemptsResource.state.code}
+                title={t("unavailableTitle")}
+                message={attemptsResource.state.message}
+                requestId={attemptsResource.state.requestId}
+                httpStatus={attemptsResource.state.httpStatus}
+                operation="paper_job.attempts"
+                entityLabel="job_id"
+                entityId={jobId}
+                onRetry={attemptsResource.retry}
+                retryLabel={t("retryAttempts")}
+              />
+            ) : null}
             {visibleAttempts?.length === 0 ? <p className="reference-empty">{t("emptyAttempts")}</p> : visibleAttempts ? <ScrollableTable caption={t("attemptsCaption")} tableClassName="attempts-table"><thead><tr><th scope="col">{t("attemptId")}</th><th scope="col">{t("number")}</th><th scope="col">{t("status")}</th><th scope="col">{t("started")}</th><th scope="col">{t("completed")}</th><th scope="col">{t("errorCode")}</th></tr></thead><tbody>{visibleAttempts.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td><PaperJobAttemptStatusValue value={attempt.status} /></td><td><LocalizedTimestamp value={attempt.started_timestamp} /></td><td>{attempt.completed_timestamp ? <LocalizedTimestamp value={attempt.completed_timestamp} /> : common("notAvailable")}</td><td><AttemptErrorValue code={attempt.error_code} /></td></tr>)}</tbody></ScrollableTable> : null}
           </section>
           <section className="related-panel" aria-labelledby="paper-comparison-next-title">

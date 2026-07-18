@@ -31,6 +31,8 @@ export function ResearchRunListView() {
           title={state.code === "research_artifact_root_unavailable" ? t("rootUnavailable") : state.code === "research_artifact_invalid" ? t("invalid") : t("unavailable")}
           message={state.message}
           requestId={state.requestId}
+          httpStatus={state.httpStatus}
+          operation="research_run.list"
           onRetry={retry}
         />
       ) : state.data.runs.length === 0 ? (

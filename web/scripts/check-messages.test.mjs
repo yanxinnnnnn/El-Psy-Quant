@@ -8,7 +8,9 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   REQUIRED_NAMESPACES,
+  REQUIRED_ERROR_CODES,
   SUPPORTED_LOCALES,
+  assertErrorPresentationCatalog,
   assertNoDuplicateJsonKeys,
   flattenCatalog,
   validateMessageCatalogs,
@@ -28,6 +30,27 @@ async function validCatalogRoot() {
     for (const namespace of REQUIRED_NAMESPACES) {
       const value = namespace === "common"
         ? { metadata: { title: `${locale} title` } }
+        : namespace === "errors"
+          ? {
+              categories: Object.fromEntries(
+                ["authentication", "not_found", "invalid", "conflict", "unavailable", "protocol", "internal", "unknown"]
+                  .map((category) => [category, `${locale} ${category}`]),
+              ),
+              technical: Object.fromEntries(
+                ["title", "operation", "httpStatus", "entity", "errorCode", "requestId", "backendMessage"]
+                  .map((field) => [field, `${locale} ${field}`]),
+              ),
+              ...Object.fromEntries(
+                REQUIRED_ERROR_CODES.map((code) => [
+                  code,
+                  {
+                    title: `${locale} ${code} title`,
+                    explanation: `${locale} ${code} explanation`,
+                    recovery: `${locale} ${code} recovery`,
+                  },
+                ]),
+              ),
+            }
         : { value: `${locale} ${namespace}` };
       await writeFile(join(root, locale, `${namespace}.json`), JSON.stringify(value), "utf8");
     }
@@ -63,5 +86,32 @@ describe("message catalog validation", () => {
     expect(() => flattenCatalog({ invalid: 1 })).toThrow(/invalid must be an object/);
     expect(() => assertNoDuplicateJsonKeys('{"key":"one","key":"two"}', "duplicate.json"))
       .toThrow(/duplicate key key/);
+  });
+
+  it("rejects a missing stable error or incomplete presentation fields", () => {
+    const complete = {
+      categories: Object.fromEntries(
+        ["authentication", "not_found", "invalid", "conflict", "unavailable", "protocol", "internal", "unknown"]
+          .map((category) => [category, category]),
+      ),
+      technical: Object.fromEntries(
+        ["title", "operation", "httpStatus", "entity", "errorCode", "requestId", "backendMessage"]
+          .map((field) => [field, field]),
+      ),
+      ...Object.fromEntries(
+        REQUIRED_ERROR_CODES.map((code) => [
+          code,
+          { title: "Title", explanation: "Explanation", recovery: "Recovery" },
+        ]),
+      ),
+    };
+    const withoutCode = { ...complete };
+    delete withoutCode.paper_run_invalid;
+    expect(() => assertErrorPresentationCatalog(withoutCode, "en"))
+      .toThrow(/missing: paper_run_invalid/);
+    expect(() => assertErrorPresentationCatalog({
+      ...complete,
+      not_found: { title: "Title", explanation: "Explanation" },
+    }, "en")).toThrow(/not_found fields.*missing: recovery/);
   });
 });
