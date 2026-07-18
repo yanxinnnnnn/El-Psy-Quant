@@ -285,6 +285,50 @@ There is no durable lifecycle GET/list/current-state contract, so Dashboard must
 not claim a persistent pending lifecycle review. Record local Dashboard
 acceptance before merging Sprint 164 or beginning Sprint 165.
 
+## Sprint 165 Paper Job Reliability Acceptance
+
+Sprint 165 deterministic checks do not replace Founder Standard/Demo runtime
+acceptance. In both workspaces and both locales, verify:
+
+- a first keyed submission displays **Created**, keeps the completed form and
+  exact key, shows raw/localized `queued`, and never calls Run;
+- an exact replay displays **Exact replay**, links the original current job in
+  any durable status, and creates no second job, attempt, output, or reference;
+- reusing the same key with a different canonical request preserves every form
+  value and explains the bounded idempotency conflict without claiming a
+  field-level diff or generating a replacement key;
+- a confirmed Run returns a `running` representation with one attempt number,
+  attempt ID, and raw status before completion, explains the non-durable
+  post-response limitation, and requires manual refresh with no polling;
+- duplicate Run and Run/Cancel races produce one transition winner while the
+  loser receives the stable state conflict and refresh guidance;
+- Retry is visible only for `failed`, performs no execution, creates no attempt,
+  and returns the job to `queued` only when outputs and compact references are
+  absent;
+- Recover is visible only for `running`, shows the loaded raw
+  `updated_timestamp`, rejects non-UTC and earlier thresholds before sending,
+  and requires an explicit Founder assertion that execution is stale;
+- each recovery outcome (`requeued`, `succeeded`, `failed`) is presented
+  explicitly, while uncertain inspection leaves the job running;
+- output/reference conflicts preserve the last settled job, attempts, raw code,
+  request ID, and all existing files without overwrite, cleanup, or automatic
+  follow-on command;
+- keyboard confirmation, pending disabled controls, alerts/status messages,
+  associated recovery field errors, visible focus, long IDs/copy, and wrapping
+  work at approximately `360px`, `768px`, and `1280px+`; and
+- switching `English`/`简体中文` preserves in-progress submission and recovery
+  input without changing raw statuses, codes, IDs, timestamps, or issuing a
+  command.
+
+The callback after Run is not a durable worker and does not provide
+exactly-once execution. If the process exits after claim, the durable job and
+attempt remain `running` for an explicit Recover decision. Migration head
+remains `0005_paper_job_result_references`; Sprint 165 adds no migration,
+worker, lease, heartbeat, scheduler, polling, or cleanup behavior.
+
+Record Founder local Standard/Demo reliability acceptance before merging Sprint
+165 or beginning Sprint 166.
+
 For service state and bounded logs:
 
 ```powershell

@@ -76,8 +76,8 @@
   },
   "paper_job_idempotency_conflict": {
     "title": "幂等键与另一请求冲突",
-    "explanation": "同一幂等键已绑定到不同的请求内容。",
-    "recovery": "请使用原始完全相同的请求重放，或有意选择新键。"
+    "explanation": "同一键已用于不同的规范请求。后端不会提供字段级差异。",
+    "recovery": "请保留表单和准确输入的键。使用原始完全相同的请求重放，或有意输入另一个键；页面不会自动重新提交。"
   },
   "paper_job_conflict": {
     "title": "模拟任务与现有任务冲突",
@@ -87,17 +87,17 @@
   "paper_job_state_conflict": {
     "title": "模拟任务状态已变化",
     "explanation": "在本命令完成前，其他操作或执行已更改任务状态。",
-    "recovery": "请手动刷新状态，再决定下一步操作。"
+    "recovery": "最近加载的任务和尝试记录仍会保留。请手动刷新状态，再决定下一步操作。"
   },
   "paper_job_output_conflict": {
     "title": "现有模拟输出与本操作冲突",
-    "explanation": "权威输出已存在或与请求的操作冲突。",
-    "recovery": "请检查任务和输出；不要自动覆盖或删除。"
+    "explanation": "权威输出或精简结果引用已与请求的操作冲突。现有证据已保留，未发生覆盖。",
+    "recovery": "请检查任务和证据。系统不提供清理或强制覆盖操作。"
   },
   "paper_job_recovery_failed": {
     "title": "模拟任务恢复检查失败",
-    "explanation": "后端无法完成显式的中断任务检查。",
-    "recovery": "请检查过期阈值和当前任务状态后再重试恢复。"
+    "explanation": "后端无法安全完成显式的中断任务检查，因此终态不确定。",
+    "recovery": "任务会保持运行中，直到显式协调。请检查阈值、证据和当前状态后再决定。"
   },
   "paper_job_result_unavailable": {
     "title": "模拟任务结果不可用",

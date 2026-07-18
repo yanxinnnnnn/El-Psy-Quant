@@ -128,6 +128,24 @@ class PaperJobRunResult:
 
 
 PaperJobRecoveryOutcome: TypeAlias = Literal["requeued", "succeeded", "failed"]
+PaperJobSubmissionOutcome: TypeAlias = Literal["created", "replayed"]
+
+
+@dataclass(frozen=True)
+class PaperJobSubmissionResult:
+    """Created-or-replayed outcome for one durable submission."""
+
+    outcome: PaperJobSubmissionOutcome
+    job: PaperJobRecord
+
+
+@dataclass(frozen=True)
+class PaperJobClaim:
+    """One synchronously committed running job and active attempt."""
+
+    job: PaperJobRecord
+    attempt: PaperJobAttemptRecord
+    run_dir: Path
 
 
 @dataclass(frozen=True)
@@ -327,6 +345,7 @@ def _transition_job(
     job_id: str,
     expected_status: PaperJobStatus,
     target_status: PaperJobStatus,
+    result_reference_must_be_absent: bool = False,
 ) -> PaperJobRecord:
     with session_factory.begin() as session:
         repository = SqlAlchemyPaperJobRepository(session=session)
@@ -338,6 +357,13 @@ def _transition_job(
         )
         if transitioned is None:
             _raise_transition_conflict(repository=repository, job_id=job_id)
+        if result_reference_must_be_absent and (
+            SqlAlchemyPaperJobResultReferenceRepository(
+                session=session
+            ).get_by_job_id(job_id=job_id)
+            is not None
+        ):
+            raise PaperJobOutputConflictError()
         return transitioned
 
 
@@ -345,10 +371,18 @@ def _claim_job_and_attempt(
     *,
     session_factory: sessionmaker[Session],
     job_id: str,
+    result_reference_must_be_absent: bool = False,
 ) -> tuple[PaperJobRecord, PaperJobAttemptRecord]:
     timestamp = _utc_now()
     with session_factory.begin() as session:
         jobs = SqlAlchemyPaperJobRepository(session=session)
+        if result_reference_must_be_absent and (
+            SqlAlchemyPaperJobResultReferenceRepository(
+                session=session
+            ).get_by_job_id(job_id=job_id)
+            is not None
+        ):
+            raise PaperJobOutputConflictError()
         running_job = jobs.transition_status(
             job_id=job_id,
             expected_status="queued",
@@ -414,24 +448,40 @@ def _classify_execution_error(exc: ValueError | OSError) -> PaperJobErrorCode:
     return "workflow_validation_failed"
 
 
-def _run_paper_job_once(
+def _execute_claimed_paper_job(
     *,
     session_factory: sessionmaker[Session],
-    job_id: str,
-    run_dir: str | Path,
+    claim: PaperJobClaim,
     result_reference_factory: ResultReferenceFactory | None,
+    verify_active_claim: bool,
 ) -> PaperJobRunResult:
-    """Claim and execute one explicitly selected queued paper job once."""
-    validated_job_id = _validate_job_id(job_id)
-    validated_run_dir = _preflight_run_dir(run_dir)
-    running_job, running_attempt = _claim_job_and_attempt(
-        session_factory=session_factory,
-        job_id=validated_job_id,
-    )
+    """Execute one already-claimed attempt without claiming or creating another."""
+    validated_job_id = _validate_job_id(claim.job.job_id)
+    validated_run_dir = _validate_run_dir(claim.run_dir)
+    persisted_job = claim.job
+    if verify_active_claim:
+        with session_factory() as session:
+            persisted_job = SqlAlchemyPaperJobRepository(session=session).get(
+                job_id=validated_job_id
+            )
+            running_attempts = tuple(
+                attempt
+                for attempt in SqlAlchemyPaperJobAttemptRepository(
+                    session=session
+                ).list_for_job(job_id=validated_job_id)
+                if attempt.status == "running"
+            )
+        if (
+            persisted_job is None
+            or persisted_job.status != "running"
+            or len(running_attempts) != 1
+            or running_attempts[0].attempt_id != claim.attempt.attempt_id
+        ):
+            raise PaperJobStateConflictError()
 
     try:
         workflow = run_paper_workflow_request(
-            request=running_job.request,
+            request=persisted_job.request,
             run_dir=validated_run_dir,
             output_write_mode="exclusive",
         )
@@ -439,7 +489,7 @@ def _run_paper_job_once(
         _complete_job_and_attempt(
             session_factory=session_factory,
             job_id=validated_job_id,
-            attempt_id=running_attempt.attempt_id,
+            attempt_id=claim.attempt.attempt_id,
             job_status="failed",
             attempt_status="failed",
             error_code=_classify_execution_error(exc),
@@ -449,7 +499,7 @@ def _run_paper_job_once(
     succeeded_job, succeeded_attempt = _complete_job_and_attempt(
         session_factory=session_factory,
         job_id=validated_job_id,
-        attempt_id=running_attempt.attempt_id,
+        attempt_id=claim.attempt.attempt_id,
         job_status="succeeded",
         attempt_status="succeeded",
         result_reference_factory=result_reference_factory,
@@ -458,6 +508,50 @@ def _run_paper_job_once(
         job=succeeded_job,
         attempt=succeeded_attempt,
         workflow=workflow,
+    )
+
+
+def _claim_paper_job(
+    *,
+    session_factory: sessionmaker[Session],
+    job_id: str,
+    run_dir: str | Path,
+    result_reference_must_be_absent: bool,
+) -> PaperJobClaim:
+    """Preflight and atomically claim one selected queued job."""
+    validated_job_id = _validate_job_id(job_id)
+    validated_run_dir = _preflight_run_dir(run_dir)
+    running_job, running_attempt = _claim_job_and_attempt(
+        session_factory=session_factory,
+        job_id=validated_job_id,
+        result_reference_must_be_absent=result_reference_must_be_absent,
+    )
+    return PaperJobClaim(
+        job=running_job,
+        attempt=running_attempt,
+        run_dir=validated_run_dir,
+    )
+
+
+def _run_paper_job_once(
+    *,
+    session_factory: sessionmaker[Session],
+    job_id: str,
+    run_dir: str | Path,
+    result_reference_factory: ResultReferenceFactory | None,
+) -> PaperJobRunResult:
+    """Claim and execute one explicitly selected queued paper job once."""
+    claim = _claim_paper_job(
+        session_factory=session_factory,
+        job_id=job_id,
+        run_dir=run_dir,
+        result_reference_must_be_absent=result_reference_factory is not None,
+    )
+    return _execute_claimed_paper_job(
+        session_factory=session_factory,
+        claim=claim,
+        result_reference_factory=result_reference_factory,
+        verify_active_claim=result_reference_factory is not None,
     )
 
 
@@ -500,6 +594,47 @@ def run_product_paper_job_once(
     )
 
 
+def claim_product_paper_job(
+    *,
+    session_factory: sessionmaker[Session],
+    job_id: str,
+    paper_artifact_root: str | Path,
+) -> PaperJobClaim:
+    """Synchronously claim one API-owned queued job before post-response work."""
+    validated_job_id = _validate_job_id(job_id)
+    job = get_paper_job(session_factory=session_factory, job_id=validated_job_id)
+    if job.status != "queued":
+        raise PaperJobStateConflictError()
+    run_dir = _product_paper_job_run_dir(
+        paper_artifact_root=paper_artifact_root,
+        job_id=validated_job_id,
+        create=True,
+    )
+    return _claim_paper_job(
+        session_factory=session_factory,
+        job_id=validated_job_id,
+        run_dir=run_dir,
+        result_reference_must_be_absent=True,
+    )
+
+
+def execute_claimed_product_paper_job(
+    *,
+    session_factory: sessionmaker[Session],
+    claim: PaperJobClaim,
+) -> PaperJobRunResult:
+    """Execute and atomically finalize one already-claimed API-owned attempt."""
+    return _execute_claimed_paper_job(
+        session_factory=session_factory,
+        claim=claim,
+        result_reference_factory=lambda timestamp: create_paper_job_result_reference(
+            job_id=claim.job.job_id,
+            created_timestamp=timestamp,
+        ),
+        verify_active_claim=True,
+    )
+
+
 def cancel_paper_job(
     *,
     session_factory: sessionmaker[Session],
@@ -533,12 +668,12 @@ def _replay_job(
     return job
 
 
-def submit_paper_job(
+def submit_paper_job_with_outcome(
     *,
     session_factory: sessionmaker[Session],
     command: PaperRunCommand,
     idempotency_key: str | None = None,
-) -> PaperJobRecord:
+) -> PaperJobSubmissionResult:
     """Validate and durably enqueue or replay one paper job."""
     request = create_paper_run_request_from_command(command=command)
     prepared_request = prepare_paper_run_request_for_persistence(request)
@@ -557,7 +692,10 @@ def submit_paper_job(
                     request_digest=request_digest,
                 )
                 if replay is not None:
-                    return replay
+                    return PaperJobSubmissionResult(
+                        outcome="replayed",
+                        job=replay,
+                    )
             timestamp = _utc_now()
             job = create_queued_paper_job_record(
                 job_id=_new_job_id(),
@@ -577,7 +715,7 @@ def submit_paper_job(
                         created_timestamp=timestamp,
                     )
                 )
-            return job
+            return PaperJobSubmissionResult(outcome="created", job=job)
     except IntegrityError as exc:
         if validated_key is not None:
             with session_factory() as session:
@@ -587,8 +725,25 @@ def submit_paper_job(
                     request_digest=request_digest,
                 )
             if replay is not None:
-                return replay
+                return PaperJobSubmissionResult(
+                    outcome="replayed",
+                    job=replay,
+                )
         raise PaperJobConflictError() from exc
+
+
+def submit_paper_job(
+    *,
+    session_factory: sessionmaker[Session],
+    command: PaperRunCommand,
+    idempotency_key: str | None = None,
+) -> PaperJobRecord:
+    """Backward-compatible submission boundary returning only the current job."""
+    return submit_paper_job_with_outcome(
+        session_factory=session_factory,
+        command=command,
+        idempotency_key=idempotency_key,
+    ).job
 
 
 def get_paper_job(
@@ -803,6 +958,12 @@ def _finalize_recovery(
         )
         if job is None:
             _raise_transition_conflict(repository=jobs, job_id=observed_job.job_id)
+        references = SqlAlchemyPaperJobResultReferenceRepository(session=session)
+        if (
+            result_reference_factory is not None
+            and references.get_by_job_id(job_id=observed_job.job_id) is not None
+        ):
+            raise PaperJobOutputConflictError()
         attempts = SqlAlchemyPaperJobAttemptRepository(session=session)
         existing_attempts = attempts.list_for_job(job_id=observed_job.job_id)
         running_attempts = tuple(
@@ -832,9 +993,10 @@ def _finalize_recovery(
         if completed_attempt is None:
             raise PaperJobStateConflictError()
         if outcome == "succeeded" and result_reference_factory is not None:
-            SqlAlchemyPaperJobResultReferenceRepository(session=session).add(
-                reference=result_reference_factory(timestamp)
-            )
+            try:
+                references.add(reference=result_reference_factory(timestamp))
+            except IntegrityError as exc:
+                raise PaperJobOutputConflictError() from exc
         return PaperJobRecoveryResult(
             outcome=outcome,
             job=job,
@@ -949,6 +1111,22 @@ def retry_failed_paper_job(
     run_dir: str | Path,
 ) -> PaperJobRecord:
     """Explicitly requeue one failed job after clean-output preflight."""
+    return _retry_failed_paper_job(
+        session_factory=session_factory,
+        job_id=job_id,
+        run_dir=run_dir,
+        result_reference_must_be_absent=False,
+    )
+
+
+def _retry_failed_paper_job(
+    *,
+    session_factory: sessionmaker[Session],
+    job_id: str,
+    run_dir: str | Path,
+    result_reference_must_be_absent: bool,
+) -> PaperJobRecord:
+    """Preflight files, then atomically validate reference absence and requeue."""
     validated_run_dir = _preflight_run_dir(run_dir)
     del validated_run_dir
     return _transition_job(
@@ -956,6 +1134,7 @@ def retry_failed_paper_job(
         job_id=_validate_job_id(job_id),
         expected_status="failed",
         target_status="queued",
+        result_reference_must_be_absent=result_reference_must_be_absent,
     )
 
 
@@ -977,10 +1156,11 @@ def retry_product_paper_job(
         job_id=validated_job_id,
         create=False,
     )
-    return retry_failed_paper_job(
+    return _retry_failed_paper_job(
         session_factory=session_factory,
         job_id=validated_job_id,
         run_dir=run_dir,
+        result_reference_must_be_absent=True,
     )
 
 

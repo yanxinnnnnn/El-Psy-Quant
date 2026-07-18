@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ErrorState, LoadingState, RequestId } from "@/components/data-states";
 import {
@@ -23,27 +23,30 @@ import {
   retryPaperJob,
   runPaperJob,
   type ApiResult,
+  type PaperJobAttemptListResponse,
   type PaperJobResponse,
 } from "@/lib/api-client";
-import { isExplicitUtcTimestamp } from "@/lib/paper-jobs";
+import {
+  isExplicitUtcTimestampAtOrAfter,
+  paperJobActionsForStatus,
+  reconcilePaperJobAttempts,
+  type PaperJobAction,
+} from "@/lib/paper-jobs";
 import { useApiResource } from "@/lib/use-api-resource";
 
-type JobAction = "run" | "cancel" | "retry" | "recover";
 type MutationState =
   | { status: "idle" }
-  | { status: "confirming"; action: JobAction }
-  | { status: "pending"; action: JobAction }
-  | { status: "success"; action: JobAction; message: string; requestId: string | null }
-  | { status: "error"; action: JobAction; code: string; message: string; requestId: string | null };
+  | { status: "confirming"; action: PaperJobAction }
+  | { status: "pending"; action: PaperJobAction }
+  | { status: "success"; action: PaperJobAction; message: string; requestId: string | null }
+  | { status: "error"; action: PaperJobAction; code: string; message: string; requestId: string | null };
 
-function allowedActions(status: PaperJobResponse["status"]): readonly JobAction[] {
-  if (status === "queued") return ["run", "cancel"];
-  if (status === "running") return ["recover"];
-  if (status === "failed") return ["retry"];
-  return [];
-}
+type AttemptsOverride = {
+  mutationAttempts: PaperJobAttemptListResponse;
+  settledThroughSequence: number;
+};
 
-function actionClassName(action: JobAction): string {
+function actionClassName(action: PaperJobAction): string {
   if (action === "cancel") return "danger-button";
   if (action === "recover") return "warning-button";
   if (action === "retry") return "secondary-button";
@@ -59,8 +62,24 @@ function MutationErrorNotice({ code, message, requestId }: { code: string; messa
 export function PaperJobDetailView({ jobId }: { jobId: string }) {
   const t = useTranslations("paperJobs.detail");
   const common = useTranslations("common.states");
-  const actionLabel = (action: JobAction) => action === "run" ? t("run") : action === "cancel" ? t("cancel") : action === "retry" ? t("retry") : t("recover");
-  const successMessage = (action: JobAction, nextJob: PaperJobResponse) => action === "run" ? t("runSuccess") : action === "retry" ? t("retrySuccess") : action === "recover" ? t("recoverSuccess", { status: nextJob.status }) : t("cancelSuccess");
+  const actionLabel = (action: PaperJobAction) => action === "run" ? t("run") : action === "cancel" ? t("cancel") : action === "retry" ? t("retry") : t("recover");
+  const successMessage = (
+    action: PaperJobAction,
+    nextJob: PaperJobResponse,
+    recoveryOutcome: "requeued" | "succeeded" | "failed" | null,
+  ) => action === "run"
+    ? t("runSuccess", {
+        attemptId: nextJob.latest_attempt?.attempt_id ?? common("notAvailable"),
+        attemptNumber: nextJob.latest_attempt?.attempt_number ?? common("notAvailable"),
+      })
+    : action === "retry"
+      ? t("retrySuccess")
+      : action === "recover"
+        ? t("recoverSuccess", {
+            outcome: recoveryOutcome ?? common("notAvailable"),
+            status: nextJob.status,
+          })
+        : t("cancelSuccess");
   const jobRequest = useCallback(() => fetchPaperJobDetail(jobId), [jobId]);
   const attemptsRequest = useCallback(() => fetchPaperJobAttempts(jobId), [jobId]);
   const jobResource = useApiResource(jobRequest);
@@ -72,7 +91,35 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
   const [recoveryFieldError, setRecoveryFieldError] = useState<string | null>(null);
   const [runRefreshRequired, setRunRefreshRequired] = useState(false);
   const [runRefreshSequence, setRunRefreshSequence] = useState<number | null>(null);
+  const [attemptsOverride, setAttemptsOverride] = useState<AttemptsOverride | null>(null);
+  const [settledAttempts, setSettledAttempts] = useState<PaperJobAttemptListResponse | null>(null);
   const pendingRef = useRef(false);
+  const attemptsStateRef = useRef(attemptsResource.state);
+  useEffect(() => {
+    attemptsStateRef.current = attemptsResource.state;
+  }, [attemptsResource.state]);
+  useEffect(() => {
+    if (attemptsResource.state.status !== "success") {
+      return;
+    }
+    const settledState = attemptsResource.state;
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) {
+        return;
+      }
+      setSettledAttempts(settledState.data);
+      setAttemptsOverride((current) => (
+        current !== null
+        && settledState.sequence > current.settledThroughSequence
+          ? null
+          : current
+      ));
+    });
+    return () => {
+      active = false;
+    };
+  }, [attemptsResource.state]);
   const runRefreshSatisfied = runRefreshRequired
     && runRefreshSequence !== null
     && jobResource.state.status === "success"
@@ -82,6 +129,21 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
     ? jobResource.state.data
     : null;
   const job = refreshedRunJob ?? mutationJob ?? (jobResource.state.status === "success" ? jobResource.state.data : null);
+  const resourceAttempts = attemptsResource.state.status === "success"
+    ? attemptsResource.state.data
+    : attemptsResource.state.status === "loading"
+      && attemptsResource.state.previous?.status === "success"
+      ? attemptsResource.state.previous.data
+      : settledAttempts;
+  const attemptsOverrideSuperseded = attemptsOverride !== null
+    && attemptsResource.state.status === "success"
+    && attemptsResource.state.sequence > attemptsOverride.settledThroughSequence;
+  const visibleAttempts = attemptsOverride !== null && !attemptsOverrideSuperseded
+    ? reconcilePaperJobAttempts(
+        resourceAttempts ?? [],
+        attemptsOverride.mutationAttempts,
+      )
+    : resourceAttempts;
 
   function refresh() {
     if (runRefreshLocked) {
@@ -96,7 +158,7 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
     attemptsResource.retry();
   }
 
-  function confirm(action: JobAction) {
+  function confirm(action: PaperJobAction) {
     if (pendingRef.current || runRefreshLocked || mutation.status === "confirming" || mutation.status === "pending") {
       return;
     }
@@ -104,21 +166,61 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
     setMutation({ status: "confirming", action });
   }
 
-  function execute(action: JobAction) {
-    if (pendingRef.current || runRefreshLocked) return;
-    if (action === "recover" && !isExplicitUtcTimestamp(staleBefore)) {
-      setRecoveryFieldError(t("staleError"));
+  function execute(action: PaperJobAction) {
+    if (pendingRef.current || runRefreshLocked || job === null) return;
+    if (
+      action === "recover" &&
+      !isExplicitUtcTimestampAtOrAfter(staleBefore, job.updated_timestamp)
+    ) {
+      setRecoveryFieldError(t("staleError", { updated: job.updated_timestamp }));
       return;
     }
     pendingRef.current = true;
     setMutation({ status: "pending", action });
-    let request: Promise<ApiResult<PaperJobResponse>>;
-    if (action === "run") request = runPaperJob(jobId);
-    else if (action === "cancel") request = cancelPaperJob(jobId);
-    else if (action === "retry") request = retryPaperJob(jobId);
-    else request = recoverPaperJob(jobId, { stale_before: staleBefore });
+    let request: Promise<{
+      job: PaperJobResponse;
+      recoveryOutcome: "requeued" | "succeeded" | "failed" | null;
+      requestId: string | null;
+    }>;
+    if (action === "recover") {
+      request = recoverPaperJob(jobId, { stale_before: staleBefore }).then(
+        (result) => ({
+          job: result.data.job,
+          recoveryOutcome: result.data.recovery_outcome,
+          requestId: result.requestId,
+        }),
+      );
+    } else {
+      let mutationRequest: Promise<ApiResult<PaperJobResponse>>;
+      if (action === "run") mutationRequest = runPaperJob(jobId);
+      else if (action === "cancel") mutationRequest = cancelPaperJob(jobId);
+      else mutationRequest = retryPaperJob(jobId);
+      request = mutationRequest.then((result) => ({
+        job: result.data,
+        recoveryOutcome: null,
+        requestId: result.requestId,
+      }));
+    }
     void request.then((result) => {
-      setMutationJob(result.data);
+      setMutationJob(result.job);
+      if (action === "run" || action === "recover") {
+        const attemptsState = attemptsStateRef.current;
+        setAttemptsOverride((current) => {
+          const currentIsSuperseded = current !== null
+            && attemptsState.status === "success"
+            && attemptsState.sequence > current.settledThroughSequence;
+          const latestAttempt = result.job.latest_attempt;
+          return {
+            mutationAttempts: reconcilePaperJobAttempts(
+              current !== null && !currentIsSuperseded
+                ? current.mutationAttempts
+                : [],
+              latestAttempt === null ? [] : [latestAttempt],
+            ),
+            settledThroughSequence: attemptsState.sequence,
+          };
+        });
+      }
       if (action === "run") {
         setRunRefreshRequired(true);
         setRunRefreshSequence(null);
@@ -126,7 +228,12 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
         setRunRefreshRequired(false);
         setRunRefreshSequence(null);
       }
-      setMutation({ status: "success", action, message: successMessage(action, result.data), requestId: result.requestId });
+      setMutation({
+        status: "success",
+        action,
+        message: successMessage(action, result.job, result.recoveryOutcome),
+        requestId: result.requestId,
+      });
     }).catch((error: unknown) => {
       if (error instanceof ApiClientError) {
         setMutation({ status: "error", action, code: error.code, message: error.publicMessage, requestId: error.requestId });
@@ -190,20 +297,20 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
             <h2 id="manual-controls-title">{t("controlsTitle")}</h2>
             {runRefreshLocked ? (
               <p className="reference-empty">{t("acceptedDescription")}</p>
-            ) : mutation.status === "confirming" || mutation.status === "pending" ? null : allowedActions(job.status).length === 0 ? (
+            ) : mutation.status === "confirming" || mutation.status === "pending" ? null : paperJobActionsForStatus(job.status).length === 0 ? (
               <p className="reference-empty">{t("noControl", { status: job.status })}</p>
             ) : (
-              <div className="control-actions">{allowedActions(job.status).map((action) => <button className={actionClassName(action)} type="button" key={action} onClick={() => confirm(action)}>{actionLabel(action)}</button>)}</div>
+              <div className="control-actions">{paperJobActionsForStatus(job.status).map((action) => <button className={actionClassName(action)} type="button" key={action} onClick={() => confirm(action)}>{actionLabel(action)}</button>)}</div>
             )}
 
             {(mutation.status === "confirming" || mutation.status === "pending") ? (
-              <div className="confirmation-panel" role="group" aria-labelledby="confirmation-title">
+              <div className="confirmation-panel" role="group" aria-labelledby="confirmation-title" aria-busy={mutation.status === "pending"}>
                 <p className="eyebrow">{t("confirmationEyebrow")}</p>
                 <h3 id="confirmation-title">{t("confirmTitle", { action: actionLabel(mutation.action), runId: job.run_id })}</h3>
                 <p>{t("oneCommand", { jobId: job.job_id })}</p>
                 {mutation.action === "run" ? <p>{t("runConfirmation")}</p> : null}
                 {mutation.action === "retry" ? <p>{t("retryConfirmation")}</p> : null}
-                {mutation.action === "recover" ? <div className="recovery-input"><label htmlFor="stale-before">{t("staleBefore")}</label><input id="stale-before" value={staleBefore} onChange={(event) => setStaleBefore(event.target.value)} placeholder="2026-07-15T10:00:00Z" aria-describedby={recoveryFieldError ? "stale-before-guidance stale-before-error" : "stale-before-guidance"} aria-invalid={recoveryFieldError ? true : undefined} /><span className="field-guidance" id="stale-before-guidance">{t("staleGuidance")}</span>{recoveryFieldError ? <span className="field-error" id="stale-before-error">{recoveryFieldError}</span> : null}</div> : null}
+                {mutation.action === "recover" ? <div className="recovery-input"><p>{t("loadedUpdated")} <code>{job.updated_timestamp}</code></p><label htmlFor="stale-before">{t("staleBefore")}</label><input id="stale-before" value={staleBefore} onChange={(event) => { setStaleBefore(event.target.value); setRecoveryFieldError(null); }} placeholder="2026-07-15T10:00:00Z" aria-describedby={recoveryFieldError ? "stale-before-guidance stale-before-error" : "stale-before-guidance"} aria-invalid={recoveryFieldError ? true : undefined} /><span className="field-guidance" id="stale-before-guidance">{t("staleGuidance")}</span>{recoveryFieldError ? <span className="field-error" id="stale-before-error">{recoveryFieldError}</span> : null}</div> : null}
                 <div className="control-actions"><button className={actionClassName(mutation.action)} type="button" disabled={mutation.status === "pending"} onClick={() => execute(mutation.action)}>{mutation.status === "pending" ? t("pending", { action: actionLabel(mutation.action) }) : t("confirm", { action: actionLabel(mutation.action) })}</button><button className="quiet-button" type="button" disabled={mutation.status === "pending"} onClick={() => setMutation({ status: "idle" })}>{t("keep")}</button></div>
               </div>
             ) : null}
@@ -213,7 +320,9 @@ export function PaperJobDetailView({ jobId }: { jobId: string }) {
 
           <section className="content-panel" aria-labelledby="attempts-title">
             <div className="section-heading"><div><p className="eyebrow">{t("attemptsEyebrow")}</p><h2 id="attempts-title">{t("attemptsTitle")}</h2></div><p>{t("attemptsBoundary")}</p></div>
-            {attemptsResource.state.status === "loading" ? <div className="inline-loading" role="status" aria-busy="true">{t("loadingAttempts")}</div> : attemptsResource.state.status === "error" ? <MutationErrorNotice code={attemptsResource.state.code} message={attemptsResource.state.message} requestId={attemptsResource.state.requestId} /> : attemptsResource.state.data.length === 0 ? <p className="reference-empty">{t("emptyAttempts")}</p> : <ScrollableTable caption={t("attemptsCaption")} tableClassName="attempts-table"><thead><tr><th scope="col">{t("attemptId")}</th><th scope="col">{t("number")}</th><th scope="col">{t("status")}</th><th scope="col">{t("started")}</th><th scope="col">{t("completed")}</th><th scope="col">{t("errorCode")}</th></tr></thead><tbody>{attemptsResource.state.data.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td><PaperJobAttemptStatusValue value={attempt.status} /></td><td><LocalizedTimestamp value={attempt.started_timestamp} /></td><td>{attempt.completed_timestamp ? <LocalizedTimestamp value={attempt.completed_timestamp} /> : common("notAvailable")}</td><td><AttemptErrorValue code={attempt.error_code} /></td></tr>)}</tbody></ScrollableTable>}
+            {attemptsResource.state.status === "loading" && visibleAttempts === null ? <div className="inline-loading" role="status" aria-busy="true">{t("loadingAttempts")}</div> : null}
+            {attemptsResource.state.status === "error" ? <MutationErrorNotice code={attemptsResource.state.code} message={attemptsResource.state.message} requestId={attemptsResource.state.requestId} /> : null}
+            {visibleAttempts?.length === 0 ? <p className="reference-empty">{t("emptyAttempts")}</p> : visibleAttempts ? <ScrollableTable caption={t("attemptsCaption")} tableClassName="attempts-table"><thead><tr><th scope="col">{t("attemptId")}</th><th scope="col">{t("number")}</th><th scope="col">{t("status")}</th><th scope="col">{t("started")}</th><th scope="col">{t("completed")}</th><th scope="col">{t("errorCode")}</th></tr></thead><tbody>{visibleAttempts.map((attempt) => <tr key={attempt.attempt_id}><th scope="row">{attempt.attempt_id}</th><td>{attempt.attempt_number}</td><td><PaperJobAttemptStatusValue value={attempt.status} /></td><td><LocalizedTimestamp value={attempt.started_timestamp} /></td><td>{attempt.completed_timestamp ? <LocalizedTimestamp value={attempt.completed_timestamp} /> : common("notAvailable")}</td><td><AttemptErrorValue code={attempt.error_code} /></td></tr>)}</tbody></ScrollableTable> : null}
           </section>
           <section className="related-panel" aria-labelledby="paper-comparison-next-title">
             <div><p className="eyebrow">{t("relatedEyebrow")}</p><h2 id="paper-comparison-next-title">{t("relatedTitle")}</h2><p>{t("relatedDescription")}</p></div>

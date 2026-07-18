@@ -1,4 +1,7 @@
-import type { PaperJobStatus } from "@/lib/api-client";
+import type {
+  PaperJobAttemptListResponse,
+  PaperJobStatus,
+} from "@/lib/api-client";
 
 export const paperJobStatuses: readonly PaperJobStatus[] = [
   "queued",
@@ -9,6 +12,48 @@ export const paperJobStatuses: readonly PaperJobStatus[] = [
 ];
 
 export const paperJobLimits = [25, 50, 100, 200] as const;
+
+export type PaperJobAction = "run" | "cancel" | "retry" | "recover";
+
+const paperJobActionMatrix: Readonly<
+  Record<PaperJobStatus, readonly PaperJobAction[]>
+> = {
+  queued: ["run", "cancel"],
+  running: ["recover"],
+  failed: ["retry"],
+  succeeded: [],
+  canceled: [],
+};
+
+export function paperJobActionsForStatus(
+  status: string,
+): readonly PaperJobAction[] {
+  return Object.prototype.hasOwnProperty.call(paperJobActionMatrix, status)
+    ? paperJobActionMatrix[status as PaperJobStatus]
+    : [];
+}
+
+export function reconcilePaperJobAttempts(
+  sourceAttempts: readonly PaperJobAttemptListResponse[number][],
+  mutationAttempts: readonly PaperJobAttemptListResponse[number][],
+): PaperJobAttemptListResponse {
+  const mutationById = new Map(
+    mutationAttempts.map((attempt) => [attempt.attempt_id, attempt]),
+  );
+  const sourceIds = new Set(
+    sourceAttempts.map((attempt) => attempt.attempt_id),
+  );
+  const reconciled = sourceAttempts.map(
+    (attempt) => mutationById.get(attempt.attempt_id) ?? attempt,
+  );
+  for (const attempt of mutationAttempts) {
+    if (!sourceIds.has(attempt.attempt_id)) {
+      reconciled.push(attempt);
+      sourceIds.add(attempt.attempt_id);
+    }
+  }
+  return reconciled;
+}
 
 export function paperJobErrorTitle(code: string, list = false): string {
   const titles: Readonly<Record<string, string>> = {
@@ -68,4 +113,20 @@ export function isExplicitUtcTimestamp(value: string): boolean {
   const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
   const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   return day >= 1 && day <= daysInMonth[month - 1];
+}
+
+export function isExplicitUtcTimestampAtOrAfter(
+  value: string,
+  minimum: string,
+): boolean {
+  if (!isExplicitUtcTimestamp(value) || !isExplicitUtcTimestamp(minimum)) {
+    return false;
+  }
+  const instant = Date.parse(value);
+  const minimumInstant = Date.parse(minimum);
+  return (
+    Number.isFinite(instant) &&
+    Number.isFinite(minimumInstant) &&
+    instant >= minimumInstant
+  );
 }

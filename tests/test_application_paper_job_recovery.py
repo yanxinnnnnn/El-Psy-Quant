@@ -540,6 +540,46 @@ def test_retry_output_conflict_leaves_job_failed(
     assert paths.paper_run_artifact_path.read_text(encoding="utf-8") == "preserve"
 
 
+def test_concurrent_retry_has_one_queued_winner(
+    session_factory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    job = _failed_job(session_factory, tmp_path, monkeypatch)
+    retry_dir = tmp_path / "retry"
+    retry_dir.mkdir()
+
+    def retry():
+        try:
+            return retry_failed_paper_job(
+                session_factory=session_factory,
+                job_id=job.job_id,
+                run_dir=retry_dir,
+            )
+        except PaperJobStateConflictError as exc:
+            return exc
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        outcomes = tuple(executor.map(lambda _index: retry(), range(2)))
+
+    assert sum(
+        not isinstance(outcome, Exception) for outcome in outcomes
+    ) == 1
+    assert sum(
+        isinstance(outcome, PaperJobStateConflictError) for outcome in outcomes
+    ) == 1
+    assert get_paper_job(
+        session_factory=session_factory,
+        job_id=job.job_id,
+    ).status == "queued"
+    assert len(
+        list_paper_job_attempts(
+            session_factory=session_factory,
+            job_id=job.job_id,
+        )
+    ) == 1
+
+
 def test_retry_non_failed_status_conflicts(
     session_factory,
     tmp_path: Path,

@@ -71,6 +71,7 @@ from el_psy_quant.application.paper_runs import (
 )
 from el_psy_quant.application.paper_jobs import (
     PaperJobConflictError,
+    PaperJobClaim,
     PaperJobExecutionError,
     PaperJobIdempotencyConflictError,
     PaperJobNotFoundError,
@@ -86,8 +87,11 @@ from el_psy_quant.application.paper_jobs import (
     PaperJobRunResult,
     PaperJobRecoveryError,
     PaperJobRecoveryResult,
+    PaperJobSubmissionResult,
     PaperJobStateConflictError,
     cancel_paper_job,
+    claim_product_paper_job,
+    execute_claimed_product_paper_job,
     get_paper_job,
     get_paper_job_result_reference,
     get_paper_job_status_view,
@@ -104,6 +108,7 @@ from el_psy_quant.application.paper_jobs import (
     run_paper_job_once,
     run_product_paper_job_once,
     submit_paper_job,
+    submit_paper_job_with_outcome,
     validate_paper_artifact_root,
 )
 from el_psy_quant.persistence import PaperJobAttemptRecord, PaperJobRecord
@@ -137,6 +142,7 @@ __all__ = [
     "PaperFillCommandInput",
     "PaperFillView",
     "PaperJobConflictError",
+    "PaperJobClaim",
     "PaperJobExecutionError",
     "PaperJobIdempotencyConflictError",
     "PaperJobNotFoundError",
@@ -153,6 +159,7 @@ __all__ = [
     "PaperJobAttemptRecord",
     "PaperJobRecoveryError",
     "PaperJobRecoveryResult",
+    "PaperJobSubmissionResult",
     "PaperJobRunResult",
     "PaperJobStateConflictError",
     "PaperOrderCommandInput",
@@ -200,6 +207,8 @@ __all__ = [
     "get_paper_job_by_idempotency_key",
     "get_paper_job_by_run_id",
     "cancel_paper_job",
+    "claim_product_paper_job",
+    "execute_claimed_product_paper_job",
     "list_research_runs",
     "list_indexed_artifacts",
     "list_paper_jobs",
@@ -217,6 +226,7 @@ __all__ = [
     "run_paper_job_once",
     "run_product_paper_job_once",
     "submit_paper_job",
+    "submit_paper_job_with_outcome",
     "validate_paper_artifact_root",
     "paper_trading_artifact_view_from_payload",
 ]

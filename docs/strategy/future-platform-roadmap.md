@@ -74,9 +74,9 @@ working local MVP
 | S161 | Founder Feedback and Product Experience Architecture | Complete |
 | S162 | Multilingual Foundation and Simplified Chinese Workspace | Complete |
 | S163 | Modern Visual System Foundation | Complete |
-| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Implementation complete; Founder Dashboard acceptance remains |
-| S165 | Reliability, Idempotency, and Job Recovery Hardening | Next only after S164 acceptance and merge |
-| S166 | Error Surface, Observability, and Audit Hardening | Planned |
+| S164 | Founder Dashboard and Workflow Information Architecture Refresh | Complete |
+| S165 | Reliability, Idempotency, and Job Recovery Hardening | Implementation complete; Founder reliability acceptance remains |
+| S166 | Error Surface, Observability, and Audit Hardening | Next only after S165 acceptance and merge |
 | S167 | Migration, Test, and Local Deployment Hardening | Planned |
 | S168 | Milestone 29 Closeout and M30 Handoff | Planned |
 
@@ -172,7 +172,25 @@ generic; and Demo relationships remain descriptor-driven.
 The implementation adds no backend contract, durable lifecycle state, unified
 cross-source chronology, ranking, recommendation, browser financial
 calculation, polling, or Dashboard command. Founder local Dashboard acceptance
-remains before merge; S165 becomes next only after that acceptance and merge.
+and merge are complete.
+
+### Paper Job reliability
+
+Sprint 165 exposes explicit `created`/`replayed` submission and
+`requeued`/`succeeded`/`failed` recovery outcomes. Run now owns a deterministic
+synchronous claim transaction before HTTP 202, while execution remains one
+non-durable post-response callback over the already-created attempt. This
+strengthens duplicate-command winner/loser behavior without claiming
+exactly-once execution.
+
+Retry remains non-executing `failed -> queued`; Recover remains explicit
+Founder-directed reconciliation against a required UTC threshold. Exclusive
+file creation, immutable attempts, optimistic recovery, and one atomic
+job/attempt/reference terminal transaction preserve artifact authority and
+rollback recoverability. Migration head remains `0005`; no cleanup, overwrite,
+worker, lease, heartbeat, scheduler, polling, automatic command, financial
+ranking, or lifecycle behavior is added. Founder reliability acceptance remains
+before merge; S166 becomes next only after acceptance and merge.
 
 ## Product and Architecture Records
 

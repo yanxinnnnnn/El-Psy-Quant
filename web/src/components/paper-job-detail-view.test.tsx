@@ -183,8 +183,21 @@ describe("PaperJobDetailView", () => {
     expect(pending).toBeDisabled();
     await user.click(pending);
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
-    resolveRun?.(response(baseJob, 202));
-    expect(await screen.findByText(/Execution was accepted, not completed/)).toBeVisible();
+    resolveRun?.(response(runningJob, 202));
+    expect(
+      await screen.findByText(/The job was synchronously claimed as running/),
+    ).toBeVisible();
+    expect(screen.getByText(/attempt #1 \(attempt-running\)/)).toBeVisible();
+    const claimedAttempts = await screen.findByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(claimedAttempts).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(claimedAttempts).getByRole("rowheader", {
+        name: "attempt-running",
+      }),
+    ).toBeVisible();
+    expect(screen.queryByText("No attempts exist.")).not.toBeInTheDocument();
     expect(fetcher.mock.calls[2][0]).toBe(`/api/backend/api/v1/paper-jobs/${jobId}/run`);
     expect(screen.getByText(/Displayed job state is stale/)).toBeVisible();
     expect(screen.getByText(/Refresh status is required/)).toBeVisible();
@@ -204,14 +217,296 @@ describe("PaperJobDetailView", () => {
     expect(detailReads).toBe(2);
     expect(attemptsReads).toBe(2);
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+    const refreshedAttempts = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(refreshedAttempts).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(refreshedAttempts).getAllByRole("rowheader", {
+        name: "attempt-running",
+      }),
+    ).toHaveLength(1);
+  });
+
+  it("merges delayed same-sequence attempt history after Run and rejects stale refreshes", async () => {
+    const firstAttempt = {
+      attempt_id: "attempt-first",
+      attempt_number: 1,
+      status: "interrupted",
+      started_timestamp: "2026-07-15T08:00:00Z",
+      completed_timestamp: "2026-07-15T08:05:00Z",
+      error_code: "interrupted_without_output",
+    };
+    const secondAttempt = {
+      attempt_id: "attempt-second",
+      attempt_number: 2,
+      status: "failed",
+      started_timestamp: "2026-07-15T09:00:00Z",
+      completed_timestamp: "2026-07-15T09:05:00Z",
+      error_code: "workflow_validation_failed",
+    };
+    const thirdRunning = {
+      attempt_id: "attempt-third",
+      attempt_number: 3,
+      status: "running",
+      started_timestamp: "2026-07-15T10:01:00Z",
+      completed_timestamp: null,
+      error_code: null,
+    };
+    const thirdSucceeded = {
+      ...thirdRunning,
+      status: "succeeded",
+      completed_timestamp: "2026-07-15T10:02:00Z",
+    };
+    const queuedJob = {
+      ...baseJob,
+      attempt_count: 2,
+      latest_attempt: secondAttempt,
+    };
+    const runningJob = {
+      ...queuedJob,
+      status: "running",
+      updated_timestamp: "2026-07-15T10:01:00Z",
+      attempt_count: 3,
+      latest_attempt: thirdRunning,
+    };
+    const succeededJob = {
+      ...runningJob,
+      status: "succeeded",
+      updated_timestamp: "2026-07-15T10:02:00Z",
+      latest_attempt: thirdSucceeded,
+    };
+    let resolveInitialAttempts: ((value: Response) => void) | undefined;
+    let resolveStaleRefresh: ((value: Response) => void) | undefined;
+    const initialAttempts = new Promise<Response>((resolve) => {
+      resolveInitialAttempts = resolve;
+    });
+    const staleRefresh = new Promise<Response>((resolve) => {
+      resolveStaleRefresh = resolve;
+    });
+    let attemptReads = 0;
+    let detailReads = 0;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) {
+        attemptReads += 1;
+        if (attemptReads === 1) return initialAttempts;
+        if (attemptReads === 2) return staleRefresh;
+        return Promise.resolve(
+          response([firstAttempt, secondAttempt, thirdSucceeded]),
+        );
+      }
+      if (init?.method === "POST") {
+        return Promise.resolve(response(runningJob, 202));
+      }
+      detailReads += 1;
+      return Promise.resolve(
+        response(
+          detailReads === 1
+            ? queuedJob
+            : detailReads === 2
+              ? runningJob
+              : succeededJob,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Run" }));
+    await user.click(screen.getByRole("button", { name: "Confirm Run" }));
+
+    const beforeHistory = await screen.findByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(beforeHistory).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(beforeHistory).getByRole("rowheader", { name: "attempt-third" }),
+    ).toBeVisible();
+    expect(screen.getByText("Attempt count").closest("div")).toHaveTextContent("3");
+
+    resolveInitialAttempts?.(response([firstAttempt, secondAttempt]));
+
+    await waitFor(() => {
+      const rows = within(
+        screen.getByRole("table", { name: "Attempts in exact API order" }),
+      ).getAllByRole("row").slice(1);
+      expect(
+        rows.map((row) => within(row).getByRole("rowheader").textContent),
+      ).toEqual(["attempt-first", "attempt-second", "attempt-third"]);
+    });
+    expect(
+      screen.getAllByRole("rowheader", { name: "attempt-third" }),
+    ).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Refresh status" }));
+    await screen.findByRole("button", { name: "Recover" });
+    await user.click(screen.getByRole("button", { name: "Refresh status" }));
+
+    await waitFor(() => {
+      const table = screen.getByRole("table", {
+        name: "Attempts in exact API order",
+      });
+      expect(within(table).getAllByRole("row")).toHaveLength(4);
+      expect(
+        within(table).getByText("succeeded", { selector: "code" }),
+      ).toBeVisible();
+    });
+
+    resolveStaleRefresh?.(response([firstAttempt, thirdRunning]));
+
+    await waitFor(() => {
+      const table = screen.getByRole("table", {
+        name: "Attempts in exact API order",
+      });
+      expect(
+        within(table).getAllByRole("rowheader").map((cell) => cell.textContent),
+      ).toEqual(["attempt-first", "attempt-second", "attempt-third"]);
+      expect(
+        within(table).queryByText("running", { selector: "code" }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("permanently retires a Run overlay after a newer successful Attempts refresh", async () => {
+    const runningAttempt = {
+      attempt_id: "attempt-retired-overlay",
+      attempt_number: 1,
+      status: "running",
+      started_timestamp: "2026-07-15T10:01:00Z",
+      completed_timestamp: null,
+      error_code: null,
+    };
+    const succeededAttempt = {
+      ...runningAttempt,
+      status: "succeeded",
+      completed_timestamp: "2026-07-15T10:02:00Z",
+    };
+    const runningJob = {
+      ...baseJob,
+      status: "running",
+      updated_timestamp: "2026-07-15T10:01:00Z",
+      attempt_count: 1,
+      latest_attempt: runningAttempt,
+    };
+    const succeededJob = {
+      ...runningJob,
+      status: "succeeded",
+      updated_timestamp: "2026-07-15T10:02:00Z",
+      latest_attempt: succeededAttempt,
+      result_available: true,
+      result_url: `/api/v1/paper-jobs/${jobId}/result`,
+    };
+    let rejectLaterAttempts: ((reason?: unknown) => void) | undefined;
+    const laterAttempts = new Promise<Response>((_resolve, reject) => {
+      rejectLaterAttempts = reject;
+    });
+    let detailReads = 0;
+    let attemptReads = 0;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) {
+        attemptReads += 1;
+        if (attemptReads === 1) return Promise.resolve(response([]));
+        if (attemptReads === 2) {
+          return Promise.resolve(response([succeededAttempt]));
+        }
+        return laterAttempts;
+      }
+      if (init?.method === "POST") {
+        return Promise.resolve(response(runningJob, 202));
+      }
+      detailReads += 1;
+      return Promise.resolve(response(detailReads === 1 ? baseJob : succeededJob));
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Run" }));
+    await user.click(screen.getByRole("button", { name: "Confirm Run" }));
+
+    const overlayTable = await screen.findByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(
+      within(overlayTable).getByText("running", { selector: "code" }),
+    ).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Refresh status" }));
+
+    await waitFor(() => {
+      const table = screen.getByRole("table", {
+        name: "Attempts in exact API order",
+      });
+      expect(
+        within(table).getByText("succeeded", { selector: "code" }),
+      ).toBeVisible();
+      expect(
+        within(table).queryByText("running", { selector: "code" }),
+      ).not.toBeInTheDocument();
+      expect(
+        within(table).getAllByRole("rowheader", {
+          name: "attempt-retired-overlay",
+        }),
+      ).toHaveLength(1);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Refresh status" }));
+
+    const loadingTable = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(
+      within(loadingTable).getByText("succeeded", { selector: "code" }),
+    ).toBeVisible();
+    expect(
+      within(loadingTable).queryByText("running", { selector: "code" }),
+    ).not.toBeInTheDocument();
+
+    rejectLaterAttempts?.(new TypeError("Attempts refresh failed"));
+
+    expect(await screen.findByText("Error code: api_unavailable")).toBeVisible();
+    const failedRefreshTable = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(
+      within(failedRefreshTable).getByText("succeeded", { selector: "code" }),
+    ).toBeVisible();
+    expect(
+      within(failedRefreshTable).queryByText("running", { selector: "code" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(failedRefreshTable).getAllByRole("rowheader", {
+        name: "attempt-retired-overlay",
+      }),
+    ).toHaveLength(1);
   });
 
   it("Retry returns queued without calling Run", async () => {
-    const failed = { ...baseJob, status: "failed" };
-    const queued = { ...baseJob, status: "queued", updated_timestamp: "2026-07-15T12:00:00Z" };
+    const failedAttempt = {
+      attempt_id: "attempt-failed",
+      attempt_number: 1,
+      status: "failed",
+      started_timestamp: "2026-07-15T11:00:00Z",
+      completed_timestamp: "2026-07-15T11:01:00Z",
+      error_code: "workflow_validation_failed",
+    };
+    const failed = {
+      ...baseJob,
+      status: "failed",
+      attempt_count: 1,
+      latest_attempt: failedAttempt,
+    };
+    const queued = {
+      ...failed,
+      status: "queued",
+      updated_timestamp: "2026-07-15T12:00:00Z",
+    };
     const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
       const url = String(input);
-      if (url.endsWith("/attempts")) return Promise.resolve(response([]));
+      if (url.endsWith("/attempts")) return Promise.resolve(response([failedAttempt]));
       if (init?.method === "POST") return Promise.resolve(response(queued));
       return Promise.resolve(response(failed));
     });
@@ -223,6 +518,232 @@ describe("PaperJobDetailView", () => {
     expect(await screen.findByText(/returned to queued/)).toBeVisible();
     expect(fetcher.mock.calls.filter(([url]) => String(url).endsWith("/run"))).toHaveLength(0);
     expect(screen.getByRole("button", { name: "Run" })).toBeVisible();
+    const attempts = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(attempts).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(attempts).getByRole("rowheader", { name: "attempt-failed" }),
+    ).toBeVisible();
+  });
+
+  it("Recover reconciles the terminal attempt in both summary and audit", async () => {
+    const runningAttempt = {
+      attempt_id: "attempt-recovered",
+      attempt_number: 1,
+      status: "running",
+      started_timestamp: "2026-07-15T10:00:00Z",
+      completed_timestamp: null,
+      error_code: null,
+    };
+    const interruptedAttempt = {
+      ...runningAttempt,
+      status: "interrupted",
+      completed_timestamp: "2026-07-15T10:05:00Z",
+      error_code: "interrupted_without_output",
+    };
+    const running = {
+      ...baseJob,
+      status: "running",
+      attempt_count: 1,
+      latest_attempt: runningAttempt,
+    };
+    const requeued = {
+      ...running,
+      status: "queued",
+      updated_timestamp: "2026-07-15T10:05:00Z",
+      latest_attempt: interruptedAttempt,
+    };
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) {
+        return Promise.resolve(response([runningAttempt]));
+      }
+      if (init?.method === "POST") {
+        return Promise.resolve(
+          response({ recovery_outcome: "requeued", job: requeued }),
+        );
+      }
+      return Promise.resolve(response(running));
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Recover" }));
+    await user.type(
+      screen.getByLabelText("Stale before (exact UTC)"),
+      "2026-07-15T10:00:00Z",
+    );
+    await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
+
+    expect(await screen.findByText(/Recovery outcome: requeued/)).toBeVisible();
+    const attempts = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(attempts).getAllByRole("row")).toHaveLength(2);
+    const row = within(attempts)
+      .getByRole("rowheader", { name: "attempt-recovered" })
+      .closest("tr");
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).getByText("interrupted", {
+      selector: "code",
+    })).toBeVisible();
+    expect(within(row as HTMLElement).queryByText("running", {
+      selector: "code",
+    })).not.toBeInTheDocument();
+    expect(screen.getAllByText("interrupted", { selector: "code" }).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("merges delayed Recover history and replaces the matching active attempt", async () => {
+    const firstAttempt = {
+      attempt_id: "attempt-history-1",
+      attempt_number: 1,
+      status: "interrupted",
+      started_timestamp: "2026-07-15T08:00:00Z",
+      completed_timestamp: "2026-07-15T08:05:00Z",
+      error_code: "interrupted_without_output",
+    };
+    const secondAttempt = {
+      attempt_id: "attempt-history-2",
+      attempt_number: 2,
+      status: "failed",
+      started_timestamp: "2026-07-15T09:00:00Z",
+      completed_timestamp: "2026-07-15T09:05:00Z",
+      error_code: "workflow_validation_failed",
+    };
+    const runningAttempt = {
+      attempt_id: "attempt-active",
+      attempt_number: 3,
+      status: "running",
+      started_timestamp: "2026-07-15T10:00:00Z",
+      completed_timestamp: null,
+      error_code: null,
+    };
+    const interruptedAttempt = {
+      ...runningAttempt,
+      status: "interrupted",
+      completed_timestamp: "2026-07-15T10:05:00Z",
+      error_code: "interrupted_without_output",
+    };
+    const running = {
+      ...baseJob,
+      status: "running",
+      attempt_count: 3,
+      latest_attempt: runningAttempt,
+    };
+    const requeued = {
+      ...running,
+      status: "queued",
+      updated_timestamp: "2026-07-15T10:05:00Z",
+      latest_attempt: interruptedAttempt,
+    };
+    let resolveInitialAttempts: ((value: Response) => void) | undefined;
+    const initialAttempts = new Promise<Response>((resolve) => {
+      resolveInitialAttempts = resolve;
+    });
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) return initialAttempts;
+      if (init?.method === "POST") {
+        return Promise.resolve(
+          response({ recovery_outcome: "requeued", job: requeued }),
+        );
+      }
+      return Promise.resolve(response(running));
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Recover" }));
+    await user.type(
+      screen.getByLabelText("Stale before (exact UTC)"),
+      "2026-07-15T10:00:00Z",
+    );
+    await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
+
+    const beforeHistory = await screen.findByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(beforeHistory).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(beforeHistory).getByText("interrupted", { selector: "code" }),
+    ).toBeVisible();
+
+    resolveInitialAttempts?.(
+      response([firstAttempt, secondAttempt, runningAttempt]),
+    );
+
+    await waitFor(() => {
+      const table = screen.getByRole("table", {
+        name: "Attempts in exact API order",
+      });
+      const rows = within(table).getAllByRole("row").slice(1);
+      expect(
+        rows.map((row) => within(row).getByRole("rowheader").textContent),
+      ).toEqual(["attempt-history-1", "attempt-history-2", "attempt-active"]);
+      expect(
+        within(table).getAllByRole("rowheader", { name: "attempt-active" }),
+      ).toHaveLength(1);
+      const activeRow = within(table)
+        .getByRole("rowheader", { name: "attempt-active" })
+        .closest("tr");
+      expect(activeRow).not.toBeNull();
+      expect(
+        within(activeRow as HTMLElement).getByText("interrupted", {
+          selector: "code",
+        }),
+      ).toBeVisible();
+      expect(
+        within(activeRow as HTMLElement).queryByText("running", {
+          selector: "code",
+        }),
+      ).not.toBeInTheDocument();
+    });
+    expect(screen.getByText("Attempt count").closest("div")).toHaveTextContent("3");
+  });
+
+  it("Cancel preserves the existing attempt audit", async () => {
+    const priorAttempt = {
+      attempt_id: "attempt-before-cancel",
+      attempt_number: 1,
+      status: "interrupted",
+      started_timestamp: "2026-07-15T09:00:00Z",
+      completed_timestamp: "2026-07-15T09:05:00Z",
+      error_code: "interrupted_without_output",
+    };
+    const queued = {
+      ...baseJob,
+      attempt_count: 1,
+      latest_attempt: priorAttempt,
+    };
+    const canceled = { ...queued, status: "canceled" };
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) {
+        return Promise.resolve(response([priorAttempt]));
+      }
+      if (init?.method === "POST") return Promise.resolve(response(canceled));
+      return Promise.resolve(response(queued));
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: "Confirm Cancel" }));
+
+    expect(await screen.findByText(/was canceled/)).toBeVisible();
+    const table = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(table).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(table).getByRole("rowheader", {
+        name: "attempt-before-cancel",
+      }),
+    ).toBeVisible();
   });
 
   it("Recover rejects incompatible UTC input then sends the exact Founder-supplied valid value", async () => {
@@ -230,7 +751,11 @@ describe("PaperJobDetailView", () => {
     const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
       const url = String(input);
       if (url.endsWith("/attempts")) return Promise.resolve(response([]));
-      if (init?.method === "POST") return Promise.resolve(response(running));
+      if (init?.method === "POST") {
+        return Promise.resolve(
+          response({ recovery_outcome: "requeued", job: running }),
+        );
+      }
       return Promise.resolve(response(running));
     });
     vi.stubGlobal("fetch", fetcher);
@@ -239,17 +764,27 @@ describe("PaperJobDetailView", () => {
     await user.click(await screen.findByRole("button", { name: "Recover" }));
     await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T10:00:00");
     await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
-    expect(await screen.findByText(/full UTC date and time/)).toBeVisible();
+    expect(await screen.findByText(/Enter exact UTC/)).toBeVisible();
     expect(fetcher).toHaveBeenCalledTimes(2);
     await user.clear(screen.getByLabelText("Stale before (exact UTC)"));
     await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-02-30T10:00:00Z");
     await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
     expect(fetcher).toHaveBeenCalledTimes(2);
     await user.clear(screen.getByLabelText("Stale before (exact UTC)"));
+    await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T09:59:59Z");
+    await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(
+      within(
+        screen.getByRole("group", { name: "Confirm Recover for run-155" }),
+      ).getByText(baseJob.updated_timestamp, { selector: "code" }),
+    ).toBeVisible();
+    await user.clear(screen.getByLabelText("Stale before (exact UTC)"));
     await user.type(screen.getByLabelText("Stale before (exact UTC)"), "2026-07-15T10:00:00.123+00:00");
     await user.click(screen.getByRole("button", { name: "Confirm Recover" }));
     await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(3));
     expect(JSON.parse(String((fetcher.mock.calls[2][1] as RequestInit).body))).toEqual({ stale_before: "2026-07-15T10:00:00.123+00:00" });
+    expect(await screen.findByText(/Recovery outcome: requeued/)).toBeVisible();
   });
 
   it("keeps loaded job data visible when attempts and mutation requests fail", async () => {
@@ -270,5 +805,58 @@ describe("PaperJobDetailView", () => {
     expect(screen.getByText(/Refresh status manually/)).toBeVisible();
     expect(screen.getByRole("heading", { name: "run-155" })).toBeVisible();
     expect(screen.getAllByText("Request detail-request").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("preserves settled job and attempt evidence when a mutation fails", async () => {
+    const priorAttempt = {
+      attempt_id: "attempt-prior",
+      attempt_number: 1,
+      status: "interrupted",
+      started_timestamp: "2026-07-15T09:00:00Z",
+      completed_timestamp: "2026-07-15T09:05:00Z",
+      error_code: "interrupted_without_output",
+    };
+    const queued = {
+      ...baseJob,
+      attempt_count: 1,
+      latest_attempt: priorAttempt,
+    };
+    const fetcher = vi.fn<typeof fetch>().mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/attempts")) {
+        return Promise.resolve(response([priorAttempt]));
+      }
+      if (init?.method === "POST") {
+        return Promise.resolve(
+          response({
+            error: {
+              code: "paper_job_state_conflict",
+              message: "State conflict",
+            },
+            request_id: "body",
+          }, 409),
+        );
+      }
+      return Promise.resolve(response(queued));
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PaperJobDetailView jobId={jobId} />);
+
+    await user.click(await screen.findByRole("button", { name: "Run" }));
+    await user.click(screen.getByRole("button", { name: "Confirm Run" }));
+
+    expect(await screen.findByText("Paper job state changed")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "run-155" })).toBeVisible();
+    const attempts = screen.getByRole("table", {
+      name: "Attempts in exact API order",
+    });
+    expect(within(attempts).getAllByRole("row")).toHaveLength(2);
+    expect(
+      within(attempts).getByRole("rowheader", { name: "attempt-prior" }),
+    ).toBeVisible();
+    expect(
+      screen.getAllByText("queued", { selector: "code" }).length,
+    ).toBeGreaterThanOrEqual(1);
   });
 });

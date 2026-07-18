@@ -627,6 +627,29 @@ function isPaperJobResponse(value: unknown): value is PaperJobResponse {
   );
 }
 
+function isPaperJobSubmissionResponse(
+  value: unknown,
+): value is PaperJobSubmissionResponse {
+  return (
+    isObject(value) &&
+    (value.submission_outcome === "created" ||
+      value.submission_outcome === "replayed") &&
+    isPaperJobResponse(value.job)
+  );
+}
+
+function isPaperJobRecoveryResponse(
+  value: unknown,
+): value is PaperJobRecoverResponse {
+  return (
+    isObject(value) &&
+    (value.recovery_outcome === "requeued" ||
+      value.recovery_outcome === "succeeded" ||
+      value.recovery_outcome === "failed") &&
+    isPaperJobResponse(value.job)
+  );
+}
+
 function isPaperJobListResponse(value: unknown): value is PaperJobListResponse {
   return Array.isArray(value) && value.every(isPaperJobResponse);
 }
@@ -1111,7 +1134,7 @@ export function submitPaperJob(
     method: "POST",
     requestBody: request,
     headers,
-    validate: isPaperJobResponse,
+    validate: isPaperJobSubmissionResponse,
     fetchImplementation,
   });
 }
@@ -1168,11 +1191,13 @@ export function recoverPaperJob(
   request: PaperJobRecoveryRequest,
   fetchImplementation: typeof fetch = fetch,
 ): Promise<ApiResult<PaperJobRecoverResponse>> {
-  return mutatePaperJob<PaperJobRecoverResponse>(
-    paperJobPath(PAPER_JOB_RECOVER_PATH, jobId),
+  return requestJson({
+    path: paperJobPath(PAPER_JOB_RECOVER_PATH, jobId),
+    method: "POST",
+    requestBody: request,
+    validate: isPaperJobRecoveryResponse,
     fetchImplementation,
-    request,
-  );
+  });
 }
 
 export function submitLifecycleTransitionProposal(

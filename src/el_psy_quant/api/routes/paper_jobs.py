@@ -18,11 +18,13 @@ from el_psy_quant.api.errors import PublicApiError
 from el_psy_quant.api.paper_job_schemas import (
     PaperJobAttemptResponse,
     PaperJobRecoveryRequest,
+    PaperJobRecoveryResponse,
     PaperJobResponse,
     PaperJobResultAuditResponse,
     PaperJobResultReferenceResponse,
     PaperJobResultResponse,
     PaperJobResultSummaryResponse,
+    PaperJobSubmissionResponse,
 )
 from el_psy_quant.api.paper_run_schemas import PaperRunCommandRequest
 from el_psy_quant.api.routes.paper_runs import (
@@ -31,6 +33,7 @@ from el_psy_quant.api.routes.paper_runs import (
 )
 from el_psy_quant.application import (
     PaperArtifactRootUnavailableError,
+    PaperJobClaim,
     PaperJobAttemptRecord,
     PaperJobConflictError,
     PaperJobExecutionError,
@@ -45,14 +48,15 @@ from el_psy_quant.application import (
     PaperJobStatusView,
     PaperRunInvalidError,
     cancel_paper_job,
+    claim_product_paper_job,
+    execute_claimed_product_paper_job,
     get_paper_job_status_view,
     list_paper_job_attempts,
     list_paper_job_status_views,
     read_paper_job_result,
     recover_product_paper_job,
     retry_product_paper_job,
-    run_product_paper_job_once,
-    submit_paper_job,
+    submit_paper_job_with_outcome,
 )
 
 router = APIRouter(prefix="/paper-jobs")
@@ -208,14 +212,12 @@ def _status_after(
 def _run_selected_job(
     *,
     session_factory: sessionmaker[Session],
-    job_id: str,
-    paper_artifact_root: Path,
+    claim: PaperJobClaim,
 ) -> None:
     try:
-        run_product_paper_job_once(
+        execute_claimed_product_paper_job(
             session_factory=session_factory,
-            job_id=job_id,
-            paper_artifact_root=paper_artifact_root,
+            claim=claim,
         )
     except (
         PaperArtifactRootUnavailableError,
@@ -227,20 +229,26 @@ def _run_selected_job(
         return
 
 
-@router.post("", response_model=PaperJobResponse)
+@router.post("", response_model=PaperJobSubmissionResponse)
 def post_paper_job(
     request: PaperRunCommandRequest,
     session_factory: SessionFactory,
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
-) -> PaperJobResponse:
+) -> PaperJobSubmissionResponse:
     """Durably submit or exactly replay one queued paper job without execution."""
     try:
-        job = submit_paper_job(
+        result = submit_paper_job_with_outcome(
             session_factory=session_factory,
             command=paper_run_command_from_request(request),
             idempotency_key=idempotency_key,
         )
-        return _status_after(session_factory=session_factory, job_id=job.job_id)
+        return PaperJobSubmissionResponse(
+            submission_outcome=result.outcome,
+            job=_status_after(
+                session_factory=session_factory,
+                job_id=result.job.job_id,
+            ),
+        )
     except SQLAlchemyError as exc:
         raise product_database_unavailable() from exc
     except Exception as exc:
@@ -313,19 +321,21 @@ def run_paper_job(
     paper_artifact_root: PaperRoot,
 ) -> PaperJobResponse:
     try:
-        view = get_paper_job_status_view(
+        claim = claim_product_paper_job(
             session_factory=session_factory,
             job_id=job_id,
+            paper_artifact_root=paper_artifact_root,
         )
-        if view.job.status != "queued":
-            raise PaperJobStateConflictError()
+        response = _status_after(
+            session_factory=session_factory,
+            job_id=claim.job.job_id,
+        )
         background_tasks.add_task(
             _run_selected_job,
             session_factory=session_factory,
-            job_id=view.job.job_id,
-            paper_artifact_root=paper_artifact_root,
+            claim=claim,
         )
-        return _job_response(view)
+        return response
     except SQLAlchemyError as exc:
         raise product_database_unavailable() from exc
     except Exception as exc:
@@ -365,13 +375,13 @@ def retry_paper_job_route(
         _raise_application_error(exc)
 
 
-@router.post("/{job_id}/recover", response_model=PaperJobResponse)
+@router.post("/{job_id}/recover", response_model=PaperJobRecoveryResponse)
 def recover_paper_job_route(
     job_id: str,
     request: PaperJobRecoveryRequest,
     session_factory: SessionFactory,
     paper_artifact_root: PaperRoot,
-) -> PaperJobResponse:
+) -> PaperJobRecoveryResponse:
     try:
         result = recover_product_paper_job(
             session_factory=session_factory,
@@ -379,7 +389,13 @@ def recover_paper_job_route(
             paper_artifact_root=paper_artifact_root,
             stale_before=request.stale_before,
         )
-        return _status_after(session_factory=session_factory, job_id=result.job.job_id)
+        return PaperJobRecoveryResponse(
+            recovery_outcome=result.outcome,
+            job=_status_after(
+                session_factory=session_factory,
+                job_id=result.job.job_id,
+            ),
+        )
     except SQLAlchemyError as exc:
         raise product_database_unavailable() from exc
     except Exception as exc:

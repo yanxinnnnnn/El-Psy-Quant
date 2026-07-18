@@ -40,6 +40,11 @@ class PaperJobResponse(BaseModel):
     result_url: str | None
 
 
+class PaperJobSubmissionResponse(BaseModel):
+    submission_outcome: Literal["created", "replayed"]
+    job: PaperJobResponse
+
+
 class PaperJobRecoveryRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -51,6 +56,11 @@ class PaperJobRecoveryRequest(BaseModel):
         if value.tzinfo is None or value.utcoffset() != timedelta(0):
             raise ValueError("stale_before must be timezone-aware UTC")
         return value
+
+
+class PaperJobRecoveryResponse(BaseModel):
+    recovery_outcome: Literal["requeued", "succeeded", "failed"]
+    job: PaperJobResponse
 
 
 class PaperJobResultReferenceResponse(BaseModel):

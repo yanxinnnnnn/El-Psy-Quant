@@ -4,9 +4,10 @@
 
 Milestone 29 is **In Progress**.
 
-Sprints 161, 162, and 163 are complete. Sprint 164 implementation is complete in
-its review branch; Founder Standard/Demo Dashboard acceptance and the merge
-decision remain pending. Sprint 165 must not begin before both are complete.
+Sprints 161, 162, 163, and 164 are complete. Sprint 165 implementation is
+complete in its review branch; Founder Standard/Demo reliability acceptance and
+the merge decision remain pending. Sprint 166 must not begin before both are
+complete.
 
 ## Milestone Objective
 
@@ -269,7 +270,7 @@ backend knows.
 
 **Implementation status**
 
-Implementation complete in the Sprint 164 review branch. Overview now composes
+Complete and merged. Overview composes
 the existing process-health, Demo descriptor, research-run list,
 evidence-manifest list, and Paper Job list contracts into independently stateful
 regions. Partial availability, stable error identity, individual retry,
@@ -280,8 +281,8 @@ generic workflow choices, and Demo descriptor relationships are preserved.
 
 No backend or generated contract, database, domain, authentication, gateway,
 locale-routing, command, financial-calculation, polling, or durable lifecycle
-read-model change was made. Founder local Standard/Demo Dashboard acceptance and
-the merge decision remain pending. Sprint 165 becomes next only after both.
+read-model change was made. Founder local Standard/Demo Dashboard acceptance is
+complete.
 
 ### Sprint 165 — Reliability, Idempotency, and Job Recovery Hardening
 
@@ -328,6 +329,22 @@ routine Founder operation.
 **Founder verification**
 
 Exercise submit/replay/conflict, Run, failure, Retry, and Recover scenarios.
+
+**Implementation status**
+
+Implementation complete; Founder reliability acceptance remains. Submission
+reports `created` or `replayed`; Run atomically commits one running job and
+attempt before HTTP 202; the non-durable post-response task executes the
+existing claim; Retry stays clean-output, non-executing, and attempt-free; and
+Recover reports `requeued`, `succeeded`, or `failed` from the exact
+Founder-supplied UTC threshold. One centralized bilingual Web action policy,
+conflict guidance, collision protection, optimistic reconciliation, and focused
+concurrency/rollback coverage preserve settled evidence and artifact authority.
+
+No migration, table, column, status, lease, heartbeat, worker, scheduler,
+polling, cleanup, force overwrite, financial calculation, lifecycle automation,
+or Sprint 166 behavior was added. S166 becomes next only after Sprint 165 is
+merged and Founder Standard/Demo reliability acceptance is complete.
 
 ### Sprint 166 — Error Surface, Observability, and Audit Hardening
 

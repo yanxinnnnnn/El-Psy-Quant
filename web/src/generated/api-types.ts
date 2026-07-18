@@ -628,6 +628,15 @@ export interface components {
              */
             stale_before: string;
         };
+        /** PaperJobRecoveryResponse */
+        PaperJobRecoveryResponse: {
+            job: components["schemas"]["PaperJobResponse"];
+            /**
+             * Recovery Outcome
+             * @enum {string}
+             */
+            recovery_outcome: "requeued" | "succeeded" | "failed";
+        };
         /** PaperJobResponse */
         PaperJobResponse: {
             /** Attempt Count */
@@ -746,6 +755,15 @@ export interface components {
              * @constant
              */
             schema_version: 1;
+        };
+        /** PaperJobSubmissionResponse */
+        PaperJobSubmissionResponse: {
+            job: components["schemas"]["PaperJobResponse"];
+            /**
+             * Submission Outcome
+             * @enum {string}
+             */
+            submission_outcome: "created" | "replayed";
         };
         /** PaperOrderCommandRequest */
         PaperOrderCommandRequest: {
@@ -1461,7 +1479,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaperJobResponse"];
+                    "application/json": components["schemas"]["PaperJobSubmissionResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1589,7 +1607,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaperJobResponse"];
+                    "application/json": components["schemas"]["PaperJobRecoveryResponse"];
                 };
             };
             /** @description Validation Error */
