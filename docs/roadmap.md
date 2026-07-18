@@ -20,7 +20,7 @@ flowchart LR
     M9 --> M16["M16-M19<br/>Paper Trading Evidence Foundations ✅"]
     M16 --> M20["M20-M24<br/>Governance & Review Workflow ✅"]
     M20 --> M25["M25-M29<br/>Founder Productization & Hardening ✅"]
-    M25 --> M30["M30<br/>Portfolio Decision Review ⏭️"]
+    M25 --> M30["M30<br/>Portfolio Decision Review 🚧"]
     M30 --> M31["M31-M34<br/>Stateful Market-Driven Paper Trading"]
     M31 --> M35["M35-M36<br/>Durable Multi-day Paper Operations"]
     M35 --> FUTURE["Future<br/>Execution Readiness & Broker Adapter"]
@@ -59,7 +59,7 @@ flowchart LR
 | M27 — Persistence and Paper Job Control Foundation | S145-151 | Complete | Durable controllable local jobs. | Product metadata and jobs are inspectable, idempotent, and recoverable. |
 | M28 — Founder Paper Trading Web Workspace | S152-160 | Complete | First usable local Founder Web MVP. | The complete paper-decision journey is usable through Web/API. |
 | M29 — Product Feedback and Hardening | S161-168 | Complete | Bilingual daily-use product reliability. | The modernized product is dependable for routine Founder use. |
-| M30 — Portfolio-Level Decision Review Foundation | TBD | Next | Portfolio-aware human decision governance. | Concentration, exposure, interaction, and portfolio impact are reviewable without automatic allocation. |
+| M30 — Portfolio-Level Decision Review Foundation | S169-177 | In Progress | Portfolio-aware human decision governance. | Concentration, review exposure, interaction, and historical portfolio impact are reproducibly reviewable without automatic allocation. |
 | M31 — Stateful Paper Account and Ledger Foundation | TBD | Planned | Durable account truth. | Cash, positions, orders, fills, and snapshots persist across sessions through one auditable ledger. |
 | M32 — Market Data Replay, Trading Calendar, and Session Clock | TBD | Planned | Deterministic market-time inputs. | Validated historical market sessions can drive the Paper runtime with explicit calendars and freshness rules. |
 | M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | TBD | Planned | Account-aware automated order intent. | Strategy output becomes idempotent risk-checked Paper orders without Founder-authored orders. |
@@ -67,9 +67,9 @@ flowchart LR
 | M35 — Durable Paper Runtime and Recovery | TBD | Planned | Reliable session execution. | Durable claims, checkpoints, explicit controls, duplicate prevention, and interruption recovery exist. |
 | M36 — Multi-day Paper Operations and Acceptance | TBD | Planned | Continuous multi-session Paper Trading. | One account can run safely across trading days with reconciliation and Founder operational acceptance. |
 
-Future sprint ranges are intentionally `TBD`. Each milestone receives its own
-planning Issue before implementation; this roadmap defines sequence and exit
-boundaries, not fixed dates.
+M30 now has an approved S169–S177 architecture. M31–M36 sprint ranges remain
+intentionally `TBD`; each milestone receives its own planning Issue before
+implementation.
 
 ## Completed Milestone 29
 
@@ -105,6 +105,45 @@ docs/milestones/milestone-029-product-feedback-and-hardening.md
 docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
 ```
 
+## Milestone 30 — Portfolio-Level Decision Review Foundation
+
+M30 is now In Progress through this sequence:
+
+| Sprint | Deliverable | Status |
+|---:|---|---|
+| S169 | Milestone 30 Architecture and Planning | In review |
+| S170 | Portfolio Review Input and Scenario Contract Foundation | Next after S169 merge |
+| S171 | Concentration and Exposure Analysis Foundation | Planned |
+| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Planned |
+| S173 | Portfolio Review Artifact and Human Decision Foundation | Planned |
+| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Planned |
+| S175 | Founder Portfolio Decision Review Web Workspace | Planned |
+| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Planned |
+| S177 | Milestone 30 Closeout and M31 Handoff | Planned |
+
+The M30 product chain is:
+
+```text
+validated review source
+  -> explicit baseline and proposed static scenarios
+  -> concentration and review exposure
+  -> strategy interaction and symbol overlap
+  -> baseline/proposed historical portfolio impact
+  -> immutable review evidence
+  -> explicit human approve / reject / defer decision
+  -> bilingual Founder inspection and audit
+```
+
+Architecture and milestone plan:
+
+```text
+docs/architecture/portfolio-level-decision-review.md
+docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
+```
+
+M30 does not allocate capital, mutate an account, generate orders, simulate
+fills, start a worker, connect to a broker, or implement M31–M36 behavior.
+
 ## Approved Paper Trading Runtime Sequence
 
 The authoritative future plan is:
@@ -115,9 +154,9 @@ docs/strategy/paper-trading-runtime-roadmap.md
 
 ### M30 — Portfolio decision review
 
-M30 adds portfolio-level context to explicit human decisions before automatic
-order generation is introduced. It must not allocate capital or authorize
-execution.
+M30 adds reproducible portfolio-level context to explicit human decisions before
+automatic order generation is introduced. It must not allocate capital or
+authorize execution.
 
 ### M31–M33 — Build the transaction source of truth
 
@@ -171,6 +210,8 @@ Browser
 - SQLite remains compact metadata and operational state.
 - Raw API, domain, artifact, and audit values remain unchanged by localization.
 - Paper Job state remains separate from lifecycle governance.
+- Portfolio review status remains separate from strategy lifecycle and future
+  Paper Account state.
 - Lifecycle proposals remain non-executing.
 - Human review remains explicit evidence.
 - Demo and Standard storage remain isolated.
