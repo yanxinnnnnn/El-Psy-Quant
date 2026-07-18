@@ -1,8 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const HEALTH_ONLY = process.argv.includes("--health-only");
 const DEFAULT_ORIGIN = "http://127.0.0.1:3000";
+const LOCALE_COOKIE_NAME = "el_psy_quant_locale";
+const SUPPORTED_MODES = new Set(["standard", "demo"]);
 const ENVIRONMENT_KEYS = new Set([
   "EL_PSY_QUANT_FOUNDER_USERNAME",
   "EL_PSY_QUANT_FOUNDER_PASSWORD",
@@ -10,7 +12,25 @@ const ENVIRONMENT_KEYS = new Set([
   "EL_PSY_QUANT_WORKSPACE_MODE",
 ]);
 
-function loadRootEnvironment() {
+export const TOP_LEVEL_ROUTES = Object.freeze([
+  "/",
+  "/strategies",
+  "/research-runs",
+  "/evidence-manifests",
+  "/paper-jobs",
+  "/paper-jobs/new",
+  "/portfolio-records",
+  "/comparisons",
+  "/lifecycle-review",
+]);
+
+export const FORBIDDEN_MUTATION_FRAGMENTS = Object.freeze([
+  "/api/backend/api/v1/paper-jobs/",
+  "/api/backend/api/v1/lifecycle-transition-proposals",
+  "/api/backend/api/v1/lifecycle-transition-records",
+]);
+
+function loadRootEnvironment(environment = process.env) {
   const path = fileURLToPath(new URL("../../.env", import.meta.url));
   if (!existsSync(path)) {
     return;
@@ -25,7 +45,7 @@ function loadRootEnvironment() {
       continue;
     }
     const key = line.slice(0, separator).trim();
-    if (!ENVIRONMENT_KEYS.has(key) || process.env[key] !== undefined) {
+    if (!ENVIRONMENT_KEYS.has(key) || environment[key] !== undefined) {
       continue;
     }
     let value = line.slice(separator + 1).trim();
@@ -36,45 +56,64 @@ function loadRootEnvironment() {
     ) {
       value = value.slice(1, -1);
     }
-    process.env[key] = value;
+    environment[key] = value;
   }
 }
 
-function requireSetting(name) {
-  const value = process.env[name];
+function requireSetting(environment, name) {
+  const value = environment[name];
   if (value === undefined || value.length === 0) {
     throw new Error(`${name} is required for authenticated MVP verification`);
   }
   return value;
 }
 
-function basicAuthorization(username, password) {
+export function basicAuthorization(username, password) {
   return `Basic ${Buffer.from(`${username}:${password}`, "ascii").toString("base64")}`;
 }
 
-async function request(origin, path, { authorization, body } = {}) {
-  const headers = { Accept: "application/json" };
+export function buildRequestOptions({
+  authorization,
+  body,
+  cookie,
+  accept = "application/json",
+} = {}) {
+  const headers = { Accept: accept };
   if (authorization !== undefined) {
     headers.Authorization = authorization;
+  }
+  if (cookie !== undefined) {
+    headers.Cookie = cookie;
   }
   if (body !== undefined) {
     headers["Content-Type"] = "application/json";
   }
-  return fetch(`${origin}${path}`, {
+  return {
     method: body === undefined ? "GET" : "POST",
     cache: "no-store",
     headers,
     redirect: "manual",
     signal: AbortSignal.timeout(10_000),
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
+  };
 }
 
-async function expectStatus(response, expected, label) {
+export async function request(
+  fetchImpl,
+  origin,
+  path,
+  options = {},
+) {
+  return fetchImpl(
+    `${origin}${path}`,
+    buildRequestOptions(options),
+  );
+}
+
+export async function expectStatus(response, expected, label) {
   if (response.status !== expected) {
-    const detail = (await response.text()).slice(0, 240);
     throw new Error(
-      `${label} returned HTTP ${response.status}; expected ${expected}: ${detail}`,
+      `${label} returned HTTP ${response.status}; expected ${expected}`,
     );
   }
 }
@@ -87,44 +126,24 @@ async function expectJson(response, label) {
   }
 }
 
-function lifecycleProposal() {
-  return {
-    proposal_id: "mvp-smoke-proposal",
-    source_snapshot: {
-      snapshot_id: "mvp-smoke-research-snapshot",
-      strategy_id: "moving_average_crossover",
-      lifecycle_state: "research_review",
-      rationale: "Verify the existing stateless lifecycle boundary.",
-      declared_by: "founder",
-      declared_timestamp: "2026-07-15T00:00:00Z",
-      notes: [],
-      warnings: [],
-    },
-    target_state: "paper_review",
-    rationale: "Verify proposal normalization through the same-origin gateway.",
-    evidence_references: [
-      {
-        reference_type: "strategy_decision_record",
-        reference_id: "mvp-smoke-decision",
-        label: "Verification evidence",
-        description: null,
-      },
-      {
-        reference_type: "promotion_record",
-        reference_id: "mvp-smoke-promotion",
-        label: null,
-        description: "Verification evidence",
-      },
-    ],
-    requested_by: "founder",
-    requested_timestamp: "2026-07-15T00:01:00Z",
-    notes: [],
-    warnings: [],
-  };
+function requireRequestId(response, label) {
+  if (!response.headers.get("x-request-id")) {
+    throw new Error(`${label} did not return a request ID`);
+  }
 }
 
-async function verifyAuthenticationAndHealth(origin, authorization) {
+function cookieFromResponse(response, expectedLocale) {
+  const setCookie = response.headers.get("set-cookie") ?? "";
+  const expected = `${LOCALE_COOKIE_NAME}=${expectedLocale}`;
+  if (!setCookie.startsWith(expected)) {
+    throw new Error(`Locale switch to ${expectedLocale} did not set the expected cookie`);
+  }
+  return expected;
+}
+
+async function verifyAuthenticationAndHealth(fetchImpl, origin, authorization) {
   const unauthenticated = await request(
+    fetchImpl,
     origin,
     "/api/backend/api/v1/health",
   );
@@ -133,9 +152,12 @@ async function verifyAuthenticationAndHealth(origin, authorization) {
     throw new Error("Unauthenticated gateway health did not return a Basic challenge");
   }
 
-  const health = await request(origin, "/api/backend/api/v1/health", {
-    authorization,
-  });
+  const health = await request(
+    fetchImpl,
+    origin,
+    "/api/backend/api/v1/health",
+    { authorization },
+  );
   await expectStatus(health, 200, "Authenticated gateway health");
   const payload = await expectJson(health, "Authenticated gateway health");
   const expected = {
@@ -146,34 +168,107 @@ async function verifyAuthenticationAndHealth(origin, authorization) {
   if (JSON.stringify(payload) !== JSON.stringify(expected)) {
     throw new Error("Authenticated gateway health returned an unexpected contract");
   }
-  if (!health.headers.get("x-request-id")) {
-    throw new Error("Authenticated gateway health did not return a request ID");
+  requireRequestId(health, "Authenticated gateway health");
+}
+
+async function setLocale(fetchImpl, origin, authorization, locale) {
+  const response = await request(fetchImpl, origin, "/api/locale", {
+    authorization,
+    body: { locale },
+  });
+  await expectStatus(response, 200, `Locale switch to ${locale}`);
+  const payload = await expectJson(response, `Locale switch to ${locale}`);
+  if (payload.locale !== locale) {
+    throw new Error(`Locale switch to ${locale} returned an unexpected contract`);
+  }
+  return cookieFromResponse(response, locale);
+}
+
+async function verifyLocalizedDocument(
+  fetchImpl,
+  origin,
+  authorization,
+  locale,
+  cookie,
+) {
+  const response = await request(fetchImpl, origin, "/", {
+    authorization,
+    cookie,
+    accept: "text/html",
+  });
+  await expectStatus(response, 200, `${locale} workspace document`);
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.startsWith("text/html")) {
+    throw new Error(`${locale} workspace document did not return HTML`);
+  }
+  const html = await response.text();
+  if (!html.includes(`<html lang="${locale}">`)) {
+    throw new Error(`${locale} workspace document did not preserve document language`);
+  }
+  const representativeCopy = locale === "en"
+    ? "Founder Workspace"
+    : "创始人工作台";
+  if (!html.includes(representativeCopy)) {
+    throw new Error(`${locale} workspace document omitted representative localized copy`);
   }
 }
 
-async function verifyWorkspaceRoutes(origin, authorization) {
-  const routes = [
-    "/",
-    "/strategies",
-    "/research-runs",
-    "/evidence-manifests",
-    "/paper-jobs",
-    "/paper-jobs/new",
-    "/portfolio-records",
-    "/comparisons",
-    "/lifecycle-review",
-  ];
-  for (const path of routes) {
-    const response = await request(origin, path, { authorization });
-    await expectStatus(response, 200, `Workspace route ${path}`);
-    const contentType = response.headers.get("content-type") ?? "";
-    if (!contentType.startsWith("text/html")) {
-      throw new Error(`Workspace route ${path} did not return HTML`);
+async function verifyLocaleSwitching(fetchImpl, origin, authorization) {
+  const chineseCookie = await setLocale(
+    fetchImpl,
+    origin,
+    authorization,
+    "zh-CN",
+  );
+  await verifyLocalizedDocument(
+    fetchImpl,
+    origin,
+    authorization,
+    "zh-CN",
+    chineseCookie,
+  );
+  const englishCookie = await setLocale(
+    fetchImpl,
+    origin,
+    authorization,
+    "en",
+  );
+  await verifyLocalizedDocument(
+    fetchImpl,
+    origin,
+    authorization,
+    "en",
+    englishCookie,
+  );
+  return { chineseCookie, englishCookie };
+}
+
+async function verifyWorkspaceRoutes(
+  fetchImpl,
+  origin,
+  authorization,
+  cookies,
+) {
+  const detailRoutes = ["/strategies/moving_average_crossover"];
+  for (const [locale, cookie] of [
+    ["en", cookies.englishCookie],
+    ["zh-CN", cookies.chineseCookie],
+  ]) {
+    for (const path of [...TOP_LEVEL_ROUTES, ...detailRoutes]) {
+      const response = await request(fetchImpl, origin, path, {
+        authorization,
+        cookie,
+        accept: "text/html",
+      });
+      await expectStatus(response, 200, `${locale} workspace route ${path}`);
+      if (!(response.headers.get("content-type") ?? "").startsWith("text/html")) {
+        throw new Error(`${locale} workspace route ${path} did not return HTML`);
+      }
     }
   }
 }
 
-async function verifyReadWorkflows(origin, authorization) {
+async function verifyReadWorkflows(fetchImpl, origin, authorization) {
   const reads = [
     ["/api/backend/api/v1/strategies", "strategies"],
     ["/api/backend/api/v1/research-runs", "runs"],
@@ -181,7 +276,7 @@ async function verifyReadWorkflows(origin, authorization) {
     ["/api/backend/api/v1/paper-jobs?limit=20", null],
   ];
   for (const [path, collectionKey] of reads) {
-    const response = await request(origin, path, { authorization });
+    const response = await request(fetchImpl, origin, path, { authorization });
     await expectStatus(response, 200, `Workflow read ${path}`);
     const payload = await expectJson(response, `Workflow read ${path}`);
     const collection = collectionKey === null ? payload : payload[collectionKey];
@@ -191,14 +286,55 @@ async function verifyReadWorkflows(origin, authorization) {
   }
 }
 
-async function verifyDemoJourney(origin, authorization) {
-  const descriptorResponse = await request(
+function stableDescriptorIdentity(descriptor) {
+  return {
+    dataset_id: descriptor.dataset_id,
+    dataset_version: descriptor.dataset_version,
+    canonical_strategy_name: descriptor.canonical_strategy_name,
+    research_run: descriptor.research_run,
+    evidence_manifests: descriptor.evidence_manifests,
+    paper_jobs: descriptor.paper_jobs?.map(({ job_id, run_id }) => ({
+      job_id,
+      run_id,
+    })),
+    comparison_candidate_job_ids: descriptor.comparison_candidate_job_ids,
+  };
+}
+
+async function readDemoDescriptor(
+  fetchImpl,
+  origin,
+  authorization,
+  cookie,
+) {
+  const response = await request(
+    fetchImpl,
     origin,
     "/api/backend/api/v1/demo-workspace",
-    { authorization },
+    { authorization, cookie },
   );
-  await expectStatus(descriptorResponse, 200, "Demo workspace descriptor");
-  const descriptor = await expectJson(descriptorResponse, "Demo workspace descriptor");
+  await expectStatus(response, 200, "Demo workspace descriptor");
+  return expectJson(response, "Demo workspace descriptor");
+}
+
+async function verifyDemoJourney(
+  fetchImpl,
+  origin,
+  authorization,
+  cookies,
+) {
+  const descriptor = await readDemoDescriptor(
+    fetchImpl,
+    origin,
+    authorization,
+    cookies.englishCookie,
+  );
+  const localizedDescriptor = await readDemoDescriptor(
+    fetchImpl,
+    origin,
+    authorization,
+    cookies.chineseCookie,
+  );
   if (
     descriptor.schema_version !== 1 ||
     typeof descriptor.canonical_strategy_name !== "string" ||
@@ -212,6 +348,13 @@ async function verifyDemoJourney(origin, authorization) {
   ) {
     throw new Error("Demo workspace descriptor returned an unexpected contract");
   }
+  if (
+    JSON.stringify(stableDescriptorIdentity(descriptor)) !==
+    JSON.stringify(stableDescriptorIdentity(localizedDescriptor))
+  ) {
+    throw new Error("Demo raw identity changed with locale");
+  }
+
   const encoded = encodeURIComponent;
   const exactReads = [
     [
@@ -228,12 +371,13 @@ async function verifyDemoJourney(origin, authorization) {
     ]),
   ];
   for (const [path, label] of exactReads) {
-    const response = await request(origin, path, { authorization });
+    const response = await request(fetchImpl, origin, path, { authorization });
     await expectStatus(response, 200, label);
     await expectJson(response, label);
   }
   for (const job of descriptor.paper_jobs) {
     const jobResponse = await request(
+      fetchImpl,
       origin,
       `/api/backend/api/v1/paper-jobs/${encoded(job.job_id)}`,
       { authorization },
@@ -244,6 +388,7 @@ async function verifyDemoJourney(origin, authorization) {
       throw new Error(`Demo paper job ${job.job_id} is not a succeeded available result`);
     }
     const resultResponse = await request(
+      fetchImpl,
       origin,
       `/api/backend/api/v1/paper-jobs/${encoded(job.job_id)}/result`,
       { authorization },
@@ -256,81 +401,58 @@ async function verifyDemoJourney(origin, authorization) {
     comparisonQuery.append("job_id", jobId);
   }
   const comparisonResponse = await request(
+    fetchImpl,
     origin,
     `/comparisons?${comparisonQuery.toString()}`,
-    { authorization },
+    { authorization, cookie: cookies.englishCookie, accept: "text/html" },
   );
   await expectStatus(comparisonResponse, 200, "Descriptor-provided Demo comparison");
-  return descriptor;
 }
 
-async function verifyStandardDescriptorDisabled(origin, authorization) {
-  const response = await request(origin, "/api/backend/api/v1/demo-workspace", {
-    authorization,
-  });
-  await expectStatus(response, 404, "Standard workspace Demo descriptor");
-  const payload = await expectJson(response, "Standard workspace Demo descriptor");
-  if (payload.error?.code !== "demo_workspace_not_configured") {
-    throw new Error("Standard workspace exposed an unexpected Demo descriptor response");
+async function verifyStandardDescriptorDisabled(
+  fetchImpl,
+  origin,
+  authorization,
+  cookies,
+) {
+  const identities = [];
+  for (const cookie of [cookies.englishCookie, cookies.chineseCookie]) {
+    const response = await request(
+      fetchImpl,
+      origin,
+      "/api/backend/api/v1/demo-workspace",
+      { authorization, cookie },
+    );
+    await expectStatus(response, 404, "Standard workspace Demo descriptor");
+    requireRequestId(response, "Standard workspace Demo descriptor");
+    const payload = await expectJson(response, "Standard workspace Demo descriptor");
+    if (payload.error?.code !== "demo_workspace_not_configured") {
+      throw new Error("Standard workspace exposed an unexpected Demo descriptor response");
+    }
+    identities.push(payload.error.code);
+  }
+  if (new Set(identities).size !== 1) {
+    throw new Error("Standard raw error identity changed with locale");
   }
 }
 
-async function verifyLifecycleCommands(origin, authorization, examples = null) {
-  const proposal = examples?.lifecycle_proposal_example ?? lifecycleProposal();
-  const proposalResponse = await request(
+async function verifySanitizedError(fetchImpl, origin, authorization) {
+  const response = await request(
+    fetchImpl,
     origin,
-    "/api/backend/api/v1/lifecycle-transition-proposals",
-    { authorization, body: proposal },
+    "/api/backend/api/v1/paper-jobs?limit=0",
+    { authorization },
   );
-  await expectStatus(proposalResponse, 200, "Lifecycle proposal command");
-  const proposalPayload = await expectJson(
-    proposalResponse,
-    "Lifecycle proposal command",
-  );
-  if (proposalPayload.proposal?.proposal_id !== proposal.proposal_id) {
-    throw new Error("Lifecycle proposal command returned an unexpected contract");
-  }
-
-  const reviewResponse = await request(
-    origin,
-    "/api/backend/api/v1/lifecycle-transition-records",
-    {
-      authorization,
-      body: {
-        ...(examples?.lifecycle_review_example ?? {
-          transition_record_id: "mvp-smoke-review",
-          proposal,
-          review_outcome: "deferred",
-          rationale: "Verify explicit human review without applying a transition.",
-          resulting_snapshot: null,
-          reviewed_by: "founder",
-          reviewed_timestamp: "2026-07-15T00:02:00Z",
-          notes: [],
-          warnings: [],
-        }),
-      },
-    },
-  );
-  await expectStatus(reviewResponse, 200, "Lifecycle human-review command");
-  const reviewPayload = await expectJson(
-    reviewResponse,
-    "Lifecycle human-review command",
-  );
-  if (
-    reviewPayload.transition_record?.transition_record_id !==
-      (examples?.lifecycle_review_example.transition_record_id ?? "mvp-smoke-review") ||
-    (examples === null && reviewPayload.transition_record?.resulting_snapshot !== null)
-  ) {
-    throw new Error("Lifecycle human-review command returned an unexpected contract");
+  await expectStatus(response, 422, "Representative validation failure");
+  requireRequestId(response, "Representative validation failure");
+  const payload = await expectJson(response, "Representative validation failure");
+  if (payload.error?.code !== "request_validation_error") {
+    throw new Error("Representative failure omitted its stable error code");
   }
 }
 
-async function main() {
-  loadRootEnvironment();
-  const username = requireSetting("EL_PSY_QUANT_FOUNDER_USERNAME");
-  const password = requireSetting("EL_PSY_QUANT_FOUNDER_PASSWORD");
-  const origin = process.env.EL_PSY_QUANT_MVP_ORIGIN ?? DEFAULT_ORIGIN;
-  const parsedOrigin = new URL(origin);
+export function validateOrigin(value) {
+  const parsedOrigin = new URL(value);
   if (
     !["127.0.0.1", "localhost", "[::1]"].includes(parsedOrigin.hostname) ||
     parsedOrigin.pathname !== "/" ||
@@ -339,26 +461,78 @@ async function main() {
   ) {
     throw new Error("EL_PSY_QUANT_MVP_ORIGIN must be a complete loopback origin");
   }
-  const authorization = basicAuthorization(username, password);
-
-  await verifyAuthenticationAndHealth(parsedOrigin.origin, authorization);
-  if (HEALTH_ONLY) {
-    return;
-  }
-  await verifyWorkspaceRoutes(parsedOrigin.origin, authorization);
-  await verifyReadWorkflows(parsedOrigin.origin, authorization);
-  const workspaceMode = process.env.EL_PSY_QUANT_WORKSPACE_MODE ?? "standard";
-  const demoDescriptor = workspaceMode === "demo"
-    ? await verifyDemoJourney(parsedOrigin.origin, authorization)
-    : await verifyStandardDescriptorDisabled(parsedOrigin.origin, authorization);
-  await verifyLifecycleCommands(parsedOrigin.origin, authorization, demoDescriptor);
-  console.log(
-    `MVP verification passed: auth, same-origin health, workspace routes, read workflows, ${workspaceMode} workspace identity, and stateless lifecycle commands.`,
-  );
+  return parsedOrigin.origin;
 }
 
-main().catch((error) => {
-  const message = error instanceof Error ? error.message : "Unknown verification failure";
-  console.error(`MVP verification failed: ${message}`);
-  process.exitCode = 1;
-});
+export async function runVerification({
+  environment = process.env,
+  fetchImpl = fetch,
+  healthOnly = false,
+} = {}) {
+  const username = requireSetting(
+    environment,
+    "EL_PSY_QUANT_FOUNDER_USERNAME",
+  );
+  const password = requireSetting(
+    environment,
+    "EL_PSY_QUANT_FOUNDER_PASSWORD",
+  );
+  const origin = validateOrigin(
+    environment.EL_PSY_QUANT_MVP_ORIGIN ?? DEFAULT_ORIGIN,
+  );
+  const authorization = basicAuthorization(username, password);
+
+  await verifyAuthenticationAndHealth(fetchImpl, origin, authorization);
+  if (healthOnly) {
+    return "health";
+  }
+  const workspaceMode = environment.EL_PSY_QUANT_WORKSPACE_MODE ?? "standard";
+  if (!SUPPORTED_MODES.has(workspaceMode)) {
+    throw new Error("EL_PSY_QUANT_WORKSPACE_MODE must be standard or demo");
+  }
+  const cookies = await verifyLocaleSwitching(fetchImpl, origin, authorization);
+  await verifyWorkspaceRoutes(fetchImpl, origin, authorization, cookies);
+  await verifyReadWorkflows(fetchImpl, origin, authorization);
+  if (workspaceMode === "demo") {
+    await verifyDemoJourney(
+      fetchImpl,
+      origin,
+      authorization,
+      cookies,
+    );
+  } else {
+    await verifyStandardDescriptorDisabled(
+      fetchImpl,
+      origin,
+      authorization,
+      cookies,
+    );
+  }
+  await verifySanitizedError(fetchImpl, origin, authorization);
+  return workspaceMode;
+}
+
+async function main() {
+  loadRootEnvironment();
+  const mode = await runVerification({
+    healthOnly: process.argv.includes("--health-only"),
+  });
+  if (mode !== "health") {
+    console.log(
+      `MVP verification passed: authenticated health, bilingual routes, read-only workflows, ${mode} identity, stable raw values, and sanitized errors.`,
+    );
+  }
+}
+
+const isMain = process.argv[1] !== undefined &&
+  fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+
+if (isMain) {
+  main().catch((error) => {
+    const message = error instanceof Error
+      ? error.message
+      : "Unknown verification failure";
+    console.error(`MVP verification failed: ${message}`);
+    process.exitCode = 1;
+  });
+}

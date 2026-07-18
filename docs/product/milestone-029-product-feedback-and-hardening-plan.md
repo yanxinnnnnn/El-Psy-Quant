@@ -4,11 +4,10 @@
 
 Milestone 29 is **In Progress**.
 
-Sprints 161 through 165 are complete. Sprint 165 was merged at
-`61cd11ad7f680509d44e27180bfb33c8a9193896`. Sprint 166 implementation is
-complete; Founder Standard/Demo error-surface and observability acceptance and
-the merge decision remain pending. Sprint 167 must not begin before both are
-complete.
+Sprints 161 through 166 are complete. Sprint 166 was merged at
+`ca2a5873406b934d246dcb13c215a59970ef1b46`. Sprint 167 implementation is
+complete; Founder Standard/Demo migration/deployment acceptance and the merge
+decision remain pending. Sprint 168 must not begin before both are complete.
 
 ## Milestone Objective
 
@@ -397,8 +396,8 @@ failure cases in both languages.
 
 **Implementation status**
 
-Implementation complete; Founder Standard/Demo error-surface and observability
-acceptance remains. One static backend error inventory and matching complete Web
+Complete and merged at `ca2a5873406b934d246dcb13c215a59970ef1b46`.
+One static backend error inventory and matching complete Web
 inventory preserve the exact public envelope and request-ID contract while
 adding bilingual title, explanation, safe recovery, category, unknown-code
 fallback, and raw technical audit presentation.
@@ -413,9 +412,8 @@ errors have bilingual meaning and recovery guidance.
 Migration head remains `0005_paper_job_result_references`. No migration,
 durable audit/log record, telemetry platform, remote reporting, worker, queue,
 scheduler, polling, lifecycle automation, public debug field, cleanup, force
-overwrite, financial calculation, or broker behavior was added. S167 becomes
-next only after Sprint 166 is merged and Founder Standard/Demo error-surface
-and observability acceptance is complete.
+overwrite, financial calculation, or broker behavior was added. Founder
+Standard/Demo error-surface and observability acceptance is complete.
 
 ### Sprint 167 — Migration, Test, and Local Deployment Hardening
 
@@ -463,6 +461,19 @@ for daily use and future milestone handoff.
 
 Test fresh Standard startup, Demo startup/reset, return to Standard, and an
 upgrade of an existing local volume.
+
+**Implementation status**
+
+Implementation complete; Founder Standard/Demo migration and local deployment
+acceptance remains. The exact Alembic head and linear upgrade matrix,
+read-only workspace verification, fail-closed startup ordering, static Compose
+isolation, exact runtime dependency export, bilingual non-mutating smoke, and
+cold backup/upgrade/recovery runbook are implemented.
+
+No migration, schema, domain, API, financial, lifecycle, worker, queue,
+scheduler, polling, broker, cloud, proxy, automatic restore, or destructive
+Standard reset behavior was added. S168 becomes next only after Founder
+acceptance and the Sprint 167 merge.
 
 ### Sprint 168 — Milestone 29 Closeout and M30 Handoff
 

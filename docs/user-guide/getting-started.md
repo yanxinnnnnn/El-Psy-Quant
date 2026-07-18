@@ -15,6 +15,11 @@ For installation, storage, and startup operations, see the
 [local operations guide](../founder-mvp-local-operations.md). Those tasks are
 separate from the product workflow described here.
 
+Before serving a fresh, upgraded, or restored workspace, the operator should
+complete the explicit read-only `verify-local-workspace` check. Existing
+Standard upgrades require a cold complete-`/data` backup first; see the
+[install, upgrade, and recovery runbook](../operations/local-install-upgrade-and-recovery.md).
+
 ## Sign In
 
 Open `http://127.0.0.1:3000` on the machine running El-Psy-Quant. Enter the
@@ -91,6 +96,10 @@ Standard and Demo use different storage volumes but the same loopback ports, so
 an operator must stop one before starting the other. See the
 [local operations guide](../founder-mvp-local-operations.md) for start, replay,
 safe Demo reset, and return-to-standard commands.
+
+The documented Demo reset removes only the isolated Demo project volume. There
+is no supported Standard volume-reset helper. Protect real Standard data with a
+cold complete-workspace backup before code/image upgrades.
 
 ## Learn the Navigation
 

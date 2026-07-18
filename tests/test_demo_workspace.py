@@ -5,6 +5,8 @@ import shutil
 from pathlib import Path
 
 import pytest
+from alembic import command
+from alembic.config import Config
 
 from el_psy_quant.application.paper_jobs import read_paper_job_result
 from el_psy_quant.demo_workspace import (
@@ -105,6 +107,52 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         engine.dispose()
 
 
+def test_exact_demo_at_prior_revision_forward_upgrades_without_reinstall(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    paths = DemoWorkspacePaths.from_root(target)
+    artifacts_before = {
+        path.relative_to(target).as_posix(): path.read_bytes()
+        for path in target.rglob("*")
+        if path.is_file() and path != paths.database_path
+    }
+    monkeypatch.setenv(
+        "EL_PSY_QUANT_PRODUCT_DATABASE_PATH",
+        str(paths.database_path),
+    )
+    command.downgrade(Config(str(ALEMBIC_CONFIG)), "0004_paper_job_recovery_audit")
+
+    result = _install(DEMO_SOURCE, target)
+
+    assert result.already_installed is True
+    assert {
+        path.relative_to(target).as_posix(): path.read_bytes()
+        for path in target.rglob("*")
+        if path.is_file() and path != paths.database_path
+    } == artifacts_before
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(
+            database_path=paths.database_path
+        )
+    )
+    factory = create_product_session_factory(engine=engine)
+    try:
+        for job_id in (
+            "16000000-0000-4000-8000-000000000001",
+            "16000000-0000-4000-8000-000000000002",
+        ):
+            assert read_paper_job_result(
+                session_factory=factory,
+                job_id=job_id,
+                paper_artifact_root=paths.paper_root,
+            ).job_id == job_id
+    finally:
+        engine.dispose()
+
+
 def test_source_validation_failure_precedes_target_creation(tmp_path: Path) -> None:
     source = tmp_path / "source"
     shutil.copytree(DEMO_SOURCE, source)
@@ -194,4 +242,4 @@ def test_standard_and_demo_compose_storage_are_distinct() -> None:
     assert "demo-data:/data" in demo
     assert "EL_PSY_QUANT_WORKSPACE_MODE: demo" in demo
     assert "install-demo-workspace" not in standard
-    assert "install-demo-workspace" in demo
+    assert "start-local-backend" in demo

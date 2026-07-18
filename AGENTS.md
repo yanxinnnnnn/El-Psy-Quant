@@ -143,17 +143,17 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current sprint is:
 
 ```text
-Sprint 166 — Error Surface, Observability, and Audit Hardening
+Sprint 167 — Migration, Test, and Local Deployment Hardening
 ```
 
-Sprints 161 through 165 are complete. Sprint 165 was merged at
-`61cd11ad7f680509d44e27180bfb33c8a9193896`. Sprint 166 implementation is
-complete in its review branch; Founder Standard/Demo error-surface and
-observability acceptance and the merge decision remain pending. Do not begin
-the next sprint until both are complete:
+Sprints 161 through 166 are complete. Sprint 166 was merged at
+`ca2a5873406b934d246dcb13c215a59970ef1b46`. Sprint 167 implementation is
+complete in its review branch; Founder Standard/Demo migration and local
+deployment acceptance and the merge decision remain pending. Do not begin the
+next sprint until both are complete:
 
 ```text
-Sprint 167 — Migration, Test, and Local Deployment Hardening
+Sprint 168 — Milestone 29 Closeout and M30 Handoff
 ```
 
 ## M29 Product Outcome
@@ -309,6 +309,31 @@ Implemented Sprint 166 contract:
   durable log/audit record, telemetry platform, remote reporting, worker,
   queue, scheduler, polling, lifecycle automation, public debug field, cleanup,
   overwrite, financial calculation, or broker behavior was added.
+
+Implemented Sprint 167 contract:
+
+- one application-owned current revision is checked against Alembic's exact
+  single linear head and shared by API, Demo, and workspace verification;
+- every historical product revision upgrades deterministically to
+  `0005_paper_job_result_references` with representative rows preserved and
+  repeat-at-head behavior unchanged;
+- `verify-local-workspace` is read-only and fail-closed for explicit Standard
+  and Demo roots, while one small backend entrypoint orders prepare,
+  migrate/install, verify, then Uvicorn;
+- Standard/Demo Compose project, volume, root, loopback, authentication, and
+  Demo-only reset isolation are statically enforced;
+- the backend wheel is built without isolation from an exact committed
+  `uv.lock` build export, the final image uses only the exact runtime export,
+  CI refuses either export or lock drift, and Web installation remains
+  `npm ci`;
+- bilingual runtime smoke performs only reads plus locale preference changes,
+  keeps raw identity stable, and sanitizes failure output; and
+- the cold-backup, upgrade, restore-limitation, Demo replay/reset, and
+  return-to-Standard runbook adds no destructive Standard helper.
+
+Migration head remains `0005_paper_job_result_references`. No migration,
+schema, product behavior, worker, queue, scheduler, polling, broker, cloud,
+proxy, automatic backup/restore, or Standard volume-reset behavior was added.
 
 ## Approved Product Architecture
 

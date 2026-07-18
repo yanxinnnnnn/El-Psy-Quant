@@ -1,8 +1,9 @@
 # Founder Web MVP Local Operations
 
-This runbook covers reproducible standard and Demo startup and verification of
-the Sprint 152–160 Founder workflows. It is implementation and operating
-guidance, not a Milestone 28 governance closeout.
+This runbook covers reproducible Standard and Demo startup and product
+acceptance. The complete Sprint 167 cold-backup, existing-volume upgrade,
+read-only verification, restore-limitation, and dependency-lock contract is in
+`docs/operations/local-install-upgrade-and-recovery.md`.
 
 ## Runtime Boundary
 
@@ -69,8 +70,9 @@ broad CORS configuration.
 ## Persistent Local Storage
 
 Compose creates the named `el-psy-quant-mvp_mvp-data` volume and mounts it at
-`/data` in the backend container. Backend startup creates the configured roots
-and explicitly upgrades the SQLite database before serving traffic:
+`/data` in the backend container. Backend startup creates only absent fixed
+artifact roots, upgrades SQLite to the exact current head, verifies the
+workspace read-only, and only then serves traffic:
 
 ```text
 /data/product.sqlite3  product operational state
@@ -85,6 +87,12 @@ seeds product state.
 Paper-job list and submission routes are available after the migration reaches
 the existing `0005_paper_job_result_references` head. Migrations never run from
 the browser or Next.js process.
+
+Before upgrading code/images against an existing Standard volume, make a cold
+copy of the complete stopped `/data` tree and record the source commit plus
+migration revision. Never treat an SQLite-only or live-file copy as a complete,
+transactionally consistent workspace backup. Follow the consolidated operations
+runbook rather than overwriting or merging into an active non-empty volume.
 
 To copy existing read-only research or evidence artifacts into the running local
 volume, preserve their supported layout and use one of these operator commands:
@@ -113,9 +121,9 @@ docker compose -f compose.yaml -f compose.demo.yaml ps
 The overlay uses Compose project identity `el-psy-quant-demo` and the distinct
 `el-psy-quant-demo_demo-data` volume. Before FastAPI serves requests, the
 backend validates the complete versioned `examples/demo_workspace/` source,
-upgrades only the Demo SQLite database through Alembic, and installs artifacts
-and compact records through existing readers, repositories, and services. The
-browser cannot invoke the installer.
+installs or exactly replays it, upgrades only the Demo SQLite database through
+Alembic, verifies the descriptor-owned workspace read-only, and only then
+serves. The browser cannot invoke the installer.
 
 The install is deterministic and replay-safe for the same dataset version. A
 repeat startup validates the existing installation and leaves it unchanged. A
@@ -152,10 +160,9 @@ docker compose -f compose.yaml -f compose.demo.yaml down --volumes
 docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
 ```
 
-This reset does not address the standard `mvp-data` volume. To return to the
-standard workspace, stop Demo and run `docker compose up --detach`. Never run
-the standard `docker compose down --volumes` command unless the real local
-database and authoritative artifacts may be deleted.
+This reset does not address the Standard `mvp-data` volume. To return to the
+Standard workspace, stop Demo and run `docker compose up --detach`. Never run a
+volume-removing command against the Standard project.
 
 ## End-to-End Smoke Verification
 
@@ -170,19 +177,31 @@ checks:
 
 - an unauthenticated gateway request receives a Basic challenge
 - authenticated health crosses Next.js and reaches the exact FastAPI contract
-- Overview plus every top-level strategy, research, evidence, paper-job,
-  portfolio-record, comparison, and lifecycle route returns HTML
+- English and Simplified Chinese document language, representative localized
+  copy, explicit locale switching, and restoration preserve unprefixed routes
+- Overview plus every top-level and representative detail route returns HTML
 - existing strategy, research-run, evidence-manifest, and durable-job reads
-  return their checked contracts
-- lifecycle proposal and deferred human-review commands normalize successfully
-  through the same-origin gateway
+  return checked contracts, including valid Standard empty collections
 - standard mode returns the bounded Demo-not-configured response; Demo mode
-  follows descriptor-provided strategy, research, evidence, job, result,
-  comparison, proposal, and deferred-review references
+  follows descriptor-provided strategy, research, evidence, job, result, and
+  comparison references
+- raw IDs, codes, and statuses remain stable across locale, while authenticated
+  backend responses and representative backend failures retain request IDs and
+  sanitized error identity; the Web-owned unauthenticated challenge has no
+  backend request ID
 
-The lifecycle commands are synchronous and stateless. Verification does not
-submit a durable paper job, create paper outputs, infer approval, apply a
-transition, allocate capital, or contact an external system.
+Verification changes only the existing locale-preference cookie. It does not
+submit, Run, Cancel, Retry, or Recover a Paper Job; issue a lifecycle command;
+write an artifact; migrate/reset storage; infer approval; allocate capital; or
+contact an external system. Failure output omits credentials, response bodies,
+private headers, artifact payloads, and arbitrary exception detail.
+
+Run the explicit backend preflight independently when needed:
+
+```powershell
+docker compose exec backend el-psy-quant verify-local-workspace --mode standard --workspace-root /data
+docker compose -f compose.yaml -f compose.demo.yaml exec backend el-psy-quant verify-local-workspace --mode demo --workspace-root /data/workspace
+```
 
 ## Bilingual Browser Acceptance
 

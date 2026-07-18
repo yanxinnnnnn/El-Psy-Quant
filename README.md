@@ -24,19 +24,17 @@ Milestone 29 — Product Feedback and Hardening — In Progress
 The current implementation sprint is:
 
 ```text
-Sprint 166 — Error Surface, Observability, and Audit Hardening
+Sprint 167 — Migration, Test, and Local Deployment Hardening
 ```
 
-Sprints 161–165 are complete. Sprint 165 was merged at
-`61cd11ad7f680509d44e27180bfb33c8a9193896`. Sprint 166 implementation hardens
-the bilingual error surface, bounded request and Paper Job correlation events,
-attempt audit guidance, and safe local troubleshooting. Founder local
-Standard/Demo error-surface and observability acceptance remains pending. The
-next sprint may begin only after Sprint 166 is merged and that acceptance is
-complete:
+Sprints 161–166 are complete. Sprint 166 was merged at
+`ca2a5873406b934d246dcb13c215a59970ef1b46`. Sprint 167 implementation is
+complete; Founder Standard/Demo migration and local deployment acceptance
+remains. After this implementation is merged and Founder acceptance completes,
+the next sprint is:
 
 ```text
-Sprint 167 — Migration, Test, and Local Deployment Hardening
+Sprint 168 — Milestone 29 Closeout and M30 Handoff
 ```
 
 ## Product Direction
@@ -220,6 +218,26 @@ Implemented Sprint 166 direction:
   telemetry platform, remote reporting, worker, queue, scheduler, polling,
   public debug field, or automation was added.
 
+Implemented Sprint 167 direction:
+
+- one application-owned current schema revision is verified against Alembic's
+  single exact `0001` through `0005` chain and shared by API, Demo, and local
+  workspace preflight;
+- deterministic migration coverage upgrades every historical revision while
+  preserving representative rows and repeat-at-head files/state;
+- `el-psy-quant verify-local-workspace` verifies Standard or Demo storage
+  read-only, and the backend serves only after migrate/install and verification;
+- exact Standard/Demo Compose identity, volume, roots, loopback, authentication,
+  and non-destructive reset boundaries are statically covered;
+- the backend wheel is built without isolation from an exact committed build
+  export, the final image uses only the exact runtime export derived from
+  `uv.lock`, and CI refuses either export or lock drift;
+- bilingual same-origin smoke verifies both locales, stable raw identities,
+  request IDs on authenticated backend responses, and sanitized failures
+  without Paper Job or lifecycle commands; and
+- cold backup, existing-volume upgrade, Demo-only reset, return-to-Standard,
+  and restore limitations are consolidated in the operations runbook.
+
 ## Quick Start
 
 ### Standard Founder Workspace
@@ -246,6 +264,7 @@ http://127.0.0.1:3000
 Run the authenticated smoke verification:
 
 ```powershell
+docker compose exec backend el-psy-quant verify-local-workspace --mode standard --workspace-root /data
 docker compose exec web node /app/verify-mvp.mjs
 ```
 
@@ -285,13 +304,13 @@ docker compose -f compose.yaml -f compose.demo.yaml down --volumes
 docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
 ```
 
-Do not use the Standard `down --volumes` command unless its real local database
-and authoritative artifacts may be deleted.
+Never run a volume-removing command against the Standard project.
 
 See:
 
 ```text
 docs/founder-mvp-local-operations.md
+docs/operations/local-install-upgrade-and-recovery.md
 docs/user-guide/README.md
 ```
 
@@ -300,7 +319,7 @@ docs/user-guide/README.md
 Install Python and Web dependencies:
 
 ```bash
-uv sync
+uv sync --locked
 npm --prefix web ci
 ```
 
@@ -310,9 +329,9 @@ Run the complete repository gate:
 uv run python scripts/check.py
 ```
 
-The gate includes Python tests and linting, package/CLI checks, OpenAPI and
-generated TypeScript freshness, ESLint, TypeScript, Web tests, and production
-build.
+The gate includes lock and exact runtime-export parity, Python tests and
+linting, package/CLI checks, OpenAPI and generated TypeScript freshness,
+catalog validation, ESLint, TypeScript, Web tests, and production build.
 
 ## Explicitly Deferred
 

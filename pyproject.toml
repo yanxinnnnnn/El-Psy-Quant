@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -22,6 +22,9 @@ dependencies = [
 el-psy-quant = "el_psy_quant.cli:main"
 
 [dependency-groups]
+build = [
+    "hatchling==1.27.0",
+]
 dev = [
     "httpx>=0.28",
     "pytest>=8.3",
