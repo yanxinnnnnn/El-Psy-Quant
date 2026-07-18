@@ -34,9 +34,13 @@ M26 — Paper Trading Application Service Foundation          Complete
 M27 — Persistence and Paper Job Control Foundation          Complete
 M28 — Founder Paper Trading Web Workspace                   Complete
 M29 — Product Feedback and Hardening                        Complete
-M30 — Portfolio-Level Decision Review Foundation            Next
+M30 — Portfolio-Level Decision Review Foundation            In Progress (S169-S177)
 M31-M36 — Stateful Paper Trading Runtime sequence           Planned
 ```
+
+Sprint 169 establishes the M30 architecture and milestone plan. Sprint 170 is the
+next implementation sprint after Founder review and merge of the S169 planning
+PR.
 
 M29 completed the transition from a working local MVP to a bilingual, modern,
 actionable, and dependable Founder product.
@@ -129,7 +133,7 @@ docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
 
 ## Approved M30–M36 Sequence
 
-The authoritative detailed plan is:
+The authoritative detailed runtime plan is:
 
 ```text
 docs/strategy/paper-trading-runtime-roadmap.md
@@ -145,30 +149,120 @@ M30 Portfolio-Level Decision Review Foundation
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-Future sprint counts and dates remain `TBD`. Every milestone requires its own
-planning Issue before implementation.
+M30 now has an approved S169–S177 architecture. M31–M36 sprint counts and dates
+remain `TBD`. Every milestone receives its own planning Issue before
+implementation.
 
-## M30 — Portfolio-Level Decision Review Foundation
+## Milestone 30 — Portfolio-Level Decision Review Foundation
+
+### Status
+
+In Progress through S169–S177.
+
+Authoritative M30 planning:
+
+```text
+docs/architecture/portfolio-level-decision-review.md
+docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
+docs/sprints/sprint-169-milestone-30-architecture-and-planning.md
+```
 
 ### Purpose
 
-Add portfolio-aware evidence to explicit human decisions before automatic order
-generation is introduced.
+Add reproducible portfolio-aware evidence to explicit human decisions before a
+stateful account, automatic order generation, or execution simulation is
+introduced.
 
 ### Target outcome
 
-The Founder can review:
+The Founder can explicitly compare a baseline and proposed static portfolio
+scenario and inspect:
 
-- concentration and exposure;
-- strategy interaction and overlap;
-- portfolio-level impact of a proposed strategy decision;
-- evidence references and assumptions; and
-- an explicit human decision record.
+- strategy/component concentration;
+- review exposure and component-weight changes;
+- supported symbol/universe overlap;
+- historical return interaction;
+- baseline/proposed portfolio risk, drawdown, and contribution context;
+- explicit historical scenario deltas;
+- source identity, evaluation window, assumptions, warnings, and missing evidence;
+  and
+- one explicit `approved`, `rejected`, or `deferred` human decision.
+
+### Data authority
+
+M30 requires a new immutable portfolio-review source artifact because existing
+configured research artifacts expose summary metrics but not the aligned strategy
+return observations required to reproduce interaction and proposed impact.
+
+The source remains explicit and selected. M30 does not automatically discover
+runs or infer relationships between unrelated records.
+
+### Quantitative boundary
+
+The first version uses explicit non-negative static weights summing to `1.0` and a
+bounded union of at most 12 selected strategy components.
+
+Approved evidence includes a bounded subset of:
+
+```text
+largest weight / top-three concentration / HHI / effective count
+component weight deltas and declared universe coverage
+shared symbols and Jaccard overlap
+pairwise historical Pearson return correlation
+candidate-to-baseline portfolio correlation
+baseline/proposed mean, volatility, loss rate, drawdown, and contribution
+proposed minus baseline scalar deltas
+```
+
+Undefined values remain unavailable with warnings. Outputs are historical
+scenario evidence, not forecasts, rankings, recommendations, or allocation
+instructions.
+
+### Product and persistence boundary
+
+```text
+explicit Founder source/scenario selection
+  -> versioned API command
+  -> thin application service
+  -> domain calculations
+  -> immutable source/analysis/decision artifacts
+  -> compact SQLite identity/reference/idempotency metadata
+  -> bilingual Founder list/create/detail/decision workflow
+```
+
+Full quantitative payloads remain artifact authority. SQLite does not become a
+return-series or matrix store.
+
+### Human-control boundary
+
+An M30 approval is portfolio-review governance evidence only. It does not:
+
+- change strategy lifecycle state automatically;
+- allocate or reserve capital;
+- create or mutate a Paper Account;
+- create positions, orders, fills, or ledger entries;
+- start a market session, worker, or scheduler; or
+- authorize broker or live execution.
+
+### Approved M30 sprint chain
+
+| Sprint | Deliverable | Owner | Status |
+|---:|---|---|---|
+| S169 | Milestone 30 Architecture and Planning | CTO | In review |
+| S170 | Portfolio Review Input and Scenario Contract Foundation | Codex | Next after S169 merge |
+| S171 | Concentration and Exposure Analysis Foundation | Codex | Planned |
+| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Codex | Planned |
+| S173 | Portfolio Review Artifact and Human Decision Foundation | Codex | Planned |
+| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Codex | Planned |
+| S175 | Founder Portfolio Decision Review Web Workspace | Codex | Planned |
+| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Codex | Planned |
+| S177 | Milestone 30 Closeout and M31 Handoff | CTO | Planned |
 
 ### Boundary
 
-M30 must not allocate capital, generate orders, approve execution, mutate a
-runtime account, or connect to a broker.
+M30 must not optimize weights, recommend a strategy, allocate capital, mutate a
+runtime account, generate orders or fills, add market-data/session behavior,
+create a worker/scheduler, or connect to a broker.
 
 ## M31 — Stateful Paper Account and Ledger Foundation
 
@@ -176,6 +270,15 @@ runtime account, or connect to a broker.
 
 Create one durable source of truth for cash, positions, orders, fills, and
 account snapshots across Paper sessions.
+
+### M30 handoff boundary
+
+M31 may reference an approved M30 review ID and immutable decision evidence, but
+must establish a separate account and ledger authority.
+
+M30 scenario weights are review assumptions. They are not balances, positions,
+reserved cash, orders, fills, ledger entries, or executable allocation
+instructions. No M30 approval creates or funds an account.
 
 ### Boundary
 
@@ -318,7 +421,7 @@ Unless a future milestone explicitly approves them:
 - broker, QMT, or MiniQMT integration;
 - real-money execution;
 - automatic strategy ranking or approval;
-- automatic capital allocation;
+- automatic portfolio optimization or capital allocation;
 - public SaaS, multi-tenancy, or complex RBAC;
 - microservices, Kubernetes, Kafka, or Redis clusters;
 - distributed job infrastructure; and
@@ -336,6 +439,7 @@ Unless a future milestone explicitly approves them:
 8. Artifact files remain completed-output authority.
 9. Product metadata must not replace domain truth.
 10. Visible failure is better than hidden automation.
-11. Durable account truth precedes automatic order generation.
-12. Market-driven Paper Trading precedes continuous runtime automation.
-13. Continuous Paper Trading precedes any broker-readiness claim.
+11. Portfolio review assumptions do not become account truth.
+12. Durable account truth precedes automatic order generation.
+13. Market-driven Paper Trading precedes continuous runtime automation.
+14. Continuous Paper Trading precedes any broker-readiness claim.
