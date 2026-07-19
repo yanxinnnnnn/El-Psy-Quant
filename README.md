@@ -35,8 +35,8 @@ S176 Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
 S177 Milestone 30 Closeout and M31 Handoff
 ```
 
-Sprint 169 is complete pending Founder review. Sprint 170 becomes the next
-implementation sprint after the planning PR is merged.
+Sprint 169 is complete. Sprint 170 contract implementation is complete pending
+Founder review. Sprint 171 becomes the next implementation sprint after merge.
 
 ## Product Delivered Through M29
 
@@ -86,8 +86,9 @@ validated portfolio review source
   -> explicit human portfolio decision evidence
 ```
 
-No M30 runtime capability is claimed until the implementation sprints are merged
-and accepted.
+Sprint 170 adds only immutable in-memory portfolio-review source and static
+scenario contracts. No portfolio analysis, artifact I/O, persistence, API, Web,
+or M31 capability is claimed.
 
 ## What the Current Product Is Not Yet
 

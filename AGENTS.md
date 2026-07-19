@@ -134,11 +134,12 @@ Milestone 30 is In Progress:
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Sprint 169 defines the approved architecture and milestone sequence. After its PR
-is merged, the next implementation sprint is:
+Sprint 169 defines the approved architecture and milestone sequence. Sprint 170
+contract implementation is complete pending Founder review. After merge, the
+next implementation sprint is:
 
 ```text
-Sprint 170 — Portfolio Review Input and Scenario Contract Foundation
+Sprint 171 — Concentration and Exposure Analysis Foundation
 ```
 
 Authoritative M30 planning:
@@ -162,6 +163,22 @@ S169 architecture and planning
   -> S176 integration, Demo, and acceptance hardening
   -> S177 closeout and M31 handoff
 ```
+
+Implemented Sprint 170 contract:
+
+- bounded immutable evidence references require explicit research provenance;
+- ordered components preserve optional authoritative symbol metadata without
+  inference;
+- one source owns 2–12 ordered components and at least three exact aligned,
+  finite historical return observations;
+- source and scenario exports are deterministic, strictly JSON-compatible, and
+  protected by canonical SHA-256 digests;
+- baseline and proposed scenarios use complete strict non-negative static
+  weights in source order and require a real proposed-component change; and
+- no analysis, artifact I/O, persistence, migration, API, Web, Demo, Docker,
+  account, market, order, execution, broker, or live behavior was added.
+
+Migration head remains `0005_paper_job_result_references`.
 
 ### M30 architecture boundary
 
