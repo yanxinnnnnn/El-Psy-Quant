@@ -35,9 +35,9 @@ S176 Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
 S177 Milestone 30 Closeout and M31 Handoff
 ```
 
-Sprints 169–170 are complete. Sprint 171 concentration and exposure analysis is
-implementation complete pending Founder review. Sprint 172 becomes the next
-implementation sprint after merge.
+Sprints 169–171 are complete. Sprint 172 strategy interaction and proposed
+portfolio impact analysis is implementation complete pending Founder review.
+Sprint 173 becomes the next implementation sprint after merge.
 
 ## Product Delivered Through M29
 
@@ -90,8 +90,12 @@ validated portfolio review source
 Sprint 170 supplies immutable in-memory portfolio-review source and static
 scenario contracts. Sprint 171 adds pure domain-calculated concentration,
 ordered component weight-change exposure, declared-symbol evidence, and active
-coverage results. It adds no overlap, correlation, portfolio behavior, artifact
-I/O, persistence, API, Web, or M31 capability.
+coverage results. Sprint 172 adds source-ordered declared-symbol overlap,
+pairwise and candidate-to-baseline historical correlation, baseline/proposed
+historical portfolio behavior, ordered contribution, and exact
+proposed-minus-baseline impact. These are immutable in-memory domain results;
+S172 adds no artifact, decision, persistence, API, Web, M31, private-edge,
+broker, or live capability.
 
 ## What the Current Product Is Not Yet
 
