@@ -135,11 +135,11 @@ M30 — Portfolio-Level Decision Review Foundation
 ```
 
 Sprint 169 defines the approved architecture and milestone sequence. Sprint 170
-contract implementation is complete pending Founder review. After merge, the
-next implementation sprint is:
+is Complete. Sprint 171 analysis implementation is complete pending Founder
+review. After merge, the next implementation sprint is:
 
 ```text
-Sprint 171 — Concentration and Exposure Analysis Foundation
+Sprint 172 — Strategy Interaction and Proposed Portfolio Impact Foundation
 ```
 
 Authoritative M30 planning:
@@ -177,6 +177,18 @@ Implemented Sprint 170 contract:
   weights in source order and require a real proposed-component change; and
 - no analysis, artifact I/O, persistence, migration, API, Web, Demo, Docker,
   account, market, order, execution, broker, or live behavior was added.
+
+Implemented Sprint 171 analysis:
+
+- one pure public factory cross-validates an exact source and scenario pair;
+- baseline and proposed concentration use explicit largest-component, top-three,
+  HHI, and effective-component-count formulas with source-order tie behavior;
+- ordered component exposure preserves exact weights, deltas, active flags,
+  change classifications, strategy IDs, and optional declared symbols;
+- source-level symbol-evidence availability and active-scenario coverage
+  completeness remain explicit without inferring or combining symbols; and
+- no overlap, correlation, portfolio behavior, artifact, persistence, API, Web,
+  M31, private-edge, broker, or live capability was added.
 
 Migration head remains `0005_paper_job_result_references`.
 

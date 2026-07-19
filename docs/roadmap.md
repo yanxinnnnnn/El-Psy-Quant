@@ -112,9 +112,9 @@ M30 is now In Progress through this sequence:
 | Sprint | Deliverable | Status |
 |---:|---|---|
 | S169 | Milestone 30 Architecture and Planning | Complete |
-| S170 | Portfolio Review Input and Scenario Contract Foundation | Implementation complete / pending Founder review |
-| S171 | Concentration and Exposure Analysis Foundation | Next after S170 merge |
-| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Planned |
+| S170 | Portfolio Review Input and Scenario Contract Foundation | Complete |
+| S171 | Concentration and Exposure Analysis Foundation | Implementation complete / pending Founder review |
+| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Next after S171 merge |
 | S173 | Portfolio Review Artifact and Human Decision Foundation | Planned |
 | S174 | Durable Portfolio Review Persistence and Application/API Foundation | Planned |
 | S175 | Founder Portfolio Decision Review Web Workspace | Planned |
@@ -144,10 +144,12 @@ docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
 M30 does not allocate capital, mutate an account, generate orders, simulate
 fills, start a worker, connect to a broker, or implement M31–M36 behavior.
 
-Sprint 170 supplies only immutable, digestible, in-memory source/component/
-evidence/aligned-return and baseline/proposed scenario contracts. Concentration
-and exposure calculations begin in S171; migration head remains
-`0005_paper_job_result_references`.
+Sprint 170 supplies immutable, digestible, in-memory source/component/evidence/
+aligned-return and baseline/proposed scenario contracts. Sprint 171 adds pure
+in-memory concentration, ordered weight-change review exposure, declared-symbol
+evidence, and active-universe coverage results. It adds no overlap, correlation,
+portfolio behavior, artifact, persistence, API, Web, or M31 capability. Migration
+head remains `0005_paper_job_result_references`.
 
 ## Approved Paper Trading Runtime Sequence
 

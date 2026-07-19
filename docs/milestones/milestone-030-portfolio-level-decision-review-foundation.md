@@ -11,8 +11,9 @@ S169–S177
 ```
 
 Sprint 169 defines the architecture and milestone contract. Sprint 170
-implements immutable in-memory source and scenario contracts only. Portfolio
-analysis begins in Sprint 171.
+implements immutable in-memory source and scenario contracts. Sprint 171
+concentration and review-exposure analysis is implementation complete pending
+Founder review; Sprint 172 is next after merge.
 
 ## Product Goal
 
@@ -347,9 +348,9 @@ approved milestone contract.
 | Sprint | Status | Owner | Goal | Main deliverable | Guardrail |
 |---:|---|---|---|---|---|
 | S169 | Complete | CTO | Plan M30. | Architecture, milestone scope, data authority, sprint sequence, and M31 handoff. | Documentation only. |
-| S170 | In review | Codex | Define review sources and scenarios. | Immutable source/component/evidence/aligned-return and baseline/proposed scenario contracts. | No analysis, persistence, API, or Web. |
-| S171 | Next after S170 merge | Codex | Add concentration and exposure evidence. | Deterministic concentration, weight-delta, review-exposure, and available universe-coverage summaries. | No correlation, optimization, or recommendation. |
-| S172 | Planned | Codex | Add interaction and proposed impact. | Symbol overlap, return interaction, baseline/proposed portfolio behavior, and historical deltas. | No forecast, allocation, factor model, VaR, or runtime. |
+| S170 | Complete | Codex | Define review sources and scenarios. | Immutable source/component/evidence/aligned-return and baseline/proposed scenario contracts. | No analysis, persistence, API, or Web. |
+| S171 | Implementation complete / pending Founder review | Codex | Add concentration and exposure evidence. | Deterministic concentration, weight-delta, review-exposure, and available universe-coverage summaries. | No correlation, optimization, or recommendation. |
+| S172 | Next after S171 merge | Codex | Add interaction and proposed impact. | Symbol overlap, return interaction, baseline/proposed portfolio behavior, and historical deltas. | No forecast, allocation, factor model, VaR, or runtime. |
 | S173 | Planned | Codex | Add review and decision artifacts. | Immutable analysis/decision payloads, references, digest rules, and explicit outcomes. | No database, API, Web, lifecycle mutation, or execution. |
 | S174 | Planned | Codex | Add durable product and API boundary. | Compact SQLite persistence, migration, artifact I/O, application services, OpenAPI, and versioned API. | No account ledger or M31 behavior. |
 | S175 | Planned | Codex | Add Founder Web workflow. | Bilingual list/create/detail/decision workspace using generated contracts. | No browser financial calculation or recommendation. |
