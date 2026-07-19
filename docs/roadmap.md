@@ -111,9 +111,9 @@ M30 is now In Progress through this sequence:
 
 | Sprint | Deliverable | Status |
 |---:|---|---|
-| S169 | Milestone 30 Architecture and Planning | In review |
-| S170 | Portfolio Review Input and Scenario Contract Foundation | Next after S169 merge |
-| S171 | Concentration and Exposure Analysis Foundation | Planned |
+| S169 | Milestone 30 Architecture and Planning | Complete |
+| S170 | Portfolio Review Input and Scenario Contract Foundation | Implementation complete / pending Founder review |
+| S171 | Concentration and Exposure Analysis Foundation | Next after S170 merge |
 | S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Planned |
 | S173 | Portfolio Review Artifact and Human Decision Foundation | Planned |
 | S174 | Durable Portfolio Review Persistence and Application/API Foundation | Planned |
@@ -143,6 +143,11 @@ docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
 
 M30 does not allocate capital, mutate an account, generate orders, simulate
 fills, start a worker, connect to a broker, or implement M31–M36 behavior.
+
+Sprint 170 supplies only immutable, digestible, in-memory source/component/
+evidence/aligned-return and baseline/proposed scenario contracts. Concentration
+and exposure calculations begin in S171; migration head remains
+`0005_paper_job_result_references`.
 
 ## Approved Paper Trading Runtime Sequence
 
