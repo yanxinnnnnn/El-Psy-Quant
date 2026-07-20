@@ -134,12 +134,12 @@ Milestone 30 is In Progress:
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Sprints 169–173 are Complete. Sprint 174 durable artifact, persistence,
-application, and API implementation is complete pending Founder review. After
-merge, the next implementation sprint is:
+Sprints 169–174 are Complete. Sprint 175 bilingual Founder Web implementation
+is complete pending Founder review. After merge, the next implementation
+sprint is:
 
 ```text
-Sprint 175 — Founder Portfolio Decision Review Web Workspace
+Sprint 176 — Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
 ```
 
 Authoritative M30 planning:
@@ -229,6 +229,24 @@ Implemented Sprint 174 durable product/API boundary:
 - checked-in OpenAPI and generated TypeScript contracts are current; and
 - no Founder Web, Demo data, lifecycle, Paper Account, order, execution, M31,
   private-edge, broker, or live capability was added.
+
+Implemented Sprint 175 Founder Web workspace:
+
+- three bilingual routes provide exact backend-ordered list/filter/refresh,
+  manual structured review creation, full authoritative evidence detail, and one
+  explicit governance-only decision workflow;
+- the typed API client uses checked-in generated contracts plus complete nested
+  runtime validation and explicit caller-supplied idempotency keys;
+- the browser validates strict numeric form shape and displays entered weight
+  totals without normalizing, rounding, recommending, or recalculating
+  financial evidence;
+- unavailable overlap and correlation evidence remains explicitly unavailable
+  with its raw reason and affected component IDs;
+- creation and decision failures preserve drafts, detail refresh failures
+  preserve prior evidence, and settled reviews expose no second decision form;
+  and
+- no backend, generated contract, Demo, lifecycle, Paper Job, Paper Account,
+  M31, private-edge, broker, execution, or live capability was added.
 
 Migration head is `0006_portfolio_reviews`.
 

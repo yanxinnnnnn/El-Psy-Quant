@@ -14,6 +14,7 @@ export const REQUIRED_NAMESPACES = Object.freeze([
   "paper-jobs",
   "portfolio-records",
   "comparisons",
+  "portfolio-reviews",
   "lifecycle",
   "errors",
 ]);
@@ -48,6 +49,15 @@ export const REQUIRED_ERROR_CODES = Object.freeze([
   "paper_job_result_invalid",
   "lifecycle_transition_proposal_invalid",
   "lifecycle_transition_record_invalid",
+  "portfolio_review_not_found",
+  "portfolio_review_invalid",
+  "portfolio_review_conflict",
+  "portfolio_review_idempotency_conflict",
+  "portfolio_review_settled_conflict",
+  "portfolio_review_artifact_conflict",
+  "portfolio_review_artifact_invalid",
+  "portfolio_review_artifact_unavailable",
+  "portfolio_review_artifact_root_unavailable",
   "demo_workspace_not_configured",
   "demo_workspace_unavailable",
 ]);
@@ -276,6 +286,7 @@ export async function validateMessageCatalogs(messagesRoot) {
       }
       messages[namespace === "paper-jobs" ? "paperJobs"
         : namespace === "portfolio-records" ? "portfolioRecords"
+          : namespace === "portfolio-reviews" ? "portfolioReviews"
           : namespace] = parsed;
     }
     const translator = createTranslator({ locale, messages });

@@ -51,6 +51,20 @@ Comparisons show two to four backend results without cross-run calculations,
 trade alignment, aggregation, ranking, recommendations, or a persisted
 comparison decision. The Founder supplies the interpretation.
 
+## Manual Portfolio Review Inputs
+
+Portfolio Reviews require manual structured source and scenario construction.
+There is no source-list discovery, candidate recommendation, weight optimizer,
+automatic normalization, or default decision outcome. The browser validates
+input shape and displays entered weight totals but does not recalculate
+concentration, overlap, correlation, behavior, drawdown, contribution, or
+impact.
+
+Unavailable overlap or correlation evidence remains unavailable with its raw
+reason and affected component IDs. It is not zero. A portfolio-review approval
+is governance evidence only and does not create holdings, allocate capital,
+mutate lifecycle state, create an account, place an order, or execute.
+
 ## Stateless Lifecycle Review
 
 Lifecycle proposals and human review records are synchronous, non-executing
@@ -67,7 +81,7 @@ paper Run response.
 ## Local Upgrade and Backup Limits
 
 The product supports one forward Alembic chain to
-`0005_paper_job_result_references` and a read-only Standard/Demo workspace
+`0006_portfolio_reviews` and a read-only Standard/Demo workspace
 verifier. It does not provide automatic backup, rollback, downgrade, repair,
 restore, retention, encryption/key management, cloud snapshots, or production
 disaster recovery.

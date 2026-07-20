@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementation complete / pending Founder review.
+Complete.
 
 ## Objective
 
@@ -203,6 +203,7 @@ part of Sprint 174 acceptance.
 ## Handoff
 
 Milestone 30 remains In Progress. Sprint 175 — Founder Portfolio Decision Review
-Web Workspace is next after merge. Sprint 176 owns integration, isolated Demo
-evidence, and Founder acceptance hardening. Sprint 177 owns closeout and the
-strict handoff to a separately authoritative M31 Paper Account and ledger.
+Web Workspace implementation is complete pending Founder review. Sprint 176
+owns integration, isolated Demo evidence, and Founder acceptance hardening.
+Sprint 177 owns closeout and the strict handoff to a separately authoritative
+M31 Paper Account and ledger.

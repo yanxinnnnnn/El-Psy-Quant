@@ -163,6 +163,51 @@
     "explanation": "The review record did not satisfy backend human-control rules.",
     "recovery": "Review the explicit outcome and resulting-snapshot requirements before resubmitting."
   },
+  "portfolio_review_not_found": {
+    "title": "Portfolio review not found",
+    "explanation": "The exact portfolio review ID is not present in durable product state.",
+    "recovery": "Return to Portfolio Reviews and choose an available record."
+  },
+  "portfolio_review_invalid": {
+    "title": "Portfolio review request is invalid",
+    "explanation": "The explicit source, scenarios, analysis audit, or decision did not satisfy the backend contract.",
+    "recovery": "Preserve the form, review the entered transport values, and submit again only after correction."
+  },
+  "portfolio_review_conflict": {
+    "title": "Portfolio review identity conflicts",
+    "explanation": "The requested review identity conflicts with existing durable authority.",
+    "recovery": "Inspect the existing review before deciding whether to use a distinct identity."
+  },
+  "portfolio_review_idempotency_conflict": {
+    "title": "Portfolio review idempotency conflict",
+    "explanation": "The same explicit idempotency key is already bound to different canonical portfolio-review input.",
+    "recovery": "Preserve the form and key. Replay only the original exact request or deliberately enter a different key; nothing is resubmitted automatically."
+  },
+  "portfolio_review_settled_conflict": {
+    "title": "Portfolio review is already settled",
+    "explanation": "Another explicit decision settled this review before the current decision command completed.",
+    "recovery": "Preserve the decision draft and manually refresh the review to inspect the immutable settled decision."
+  },
+  "portfolio_review_artifact_conflict": {
+    "title": "Portfolio review artifact conflicts",
+    "explanation": "Existing immutable portfolio-review evidence differs from the requested authority, so no overwrite occurred.",
+    "recovery": "Preserve current evidence and inspect the existing review; no force-overwrite action is available."
+  },
+  "portfolio_review_artifact_invalid": {
+    "title": "Portfolio review artifact is invalid",
+    "explanation": "Authoritative portfolio-review evidence failed backend schema, digest, or cross-validation.",
+    "recovery": "Record the stable code and request ID, then inspect operator guidance without repairing evidence in the browser."
+  },
+  "portfolio_review_artifact_unavailable": {
+    "title": "Portfolio review artifact unavailable",
+    "explanation": "The backend cannot currently reopen all authoritative source, analysis, or decision evidence.",
+    "recovery": "Verify configured evidence storage and retry without deleting or replacing artifacts."
+  },
+  "portfolio_review_artifact_root_unavailable": {
+    "title": "Portfolio review artifact root unavailable",
+    "explanation": "The configured authoritative evidence root cannot currently be inspected safely.",
+    "recovery": "Verify the configured evidence storage and retry without exposing paths or deleting data."
+  },
   "request_validation_error": {
     "title": "Command structure is invalid",
     "explanation": "The submitted request does not match the generated API contract.",

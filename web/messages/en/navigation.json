@@ -7,6 +7,7 @@
   "paperJobs": "Paper Jobs",
   "portfolioRecords": "Portfolio Records",
   "comparisons": "Comparisons",
+  "portfolioReviews": "Portfolio Reviews",
   "lifecycleReview": "Lifecycle Review",
   "skip": "Skip to workspace content",
   "brandContext": "Founder-only paper workspace · Local",
@@ -17,8 +18,8 @@
   "demoAria": "Demo Workspace: disposable example evidence, not real user data",
   "demo": "Demo Workspace",
   "demoWarning": "Demo only — disposable example evidence, not real user data or trading advice.",
-  "sidebarMilestone": "Milestone 29",
-  "sidebarNote": "Bilingual review and explicit paper operations",
+  "sidebarMilestone": "Milestone 30",
+  "sidebarNote": "Portfolio-level decision review with explicit human governance",
   "strategySectionAria": "Strategies and research",
   "strategies": "Strategies",
   "researchRuns": "Research runs"

@@ -97,3 +97,75 @@ export function ReviewOutcomeValue({ value }: { value: string }) {
         : "neutral";
   return <StatusBadge label={label ?? value} rawValue={value} tone={tone} />;
 }
+
+export function PortfolioReviewStatusValue({ value }: { value: string }) {
+  const t = useTranslations("portfolioReviews.statuses");
+  const label =
+    value === "awaiting_decision"
+      ? t("awaiting_decision")
+      : value === "approved"
+        ? t("approved")
+        : value === "rejected"
+          ? t("rejected")
+          : value === "deferred"
+            ? t("deferred")
+            : t("unknown");
+  return (
+    <StatusBadge
+      label={label}
+      rawValue={value}
+      tone={value === "awaiting_decision" ? "info" : "neutral"}
+    />
+  );
+}
+
+export function PortfolioReviewOutcomeValue({ value }: { value: string }) {
+  const t = useTranslations("portfolioReviews.outcomes");
+  const label =
+    value === "approved"
+      ? t("approved")
+      : value === "rejected"
+        ? t("rejected")
+        : value === "deferred"
+          ? t("deferred")
+          : value;
+  return <StatusBadge label={label} rawValue={value} tone="neutral" />;
+}
+
+export function PortfolioReviewChangeValue({ value }: { value: string }) {
+  const t = useTranslations("portfolioReviews.changes");
+  const label =
+    value === "added"
+      ? t("added")
+      : value === "removed"
+        ? t("removed")
+        : value === "increased"
+          ? t("increased")
+          : value === "decreased"
+            ? t("decreased")
+            : value === "unchanged"
+              ? t("unchanged")
+              : value;
+  return <StatusBadge label={label} rawValue={value} tone="neutral" />;
+}
+
+export function PortfolioReviewAvailabilityValue({
+  value,
+}: {
+  value: string;
+}) {
+  const t = useTranslations("portfolioReviews.availability");
+  const label =
+    value === "available"
+      ? t("available")
+      : value === "unavailable"
+        ? t("unavailable")
+        : value;
+  return (
+    <StatusBadge
+      label={label}
+      rawValue={value}
+      tone={value === "unavailable" ? "unavailable" : "neutral"}
+    />
+  );
+}
