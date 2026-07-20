@@ -35,9 +35,9 @@ S176 Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
 S177 Milestone 30 Closeout and M31 Handoff
 ```
 
-Sprints 169–171 are complete. Sprint 172 strategy interaction and proposed
-portfolio impact analysis is implementation complete pending Founder review.
-Sprint 173 becomes the next implementation sprint after merge.
+Sprints 169–172 are complete. Sprint 173 portfolio-review artifact and human
+decision implementation is complete pending Founder review. Sprint 174 becomes
+the next implementation sprint after merge.
 
 ## Product Delivered Through M29
 
@@ -94,8 +94,11 @@ coverage results. Sprint 172 adds source-ordered declared-symbol overlap,
 pairwise and candidate-to-baseline historical correlation, baseline/proposed
 historical portfolio behavior, ordered contribution, and exact
 proposed-minus-baseline impact. These are immutable in-memory domain results;
-S172 adds no artifact, decision, persistence, API, Web, M31, private-edge,
-broker, or live capability.
+Sprint 173 adds immutable historical-scenario analysis and governance-only
+decision payloads, canonical SHA-256 digests, UTC audit normalization, and typed
+source/analysis/decision references. Source return observations remain separate.
+S173 adds no file I/O, persistence, migration, application service, API, Web,
+M31, private-edge, broker, or live capability.
 
 ## What the Current Product Is Not Yet
 
@@ -270,6 +273,7 @@ docs/product/milestone-029-product-feedback-and-hardening-plan.md
 docs/architecture/portfolio-level-decision-review.md
 docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
 docs/sprints/sprint-169-milestone-30-architecture-and-planning.md
+docs/sprints/sprint-173-portfolio-review-artifact-and-human-decision-foundation.md
 docs/strategy/future-platform-roadmap.md
 docs/strategy/paper-trading-runtime-roadmap.md
 docs/roadmap.md

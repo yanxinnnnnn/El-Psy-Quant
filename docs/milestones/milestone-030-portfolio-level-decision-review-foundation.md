@@ -10,8 +10,8 @@ Planned sprint range:
 S169–S177
 ```
 
-Sprints 169–171 are Complete. Sprint 172 interaction and proposed-impact
-analysis is implementation complete pending Founder review. Sprint 173 is next
+Sprints 169–172 are Complete. Sprint 173 portfolio-review artifact and human
+decision implementation is complete pending Founder review. Sprint 174 is next
 after merge.
 
 ## Product Goal
@@ -349,8 +349,8 @@ approved milestone contract.
 | S169 | Complete | CTO | Plan M30. | Architecture, milestone scope, data authority, sprint sequence, and M31 handoff. | Documentation only. |
 | S170 | Complete | Codex | Define review sources and scenarios. | Immutable source/component/evidence/aligned-return and baseline/proposed scenario contracts. | No analysis, persistence, API, or Web. |
 | S171 | Complete | Codex | Add concentration and exposure evidence. | Deterministic concentration, weight-delta, review-exposure, and available universe-coverage summaries. | No correlation, optimization, or recommendation. |
-| S172 | Implementation complete / pending Founder review | Codex | Add interaction and proposed impact. | Symbol overlap, return interaction, baseline/proposed portfolio behavior, and historical deltas. | No forecast, allocation, factor model, VaR, or runtime. |
-| S173 | Next after S172 merge | Codex | Add review and decision artifacts. | Immutable analysis/decision payloads, references, digest rules, and explicit outcomes. | No database, API, Web, lifecycle mutation, or execution. |
+| S172 | Complete | Codex | Add interaction and proposed impact. | Symbol overlap, return interaction, baseline/proposed portfolio behavior, and historical deltas. | No forecast, allocation, factor model, VaR, or runtime. |
+| S173 | Implementation complete / pending Founder review | Codex | Add review and decision artifacts. | Immutable analysis/decision payloads, references, digest rules, and explicit outcomes. | No database, API, Web, lifecycle mutation, or execution. |
 | S174 | Planned | Codex | Add durable product and API boundary. | Compact SQLite persistence, migration, artifact I/O, application services, OpenAPI, and versioned API. | No account ledger or M31 behavior. |
 | S175 | Planned | Codex | Add Founder Web workflow. | Bilingual list/create/detail/decision workspace using generated contracts. | No browser financial calculation or recommendation. |
 | S176 | Planned | Codex | Integrate and harden acceptance. | Source workflow integration, deterministic Demo evidence, errors, tests, docs, and Founder acceptance checklist. | Founder owns Docker/browser runtime acceptance; no M31+. |

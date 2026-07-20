@@ -134,11 +134,12 @@ Milestone 30 is In Progress:
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Sprints 169–171 are Complete. Sprint 172 analysis implementation is complete
-pending Founder review. After merge, the next implementation sprint is:
+Sprints 169–172 are Complete. Sprint 173 artifact and human-decision
+implementation is complete pending Founder review. After merge, the next
+implementation sprint is:
 
 ```text
-Sprint 173 — Portfolio Review Artifact and Human Decision Foundation
+Sprint 174 — Durable Portfolio Review Persistence and Application/API Foundation
 ```
 
 Authoritative M30 planning:
@@ -201,6 +202,20 @@ Implemented Sprint 172 analysis:
 - every scalar and component impact is exactly proposed minus baseline; and
 - no artifact, decision, persistence, migration, API, Web, M31, private-edge,
   broker, or live capability was added.
+
+Implemented Sprint 173 artifacts:
+
+- one immutable analysis artifact binds the exact source and scenarios while
+  composing S171 concentration/exposure and S172 interaction/impact internally;
+- full source return observations remain solely in the separate source authority;
+- one immutable governance-only decision links to the exact analysis digest and
+  supports exactly `approved`, `rejected`, or `deferred`;
+- canonical SHA-256 digests use strictly JSON-compatible normalized payloads and
+  UTC-normalized audit timestamps;
+- typed immutable references contain only source, analysis, or decision IDs and
+  digests; and
+- no file I/O, persistence, migration, application service, API, Web, M31,
+  private-edge, broker, or live capability was added.
 
 Migration head remains `0005_paper_job_result_references`.
 
