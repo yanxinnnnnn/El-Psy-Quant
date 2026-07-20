@@ -353,6 +353,37 @@ def test_zero_variance_pairwise_and_near_constant_semantics() -> None:
     json.dumps(result.to_dict(), allow_nan=False)
 
 
+def test_pairwise_repeated_point_one_left_component_is_zero_variance() -> None:
+    _, _, result = _analysis(
+        returns=((0.1, 0.1, 0.1), (0.01, 0.02, 0.03)),
+        baseline_weights=(1.0, 0.0),
+        proposed_weights=(0.5, 0.5),
+    )
+
+    correlation = result.pairwise_correlations[0]
+    assert correlation.status == "unavailable"
+    assert correlation.unavailable_reason == "zero_variance"
+    assert correlation.zero_variance_series == ("component-1",)
+    assert correlation.correlation is None
+
+
+def test_pairwise_repeated_point_one_both_components_are_zero_variance() -> None:
+    _, _, result = _analysis(
+        returns=((0.1, 0.1, 0.1), (0.1, 0.1, 0.1)),
+        baseline_weights=(1.0, 0.0),
+        proposed_weights=(0.5, 0.5),
+    )
+
+    correlation = result.pairwise_correlations[0]
+    assert correlation.status == "unavailable"
+    assert correlation.unavailable_reason == "zero_variance"
+    assert correlation.zero_variance_series == (
+        "component-1",
+        "component-2",
+    )
+    assert correlation.correlation is None
+
+
 def test_candidate_correlation_zero_weight_and_self_inclusion() -> None:
     returns = (
         (0.01, 0.02, -0.01, 0.03),
@@ -389,6 +420,51 @@ def test_candidate_correlation_zero_weight_and_self_inclusion() -> None:
     assert included.correlation == pytest.approx(
         _pearson(returns[1], baseline_return)
     )
+
+
+def test_repeated_point_one_candidate_is_zero_variance() -> None:
+    _, _, result = _analysis(
+        returns=((0.01, 0.02, 0.03), (0.1, 0.1, 0.1)),
+        baseline_weights=(1.0, 0.0),
+        proposed_weights=(0.5, 0.5),
+    )
+
+    correlation = result.candidate_baseline_correlation
+    assert correlation.status == "unavailable"
+    assert correlation.unavailable_reason == "zero_variance"
+    assert correlation.zero_variance_series == ("component-2",)
+    assert correlation.correlation is None
+
+
+def test_repeated_point_one_baseline_portfolio_is_zero_variance() -> None:
+    _, _, result = _analysis(
+        returns=((0.1, 0.1, 0.1), (0.01, 0.02, 0.03)),
+        baseline_weights=(1.0, 0.0),
+        proposed_weights=(0.5, 0.5),
+    )
+
+    correlation = result.candidate_baseline_correlation
+    assert correlation.status == "unavailable"
+    assert correlation.unavailable_reason == "zero_variance"
+    assert correlation.zero_variance_series == ("baseline_portfolio",)
+    assert correlation.correlation is None
+
+
+def test_repeated_point_one_candidate_and_baseline_are_zero_variance() -> None:
+    _, _, result = _analysis(
+        returns=((0.1, 0.1, 0.1), (0.1, 0.1, 0.1)),
+        baseline_weights=(1.0, 0.0),
+        proposed_weights=(0.5, 0.5),
+    )
+
+    correlation = result.candidate_baseline_correlation
+    assert correlation.status == "unavailable"
+    assert correlation.unavailable_reason == "zero_variance"
+    assert correlation.zero_variance_series == (
+        "component-2",
+        "baseline_portfolio",
+    )
+    assert correlation.correlation is None
 
 
 @pytest.mark.parametrize(

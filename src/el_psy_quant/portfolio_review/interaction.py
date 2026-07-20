@@ -221,16 +221,21 @@ def _pearson_correlation(
     if len(left_values) != len(right_values):
         raise ValueError("correlation series must share an observation count")
     observation_count = len(left_values)
+    left_zero_variance = all(
+        value == left_values[0] for value in left_values[1:]
+    )
+    right_zero_variance = all(
+        value == right_values[0] for value in right_values[1:]
+    )
+    if left_zero_variance or right_zero_variance:
+        return None, left_zero_variance, right_zero_variance
+
     left_mean = math.fsum(left_values) / observation_count
     right_mean = math.fsum(right_values) / observation_count
     left_centered = tuple(value - left_mean for value in left_values)
     right_centered = tuple(value - right_mean for value in right_values)
     left_ss = math.fsum(value * value for value in left_centered)
     right_ss = math.fsum(value * value for value in right_centered)
-    left_zero_variance = left_ss == 0.0
-    right_zero_variance = right_ss == 0.0
-    if left_zero_variance or right_zero_variance:
-        return None, left_zero_variance, right_zero_variance
 
     numerator = math.fsum(
         left_value * right_value
