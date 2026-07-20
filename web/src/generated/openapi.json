@@ -1395,6 +1395,2373 @@
         "title": "PaperTradingArtifactResponse",
         "type": "object"
       },
+      "PortfolioReviewAnalysisAuditRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "created_timestamp": {
+            "format": "date-time",
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "missing_evidence": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Evidence",
+            "type": "array"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "created_by",
+          "created_timestamp"
+        ],
+        "title": "PortfolioReviewAnalysisAuditRequest",
+        "type": "object"
+      },
+      "PortfolioReviewAnalysisResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis_digest": {
+            "title": "Analysis Digest",
+            "type": "string"
+          },
+          "analysis_evidence_scope": {
+            "const": "historical_scenario_evidence",
+            "title": "Analysis Evidence Scope",
+            "type": "string"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "baseline_scenario": {
+            "$ref": "#/components/schemas/PortfolioReviewBaselineScenarioResponse"
+          },
+          "baseline_scenario_digest": {
+            "title": "Baseline Scenario Digest",
+            "type": "string"
+          },
+          "baseline_scenario_id": {
+            "title": "Baseline Scenario Id",
+            "type": "string"
+          },
+          "component_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Component Ids",
+            "type": "array"
+          },
+          "concentration_exposure_analysis": {
+            "$ref": "#/components/schemas/PortfolioReviewConcentrationExposureAnalysisResponse"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "created_timestamp": {
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "interaction_impact_analysis": {
+            "$ref": "#/components/schemas/PortfolioReviewInteractionImpactAnalysisResponse"
+          },
+          "missing_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Evidence",
+            "type": "array"
+          },
+          "proposed_component_id": {
+            "title": "Proposed Component Id",
+            "type": "string"
+          },
+          "proposed_scenario": {
+            "$ref": "#/components/schemas/PortfolioReviewProposedScenarioResponse"
+          },
+          "proposed_scenario_digest": {
+            "title": "Proposed Scenario Digest",
+            "type": "string"
+          },
+          "proposed_scenario_id": {
+            "title": "Proposed Scenario Id",
+            "type": "string"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "review_id",
+          "analysis_evidence_scope",
+          "source_id",
+          "source_digest",
+          "component_ids",
+          "baseline_scenario_id",
+          "baseline_scenario_digest",
+          "proposed_scenario_id",
+          "proposed_scenario_digest",
+          "proposed_component_id",
+          "baseline_scenario",
+          "proposed_scenario",
+          "concentration_exposure_analysis",
+          "interaction_impact_analysis",
+          "assumptions",
+          "warnings",
+          "missing_evidence",
+          "created_by",
+          "created_timestamp",
+          "analysis_digest"
+        ],
+        "title": "PortfolioReviewAnalysisResponse",
+        "type": "object"
+      },
+      "PortfolioReviewBaselineScenarioRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "weights": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "scenario_id",
+          "weights",
+          "rationale"
+        ],
+        "title": "PortfolioReviewBaselineScenarioRequest",
+        "type": "object"
+      },
+      "PortfolioReviewBaselineScenarioResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "component_weights": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewComponentWeightResponse"
+            },
+            "title": "Component Weights",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "scenario_digest": {
+            "title": "Scenario Digest",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "source_id",
+          "source_digest",
+          "component_weights",
+          "rationale",
+          "assumptions",
+          "warnings",
+          "scenario_digest"
+        ],
+        "title": "PortfolioReviewBaselineScenarioResponse",
+        "type": "object"
+      },
+      "PortfolioReviewCandidateBaselineCorrelationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_scenario_digest": {
+            "title": "Baseline Scenario Digest",
+            "type": "string"
+          },
+          "baseline_scenario_id": {
+            "title": "Baseline Scenario Id",
+            "type": "string"
+          },
+          "candidate_baseline_weight": {
+            "title": "Candidate Baseline Weight",
+            "type": "number"
+          },
+          "candidate_component_id": {
+            "title": "Candidate Component Id",
+            "type": "string"
+          },
+          "correlation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation"
+          },
+          "evaluation_end_timestamp": {
+            "title": "Evaluation End Timestamp",
+            "type": "string"
+          },
+          "evaluation_start_timestamp": {
+            "title": "Evaluation Start Timestamp",
+            "type": "string"
+          },
+          "observation_count": {
+            "title": "Observation Count",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "const": "zero_variance",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          },
+          "zero_variance_series": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Zero Variance Series",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "candidate_component_id",
+          "candidate_baseline_weight",
+          "baseline_scenario_id",
+          "baseline_scenario_digest",
+          "status",
+          "unavailable_reason",
+          "zero_variance_series",
+          "correlation",
+          "observation_count",
+          "evaluation_start_timestamp",
+          "evaluation_end_timestamp"
+        ],
+        "title": "PortfolioReviewCandidateBaselineCorrelationResponse",
+        "type": "object"
+      },
+      "PortfolioReviewCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "enum": [
+              "created",
+              "replayed"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "review": {
+            "$ref": "#/components/schemas/PortfolioReviewDetailResponse"
+          }
+        },
+        "required": [
+          "outcome",
+          "review"
+        ],
+        "title": "PortfolioReviewCommandResponse",
+        "type": "object"
+      },
+      "PortfolioReviewComponentContributionImpactResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_weight": {
+            "title": "Baseline Weight",
+            "type": "number"
+          },
+          "component_id": {
+            "title": "Component Id",
+            "type": "string"
+          },
+          "mean_contribution_delta": {
+            "title": "Mean Contribution Delta",
+            "type": "number"
+          },
+          "negative_periods_delta": {
+            "title": "Negative Periods Delta",
+            "type": "integer"
+          },
+          "positive_periods_delta": {
+            "title": "Positive Periods Delta",
+            "type": "integer"
+          },
+          "proposed_weight": {
+            "title": "Proposed Weight",
+            "type": "number"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "strategy_id": {
+            "title": "Strategy Id",
+            "type": "string"
+          },
+          "total_contribution_delta": {
+            "title": "Total Contribution Delta",
+            "type": "number"
+          },
+          "zero_periods_delta": {
+            "title": "Zero Periods Delta",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "component_id",
+          "strategy_id",
+          "baseline_weight",
+          "proposed_weight",
+          "total_contribution_delta",
+          "mean_contribution_delta",
+          "positive_periods_delta",
+          "negative_periods_delta",
+          "zero_periods_delta"
+        ],
+        "title": "PortfolioReviewComponentContributionImpactResponse",
+        "type": "object"
+      },
+      "PortfolioReviewComponentContributionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "component_id": {
+            "title": "Component Id",
+            "type": "string"
+          },
+          "mean_contribution": {
+            "title": "Mean Contribution",
+            "type": "number"
+          },
+          "negative_periods": {
+            "title": "Negative Periods",
+            "type": "integer"
+          },
+          "positive_periods": {
+            "title": "Positive Periods",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "strategy_id": {
+            "title": "Strategy Id",
+            "type": "string"
+          },
+          "total_contribution": {
+            "title": "Total Contribution",
+            "type": "number"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          },
+          "zero_periods": {
+            "title": "Zero Periods",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "component_id",
+          "strategy_id",
+          "weight",
+          "total_contribution",
+          "mean_contribution",
+          "positive_periods",
+          "negative_periods",
+          "zero_periods"
+        ],
+        "title": "PortfolioReviewComponentContributionResponse",
+        "type": "object"
+      },
+      "PortfolioReviewComponentExposureResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_active": {
+            "title": "Baseline Active",
+            "type": "boolean"
+          },
+          "baseline_weight": {
+            "title": "Baseline Weight",
+            "type": "number"
+          },
+          "change_type": {
+            "enum": [
+              "added",
+              "removed",
+              "increased",
+              "decreased",
+              "unchanged"
+            ],
+            "title": "Change Type",
+            "type": "string"
+          },
+          "component_id": {
+            "title": "Component Id",
+            "type": "string"
+          },
+          "proposed_active": {
+            "title": "Proposed Active",
+            "type": "boolean"
+          },
+          "proposed_weight": {
+            "title": "Proposed Weight",
+            "type": "number"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "strategy_id": {
+            "title": "Strategy Id",
+            "type": "string"
+          },
+          "symbol_evidence_status": {
+            "enum": [
+              "available",
+              "missing"
+            ],
+            "title": "Symbol Evidence Status",
+            "type": "string"
+          },
+          "symbols": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbols"
+          },
+          "weight_delta": {
+            "title": "Weight Delta",
+            "type": "number"
+          }
+        },
+        "required": [
+          "schema_version",
+          "component_id",
+          "strategy_id",
+          "baseline_weight",
+          "proposed_weight",
+          "weight_delta",
+          "change_type",
+          "baseline_active",
+          "proposed_active",
+          "symbols",
+          "symbol_evidence_status"
+        ],
+        "title": "PortfolioReviewComponentExposureResponse",
+        "type": "object"
+      },
+      "PortfolioReviewComponentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "component_id": {
+            "title": "Component Id",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "evidence_references": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewEvidenceReferenceRequest"
+            },
+            "title": "Evidence References",
+            "type": "array"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "strategy_id": {
+            "title": "Strategy Id",
+            "type": "string"
+          },
+          "symbols": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbols"
+          }
+        },
+        "required": [
+          "component_id",
+          "strategy_id",
+          "evidence_references"
+        ],
+        "title": "PortfolioReviewComponentRequest",
+        "type": "object"
+      },
+      "PortfolioReviewComponentResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "component_id": {
+            "title": "Component Id",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "evidence_references": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewEvidenceReferenceResponse"
+            },
+            "title": "Evidence References",
+            "type": "array"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "strategy_id": {
+            "title": "Strategy Id",
+            "type": "string"
+          },
+          "symbols": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbols"
+          }
+        },
+        "required": [
+          "schema_version",
+          "component_id",
+          "strategy_id",
+          "evidence_references",
+          "symbols",
+          "label",
+          "description"
+        ],
+        "title": "PortfolioReviewComponentResponse",
+        "type": "object"
+      },
+      "PortfolioReviewComponentWeightResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "component_id": {
+            "title": "Component Id",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "component_id",
+          "weight"
+        ],
+        "title": "PortfolioReviewComponentWeightResponse",
+        "type": "object"
+      },
+      "PortfolioReviewConcentrationExposureAnalysisResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_concentration": {
+            "$ref": "#/components/schemas/PortfolioReviewScenarioConcentrationResponse"
+          },
+          "baseline_universe_coverage": {
+            "$ref": "#/components/schemas/PortfolioReviewScenarioUniverseCoverageResponse"
+          },
+          "component_exposures": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewComponentExposureResponse"
+            },
+            "title": "Component Exposures",
+            "type": "array"
+          },
+          "component_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Component Ids",
+            "type": "array"
+          },
+          "proposed_concentration": {
+            "$ref": "#/components/schemas/PortfolioReviewScenarioConcentrationResponse"
+          },
+          "proposed_universe_coverage": {
+            "$ref": "#/components/schemas/PortfolioReviewScenarioUniverseCoverageResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "source_id",
+          "source_digest",
+          "component_ids",
+          "baseline_concentration",
+          "proposed_concentration",
+          "component_exposures",
+          "baseline_universe_coverage",
+          "proposed_universe_coverage"
+        ],
+        "title": "PortfolioReviewConcentrationExposureAnalysisResponse",
+        "type": "object"
+      },
+      "PortfolioReviewCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis": {
+            "$ref": "#/components/schemas/PortfolioReviewAnalysisAuditRequest"
+          },
+          "baseline_scenario": {
+            "$ref": "#/components/schemas/PortfolioReviewBaselineScenarioRequest"
+          },
+          "proposed_scenario": {
+            "$ref": "#/components/schemas/PortfolioReviewProposedScenarioRequest"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PortfolioReviewSourceRequest"
+          }
+        },
+        "required": [
+          "review_id",
+          "source",
+          "baseline_scenario",
+          "proposed_scenario",
+          "analysis"
+        ],
+        "title": "PortfolioReviewCreateRequest",
+        "type": "object"
+      },
+      "PortfolioReviewDecisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_id": {
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "notes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "outcome": {
+            "enum": [
+              "approved",
+              "rejected",
+              "deferred"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "reviewed_by": {
+            "title": "Reviewed By",
+            "type": "string"
+          },
+          "reviewed_timestamp": {
+            "format": "date-time",
+            "title": "Reviewed Timestamp",
+            "type": "string"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "decision_id",
+          "outcome",
+          "rationale",
+          "reviewed_by",
+          "reviewed_timestamp"
+        ],
+        "title": "PortfolioReviewDecisionRequest",
+        "type": "object"
+      },
+      "PortfolioReviewDecisionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis_digest": {
+            "title": "Analysis Digest",
+            "type": "string"
+          },
+          "baseline_scenario_digest": {
+            "title": "Baseline Scenario Digest",
+            "type": "string"
+          },
+          "baseline_scenario_id": {
+            "title": "Baseline Scenario Id",
+            "type": "string"
+          },
+          "decision_digest": {
+            "title": "Decision Digest",
+            "type": "string"
+          },
+          "decision_id": {
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "decision_scope": {
+            "const": "portfolio_review_governance_only",
+            "title": "Decision Scope",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "outcome": {
+            "enum": [
+              "approved",
+              "rejected",
+              "deferred"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "proposed_scenario_digest": {
+            "title": "Proposed Scenario Digest",
+            "type": "string"
+          },
+          "proposed_scenario_id": {
+            "title": "Proposed Scenario Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "reviewed_by": {
+            "title": "Reviewed By",
+            "type": "string"
+          },
+          "reviewed_timestamp": {
+            "title": "Reviewed Timestamp",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "decision_id",
+          "decision_scope",
+          "review_id",
+          "analysis_digest",
+          "source_id",
+          "source_digest",
+          "baseline_scenario_id",
+          "baseline_scenario_digest",
+          "proposed_scenario_id",
+          "proposed_scenario_digest",
+          "outcome",
+          "rationale",
+          "reviewed_by",
+          "reviewed_timestamp",
+          "notes",
+          "warnings",
+          "decision_digest"
+        ],
+        "title": "PortfolioReviewDecisionResponse",
+        "type": "object"
+      },
+      "PortfolioReviewDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis": {
+            "$ref": "#/components/schemas/PortfolioReviewAnalysisResponse"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PortfolioReviewDecisionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "record": {
+            "$ref": "#/components/schemas/PortfolioReviewRecordResponse"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PortfolioReviewSourceResponse"
+          }
+        },
+        "required": [
+          "record",
+          "source",
+          "analysis",
+          "decision"
+        ],
+        "title": "PortfolioReviewDetailResponse",
+        "type": "object"
+      },
+      "PortfolioReviewEvidenceReferenceRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "reference_id": {
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "reference_type": {
+            "title": "Reference Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_type",
+          "reference_id"
+        ],
+        "title": "PortfolioReviewEvidenceReferenceRequest",
+        "type": "object"
+      },
+      "PortfolioReviewEvidenceReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "reference_id": {
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "reference_type": {
+            "title": "Reference Type",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "reference_type",
+          "reference_id",
+          "label",
+          "description"
+        ],
+        "title": "PortfolioReviewEvidenceReferenceResponse",
+        "type": "object"
+      },
+      "PortfolioReviewInteractionImpactAnalysisResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_behavior": {
+            "$ref": "#/components/schemas/PortfolioReviewScenarioBehaviorResponse"
+          },
+          "candidate_baseline_correlation": {
+            "$ref": "#/components/schemas/PortfolioReviewCandidateBaselineCorrelationResponse"
+          },
+          "component_contribution_impacts": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewComponentContributionImpactResponse"
+            },
+            "title": "Component Contribution Impacts",
+            "type": "array"
+          },
+          "component_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Component Ids",
+            "type": "array"
+          },
+          "pairwise_correlations": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewPairwiseCorrelationResponse"
+            },
+            "title": "Pairwise Correlations",
+            "type": "array"
+          },
+          "proposed_behavior": {
+            "$ref": "#/components/schemas/PortfolioReviewScenarioBehaviorResponse"
+          },
+          "proposed_component_id": {
+            "title": "Proposed Component Id",
+            "type": "string"
+          },
+          "proposed_impact": {
+            "$ref": "#/components/schemas/PortfolioReviewProposedImpactResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "symbol_overlaps": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewSymbolOverlapResponse"
+            },
+            "title": "Symbol Overlaps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "source_id",
+          "source_digest",
+          "component_ids",
+          "proposed_component_id",
+          "symbol_overlaps",
+          "pairwise_correlations",
+          "candidate_baseline_correlation",
+          "baseline_behavior",
+          "proposed_behavior",
+          "proposed_impact",
+          "component_contribution_impacts"
+        ],
+        "title": "PortfolioReviewInteractionImpactAnalysisResponse",
+        "type": "object"
+      },
+      "PortfolioReviewPairwiseCorrelationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "correlation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation"
+          },
+          "evaluation_end_timestamp": {
+            "title": "Evaluation End Timestamp",
+            "type": "string"
+          },
+          "evaluation_start_timestamp": {
+            "title": "Evaluation Start Timestamp",
+            "type": "string"
+          },
+          "left_component_id": {
+            "title": "Left Component Id",
+            "type": "string"
+          },
+          "observation_count": {
+            "title": "Observation Count",
+            "type": "integer"
+          },
+          "right_component_id": {
+            "title": "Right Component Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "const": "zero_variance",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          },
+          "zero_variance_series": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Zero Variance Series",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "left_component_id",
+          "right_component_id",
+          "status",
+          "unavailable_reason",
+          "zero_variance_series",
+          "correlation",
+          "observation_count",
+          "evaluation_start_timestamp",
+          "evaluation_end_timestamp"
+        ],
+        "title": "PortfolioReviewPairwiseCorrelationResponse",
+        "type": "object"
+      },
+      "PortfolioReviewProposedImpactResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "annualized_volatility_delta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annualized Volatility Delta"
+          },
+          "cumulative_return_delta": {
+            "title": "Cumulative Return Delta",
+            "type": "number"
+          },
+          "ending_equity_delta": {
+            "title": "Ending Equity Delta",
+            "type": "number"
+          },
+          "loss_rate_delta": {
+            "title": "Loss Rate Delta",
+            "type": "number"
+          },
+          "max_drawdown_delta": {
+            "title": "Max Drawdown Delta",
+            "type": "number"
+          },
+          "max_return_delta": {
+            "title": "Max Return Delta",
+            "type": "number"
+          },
+          "mean_return_delta": {
+            "title": "Mean Return Delta",
+            "type": "number"
+          },
+          "min_return_delta": {
+            "title": "Min Return Delta",
+            "type": "number"
+          },
+          "negative_periods_delta": {
+            "title": "Negative Periods Delta",
+            "type": "integer"
+          },
+          "positive_periods_delta": {
+            "title": "Positive Periods Delta",
+            "type": "integer"
+          },
+          "sample_volatility_delta": {
+            "title": "Sample Volatility Delta",
+            "type": "number"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "zero_periods_delta": {
+            "title": "Zero Periods Delta",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "mean_return_delta",
+          "sample_volatility_delta",
+          "annualized_volatility_delta",
+          "min_return_delta",
+          "max_return_delta",
+          "positive_periods_delta",
+          "negative_periods_delta",
+          "zero_periods_delta",
+          "loss_rate_delta",
+          "ending_equity_delta",
+          "cumulative_return_delta",
+          "max_drawdown_delta"
+        ],
+        "title": "PortfolioReviewProposedImpactResponse",
+        "type": "object"
+      },
+      "PortfolioReviewProposedScenarioRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "proposed_component_id": {
+            "title": "Proposed Component Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "weights": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "scenario_id",
+          "weights",
+          "rationale",
+          "proposed_component_id"
+        ],
+        "title": "PortfolioReviewProposedScenarioRequest",
+        "type": "object"
+      },
+      "PortfolioReviewProposedScenarioResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "component_weights": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewComponentWeightResponse"
+            },
+            "title": "Component Weights",
+            "type": "array"
+          },
+          "proposed_component_id": {
+            "title": "Proposed Component Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "scenario_digest": {
+            "title": "Scenario Digest",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "source_id",
+          "source_digest",
+          "component_weights",
+          "rationale",
+          "assumptions",
+          "warnings",
+          "scenario_digest",
+          "proposed_component_id"
+        ],
+        "title": "PortfolioReviewProposedScenarioResponse",
+        "type": "object"
+      },
+      "PortfolioReviewRecordResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis_digest": {
+            "title": "Analysis Digest",
+            "type": "string"
+          },
+          "analysis_schema_version": {
+            "const": 1,
+            "title": "Analysis Schema Version",
+            "type": "integer"
+          },
+          "baseline_scenario_digest": {
+            "title": "Baseline Scenario Digest",
+            "type": "string"
+          },
+          "baseline_scenario_id": {
+            "title": "Baseline Scenario Id",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "created_timestamp": {
+            "format": "date-time",
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "decision_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Digest"
+          },
+          "decision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Id"
+          },
+          "decision_schema_version": {
+            "anyOf": [
+              {
+                "const": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Schema Version"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "enum": [
+                  "approved",
+                  "rejected",
+                  "deferred"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "proposed_component_id": {
+            "title": "Proposed Component Id",
+            "type": "string"
+          },
+          "proposed_scenario_digest": {
+            "title": "Proposed Scenario Digest",
+            "type": "string"
+          },
+          "proposed_scenario_id": {
+            "title": "Proposed Scenario Id",
+            "type": "string"
+          },
+          "record_schema_version": {
+            "const": 1,
+            "title": "Record Schema Version",
+            "type": "integer"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "reviewed_timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed Timestamp"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_schema_version": {
+            "const": 1,
+            "title": "Source Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "awaiting_decision",
+              "approved",
+              "rejected",
+              "deferred"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_timestamp": {
+            "format": "date-time",
+            "title": "Updated Timestamp",
+            "type": "string"
+          },
+          "version": {
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "record_schema_version",
+          "review_id",
+          "status",
+          "source_schema_version",
+          "source_id",
+          "source_digest",
+          "baseline_scenario_id",
+          "baseline_scenario_digest",
+          "proposed_scenario_id",
+          "proposed_scenario_digest",
+          "proposed_component_id",
+          "analysis_schema_version",
+          "analysis_digest",
+          "created_by",
+          "created_timestamp",
+          "decision_schema_version",
+          "decision_id",
+          "decision_digest",
+          "outcome",
+          "reviewed_by",
+          "reviewed_timestamp",
+          "version",
+          "updated_timestamp"
+        ],
+        "title": "PortfolioReviewRecordResponse",
+        "type": "object"
+      },
+      "PortfolioReviewReturnObservationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "component_returns": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "title": "Component Returns",
+            "type": "array"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "component_returns"
+        ],
+        "title": "PortfolioReviewReturnObservationRequest",
+        "type": "object"
+      },
+      "PortfolioReviewReturnObservationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "component_returns": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Component Returns",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "timestamp",
+          "component_returns"
+        ],
+        "title": "PortfolioReviewReturnObservationResponse",
+        "type": "object"
+      },
+      "PortfolioReviewScenarioBehaviorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "annualized_volatility": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annualized Volatility"
+          },
+          "component_contributions": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewComponentContributionResponse"
+            },
+            "title": "Component Contributions",
+            "type": "array"
+          },
+          "cumulative_return": {
+            "title": "Cumulative Return",
+            "type": "number"
+          },
+          "ending_equity": {
+            "title": "Ending Equity",
+            "type": "number"
+          },
+          "evaluation_end_timestamp": {
+            "title": "Evaluation End Timestamp",
+            "type": "string"
+          },
+          "evaluation_start_timestamp": {
+            "title": "Evaluation Start Timestamp",
+            "type": "string"
+          },
+          "loss_rate": {
+            "title": "Loss Rate",
+            "type": "number"
+          },
+          "max_return": {
+            "title": "Max Return",
+            "type": "number"
+          },
+          "mean_return": {
+            "title": "Mean Return",
+            "type": "number"
+          },
+          "min_return": {
+            "title": "Min Return",
+            "type": "number"
+          },
+          "negative_periods": {
+            "title": "Negative Periods",
+            "type": "integer"
+          },
+          "observation_count": {
+            "title": "Observation Count",
+            "type": "integer"
+          },
+          "periods_per_year": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Periods Per Year"
+          },
+          "positive_periods": {
+            "title": "Positive Periods",
+            "type": "integer"
+          },
+          "sample_volatility": {
+            "title": "Sample Volatility",
+            "type": "number"
+          },
+          "scenario_digest": {
+            "title": "Scenario Digest",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "worst_drawdown": {
+            "$ref": "#/components/schemas/PortfolioReviewWorstDrawdownResponse"
+          },
+          "zero_periods": {
+            "title": "Zero Periods",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "scenario_digest",
+          "observation_count",
+          "evaluation_start_timestamp",
+          "evaluation_end_timestamp",
+          "periods_per_year",
+          "mean_return",
+          "sample_volatility",
+          "annualized_volatility",
+          "min_return",
+          "max_return",
+          "positive_periods",
+          "negative_periods",
+          "zero_periods",
+          "loss_rate",
+          "ending_equity",
+          "cumulative_return",
+          "worst_drawdown",
+          "component_contributions"
+        ],
+        "title": "PortfolioReviewScenarioBehaviorResponse",
+        "type": "object"
+      },
+      "PortfolioReviewScenarioConcentrationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "effective_component_count": {
+            "title": "Effective Component Count",
+            "type": "number"
+          },
+          "herfindahl_hirschman_index": {
+            "title": "Herfindahl Hirschman Index",
+            "type": "number"
+          },
+          "largest_component_id": {
+            "title": "Largest Component Id",
+            "type": "string"
+          },
+          "largest_component_weight": {
+            "title": "Largest Component Weight",
+            "type": "number"
+          },
+          "scenario_digest": {
+            "title": "Scenario Digest",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "top_3_weight": {
+            "title": "Top 3 Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "scenario_digest",
+          "largest_component_id",
+          "largest_component_weight",
+          "top_3_weight",
+          "herfindahl_hirschman_index",
+          "effective_component_count"
+        ],
+        "title": "PortfolioReviewScenarioConcentrationResponse",
+        "type": "object"
+      },
+      "PortfolioReviewScenarioUniverseCoverageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "active_component_count": {
+            "title": "Active Component Count",
+            "type": "integer"
+          },
+          "active_component_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Active Component Ids",
+            "type": "array"
+          },
+          "active_components_missing_symbol_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Active Components Missing Symbol Evidence",
+            "type": "array"
+          },
+          "active_components_missing_symbol_evidence_count": {
+            "title": "Active Components Missing Symbol Evidence Count",
+            "type": "integer"
+          },
+          "active_components_with_symbol_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Active Components With Symbol Evidence",
+            "type": "array"
+          },
+          "active_components_with_symbol_evidence_count": {
+            "title": "Active Components With Symbol Evidence Count",
+            "type": "integer"
+          },
+          "active_coverage_complete": {
+            "title": "Active Coverage Complete",
+            "type": "boolean"
+          },
+          "components_missing_symbol_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Components Missing Symbol Evidence",
+            "type": "array"
+          },
+          "components_missing_symbol_evidence_count": {
+            "title": "Components Missing Symbol Evidence Count",
+            "type": "integer"
+          },
+          "components_with_symbol_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Components With Symbol Evidence",
+            "type": "array"
+          },
+          "components_with_symbol_evidence_count": {
+            "title": "Components With Symbol Evidence Count",
+            "type": "integer"
+          },
+          "scenario_digest": {
+            "title": "Scenario Digest",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_component_count": {
+            "title": "Source Component Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "scenario_digest",
+          "components_with_symbol_evidence",
+          "components_missing_symbol_evidence",
+          "active_component_ids",
+          "active_components_with_symbol_evidence",
+          "active_components_missing_symbol_evidence",
+          "source_component_count",
+          "components_with_symbol_evidence_count",
+          "components_missing_symbol_evidence_count",
+          "active_component_count",
+          "active_components_with_symbol_evidence_count",
+          "active_components_missing_symbol_evidence_count",
+          "active_coverage_complete"
+        ],
+        "title": "PortfolioReviewScenarioUniverseCoverageResponse",
+        "type": "object"
+      },
+      "PortfolioReviewSourceRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewComponentRequest"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "created_timestamp": {
+            "format": "date-time",
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "evaluation_frequency": {
+            "title": "Evaluation Frequency",
+            "type": "string"
+          },
+          "missing_evidence": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Evidence",
+            "type": "array"
+          },
+          "periods_per_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Periods Per Year"
+          },
+          "return_observations": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewReturnObservationRequest"
+            },
+            "title": "Return Observations",
+            "type": "array"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source_id",
+          "components",
+          "return_observations",
+          "evaluation_frequency",
+          "created_by",
+          "created_timestamp"
+        ],
+        "title": "PortfolioReviewSourceRequest",
+        "type": "object"
+      },
+      "PortfolioReviewSourceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewComponentResponse"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "created_timestamp": {
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "evaluation_frequency": {
+            "title": "Evaluation Frequency",
+            "type": "string"
+          },
+          "missing_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Evidence",
+            "type": "array"
+          },
+          "periods_per_year": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Periods Per Year"
+          },
+          "return_observations": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioReviewReturnObservationResponse"
+            },
+            "title": "Return Observations",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "source_id",
+          "components",
+          "return_observations",
+          "evaluation_frequency",
+          "periods_per_year",
+          "created_by",
+          "created_timestamp",
+          "assumptions",
+          "warnings",
+          "missing_evidence",
+          "source_digest"
+        ],
+        "title": "PortfolioReviewSourceResponse",
+        "type": "object"
+      },
+      "PortfolioReviewSymbolOverlapResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "jaccard_overlap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jaccard Overlap"
+          },
+          "left_component_id": {
+            "title": "Left Component Id",
+            "type": "string"
+          },
+          "missing_symbol_component_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Symbol Component Ids",
+            "type": "array"
+          },
+          "right_component_id": {
+            "title": "Right Component Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "shared_symbol_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared Symbol Count"
+          },
+          "shared_symbols": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared Symbols"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "const": "missing_symbol_evidence",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          },
+          "union_symbol_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Union Symbol Count"
+          }
+        },
+        "required": [
+          "schema_version",
+          "left_component_id",
+          "right_component_id",
+          "status",
+          "unavailable_reason",
+          "missing_symbol_component_ids",
+          "shared_symbols",
+          "shared_symbol_count",
+          "union_symbol_count",
+          "jaccard_overlap"
+        ],
+        "title": "PortfolioReviewSymbolOverlapResponse",
+        "type": "object"
+      },
+      "PortfolioReviewWorstDrawdownResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "duration_periods": {
+            "title": "Duration Periods",
+            "type": "integer"
+          },
+          "max_drawdown": {
+            "title": "Max Drawdown",
+            "type": "number"
+          },
+          "peak_date": {
+            "title": "Peak Date",
+            "type": "string"
+          },
+          "recovered": {
+            "title": "Recovered",
+            "type": "boolean"
+          },
+          "recovery_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery Date"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "time_to_recovery_periods": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time To Recovery Periods"
+          },
+          "time_to_trough_periods": {
+            "title": "Time To Trough Periods",
+            "type": "integer"
+          },
+          "trough_date": {
+            "title": "Trough Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "max_drawdown",
+          "peak_date",
+          "trough_date",
+          "recovery_date",
+          "recovered",
+          "duration_periods",
+          "time_to_trough_periods",
+          "time_to_recovery_periods"
+        ],
+        "title": "PortfolioReviewWorstDrawdownResponse",
+        "type": "object"
+      },
       "ReportArtifactManifestDetailResponse": {
         "properties": {
           "artifact_key": {
@@ -3191,6 +5558,241 @@
           }
         },
         "summary": "Post Paper Run"
+      }
+    },
+    "/api/v1/portfolio-reviews": {
+      "get": {
+        "description": "Return compact database-only review metadata.",
+        "operationId": "get_portfolio_reviews_api_v1_portfolio_reviews_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "awaiting_decision",
+                    "approved",
+                    "rejected",
+                    "deferred"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PortfolioReviewRecordResponse"
+                  },
+                  "title": "Response Get Portfolio Reviews Api V1 Portfolio Reviews Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Portfolio Reviews"
+      },
+      "post": {
+        "description": "Create or exactly replay one immutable portfolio review.",
+        "operationId": "post_portfolio_review_api_v1_portfolio_reviews_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortfolioReviewCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioReviewCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioReviewCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Portfolio Review"
+      }
+    },
+    "/api/v1/portfolio-reviews/{review_id}": {
+      "get": {
+        "operationId": "get_portfolio_review_api_v1_portfolio_reviews__review_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioReviewDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Portfolio Review"
+      }
+    },
+    "/api/v1/portfolio-reviews/{review_id}/decision": {
+      "post": {
+        "description": "Settle or exactly replay the one human governance decision.",
+        "operationId": "post_portfolio_review_decision_api_v1_portfolio_reviews__review_id__decision_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortfolioReviewDecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioReviewCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioReviewCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Portfolio Review Decision"
       }
     },
     "/api/v1/research-runs": {

@@ -134,12 +134,12 @@ Milestone 30 is In Progress:
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Sprints 169–172 are Complete. Sprint 173 artifact and human-decision
-implementation is complete pending Founder review. After merge, the next
-implementation sprint is:
+Sprints 169–173 are Complete. Sprint 174 durable artifact, persistence,
+application, and API implementation is complete pending Founder review. After
+merge, the next implementation sprint is:
 
 ```text
-Sprint 174 — Durable Portfolio Review Persistence and Application/API Foundation
+Sprint 175 — Founder Portfolio Decision Review Web Workspace
 ```
 
 Authoritative M30 planning:
@@ -217,7 +217,20 @@ Implemented Sprint 173 artifacts:
 - no file I/O, persistence, migration, application service, API, Web, M31,
   private-edge, broker, or live capability was added.
 
-Migration head remains `0005_paper_job_result_references`.
+Implemented Sprint 174 durable product/API boundary:
+
+- source, analysis, and decision files use fixed server-owned hashed paths under
+  the configured evidence root and strict write-once exact-reuse semantics;
+- source reopen reconstructs S170 inputs, analysis reopen recalculates S171/S172
+  evidence, and decision reopen reconstructs through the exact analysis;
+- SQLite owns one compact portfolio-review record with create/decision
+  idempotency, transaction/file ordering, and one-winner settlement;
+- four authenticated versioned API routes expose explicit typed nested contracts;
+- checked-in OpenAPI and generated TypeScript contracts are current; and
+- no Founder Web, Demo data, lifecycle, Paper Account, order, execution, M31,
+  private-edge, broker, or live capability was added.
+
+Migration head is `0006_portfolio_reviews`.
 
 ### M30 architecture boundary
 

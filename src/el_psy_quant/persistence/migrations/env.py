@@ -11,6 +11,7 @@ import el_psy_quant.persistence.artifact_index_model  # noqa: F401
 import el_psy_quant.persistence.paper_job_attempt_model  # noqa: F401
 import el_psy_quant.persistence.paper_job_model  # noqa: F401
 import el_psy_quant.persistence.paper_job_submission_key_model  # noqa: F401
+import el_psy_quant.persistence.portfolio_review_model  # noqa: F401
 from el_psy_quant.persistence import (
     ProductPersistenceBase,
     create_product_database_engine,

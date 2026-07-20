@@ -57,6 +57,19 @@ from el_psy_quant.persistence.paper_jobs import (
     serialize_paper_run_request,
     transition_paper_job_record,
 )
+from el_psy_quant.persistence.portfolio_review_repository import (
+    PortfolioReviewRepository,
+    SqlAlchemyPortfolioReviewRepository,
+)
+from el_psy_quant.persistence.portfolio_reviews import (
+    PORTFOLIO_REVIEW_LIST_LIMIT_MAXIMUM,
+    PORTFOLIO_REVIEW_RECORD_SCHEMA_VERSION,
+    PortfolioReviewRecord,
+    PortfolioReviewStatus,
+    create_awaiting_portfolio_review_record,
+    digest_portfolio_review_command,
+    validate_portfolio_review_idempotency_key,
+)
 from el_psy_quant.persistence.session import create_product_session_factory
 
 __all__ = [
@@ -74,6 +87,11 @@ __all__ = [
     "PaperJobSubmissionKeyRecord",
     "PaperJobSubmissionKeyRepository",
     "PreparedPaperRunRequest",
+    "PortfolioReviewRecord",
+    "PortfolioReviewRepository",
+    "PortfolioReviewStatus",
+    "PORTFOLIO_REVIEW_LIST_LIMIT_MAXIMUM",
+    "PORTFOLIO_REVIEW_RECORD_SCHEMA_VERSION",
     "ProductDatabaseConfig",
     "ProductPersistenceBase",
     "SqlAlchemyArtifactIndexRepository",
@@ -81,19 +99,23 @@ __all__ = [
     "SqlAlchemyPaperJobRepository",
     "SqlAlchemyPaperJobResultReferenceRepository",
     "SqlAlchemyPaperJobSubmissionKeyRepository",
+    "SqlAlchemyPortfolioReviewRepository",
     "complete_paper_job_attempt",
     "create_artifact_index_entry",
     "create_product_database_engine",
     "create_product_session_factory",
+    "create_awaiting_portfolio_review_record",
     "create_queued_paper_job_record",
     "create_paper_job_submission_key_record",
     "create_paper_job_result_reference",
     "create_running_paper_job_attempt",
     "deserialize_paper_run_request",
+    "digest_portfolio_review_command",
     "digest_prepared_paper_run_request",
     "prepare_paper_run_request_for_persistence",
     "resolve_product_database_config",
     "serialize_paper_run_request",
     "transition_paper_job_record",
     "validate_paper_job_idempotency_key",
+    "validate_portfolio_review_idempotency_key",
 ]

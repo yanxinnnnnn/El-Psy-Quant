@@ -73,6 +73,26 @@ API_OPERATIONS: tuple[ApiOperation, ...] = (
     ApiOperation("GET", "/api/v1/paper-jobs/{job_id}/result", "paper_job.result"),
     ApiOperation(
         "POST",
+        "/api/v1/portfolio-reviews",
+        "portfolio_review.create",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/portfolio-reviews",
+        "portfolio_review.list",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/portfolio-reviews/{review_id}",
+        "portfolio_review.detail",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/portfolio-reviews/{review_id}/decision",
+        "portfolio_review.decision",
+    ),
+    ApiOperation(
+        "POST",
         "/api/v1/lifecycle-transition-proposals",
         "lifecycle.propose",
     ),
@@ -278,6 +298,47 @@ def log_paper_job_execution_terminal(
     )
 
 
+def log_portfolio_review_command_completed(
+    *,
+    event: Literal[
+        "portfolio_review_create_completed",
+        "portfolio_review_decision_completed",
+    ],
+    request_id: str,
+    command: Literal["create", "decision"],
+    review_id: str,
+    decision_id: str | None,
+    durable_status: str,
+    command_outcome: Literal["created", "replayed"],
+    human_decision_outcome: str | None,
+) -> None:
+    """Log only bounded durable portfolio-review command identity."""
+    PRODUCT_LOGGER.info(
+        (
+            "%s request_id=%s command=%s review_id=%s decision_id=%s "
+            "durable_status=%s command_outcome=%s human_decision_outcome=%s"
+        ),
+        event,
+        request_id,
+        command,
+        review_id,
+        decision_id,
+        durable_status,
+        command_outcome,
+        human_decision_outcome,
+        extra={
+            "event": event,
+            "request_id": request_id,
+            "command": command,
+            "review_id": review_id,
+            "decision_id": decision_id,
+            "durable_status": durable_status,
+            "command_outcome": command_outcome,
+            "human_decision_outcome": human_decision_outcome,
+        },
+    )
+
+
 __all__ = [
     "API_OPERATIONS",
     "MAX_DURATION_MS",
@@ -291,5 +352,6 @@ __all__ = [
     "log_api_request_completed",
     "log_paper_job_command_completed",
     "log_paper_job_execution_terminal",
+    "log_portfolio_review_command_completed",
     "resolve_api_operation",
 ]
