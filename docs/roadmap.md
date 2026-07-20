@@ -114,8 +114,8 @@ M30 is now In Progress through this sequence:
 | S169 | Milestone 30 Architecture and Planning | Complete |
 | S170 | Portfolio Review Input and Scenario Contract Foundation | Complete |
 | S171 | Concentration and Exposure Analysis Foundation | Complete |
-| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Implementation complete / pending Founder review |
-| S173 | Portfolio Review Artifact and Human Decision Foundation | Next after S172 merge |
+| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Complete |
+| S173 | Portfolio Review Artifact and Human Decision Foundation | Implementation complete / pending Founder review |
 | S174 | Durable Portfolio Review Persistence and Application/API Foundation | Planned |
 | S175 | Founder Portfolio Decision Review Web Workspace | Planned |
 | S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Planned |
@@ -150,9 +150,14 @@ in-memory concentration, ordered weight-change review exposure, declared-symbol
 evidence, and active-universe coverage results. Sprint 172 adds source-ordered
 declared-symbol overlap, pairwise and candidate-to-baseline correlation,
 baseline/proposed historical behavior, component contribution, and exact
-proposed-minus-baseline impact as immutable in-memory domain results. It adds no
-artifact, decision, persistence, API, Web, M31, private-edge, broker, or live
-capability. Migration head remains `0005_paper_job_result_references`.
+proposed-minus-baseline impact as immutable in-memory domain results. Both
+analysis factories reject caller-authored calculations. Sprint 173 adds
+immutable historical-scenario analysis and governance-only decision payloads,
+canonical SHA-256 digests, UTC audit normalization, and typed
+source/analysis/decision references. Source
+observations remain separate. S173 adds no file I/O, persistence, migration,
+application service, API, Web, M31, private-edge, broker, or live capability.
+Migration head remains `0005_paper_job_result_references`.
 
 ## Approved Paper Trading Runtime Sequence
 

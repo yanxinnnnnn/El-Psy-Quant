@@ -15,6 +15,22 @@ from el_psy_quant.portfolio_review.analysis import (
     PortfolioReviewWeightChangeType,
     analyze_portfolio_review_concentration_and_exposure,
 )
+from el_psy_quant.portfolio_review.analysis_artifacts import (
+    PORTFOLIO_REVIEW_ANALYSIS_ARTIFACT_SCHEMA_VERSION,
+    PORTFOLIO_REVIEW_ANALYSIS_EVIDENCE_SCOPE,
+    PortfolioReviewAnalysisArtifact,
+    create_portfolio_review_analysis_artifact,
+)
+from el_psy_quant.portfolio_review.artifact_references import (
+    PORTFOLIO_REVIEW_ARTIFACT_REFERENCE_SCHEMA_VERSION,
+    SUPPORTED_PORTFOLIO_REVIEW_ARTIFACT_TYPES,
+    PortfolioReviewArtifactReference,
+    PortfolioReviewArtifactType,
+    create_portfolio_review_artifact_reference,
+    create_portfolio_review_artifact_reference_from_analysis,
+    create_portfolio_review_artifact_reference_from_decision,
+    create_portfolio_review_artifact_reference_from_source,
+)
 from el_psy_quant.portfolio_review.evidence_references import (
     PORTFOLIO_REVIEW_COMPONENT_SCHEMA_VERSION,
     PORTFOLIO_REVIEW_EVIDENCE_REFERENCE_SCHEMA_VERSION,
@@ -32,6 +48,14 @@ from el_psy_quant.portfolio_review.behavior import (
     PortfolioReviewComponentContribution,
     PortfolioReviewScenarioBehavior,
     PortfolioReviewWorstDrawdown,
+)
+from el_psy_quant.portfolio_review.decision_artifacts import (
+    PORTFOLIO_REVIEW_DECISION_ARTIFACT_SCHEMA_VERSION,
+    PORTFOLIO_REVIEW_DECISION_SCOPE,
+    SUPPORTED_PORTFOLIO_REVIEW_DECISION_OUTCOMES,
+    PortfolioReviewDecisionArtifact,
+    PortfolioReviewDecisionOutcome,
+    create_portfolio_review_decision_artifact,
 )
 from el_psy_quant.portfolio_review.impact import (
     PORTFOLIO_REVIEW_COMPONENT_CONTRIBUTION_IMPACT_SCHEMA_VERSION,
@@ -78,6 +102,9 @@ from el_psy_quant.portfolio_review.sources import (
 )
 
 __all__ = [
+    "PORTFOLIO_REVIEW_ANALYSIS_ARTIFACT_SCHEMA_VERSION",
+    "PORTFOLIO_REVIEW_ANALYSIS_EVIDENCE_SCOPE",
+    "PORTFOLIO_REVIEW_ARTIFACT_REFERENCE_SCHEMA_VERSION",
     "PORTFOLIO_REVIEW_BASELINE_SCENARIO_SCHEMA_VERSION",
     "PORTFOLIO_REVIEW_CANDIDATE_BASELINE_CORRELATION_SCHEMA_VERSION",
     "PORTFOLIO_REVIEW_COMPONENT_CONTRIBUTION_IMPACT_SCHEMA_VERSION",
@@ -85,6 +112,8 @@ __all__ = [
     "PORTFOLIO_REVIEW_COMPONENT_EXPOSURE_SCHEMA_VERSION",
     "PORTFOLIO_REVIEW_COMPONENT_SCHEMA_VERSION",
     "PORTFOLIO_REVIEW_CONCENTRATION_EXPOSURE_ANALYSIS_SCHEMA_VERSION",
+    "PORTFOLIO_REVIEW_DECISION_ARTIFACT_SCHEMA_VERSION",
+    "PORTFOLIO_REVIEW_DECISION_SCOPE",
     "PORTFOLIO_REVIEW_EVIDENCE_REFERENCE_SCHEMA_VERSION",
     "PORTFOLIO_REVIEW_INTERACTION_IMPACT_ANALYSIS_SCHEMA_VERSION",
     "PORTFOLIO_REVIEW_PAIRWISE_CORRELATION_SCHEMA_VERSION",
@@ -100,12 +129,17 @@ __all__ = [
     "PORTFOLIO_REVIEW_SYMBOL_OVERLAP_SCHEMA_VERSION",
     "PORTFOLIO_REVIEW_WORST_DRAWDOWN_SCHEMA_VERSION",
     "SUPPORTED_PORTFOLIO_REVIEW_AVAILABILITY_STATUSES",
+    "SUPPORTED_PORTFOLIO_REVIEW_ARTIFACT_TYPES",
     "SUPPORTED_PORTFOLIO_REVIEW_CORRELATION_UNAVAILABLE_REASONS",
+    "SUPPORTED_PORTFOLIO_REVIEW_DECISION_OUTCOMES",
     "SUPPORTED_PORTFOLIO_REVIEW_SYMBOL_EVIDENCE_STATUSES",
     "SUPPORTED_PORTFOLIO_REVIEW_EVIDENCE_REFERENCE_TYPES",
     "SUPPORTED_PORTFOLIO_REVIEW_WEIGHT_CHANGE_TYPES",
     "SUPPORTED_PORTFOLIO_REVIEW_SYMBOL_OVERLAP_UNAVAILABLE_REASONS",
     "PortfolioReviewAvailabilityStatus",
+    "PortfolioReviewAnalysisArtifact",
+    "PortfolioReviewArtifactReference",
+    "PortfolioReviewArtifactType",
     "PortfolioReviewBaselineScenario",
     "PortfolioReviewComponent",
     "PortfolioReviewComponentContribution",
@@ -115,6 +149,8 @@ __all__ = [
     "PortfolioReviewEvidenceReference",
     "PortfolioReviewCandidateBaselineCorrelation",
     "PortfolioReviewCorrelationUnavailableReason",
+    "PortfolioReviewDecisionArtifact",
+    "PortfolioReviewDecisionOutcome",
     "PortfolioReviewInteractionImpactAnalysis",
     "PortfolioReviewPairwiseCorrelation",
     "PortfolioReviewProposedScenario",
@@ -132,9 +168,15 @@ __all__ = [
     "PortfolioReviewWeightChangeType",
     "analyze_portfolio_review_concentration_and_exposure",
     "analyze_portfolio_review_interaction_and_impact",
+    "create_portfolio_review_analysis_artifact",
+    "create_portfolio_review_artifact_reference",
+    "create_portfolio_review_artifact_reference_from_analysis",
+    "create_portfolio_review_artifact_reference_from_decision",
+    "create_portfolio_review_artifact_reference_from_source",
     "create_portfolio_review_baseline_scenario",
     "create_portfolio_review_component",
     "create_portfolio_review_evidence_reference",
+    "create_portfolio_review_decision_artifact",
     "create_portfolio_review_proposed_scenario",
     "create_portfolio_review_scenario_pair",
     "create_portfolio_review_source",
