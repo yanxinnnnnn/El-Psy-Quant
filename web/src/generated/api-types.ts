@@ -287,6 +287,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/portfolio-reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Portfolio Reviews
+         * @description Return compact database-only review metadata.
+         */
+        get: operations["get_portfolio_reviews_api_v1_portfolio_reviews_get"];
+        put?: never;
+        /**
+         * Post Portfolio Review
+         * @description Create or exactly replay one immutable portfolio review.
+         */
+        post: operations["post_portfolio_review_api_v1_portfolio_reviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portfolio-reviews/{review_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Portfolio Review */
+        get: operations["get_portfolio_review_api_v1_portfolio_reviews__review_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portfolio-reviews/{review_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Portfolio Review Decision
+         * @description Settle or exactly replay the one human governance decision.
+         */
+        post: operations["post_portfolio_review_decision_api_v1_portfolio_reviews__review_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/research-runs": {
         parameters: {
             query?: never;
@@ -876,6 +937,880 @@ export interface components {
             schema_version: 1;
             session_summary: components["schemas"]["PaperSessionSummaryResponse"];
             starting_account_state: components["schemas"]["PaperAccountStateResponse"];
+        };
+        /** PortfolioReviewAnalysisAuditRequest */
+        PortfolioReviewAnalysisAuditRequest: {
+            /**
+             * Assumptions
+             * @default []
+             */
+            assumptions: string[];
+            /** Created By */
+            created_by: string;
+            /**
+             * Created Timestamp
+             * Format: date-time
+             */
+            created_timestamp: string;
+            /**
+             * Missing Evidence
+             * @default []
+             */
+            missing_evidence: string[];
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** PortfolioReviewAnalysisResponse */
+        PortfolioReviewAnalysisResponse: {
+            /** Analysis Digest */
+            analysis_digest: string;
+            /**
+             * Analysis Evidence Scope
+             * @constant
+             */
+            analysis_evidence_scope: "historical_scenario_evidence";
+            /** Assumptions */
+            assumptions: string[];
+            baseline_scenario: components["schemas"]["PortfolioReviewBaselineScenarioResponse"];
+            /** Baseline Scenario Digest */
+            baseline_scenario_digest: string;
+            /** Baseline Scenario Id */
+            baseline_scenario_id: string;
+            /** Component Ids */
+            component_ids: string[];
+            concentration_exposure_analysis: components["schemas"]["PortfolioReviewConcentrationExposureAnalysisResponse"];
+            /** Created By */
+            created_by: string;
+            /** Created Timestamp */
+            created_timestamp: string;
+            interaction_impact_analysis: components["schemas"]["PortfolioReviewInteractionImpactAnalysisResponse"];
+            /** Missing Evidence */
+            missing_evidence: string[];
+            /** Proposed Component Id */
+            proposed_component_id: string;
+            proposed_scenario: components["schemas"]["PortfolioReviewProposedScenarioResponse"];
+            /** Proposed Scenario Digest */
+            proposed_scenario_digest: string;
+            /** Proposed Scenario Id */
+            proposed_scenario_id: string;
+            /** Review Id */
+            review_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PortfolioReviewBaselineScenarioRequest */
+        PortfolioReviewBaselineScenarioRequest: {
+            /**
+             * Assumptions
+             * @default []
+             */
+            assumptions: string[];
+            /** Rationale */
+            rationale: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+        };
+        /** PortfolioReviewBaselineScenarioResponse */
+        PortfolioReviewBaselineScenarioResponse: {
+            /** Assumptions */
+            assumptions: string[];
+            /** Component Weights */
+            component_weights: components["schemas"]["PortfolioReviewComponentWeightResponse"][];
+            /** Rationale */
+            rationale: string;
+            /** Scenario Digest */
+            scenario_digest: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PortfolioReviewCandidateBaselineCorrelationResponse */
+        PortfolioReviewCandidateBaselineCorrelationResponse: {
+            /** Baseline Scenario Digest */
+            baseline_scenario_digest: string;
+            /** Baseline Scenario Id */
+            baseline_scenario_id: string;
+            /** Candidate Baseline Weight */
+            candidate_baseline_weight: number;
+            /** Candidate Component Id */
+            candidate_component_id: string;
+            /** Correlation */
+            correlation: number | null;
+            /** Evaluation End Timestamp */
+            evaluation_end_timestamp: string;
+            /** Evaluation Start Timestamp */
+            evaluation_start_timestamp: string;
+            /** Observation Count */
+            observation_count: number;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "unavailable";
+            /** Unavailable Reason */
+            unavailable_reason: "zero_variance" | null;
+            /** Zero Variance Series */
+            zero_variance_series: string[];
+        };
+        /** PortfolioReviewCommandResponse */
+        PortfolioReviewCommandResponse: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "created" | "replayed";
+            review: components["schemas"]["PortfolioReviewDetailResponse"];
+        };
+        /** PortfolioReviewComponentContributionImpactResponse */
+        PortfolioReviewComponentContributionImpactResponse: {
+            /** Baseline Weight */
+            baseline_weight: number;
+            /** Component Id */
+            component_id: string;
+            /** Mean Contribution Delta */
+            mean_contribution_delta: number;
+            /** Negative Periods Delta */
+            negative_periods_delta: number;
+            /** Positive Periods Delta */
+            positive_periods_delta: number;
+            /** Proposed Weight */
+            proposed_weight: number;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Strategy Id */
+            strategy_id: string;
+            /** Total Contribution Delta */
+            total_contribution_delta: number;
+            /** Zero Periods Delta */
+            zero_periods_delta: number;
+        };
+        /** PortfolioReviewComponentContributionResponse */
+        PortfolioReviewComponentContributionResponse: {
+            /** Component Id */
+            component_id: string;
+            /** Mean Contribution */
+            mean_contribution: number;
+            /** Negative Periods */
+            negative_periods: number;
+            /** Positive Periods */
+            positive_periods: number;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Strategy Id */
+            strategy_id: string;
+            /** Total Contribution */
+            total_contribution: number;
+            /** Weight */
+            weight: number;
+            /** Zero Periods */
+            zero_periods: number;
+        };
+        /** PortfolioReviewComponentExposureResponse */
+        PortfolioReviewComponentExposureResponse: {
+            /** Baseline Active */
+            baseline_active: boolean;
+            /** Baseline Weight */
+            baseline_weight: number;
+            /**
+             * Change Type
+             * @enum {string}
+             */
+            change_type: "added" | "removed" | "increased" | "decreased" | "unchanged";
+            /** Component Id */
+            component_id: string;
+            /** Proposed Active */
+            proposed_active: boolean;
+            /** Proposed Weight */
+            proposed_weight: number;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Strategy Id */
+            strategy_id: string;
+            /**
+             * Symbol Evidence Status
+             * @enum {string}
+             */
+            symbol_evidence_status: "available" | "missing";
+            /** Symbols */
+            symbols: string[] | null;
+            /** Weight Delta */
+            weight_delta: number;
+        };
+        /** PortfolioReviewComponentRequest */
+        PortfolioReviewComponentRequest: {
+            /** Component Id */
+            component_id: string;
+            /** Description */
+            description?: string | null;
+            /** Evidence References */
+            evidence_references: components["schemas"]["PortfolioReviewEvidenceReferenceRequest"][];
+            /** Label */
+            label?: string | null;
+            /** Strategy Id */
+            strategy_id: string;
+            /** Symbols */
+            symbols?: string[] | null;
+        };
+        /** PortfolioReviewComponentResponse */
+        PortfolioReviewComponentResponse: {
+            /** Component Id */
+            component_id: string;
+            /** Description */
+            description: string | null;
+            /** Evidence References */
+            evidence_references: components["schemas"]["PortfolioReviewEvidenceReferenceResponse"][];
+            /** Label */
+            label: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Strategy Id */
+            strategy_id: string;
+            /** Symbols */
+            symbols: string[] | null;
+        };
+        /** PortfolioReviewComponentWeightResponse */
+        PortfolioReviewComponentWeightResponse: {
+            /** Component Id */
+            component_id: string;
+            /** Weight */
+            weight: number;
+        };
+        /** PortfolioReviewConcentrationExposureAnalysisResponse */
+        PortfolioReviewConcentrationExposureAnalysisResponse: {
+            baseline_concentration: components["schemas"]["PortfolioReviewScenarioConcentrationResponse"];
+            baseline_universe_coverage: components["schemas"]["PortfolioReviewScenarioUniverseCoverageResponse"];
+            /** Component Exposures */
+            component_exposures: components["schemas"]["PortfolioReviewComponentExposureResponse"][];
+            /** Component Ids */
+            component_ids: string[];
+            proposed_concentration: components["schemas"]["PortfolioReviewScenarioConcentrationResponse"];
+            proposed_universe_coverage: components["schemas"]["PortfolioReviewScenarioUniverseCoverageResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+        };
+        /** PortfolioReviewCreateRequest */
+        PortfolioReviewCreateRequest: {
+            analysis: components["schemas"]["PortfolioReviewAnalysisAuditRequest"];
+            baseline_scenario: components["schemas"]["PortfolioReviewBaselineScenarioRequest"];
+            proposed_scenario: components["schemas"]["PortfolioReviewProposedScenarioRequest"];
+            /** Review Id */
+            review_id: string;
+            source: components["schemas"]["PortfolioReviewSourceRequest"];
+        };
+        /** PortfolioReviewDecisionRequest */
+        PortfolioReviewDecisionRequest: {
+            /** Decision Id */
+            decision_id: string;
+            /**
+             * Notes
+             * @default []
+             */
+            notes: string[];
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "approved" | "rejected" | "deferred";
+            /** Rationale */
+            rationale: string;
+            /** Reviewed By */
+            reviewed_by: string;
+            /**
+             * Reviewed Timestamp
+             * Format: date-time
+             */
+            reviewed_timestamp: string;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** PortfolioReviewDecisionResponse */
+        PortfolioReviewDecisionResponse: {
+            /** Analysis Digest */
+            analysis_digest: string;
+            /** Baseline Scenario Digest */
+            baseline_scenario_digest: string;
+            /** Baseline Scenario Id */
+            baseline_scenario_id: string;
+            /** Decision Digest */
+            decision_digest: string;
+            /** Decision Id */
+            decision_id: string;
+            /**
+             * Decision Scope
+             * @constant
+             */
+            decision_scope: "portfolio_review_governance_only";
+            /** Notes */
+            notes: string[];
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "approved" | "rejected" | "deferred";
+            /** Proposed Scenario Digest */
+            proposed_scenario_digest: string;
+            /** Proposed Scenario Id */
+            proposed_scenario_id: string;
+            /** Rationale */
+            rationale: string;
+            /** Review Id */
+            review_id: string;
+            /** Reviewed By */
+            reviewed_by: string;
+            /** Reviewed Timestamp */
+            reviewed_timestamp: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PortfolioReviewDetailResponse */
+        PortfolioReviewDetailResponse: {
+            analysis: components["schemas"]["PortfolioReviewAnalysisResponse"];
+            decision: components["schemas"]["PortfolioReviewDecisionResponse"] | null;
+            record: components["schemas"]["PortfolioReviewRecordResponse"];
+            source: components["schemas"]["PortfolioReviewSourceResponse"];
+        };
+        /** PortfolioReviewEvidenceReferenceRequest */
+        PortfolioReviewEvidenceReferenceRequest: {
+            /** Description */
+            description?: string | null;
+            /** Label */
+            label?: string | null;
+            /** Reference Id */
+            reference_id: string;
+            /** Reference Type */
+            reference_type: string;
+        };
+        /** PortfolioReviewEvidenceReferenceResponse */
+        PortfolioReviewEvidenceReferenceResponse: {
+            /** Description */
+            description: string | null;
+            /** Label */
+            label: string | null;
+            /** Reference Id */
+            reference_id: string;
+            /** Reference Type */
+            reference_type: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PortfolioReviewInteractionImpactAnalysisResponse */
+        PortfolioReviewInteractionImpactAnalysisResponse: {
+            baseline_behavior: components["schemas"]["PortfolioReviewScenarioBehaviorResponse"];
+            candidate_baseline_correlation: components["schemas"]["PortfolioReviewCandidateBaselineCorrelationResponse"];
+            /** Component Contribution Impacts */
+            component_contribution_impacts: components["schemas"]["PortfolioReviewComponentContributionImpactResponse"][];
+            /** Component Ids */
+            component_ids: string[];
+            /** Pairwise Correlations */
+            pairwise_correlations: components["schemas"]["PortfolioReviewPairwiseCorrelationResponse"][];
+            proposed_behavior: components["schemas"]["PortfolioReviewScenarioBehaviorResponse"];
+            /** Proposed Component Id */
+            proposed_component_id: string;
+            proposed_impact: components["schemas"]["PortfolioReviewProposedImpactResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+            /** Symbol Overlaps */
+            symbol_overlaps: components["schemas"]["PortfolioReviewSymbolOverlapResponse"][];
+        };
+        /** PortfolioReviewPairwiseCorrelationResponse */
+        PortfolioReviewPairwiseCorrelationResponse: {
+            /** Correlation */
+            correlation: number | null;
+            /** Evaluation End Timestamp */
+            evaluation_end_timestamp: string;
+            /** Evaluation Start Timestamp */
+            evaluation_start_timestamp: string;
+            /** Left Component Id */
+            left_component_id: string;
+            /** Observation Count */
+            observation_count: number;
+            /** Right Component Id */
+            right_component_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "unavailable";
+            /** Unavailable Reason */
+            unavailable_reason: "zero_variance" | null;
+            /** Zero Variance Series */
+            zero_variance_series: string[];
+        };
+        /** PortfolioReviewProposedImpactResponse */
+        PortfolioReviewProposedImpactResponse: {
+            /** Annualized Volatility Delta */
+            annualized_volatility_delta: number | null;
+            /** Cumulative Return Delta */
+            cumulative_return_delta: number;
+            /** Ending Equity Delta */
+            ending_equity_delta: number;
+            /** Loss Rate Delta */
+            loss_rate_delta: number;
+            /** Max Drawdown Delta */
+            max_drawdown_delta: number;
+            /** Max Return Delta */
+            max_return_delta: number;
+            /** Mean Return Delta */
+            mean_return_delta: number;
+            /** Min Return Delta */
+            min_return_delta: number;
+            /** Negative Periods Delta */
+            negative_periods_delta: number;
+            /** Positive Periods Delta */
+            positive_periods_delta: number;
+            /** Sample Volatility Delta */
+            sample_volatility_delta: number;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Zero Periods Delta */
+            zero_periods_delta: number;
+        };
+        /** PortfolioReviewProposedScenarioRequest */
+        PortfolioReviewProposedScenarioRequest: {
+            /**
+             * Assumptions
+             * @default []
+             */
+            assumptions: string[];
+            /** Proposed Component Id */
+            proposed_component_id: string;
+            /** Rationale */
+            rationale: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+        };
+        /** PortfolioReviewProposedScenarioResponse */
+        PortfolioReviewProposedScenarioResponse: {
+            /** Assumptions */
+            assumptions: string[];
+            /** Component Weights */
+            component_weights: components["schemas"]["PortfolioReviewComponentWeightResponse"][];
+            /** Proposed Component Id */
+            proposed_component_id: string;
+            /** Rationale */
+            rationale: string;
+            /** Scenario Digest */
+            scenario_digest: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PortfolioReviewRecordResponse */
+        PortfolioReviewRecordResponse: {
+            /** Analysis Digest */
+            analysis_digest: string;
+            /**
+             * Analysis Schema Version
+             * @constant
+             */
+            analysis_schema_version: 1;
+            /** Baseline Scenario Digest */
+            baseline_scenario_digest: string;
+            /** Baseline Scenario Id */
+            baseline_scenario_id: string;
+            /** Created By */
+            created_by: string;
+            /**
+             * Created Timestamp
+             * Format: date-time
+             */
+            created_timestamp: string;
+            /** Decision Digest */
+            decision_digest: string | null;
+            /** Decision Id */
+            decision_id: string | null;
+            /** Decision Schema Version */
+            decision_schema_version: 1 | null;
+            /** Outcome */
+            outcome: ("approved" | "rejected" | "deferred") | null;
+            /** Proposed Component Id */
+            proposed_component_id: string;
+            /** Proposed Scenario Digest */
+            proposed_scenario_digest: string;
+            /** Proposed Scenario Id */
+            proposed_scenario_id: string;
+            /**
+             * Record Schema Version
+             * @constant
+             */
+            record_schema_version: 1;
+            /** Review Id */
+            review_id: string;
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /** Reviewed Timestamp */
+            reviewed_timestamp: string | null;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+            /**
+             * Source Schema Version
+             * @constant
+             */
+            source_schema_version: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "awaiting_decision" | "approved" | "rejected" | "deferred";
+            /**
+             * Updated Timestamp
+             * Format: date-time
+             */
+            updated_timestamp: string;
+            /**
+             * Version
+             * @enum {integer}
+             */
+            version: 1 | 2;
+        };
+        /** PortfolioReviewReturnObservationRequest */
+        PortfolioReviewReturnObservationRequest: {
+            /** Component Returns */
+            component_returns: number[];
+            /**
+             * Timestamp
+             * Format: date-time
+             */
+            timestamp: string;
+        };
+        /** PortfolioReviewReturnObservationResponse */
+        PortfolioReviewReturnObservationResponse: {
+            /** Component Returns */
+            component_returns: number[];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Timestamp */
+            timestamp: string;
+        };
+        /** PortfolioReviewScenarioBehaviorResponse */
+        PortfolioReviewScenarioBehaviorResponse: {
+            /** Annualized Volatility */
+            annualized_volatility: number | null;
+            /** Component Contributions */
+            component_contributions: components["schemas"]["PortfolioReviewComponentContributionResponse"][];
+            /** Cumulative Return */
+            cumulative_return: number;
+            /** Ending Equity */
+            ending_equity: number;
+            /** Evaluation End Timestamp */
+            evaluation_end_timestamp: string;
+            /** Evaluation Start Timestamp */
+            evaluation_start_timestamp: string;
+            /** Loss Rate */
+            loss_rate: number;
+            /** Max Return */
+            max_return: number;
+            /** Mean Return */
+            mean_return: number;
+            /** Min Return */
+            min_return: number;
+            /** Negative Periods */
+            negative_periods: number;
+            /** Observation Count */
+            observation_count: number;
+            /** Periods Per Year */
+            periods_per_year: number | null;
+            /** Positive Periods */
+            positive_periods: number;
+            /** Sample Volatility */
+            sample_volatility: number;
+            /** Scenario Digest */
+            scenario_digest: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            worst_drawdown: components["schemas"]["PortfolioReviewWorstDrawdownResponse"];
+            /** Zero Periods */
+            zero_periods: number;
+        };
+        /** PortfolioReviewScenarioConcentrationResponse */
+        PortfolioReviewScenarioConcentrationResponse: {
+            /** Effective Component Count */
+            effective_component_count: number;
+            /** Herfindahl Hirschman Index */
+            herfindahl_hirschman_index: number;
+            /** Largest Component Id */
+            largest_component_id: string;
+            /** Largest Component Weight */
+            largest_component_weight: number;
+            /** Scenario Digest */
+            scenario_digest: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Top 3 Weight */
+            top_3_weight: number;
+        };
+        /** PortfolioReviewScenarioUniverseCoverageResponse */
+        PortfolioReviewScenarioUniverseCoverageResponse: {
+            /** Active Component Count */
+            active_component_count: number;
+            /** Active Component Ids */
+            active_component_ids: string[];
+            /** Active Components Missing Symbol Evidence */
+            active_components_missing_symbol_evidence: string[];
+            /** Active Components Missing Symbol Evidence Count */
+            active_components_missing_symbol_evidence_count: number;
+            /** Active Components With Symbol Evidence */
+            active_components_with_symbol_evidence: string[];
+            /** Active Components With Symbol Evidence Count */
+            active_components_with_symbol_evidence_count: number;
+            /** Active Coverage Complete */
+            active_coverage_complete: boolean;
+            /** Components Missing Symbol Evidence */
+            components_missing_symbol_evidence: string[];
+            /** Components Missing Symbol Evidence Count */
+            components_missing_symbol_evidence_count: number;
+            /** Components With Symbol Evidence */
+            components_with_symbol_evidence: string[];
+            /** Components With Symbol Evidence Count */
+            components_with_symbol_evidence_count: number;
+            /** Scenario Digest */
+            scenario_digest: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Component Count */
+            source_component_count: number;
+        };
+        /** PortfolioReviewSourceRequest */
+        PortfolioReviewSourceRequest: {
+            /**
+             * Assumptions
+             * @default []
+             */
+            assumptions: string[];
+            /** Components */
+            components: components["schemas"]["PortfolioReviewComponentRequest"][];
+            /** Created By */
+            created_by: string;
+            /**
+             * Created Timestamp
+             * Format: date-time
+             */
+            created_timestamp: string;
+            /** Evaluation Frequency */
+            evaluation_frequency: string;
+            /**
+             * Missing Evidence
+             * @default []
+             */
+            missing_evidence: string[];
+            /** Periods Per Year */
+            periods_per_year?: number | null;
+            /** Return Observations */
+            return_observations: components["schemas"]["PortfolioReviewReturnObservationRequest"][];
+            /** Source Id */
+            source_id: string;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** PortfolioReviewSourceResponse */
+        PortfolioReviewSourceResponse: {
+            /** Assumptions */
+            assumptions: string[];
+            /** Components */
+            components: components["schemas"]["PortfolioReviewComponentResponse"][];
+            /** Created By */
+            created_by: string;
+            /** Created Timestamp */
+            created_timestamp: string;
+            /** Evaluation Frequency */
+            evaluation_frequency: string;
+            /** Missing Evidence */
+            missing_evidence: string[];
+            /** Periods Per Year */
+            periods_per_year: number | null;
+            /** Return Observations */
+            return_observations: components["schemas"]["PortfolioReviewReturnObservationResponse"][];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PortfolioReviewSymbolOverlapResponse */
+        PortfolioReviewSymbolOverlapResponse: {
+            /** Jaccard Overlap */
+            jaccard_overlap: number | null;
+            /** Left Component Id */
+            left_component_id: string;
+            /** Missing Symbol Component Ids */
+            missing_symbol_component_ids: string[];
+            /** Right Component Id */
+            right_component_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Shared Symbol Count */
+            shared_symbol_count: number | null;
+            /** Shared Symbols */
+            shared_symbols: string[] | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "unavailable";
+            /** Unavailable Reason */
+            unavailable_reason: "missing_symbol_evidence" | null;
+            /** Union Symbol Count */
+            union_symbol_count: number | null;
+        };
+        /** PortfolioReviewWorstDrawdownResponse */
+        PortfolioReviewWorstDrawdownResponse: {
+            /** Duration Periods */
+            duration_periods: number;
+            /** Max Drawdown */
+            max_drawdown: number;
+            /** Peak Date */
+            peak_date: string;
+            /** Recovered */
+            recovered: boolean;
+            /** Recovery Date */
+            recovery_date: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Time To Recovery Periods */
+            time_to_recovery_periods: number | null;
+            /** Time To Trough Periods */
+            time_to_trough_periods: number;
+            /** Trough Date */
+            trough_date: string;
         };
         /** ReportArtifactManifestDetailResponse */
         ReportArtifactManifestDetailResponse: {
@@ -1734,6 +2669,159 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaperRunCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_portfolio_reviews_api_v1_portfolio_reviews_get: {
+        parameters: {
+            query?: {
+                status?: ("awaiting_decision" | "approved" | "rejected" | "deferred") | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioReviewRecordResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_portfolio_review_api_v1_portfolio_reviews_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioReviewCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioReviewCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioReviewCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_portfolio_review_api_v1_portfolio_reviews__review_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioReviewDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_portfolio_review_decision_api_v1_portfolio_reviews__review_id__decision_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioReviewDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioReviewCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioReviewCommandResponse"];
                 };
             };
             /** @description Validation Error */

@@ -36,6 +36,7 @@ def test_declarative_metadata_contains_only_approved_product_tables() -> None:
         "paper_job_result_references",
         "paper_job_submission_keys",
         "paper_jobs",
+        "portfolio_reviews",
     }
 
 

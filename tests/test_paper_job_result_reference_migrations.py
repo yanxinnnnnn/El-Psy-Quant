@@ -18,6 +18,7 @@ from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RECOVERY_REVISION = "0004_paper_job_recovery_audit"
 RESULT_REFERENCE_REVISION = "0005_paper_job_result_references"
+PORTFOLIO_REVIEW_REVISION = "0006_portfolio_reviews"
 
 
 def _config() -> Config:
@@ -42,7 +43,10 @@ def _current(path: Path) -> str | None:
 def test_exact_result_reference_head_chain() -> None:
     scripts = ScriptDirectory.from_config(_config())
 
-    assert scripts.get_heads() == [RESULT_REFERENCE_REVISION]
+    assert scripts.get_heads() == [PORTFOLIO_REVIEW_REVISION]
+    assert scripts.get_revision(PORTFOLIO_REVIEW_REVISION).down_revision == (
+        RESULT_REFERENCE_REVISION
+    )
     assert scripts.get_revision(RESULT_REFERENCE_REVISION).down_revision == (
         RECOVERY_REVISION
     )
@@ -60,7 +64,7 @@ def test_upgrade_adds_exact_one_result_reference_table(
     if starting_revision != "base":
         command.upgrade(config, starting_revision)
 
-    command.upgrade(config, "head")
+    command.upgrade(config, RESULT_REFERENCE_REVISION)
 
     assert _current(path) == RESULT_REFERENCE_REVISION
     engine = _engine(path)
@@ -131,7 +135,7 @@ def test_downgrade_removes_only_result_reference_table(
     path = tmp_path / "product.sqlite3"
     monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(path))
     config = _config()
-    command.upgrade(config, "head")
+    command.upgrade(config, RESULT_REFERENCE_REVISION)
 
     command.downgrade(config, RECOVERY_REVISION)
 

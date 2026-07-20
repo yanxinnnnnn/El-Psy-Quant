@@ -7,8 +7,12 @@ from fastapi import Request
 from sqlalchemy.orm import Session, sessionmaker
 
 from el_psy_quant.api.errors import PublicApiError
-from el_psy_quant.application import PaperArtifactRootUnavailableError
+from el_psy_quant.application import (
+    PaperArtifactRootUnavailableError,
+    PortfolioReviewArtifactRootUnavailableError,
+)
 from el_psy_quant.application.paper_jobs import validate_paper_artifact_root
+from el_psy_quant.portfolio_review import validate_portfolio_review_artifact_root
 from el_psy_quant.persistence.schema import product_schema_is_compatible
 
 
@@ -25,6 +29,14 @@ def paper_artifact_root_unavailable() -> PublicApiError:
         status_code=HTTPStatus.SERVICE_UNAVAILABLE,
         code="paper_artifact_root_unavailable",
         message="Paper artifact root is unavailable",
+    )
+
+
+def portfolio_review_artifact_root_unavailable() -> PublicApiError:
+    return PublicApiError(
+        status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+        code="portfolio_review_artifact_root_unavailable",
+        message="Portfolio review artifact root is unavailable",
     )
 
 
@@ -61,3 +73,14 @@ def get_paper_artifact_root(request: Request) -> Path:
         return validate_paper_artifact_root(root)
     except PaperArtifactRootUnavailableError as exc:
         raise paper_artifact_root_unavailable() from exc
+
+
+def get_portfolio_review_artifact_root(request: Request) -> Path:
+    """Return the validated existing evidence root for portfolio reviews."""
+    root = getattr(request.app.state, "evidence_artifact_root", None)
+    if root is None:
+        raise portfolio_review_artifact_root_unavailable()
+    try:
+        return validate_portfolio_review_artifact_root(root)
+    except PortfolioReviewArtifactRootUnavailableError as exc:
+        raise portfolio_review_artifact_root_unavailable() from exc

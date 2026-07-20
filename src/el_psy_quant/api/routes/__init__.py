@@ -13,6 +13,9 @@ from el_psy_quant.api.routes.lifecycle_commands import (
 )
 from el_psy_quant.api.routes.paper_runs import router as paper_runs_router
 from el_psy_quant.api.routes.paper_jobs import router as paper_jobs_router
+from el_psy_quant.api.routes.portfolio_reviews import (
+    router as portfolio_reviews_router,
+)
 from el_psy_quant.api.routes.research_runs import router as research_runs_router
 from el_psy_quant.api.routes.strategies import router as strategies_router
 
@@ -28,6 +31,7 @@ api_v1_router.include_router(health_router)
 api_v1_router.include_router(lifecycle_commands_router)
 api_v1_router.include_router(paper_runs_router)
 api_v1_router.include_router(paper_jobs_router)
+api_v1_router.include_router(portfolio_reviews_router)
 api_v1_router.include_router(research_runs_router)
 api_v1_router.include_router(strategies_router)
 

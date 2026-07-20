@@ -35,9 +35,9 @@ S176 Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
 S177 Milestone 30 Closeout and M31 Handoff
 ```
 
-Sprints 169–172 are complete. Sprint 173 portfolio-review artifact and human
-decision implementation is complete pending Founder review. Sprint 174 becomes
-the next implementation sprint after merge.
+Sprints 169–173 are complete. Sprint 174 durable portfolio-review artifact,
+persistence, application, and API implementation is complete pending Founder
+review. Sprint 175 becomes the next implementation sprint after merge.
 
 ## Product Delivered Through M29
 
@@ -97,8 +97,12 @@ proposed-minus-baseline impact. These are immutable in-memory domain results;
 Sprint 173 adds immutable historical-scenario analysis and governance-only
 decision payloads, canonical SHA-256 digests, UTC audit normalization, and typed
 source/analysis/decision references. Source return observations remain separate.
-S173 adds no file I/O, persistence, migration, application service, API, Web,
-M31, private-edge, broker, or live capability.
+Sprint 174 adds hashed fixed-layout write-once source/analysis/decision files,
+strict reopen and S171/S172 recalculation, one compact SQLite review record,
+create/decision idempotency, one-winner settlement, four versioned API routes,
+and explicit OpenAPI/generated TypeScript contracts. Migration head is
+`0006_portfolio_reviews`. S174 adds no Founder Web, Demo data, lifecycle,
+account, order, execution, M31, private-edge, broker, or live capability.
 
 ## What the Current Product Is Not Yet
 

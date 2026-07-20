@@ -359,16 +359,19 @@ execution instruction.
 
 M30 uses immutable files for full payload authority.
 
-Recommended logical layout under the configured evidence artifact root:
+Sprint 174 implements this fixed logical layout under the configured evidence
+artifact root:
 
 ```text
 portfolio-reviews/
-  sources/<source-id>/source.json
-  reviews/<review-id>/analysis.json
-  reviews/<review-id>/decision.json
+  sources/<source-key>/source.json
+  reviews/<review-key>/analysis.json
+  reviews/<review-key>/decision.json
 ```
 
-The exact safe path contract belongs to implementation, but it must preserve:
+The source and review keys are lowercase SHA-256 of the exact normalized UTF-8
+IDs. Raw IDs never become path fragments. The implemented safe path contract
+preserves:
 
 - root containment;
 - no arbitrary HTTP paths;
@@ -384,8 +387,8 @@ rewrite the analysis artifact.
 
 ## SQLite Persistence Boundary
 
-M30 is expected to add one reviewed Alembic migration after Sprint 169. The
-migration name and exact table shape belong to Sprint 174's authoritative Issue.
+Sprint 174 adds exactly migration `0006_portfolio_reviews`, following
+`0005_paper_job_result_references`, with one compact `portfolio_reviews` table.
 
 SQLite may store compact product-owned metadata such as:
 
@@ -411,7 +414,7 @@ SQLite must not store:
 - account cash or positions;
 - orders, fills, or ledger entries.
 
-Recommended review workflow statuses are:
+Implemented review workflow statuses are:
 
 ```text
 awaiting_decision
@@ -484,9 +487,9 @@ Implementation rules:
 - no update/delete endpoint mutates settled evidence; and
 - no account, lifecycle, order, execution, or broker side effect exists.
 
-Expected error families include bounded source unavailable/invalid/not found,
-review invalid/not found/conflict, artifact collision/invalid/unavailable,
-decision invalid, and review already settled. Exact codes belong to S174.
+Stable Sprint 174 errors include review not found/invalid/conflict, idempotency
+and settled conflicts, artifact conflict/invalid/unavailable, unavailable
+artifact root, and unavailable product database.
 
 ## Founder Web Boundary
 

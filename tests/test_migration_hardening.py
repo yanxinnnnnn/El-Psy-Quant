@@ -30,6 +30,7 @@ MIGRATION_CHAIN = (
     "0002_artifact_index",
     "0003_paper_jobs",
     "0004_paper_job_recovery_audit",
+    "0005_paper_job_result_references",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -276,4 +277,5 @@ def test_no_new_or_modified_migration_shape_exists() -> None:
         "0003_paper_jobs",
         "0004_paper_job_recovery_audit",
         "0005_paper_job_result_references",
+        "0006_portfolio_reviews",
     )

@@ -115,8 +115,8 @@ M30 is now In Progress through this sequence:
 | S170 | Portfolio Review Input and Scenario Contract Foundation | Complete |
 | S171 | Concentration and Exposure Analysis Foundation | Complete |
 | S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Complete |
-| S173 | Portfolio Review Artifact and Human Decision Foundation | Implementation complete / pending Founder review |
-| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Planned |
+| S173 | Portfolio Review Artifact and Human Decision Foundation | Complete |
+| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Implementation complete / pending Founder review |
 | S175 | Founder Portfolio Decision Review Web Workspace | Planned |
 | S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Planned |
 | S177 | Milestone 30 Closeout and M31 Handoff | Planned |
@@ -154,10 +154,14 @@ proposed-minus-baseline impact as immutable in-memory domain results. Both
 analysis factories reject caller-authored calculations. Sprint 173 adds
 immutable historical-scenario analysis and governance-only decision payloads,
 canonical SHA-256 digests, UTC audit normalization, and typed
-source/analysis/decision references. Source
-observations remain separate. S173 adds no file I/O, persistence, migration,
-application service, API, Web, M31, private-edge, broker, or live capability.
-Migration head remains `0005_paper_job_result_references`.
+source/analysis/decision references. Source observations remain separate.
+Sprint 174 adds fixed hashed write-once source/analysis/decision files, strict
+reopen and domain recalculation, one compact SQLite record, create/decision
+idempotency, one-winner settlement, four authenticated API routes, and explicit
+OpenAPI/generated TypeScript contracts. It adds no Founder Web, Demo data,
+lifecycle, account, order, execution, M31, private-edge, broker, or live
+capability. Migration head is `0006_portfolio_reviews`. Sprint 175 is next after
+merge.
 
 ## Approved Paper Trading Runtime Sequence
 

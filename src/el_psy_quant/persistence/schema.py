@@ -5,12 +5,13 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-CURRENT_PRODUCT_SCHEMA_REVISION = "0005_paper_job_result_references"
+CURRENT_PRODUCT_SCHEMA_REVISION = "0006_portfolio_reviews"
 APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0001_product_baseline",
     "0002_artifact_index",
     "0003_paper_jobs",
     "0004_paper_job_recovery_audit",
+    "0005_paper_job_result_references",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -60,6 +61,38 @@ REQUIRED_PRODUCT_TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
         "artifact_relative_path",
         "result_summary_relative_path",
         "created_timestamp",
+    ),
+    "portfolio_reviews": (
+        "record_schema_version",
+        "review_id",
+        "status",
+        "source_schema_version",
+        "source_id",
+        "source_digest",
+        "source_relative_path",
+        "baseline_scenario_id",
+        "baseline_scenario_digest",
+        "proposed_scenario_id",
+        "proposed_scenario_digest",
+        "proposed_component_id",
+        "analysis_schema_version",
+        "analysis_digest",
+        "analysis_relative_path",
+        "create_idempotency_key",
+        "create_command_digest",
+        "created_by",
+        "created_timestamp",
+        "decision_schema_version",
+        "decision_id",
+        "decision_digest",
+        "decision_relative_path",
+        "decision_idempotency_key",
+        "decision_command_digest",
+        "outcome",
+        "reviewed_by",
+        "reviewed_timestamp",
+        "version",
+        "updated_timestamp",
     ),
 }
 
