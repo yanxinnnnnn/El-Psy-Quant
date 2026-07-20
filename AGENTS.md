@@ -134,12 +134,11 @@ Milestone 30 is In Progress:
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Sprint 169 defines the approved architecture and milestone sequence. Sprint 170
-is Complete. Sprint 171 analysis implementation is complete pending Founder
-review. After merge, the next implementation sprint is:
+Sprints 169–171 are Complete. Sprint 172 analysis implementation is complete
+pending Founder review. After merge, the next implementation sprint is:
 
 ```text
-Sprint 172 — Strategy Interaction and Proposed Portfolio Impact Foundation
+Sprint 173 — Portfolio Review Artifact and Human Decision Foundation
 ```
 
 Authoritative M30 planning:
@@ -189,6 +188,19 @@ Implemented Sprint 171 analysis:
   completeness remain explicit without inferring or combining symbols; and
 - no overlap, correlation, portfolio behavior, artifact, persistence, API, Web,
   M31, private-edge, broker, or live capability was added.
+
+Implemented Sprint 172 analysis:
+
+- one pure public factory revalidates the exact source and scenario-pair
+  authority and reconstructs the aligned source table only in memory;
+- source-ordered symbol overlap preserves explicit missing-evidence semantics;
+- pairwise and candidate-to-baseline Pearson evidence preserves exact
+  zero-variance unavailability without non-finite placeholders;
+- baseline and proposed behavior reuses existing return, risk, equity,
+  drawdown, and contribution authority;
+- every scalar and component impact is exactly proposed minus baseline; and
+- no artifact, decision, persistence, migration, API, Web, M31, private-edge,
+  broker, or live capability was added.
 
 Migration head remains `0005_paper_job_result_references`.
 
