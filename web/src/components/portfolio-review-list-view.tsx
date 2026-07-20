@@ -17,7 +17,6 @@ import {
   portfolioReviewStatuses,
 } from "@/lib/portfolio-reviews";
 import {
-  type SettledApiResourceState,
   useApiResource,
 } from "@/lib/use-api-resource";
 
@@ -82,12 +81,6 @@ function ReviewCard({
   );
 }
 
-function settledData(
-  state: SettledApiResourceState<PortfolioReviewListResponse> | null,
-): PortfolioReviewListResponse | null {
-  return state?.status === "success" ? state.data : null;
-}
-
 export function PortfolioReviewListView() {
   const t = useTranslations("portfolioReviews.list");
   const statuses = useTranslations("portfolioReviews.statuses");
@@ -100,15 +93,19 @@ export function PortfolioReviewListView() {
     status: PortfolioReviewStatus | null;
     limit: (typeof portfolioReviewLimits)[number];
   }>({ status: null, limit: 50 });
-  const request = useCallback(() => fetchPortfolioReviews(filters), [filters]);
+  const [retainedReviews, setRetainedReviews] =
+    useState<PortfolioReviewListResponse | null>(null);
+  const request = useCallback(async () => {
+    const result = await fetchPortfolioReviews(filters);
+    setRetainedReviews(result.data);
+    return result;
+  }, [filters]);
   const { state, retry } = useApiResource(request);
-  const previous =
-    state.status === "loading" ? settledData(state.previous) : null;
   const reviews =
     state.status === "success"
       ? state.data
-      : previous;
-  const refreshPending = state.status === "loading" && previous !== null;
+      : retainedReviews;
+  const refreshPending = state.status === "loading" && reviews !== null;
 
   return (
     <div className="business-workspace">
@@ -179,7 +176,8 @@ export function PortfolioReviewListView() {
       ) : null}
       {state.status === "loading" && reviews === null ? (
         <LoadingState message={t("loading")} />
-      ) : state.status === "error" ? (
+      ) : null}
+      {state.status === "error" ? (
         <ErrorState
           code={state.code}
           title={t("unavailableTitle")}
@@ -189,9 +187,11 @@ export function PortfolioReviewListView() {
           operation="portfolio_review.list"
           onRetry={retry}
         />
-      ) : reviews?.length === 0 ? (
+      ) : null}
+      {state.status === "success" && state.data.length === 0 ? (
         <EmptyState title={t("emptyTitle")} message={t("emptyMessage")} />
-      ) : reviews ? (
+      ) : null}
+      {reviews && reviews.length > 0 ? (
         <ol className="card-list" aria-label={t("ariaLabel")} aria-busy={refreshPending}>
           {reviews.map((review, index) => (
             <ReviewCard

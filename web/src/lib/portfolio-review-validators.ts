@@ -2,6 +2,9 @@ import type { components } from "@/generated/api-types";
 
 type Schemas = components["schemas"];
 type RecordResponse = Schemas["PortfolioReviewRecordResponse"];
+type SourceResponse = Schemas["PortfolioReviewSourceResponse"];
+type AnalysisResponse = Schemas["PortfolioReviewAnalysisResponse"];
+type DecisionResponse = Schemas["PortfolioReviewDecisionResponse"];
 type DetailResponse = Schemas["PortfolioReviewDetailResponse"];
 type CommandResponse = Schemas["PortfolioReviewCommandResponse"];
 
@@ -50,6 +53,13 @@ function arrayOf(
 
 function one(value: unknown): value is 1 {
   return value === 1;
+}
+
+function sameStrings(left: readonly string[], right: readonly string[]): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
 }
 
 export function isPortfolioReviewStatus(
@@ -106,7 +116,7 @@ function returnObservation(value: unknown): boolean {
   );
 }
 
-function source(value: unknown): boolean {
+function source(value: unknown): value is SourceResponse {
   return (
     object(value) &&
     one(value.schema_version) &&
@@ -401,7 +411,7 @@ function interactionImpact(value: unknown): boolean {
   );
 }
 
-function analysis(value: unknown): boolean {
+function analysis(value: unknown): value is AnalysisResponse {
   return (
     object(value) &&
     one(value.schema_version) &&
@@ -428,7 +438,7 @@ function analysis(value: unknown): boolean {
   );
 }
 
-function decision(value: unknown): boolean {
+function decision(value: unknown): value is DecisionResponse {
   return (
     object(value) &&
     one(value.schema_version) &&
@@ -452,17 +462,35 @@ function decision(value: unknown): boolean {
   );
 }
 
-function nullableDecisionOutcome(
-  value: unknown,
-): value is "approved" | "rejected" | "deferred" | null {
-  return value === null || decisionOutcome(value);
+function recordWorkflowState(value: RecordResponse): boolean {
+  if (value.status === "awaiting_decision") {
+    return (
+      value.version === 1 &&
+      value.decision_schema_version === null &&
+      value.decision_id === null &&
+      value.decision_digest === null &&
+      value.outcome === null &&
+      value.reviewed_by === null &&
+      value.reviewed_timestamp === null
+    );
+  }
+  return (
+    value.version === 2 &&
+    value.decision_schema_version === 1 &&
+    string(value.decision_id) &&
+    string(value.decision_digest) &&
+    value.outcome === value.status &&
+    string(value.reviewed_by) &&
+    string(value.reviewed_timestamp)
+  );
 }
 
 export function isPortfolioReviewRecord(
   value: unknown,
 ): value is RecordResponse {
-  return (
-    object(value) &&
+  if (
+    !object(value) ||
+    !(
     one(value.record_schema_version) &&
     string(value.review_id) &&
     isPortfolioReviewStatus(value.status) &&
@@ -481,12 +509,16 @@ export function isPortfolioReviewRecord(
     (value.decision_schema_version === null || one(value.decision_schema_version)) &&
     nullableString(value.decision_id) &&
     nullableString(value.decision_digest) &&
-    nullableDecisionOutcome(value.outcome) &&
+    (value.outcome === null || decisionOutcome(value.outcome)) &&
     nullableString(value.reviewed_by) &&
     nullableString(value.reviewed_timestamp) &&
     (value.version === 1 || value.version === 2) &&
     string(value.updated_timestamp)
-  );
+    )
+  ) {
+    return false;
+  }
+  return recordWorkflowState(value as RecordResponse);
 }
 
 export function isPortfolioReviewListResponse(
@@ -498,12 +530,204 @@ export function isPortfolioReviewListResponse(
 export function isPortfolioReviewDetailResponse(
   value: unknown,
 ): value is DetailResponse {
+  if (
+    !object(value) ||
+    !isPortfolioReviewRecord(value.record) ||
+    !source(value.source) ||
+    !analysis(value.analysis) ||
+    !(value.decision === null || decision(value.decision))
+  ) {
+    return false;
+  }
+
+  const record = value.record;
+  const sourceAuthority = value.source;
+  const analysisAuthority = value.analysis;
+  const decisionAuthority = value.decision;
+  const componentIds = sourceAuthority.components.map(
+    (item) => item.component_id,
+  );
+  const componentStrategies = sourceAuthority.components.map(
+    (item) => item.strategy_id,
+  );
+  const concentrationAuthority =
+    analysisAuthority.concentration_exposure_analysis;
+  const interactionAuthority = analysisAuthority.interaction_impact_analysis;
+  const baseline = analysisAuthority.baseline_scenario;
+  const proposed = analysisAuthority.proposed_scenario;
+
+  if (
+    record.review_id !== analysisAuthority.review_id ||
+    record.source_id !== sourceAuthority.source_id ||
+    record.source_id !== analysisAuthority.source_id ||
+    record.source_digest !== sourceAuthority.source_digest ||
+    record.source_digest !== analysisAuthority.source_digest ||
+    record.baseline_scenario_id !== analysisAuthority.baseline_scenario_id ||
+    record.baseline_scenario_digest !==
+      analysisAuthority.baseline_scenario_digest ||
+    record.proposed_scenario_id !== analysisAuthority.proposed_scenario_id ||
+    record.proposed_scenario_digest !==
+      analysisAuthority.proposed_scenario_digest ||
+    record.proposed_component_id !== analysisAuthority.proposed_component_id ||
+    record.analysis_digest !== analysisAuthority.analysis_digest ||
+    !sameStrings(componentIds, analysisAuthority.component_ids) ||
+    !sourceAuthority.return_observations.every(
+      (item) => item.component_returns.length === componentIds.length,
+    ) ||
+    baseline.scenario_id !== analysisAuthority.baseline_scenario_id ||
+    baseline.scenario_digest !== analysisAuthority.baseline_scenario_digest ||
+    baseline.source_id !== analysisAuthority.source_id ||
+    baseline.source_digest !== analysisAuthority.source_digest ||
+    !sameStrings(
+      baseline.component_weights.map((item) => item.component_id),
+      componentIds,
+    ) ||
+    proposed.scenario_id !== analysisAuthority.proposed_scenario_id ||
+    proposed.scenario_digest !== analysisAuthority.proposed_scenario_digest ||
+    proposed.source_id !== analysisAuthority.source_id ||
+    proposed.source_digest !== analysisAuthority.source_digest ||
+    proposed.proposed_component_id !==
+      analysisAuthority.proposed_component_id ||
+    !componentIds.includes(analysisAuthority.proposed_component_id) ||
+    !sameStrings(
+      proposed.component_weights.map((item) => item.component_id),
+      componentIds,
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    concentrationAuthority.source_id !== analysisAuthority.source_id ||
+    concentrationAuthority.source_digest !== analysisAuthority.source_digest ||
+    !sameStrings(concentrationAuthority.component_ids, componentIds) ||
+    !sameStrings(
+      concentrationAuthority.component_exposures.map(
+        (item) => item.component_id,
+      ),
+      componentIds,
+    ) ||
+    !sameStrings(
+      concentrationAuthority.component_exposures.map(
+        (item) => item.strategy_id,
+      ),
+      componentStrategies,
+    ) ||
+    concentrationAuthority.baseline_concentration.scenario_id !==
+      analysisAuthority.baseline_scenario_id ||
+    concentrationAuthority.baseline_concentration.scenario_digest !==
+      analysisAuthority.baseline_scenario_digest ||
+    concentrationAuthority.proposed_concentration.scenario_id !==
+      analysisAuthority.proposed_scenario_id ||
+    concentrationAuthority.proposed_concentration.scenario_digest !==
+      analysisAuthority.proposed_scenario_digest ||
+    concentrationAuthority.baseline_universe_coverage.scenario_id !==
+      analysisAuthority.baseline_scenario_id ||
+    concentrationAuthority.baseline_universe_coverage.scenario_digest !==
+      analysisAuthority.baseline_scenario_digest ||
+    concentrationAuthority.proposed_universe_coverage.scenario_id !==
+      analysisAuthority.proposed_scenario_id ||
+    concentrationAuthority.proposed_universe_coverage.scenario_digest !==
+      analysisAuthority.proposed_scenario_digest
+  ) {
+    return false;
+  }
+
+  const knownComponent = (componentId: string) =>
+    componentIds.includes(componentId);
+  const pairIdentitiesAreKnown = (
+    items: readonly {
+      left_component_id: string;
+      right_component_id: string;
+    }[],
+  ) =>
+    items.every(
+      (item) =>
+        knownComponent(item.left_component_id) &&
+        knownComponent(item.right_component_id),
+    );
+  if (
+    interactionAuthority.source_id !== analysisAuthority.source_id ||
+    interactionAuthority.source_digest !== analysisAuthority.source_digest ||
+    !sameStrings(interactionAuthority.component_ids, componentIds) ||
+    interactionAuthority.proposed_component_id !==
+      analysisAuthority.proposed_component_id ||
+    !pairIdentitiesAreKnown(interactionAuthority.symbol_overlaps) ||
+    !pairIdentitiesAreKnown(interactionAuthority.pairwise_correlations) ||
+    interactionAuthority.candidate_baseline_correlation
+      .candidate_component_id !== analysisAuthority.proposed_component_id ||
+    interactionAuthority.candidate_baseline_correlation
+      .baseline_scenario_id !== analysisAuthority.baseline_scenario_id ||
+    interactionAuthority.candidate_baseline_correlation
+      .baseline_scenario_digest !== analysisAuthority.baseline_scenario_digest ||
+    interactionAuthority.baseline_behavior.scenario_id !==
+      analysisAuthority.baseline_scenario_id ||
+    interactionAuthority.baseline_behavior.scenario_digest !==
+      analysisAuthority.baseline_scenario_digest ||
+    interactionAuthority.proposed_behavior.scenario_id !==
+      analysisAuthority.proposed_scenario_id ||
+    interactionAuthority.proposed_behavior.scenario_digest !==
+      analysisAuthority.proposed_scenario_digest ||
+    !sameStrings(
+      interactionAuthority.baseline_behavior.component_contributions.map(
+        (item) => item.component_id,
+      ),
+      componentIds,
+    ) ||
+    !sameStrings(
+      interactionAuthority.proposed_behavior.component_contributions.map(
+        (item) => item.component_id,
+      ),
+      componentIds,
+    ) ||
+    !sameStrings(
+      interactionAuthority.component_contribution_impacts.map(
+        (item) => item.component_id,
+      ),
+      componentIds,
+    ) ||
+    !sameStrings(
+      interactionAuthority.baseline_behavior.component_contributions.map(
+        (item) => item.strategy_id,
+      ),
+      componentStrategies,
+    ) ||
+    !sameStrings(
+      interactionAuthority.proposed_behavior.component_contributions.map(
+        (item) => item.strategy_id,
+      ),
+      componentStrategies,
+    ) ||
+    !sameStrings(
+      interactionAuthority.component_contribution_impacts.map(
+        (item) => item.strategy_id,
+      ),
+      componentStrategies,
+    )
+  ) {
+    return false;
+  }
+
+  if (record.status === "awaiting_decision") {
+    return decisionAuthority === null;
+  }
   return (
-    object(value) &&
-    isPortfolioReviewRecord(value.record) &&
-    source(value.source) &&
-    analysis(value.analysis) &&
-    (value.decision === null || decision(value.decision))
+    decisionAuthority !== null &&
+    decisionAuthority.review_id === record.review_id &&
+    decisionAuthority.source_id === record.source_id &&
+    decisionAuthority.source_digest === record.source_digest &&
+    decisionAuthority.baseline_scenario_id === record.baseline_scenario_id &&
+    decisionAuthority.baseline_scenario_digest ===
+      record.baseline_scenario_digest &&
+    decisionAuthority.proposed_scenario_id === record.proposed_scenario_id &&
+    decisionAuthority.proposed_scenario_digest ===
+      record.proposed_scenario_digest &&
+    decisionAuthority.analysis_digest === record.analysis_digest &&
+    decisionAuthority.decision_id === record.decision_id &&
+    decisionAuthority.decision_digest === record.decision_digest &&
+    decisionAuthority.outcome === record.status &&
+    decisionAuthority.reviewed_by === record.reviewed_by &&
+    decisionAuthority.reviewed_timestamp === record.reviewed_timestamp
   );
 }
 

@@ -284,6 +284,7 @@ function ImmutableDecision({ detail }: { detail: PortfolioReviewDetailResponse }
   const decisionCopy = useTranslations("portfolioReviews.decision");
   const fields = useTranslations("portfolioReviews.fields");
   const common = useTranslations("portfolioReviews.common");
+  const metrics = useTranslations("portfolioReviews.metrics");
   const decision = detail.decision;
   if (decision === null) return <p>{t("noDecision")}</p>;
   return (
@@ -294,7 +295,16 @@ function ImmutableDecision({ detail }: { detail: PortfolioReviewDetailResponse }
       </div>
       <p>{decisionCopy("settled")}</p>
       <dl className="definition-grid definition-grid--wide">
+        <div><dt>{common("schemaVersion")}</dt><dd><code className="raw-value">{decision.schema_version}</code></dd></div>
         <div><dt>{fields("decisionId")}</dt><dd><code className="raw-value">{decision.decision_id}</code></dd></div>
+        <div><dt>{fields("reviewId")}</dt><dd><code className="raw-value">{decision.review_id}</code></dd></div>
+        <div><dt>{common("analysisDigest")}</dt><dd><code className="raw-value">{decision.analysis_digest}</code></dd></div>
+        <div><dt>{fields("sourceId")}</dt><dd><code className="raw-value">{decision.source_id}</code></dd></div>
+        <div><dt>{common("sourceDigest")}</dt><dd><code className="raw-value">{decision.source_digest}</code></dd></div>
+        <div><dt>{metrics("baselineScenarioId")}</dt><dd><code className="raw-value">{decision.baseline_scenario_id}</code></dd></div>
+        <div><dt>{metrics("baselineScenarioDigest")}</dt><dd><code className="raw-value">{decision.baseline_scenario_digest}</code></dd></div>
+        <div><dt>{metrics("proposedScenarioId")}</dt><dd><code className="raw-value">{decision.proposed_scenario_id}</code></dd></div>
+        <div><dt>{metrics("proposedScenarioDigest")}</dt><dd><code className="raw-value">{decision.proposed_scenario_digest}</code></dd></div>
         <div><dt>{fields("outcome")}</dt><dd><code className="raw-value">{decision.outcome}</code></dd></div>
         <div><dt>{fields("rationale")}</dt><dd>{decision.rationale}</dd></div>
         <div><dt>{fields("reviewedBy")}</dt><dd><code className="raw-value">{decision.reviewed_by}</code></dd></div>
@@ -336,8 +346,70 @@ function RawAudit({ detail }: { detail: PortfolioReviewDetailResponse }) {
           <div key={label}><dt>{label}</dt><dd>{value === null ? common("notAvailable") : <code className="raw-value">{String(value)}</code>}</dd></div>
         ))}
       </dl>
+      <div className="table-scroll">
+        <table>
+          <caption>{t("rawAuthorityInventory")}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{t("rawAuthorityPath")}</th>
+              <th scope="col">{common("raw")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {flattenAuthority(detail).map((item) => (
+              <tr key={item.path}>
+                <th scope="row"><code className="raw-value">{item.path}</code></th>
+                <td>
+                  {item.value === null ? (
+                    <>
+                      <span>{common("notAvailable")}</span>{" "}
+                      <code className="raw-value">null</code>
+                    </>
+                  ) : (
+                    <code className="raw-value">{String(item.value)}</code>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
+}
+
+type AuthorityRow = {
+  path: string;
+  value: string | number | boolean | null;
+};
+
+function flattenAuthority(value: unknown, path = ""): AuthorityRow[] {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return [{ path, value }];
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return [{ path, value: "[]" }];
+    }
+    return value.flatMap((item, index) =>
+      flattenAuthority(item, `${path}[${index}]`),
+    );
+  }
+  if (typeof value === "object") {
+    const entries = Object.entries(value);
+    if (entries.length === 0) {
+      return [{ path, value: "{}" }];
+    }
+    return entries.flatMap(([key, item]) =>
+      flattenAuthority(item, path.length === 0 ? key : `${path}.${key}`),
+    );
+  }
+  return [];
 }
 
 const sectionLinks = [

@@ -43,15 +43,108 @@ describe("PortfolioReviewDetailView", () => {
     ]) {
       expect(screen.getByRole("heading", { name: heading })).toBeVisible();
     }
-    expect(screen.getByText("0.123456789012345")).toBeVisible();
-    expect(screen.getByText("-1.11111111011111")).toBeVisible();
-    expect(screen.getAllByText("Synthetic source assumption")).toHaveLength(2);
+    expect(screen.getAllByText("0.123456789012345")[0]).toBeVisible();
+    expect(screen.getAllByText("-1.11111111011111")[0]).toBeVisible();
+    const limitations = screen
+      .getByRole("heading", {
+        name: "Assumptions, warnings, and missing evidence",
+      })
+      .closest("section");
+    expect(limitations).not.toBeNull();
+    expect(within(limitations as HTMLElement).getAllByText(
+      "Synthetic source assumption",
+    )).toHaveLength(2);
     const unavailable = screen.getAllByText("Unavailable")[0].closest(".evidence-card");
     expect(unavailable).not.toBeNull();
-    expect(within(unavailable as HTMLElement).getByText("missing_symbol_evidence")).toBeVisible();
-    expect(within(unavailable as HTMLElement).getByText("component-b")).toBeVisible();
+    expect(within(unavailable as HTMLElement).getAllByText(
+      "missing_symbol_evidence",
+    )[0]).toBeVisible();
+    expect(within(unavailable as HTMLElement).getAllByText(
+      "component-b",
+    )[0]).toBeVisible();
     expect(within(unavailable as HTMLElement).queryByText("0")).not.toBeInTheDocument();
-    expect(screen.getByText(portfolioReviewDetail.record.analysis_digest)).toBeVisible();
+    expect(screen.getAllByText(
+      portfolioReviewDetail.record.analysis_digest,
+    )[0]).toBeVisible();
+
+    const rawAuthority = screen.getByRole("table", {
+      name: /complete generated response field inventory/i,
+    });
+    const expectRawAuthority = (
+      path: string,
+      expected: string,
+    ) => {
+      const pathCell = within(rawAuthority).getByText(path);
+      const row = pathCell.closest("tr");
+      expect(row).not.toBeNull();
+      expect(within(row as HTMLElement).getByText(expected)).toBeVisible();
+    };
+    expectRawAuthority(
+      "analysis.baseline_scenario.scenario_digest",
+      portfolioReviewDetail.analysis.baseline_scenario_digest,
+    );
+    expectRawAuthority("source.components[0].component_id", "component-a");
+    expectRawAuthority("source.components[1].component_id", "component-b");
+    expectRawAuthority(
+      "analysis.baseline_scenario.component_weights[0].component_id",
+      "component-a",
+    );
+    expectRawAuthority(
+      "analysis.concentration_exposure_analysis.baseline_universe_coverage.components_with_symbol_evidence_count",
+      "1702",
+    );
+    expectRawAuthority(
+      "analysis.concentration_exposure_analysis.proposed_universe_coverage.active_components_missing_symbol_evidence_count",
+      "2706",
+    );
+    expectRawAuthority(
+      "analysis.concentration_exposure_analysis.component_exposures[0].baseline_active",
+      "true",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.pairwise_correlations[0].observation_count",
+      "314159",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.pairwise_correlations[0].evaluation_end_timestamp",
+      "2033-06-16T16:17:18Z",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.pairwise_correlations[0].correlation",
+      "null",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.candidate_baseline_correlation.baseline_scenario_id",
+      "synthetic-baseline",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.candidate_baseline_correlation.observation_count",
+      "271828",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.baseline_behavior.evaluation_start_timestamp",
+      "2031-01-11T01:02:03Z",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.proposed_behavior.scenario_id",
+      "synthetic-proposed",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.baseline_behavior.component_contributions[0].strategy_id",
+      "synthetic-strategy-a",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.baseline_behavior.component_contributions[0].positive_periods",
+      "301",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.component_contribution_impacts[1].proposed_weight",
+      "0.6666666666667",
+    );
+    expectRawAuthority(
+      "analysis.interaction_impact_analysis.component_contribution_impacts[1].zero_periods_delta",
+      "513",
+    );
   });
 
   it("shows no default outcome and submits one exact explicit decision, then replaces detail with returned settlement", async () => {
@@ -117,7 +210,7 @@ describe("PortfolioReviewDetailView", () => {
     })).toBeVisible();
     expect(screen.getByText("portfolio_review.decision")).toBeVisible();
     expect(screen.getByText("Request portfolio-detail-request")).toBeVisible();
-    expect(screen.getByText("0.123456789012345")).toBeVisible();
+    expect(screen.getAllByText("0.123456789012345")[0]).toBeVisible();
     expect(screen.getByLabelText(/^Idempotency-Key/)).toHaveValue("Synthetic.Conflict:175");
     expect(screen.getByLabelText(/^Outcome/)).toHaveValue("deferred");
     expect(screen.getByLabelText(/^Rationale/)).toHaveValue("Preserved synthetic rationale");
@@ -132,6 +225,12 @@ describe("PortfolioReviewDetailView", () => {
       name: "Immutable governance decision",
     })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Record decision" })).not.toBeInTheDocument();
-    expect(screen.getAllByText("Synthetic note")).toHaveLength(2);
+    const immutableDecision = screen
+      .getByRole("heading", { name: "Immutable governance decision" })
+      .closest(".immutable-decision");
+    expect(immutableDecision).not.toBeNull();
+    expect(within(immutableDecision as HTMLElement).getAllByText(
+      "Synthetic note",
+    )).toHaveLength(2);
   });
 });

@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PortfolioReviewListView } from "@/components/portfolio-review-list-view";
 import { render, screen, waitFor, within } from "@/test/render";
-import { portfolioReviewRecord } from "@/test/portfolio-review-fixtures";
+import {
+  portfolioReviewRecord,
+  settledPortfolioReviewDetail,
+} from "@/test/portfolio-review-fixtures";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -20,7 +23,7 @@ function response(body: unknown, status = 200): Response {
 describe("PortfolioReviewListView", () => {
   it("preserves exact backend order, duplicate rows, raw status, full digest, and detail links", async () => {
     const second = {
-      ...portfolioReviewRecord,
+      ...settledPortfolioReviewDetail.record,
       review_id: "synthetic-second-review",
       source_id: "synthetic-second-source",
       status: "deferred" as const,
@@ -100,5 +103,61 @@ describe("PortfolioReviewListView", () => {
     expect(await screen.findByRole("heading", {
       name: "No portfolio reviews match this filter",
     })).toBeVisible();
+  });
+
+  it("retains exact prior rows after refresh failure and replaces them only after a successful retry", async () => {
+    const replacement = {
+      ...portfolioReviewRecord,
+      review_id: "synthetic-replacement-review",
+      source_id: "synthetic-replacement-source",
+    };
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response([
+        portfolioReviewRecord,
+        portfolioReviewRecord,
+      ]))
+      .mockResolvedValueOnce(response({
+        error: {
+          code: "portfolio_review_artifact_unavailable",
+          message: "Retained refresh backend message",
+        },
+        request_id: "body-id",
+      }, 503))
+      .mockResolvedValueOnce(response([replacement]));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<PortfolioReviewListView />);
+
+    const initialList = await screen.findByRole("list", {
+      name: "Portfolio reviews in backend order",
+    });
+    expect(within(initialList).getAllByRole("listitem")).toHaveLength(2);
+
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(await screen.findByRole("heading", {
+      name: "Portfolio review artifact unavailable",
+    })).toBeVisible();
+    const retainedList = screen.getByRole("list", {
+      name: "Portfolio reviews in backend order",
+    });
+    expect(within(retainedList).getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.getByText(
+      "Error code: portfolio_review_artifact_unavailable",
+    )).toBeVisible();
+    expect(screen.getByText("Retained refresh backend message")).toBeVisible();
+    expect(screen.getByText("Request portfolio-list-request")).toBeVisible();
+    expect(screen.getByText("503")).toBeVisible();
+    expect(screen.getByText("portfolio_review.list")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByRole("heading", {
+      name: "synthetic-replacement-source",
+    })).toBeVisible();
+    const replacementList = screen.getByRole("list", {
+      name: "Portfolio reviews in backend order",
+    });
+    expect(within(replacementList).getAllByRole("listitem")).toHaveLength(1);
+    expect(screen.queryByText("synthetic-source-175")).not.toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledTimes(3);
   });
 });

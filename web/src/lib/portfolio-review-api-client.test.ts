@@ -200,6 +200,103 @@ describe("portfolio review generated-contract API client", () => {
 
   it.each([
     {
+      name: "settled record without a decision",
+      mutate: () => ({
+        ...settledPortfolioReviewDetail,
+        decision: null,
+      }),
+    },
+    {
+      name: "awaiting record with a populated decision",
+      mutate: () => ({
+        ...portfolioReviewDetail,
+        decision: settledPortfolioReviewDetail.decision,
+      }),
+    },
+    {
+      name: "status version and null-field inconsistency",
+      mutate: () => ({
+        ...portfolioReviewDetail,
+        record: {
+          ...portfolioReviewDetail.record,
+          status: "approved",
+        },
+      }),
+    },
+    {
+      name: "mismatched source digest",
+      mutate: () => ({
+        ...portfolioReviewDetail,
+        source: {
+          ...portfolioReviewDetail.source,
+          source_digest: "mixed-source-digest",
+        },
+      }),
+    },
+    {
+      name: "mismatched analysis review ID",
+      mutate: () => ({
+        ...portfolioReviewDetail,
+        analysis: {
+          ...portfolioReviewDetail.analysis,
+          review_id: "mixed-review-id",
+        },
+      }),
+    },
+    {
+      name: "mismatched nested scenario identity",
+      mutate: () => ({
+        ...portfolioReviewDetail,
+        analysis: {
+          ...portfolioReviewDetail.analysis,
+          baseline_scenario: {
+            ...portfolioReviewDetail.analysis.baseline_scenario,
+            scenario_id: "mixed-baseline-id",
+          },
+        },
+      }),
+    },
+    {
+      name: "mismatched decision identity",
+      mutate: () => ({
+        ...settledPortfolioReviewDetail,
+        decision: {
+          ...settledPortfolioReviewDetail.decision!,
+          decision_id: "mixed-decision-id",
+        },
+      }),
+    },
+    {
+      name: "mismatched decision digest",
+      mutate: () => ({
+        ...settledPortfolioReviewDetail,
+        decision: {
+          ...settledPortfolioReviewDetail.decision!,
+          decision_digest: "mixed-decision-digest",
+        },
+      }),
+    },
+    {
+      name: "mismatched decision outcome",
+      mutate: () => ({
+        ...settledPortfolioReviewDetail,
+        decision: {
+          ...settledPortfolioReviewDetail.decision!,
+          outcome: "deferred",
+        },
+      }),
+    },
+    {
+      name: "mismatched component order",
+      mutate: () => ({
+        ...portfolioReviewDetail,
+        analysis: {
+          ...portfolioReviewDetail.analysis,
+          component_ids: ["component-b", "component-a"],
+        },
+      }),
+    },
+    {
       name: "nested status",
       mutate: () => ({
         ...portfolioReviewDetail,
