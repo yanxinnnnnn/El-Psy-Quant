@@ -5,7 +5,15 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    StrictFloat,
+    StrictInt,
+    field_validator,
+)
+
+NumericPrimitive = StrictInt | StrictFloat
 
 
 class _StrictModel(BaseModel):
@@ -36,7 +44,7 @@ class PortfolioReviewComponentRequest(_StrictModel):
 
 class PortfolioReviewReturnObservationRequest(_StrictModel):
     timestamp: datetime
-    component_returns: list[float]
+    component_returns: list[NumericPrimitive]
 
     @field_validator("component_returns", mode="before")
     @classmethod
@@ -51,7 +59,7 @@ class PortfolioReviewSourceRequest(_StrictModel):
     components: list[PortfolioReviewComponentRequest]
     return_observations: list[PortfolioReviewReturnObservationRequest]
     evaluation_frequency: str
-    periods_per_year: float | None = None
+    periods_per_year: NumericPrimitive | None = None
     created_by: str
     created_timestamp: datetime
     assumptions: list[str] = []
@@ -66,7 +74,7 @@ class PortfolioReviewSourceRequest(_StrictModel):
 
 class PortfolioReviewBaselineScenarioRequest(_StrictModel):
     scenario_id: str
-    weights: dict[str, float]
+    weights: dict[str, NumericPrimitive]
     rationale: str
     assumptions: list[str] = []
     warnings: list[str] = []

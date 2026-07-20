@@ -1572,7 +1572,7 @@ export interface components {
         /** PortfolioReviewReturnObservationRequest */
         PortfolioReviewReturnObservationRequest: {
             /** Component Returns */
-            component_returns: number[];
+            component_returns: (number)[];
             /**
              * Timestamp
              * Format: date-time

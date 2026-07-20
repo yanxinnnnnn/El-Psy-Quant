@@ -240,6 +240,65 @@ def test_decision_created_replayed_and_settled_conflict(configured_app) -> None:
         _assert_error(conflict, 409, "portfolio_review_settled_conflict")
 
 
+@pytest.mark.parametrize(
+    ("field", "invalid_value"),
+    (
+        ("component_return", "0.01"),
+        ("scenario_weight", "0.5"),
+        ("periods_per_year", "252"),
+        ("component_return", True),
+        ("scenario_weight", False),
+        ("periods_per_year", True),
+    ),
+)
+def test_create_rejects_coercive_numeric_transport_values(
+    configured_app,
+    field: str,
+    invalid_value: object,
+) -> None:
+    payload = _payload()
+    if field == "component_return":
+        payload["source"]["return_observations"][0]["component_returns"][0] = (
+            invalid_value
+        )
+    elif field == "scenario_weight":
+        payload["proposed_scenario"]["weights"]["synthetic-component-1"] = (
+            invalid_value
+        )
+    else:
+        payload["source"]["periods_per_year"] = invalid_value
+
+    with TestClient(configured_app) as client:
+        response = client.post(
+            "/api/v1/portfolio-reviews",
+            auth=AUTH,
+            headers={"Idempotency-Key": "synthetic-create-key"},
+            json=payload,
+        )
+
+    _assert_error(response, 422, "request_validation_error")
+
+
+def test_create_accepts_integer_and_float_numeric_transport_values(
+    configured_app,
+) -> None:
+    payload = _payload()
+    payload["source"]["return_observations"][0]["component_returns"][0] = 0
+    payload["source"]["periods_per_year"] = 252.0
+    payload["baseline_scenario"]["weights"]["synthetic-component-1"] = 1
+
+    with TestClient(configured_app) as client:
+        response = client.post(
+            "/api/v1/portfolio-reviews",
+            auth=AUTH,
+            headers={"Idempotency-Key": "synthetic-create-key"},
+            json=payload,
+        )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["outcome"] == "created"
+
+
 def test_stable_invalid_not_found_root_and_database_errors(
     configured_app,
     tmp_path: Path,

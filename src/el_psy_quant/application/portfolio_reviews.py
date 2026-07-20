@@ -381,6 +381,22 @@ def _decision_replay(
     return _detail_for_record(artifact_root=artifact_root, record=record)
 
 
+def _classify_settled_decision(
+    *,
+    artifact_root: str | Path,
+    record: PortfolioReviewRecord,
+    idempotency_key: str,
+    command_digest: str,
+) -> PortfolioReviewDetailView | None:
+    if record.status == "awaiting_decision":
+        return None
+    if record.decision_idempotency_key != idempotency_key:
+        raise PortfolioReviewSettledConflictError()
+    if record.decision_command_digest != command_digest:
+        raise PortfolioReviewIdempotencyConflictError()
+    return _detail_for_record(artifact_root=artifact_root, record=record)
+
+
 def record_portfolio_review_decision_with_outcome(
     *,
     session_factory: sessionmaker[Session],
@@ -419,6 +435,7 @@ def record_portfolio_review_decision_with_outcome(
     except (TypeError, ValueError) as exc:
         raise PortfolioReviewInvalidError() from exc
 
+    settlement_missed = False
     try:
         with session_factory.begin() as session:
             replay = _decision_replay(
@@ -437,8 +454,17 @@ def record_portfolio_review_decision_with_outcome(
             current = repository.get(review_id=awaiting.record.review_id)
             if current is None:
                 raise PortfolioReviewNotFoundError()
-            if current.status != "awaiting_decision":
-                raise PortfolioReviewSettledConflictError()
+            replay = _classify_settled_decision(
+                artifact_root=artifact_root,
+                record=current,
+                idempotency_key=key,
+                command_digest=command_digest,
+            )
+            if replay is not None:
+                return PortfolioReviewDecisionResult(
+                    outcome="replayed",
+                    review=replay,
+                )
             settled = repository.settle_decision(
                 review_id=current.review_id,
                 expected_status="awaiting_decision",
@@ -448,19 +474,17 @@ def record_portfolio_review_decision_with_outcome(
                 decision_command_digest=command_digest,
             )
             if settled is None:
-                current = repository.get(review_id=awaiting.record.review_id)
-                if current is None:
-                    raise PortfolioReviewNotFoundError()
-                raise PortfolioReviewSettledConflictError()
-            write_portfolio_review_decision(
-                root=artifact_root,
-                source_id=settled.source_id,
-                decision=decision,
-            )
-            detail = _detail_for_record(
-                artifact_root=artifact_root,
-                record=settled,
-            )
+                settlement_missed = True
+            else:
+                write_portfolio_review_decision(
+                    root=artifact_root,
+                    source_id=settled.source_id,
+                    decision=decision,
+                )
+                detail = _detail_for_record(
+                    artifact_root=artifact_root,
+                    record=settled,
+                )
     except IntegrityError as exc:
         with session_factory() as session:
             replay = _decision_replay(
@@ -481,6 +505,25 @@ def record_portfolio_review_decision_with_outcome(
         if current is not None and current.status != "awaiting_decision":
             raise PortfolioReviewSettledConflictError() from exc
         raise PortfolioReviewConflictError() from exc
+    if settlement_missed:
+        with session_factory() as session:
+            current = SqlAlchemyPortfolioReviewRepository(session=session).get(
+                review_id=awaiting.record.review_id
+            )
+        if current is None:
+            raise PortfolioReviewNotFoundError()
+        replay = _classify_settled_decision(
+            artifact_root=artifact_root,
+            record=current,
+            idempotency_key=key,
+            command_digest=command_digest,
+        )
+        if replay is not None:
+            return PortfolioReviewDecisionResult(
+                outcome="replayed",
+                review=replay,
+            )
+        raise PortfolioReviewConflictError()
     return PortfolioReviewDecisionResult(outcome="created", review=detail)
 
 

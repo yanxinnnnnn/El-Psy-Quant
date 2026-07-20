@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from threading import Barrier
+from threading import Barrier, Event, Lock, get_ident
 
 import pandas as pd
 import pytest
@@ -137,6 +137,42 @@ def _create(
         created_by="synthetic-analysis-actor",
         created_timestamp="2026-07-05T00:00:00Z",
     )
+
+
+def _gate_initial_decision_replay_misses(monkeypatch):
+    repository_type = portfolio_review_services.SqlAlchemyPortfolioReviewRepository
+    original = repository_type.get_by_decision_idempotency_key
+    both_lookups_complete = Barrier(2)
+    winner_complete = Event()
+    counter_lock = Lock()
+    lookup_count = 0
+    winner_thread_id: int | None = None
+
+    def gated_lookup(self, *, idempotency_key: str):
+        nonlocal lookup_count, winner_thread_id
+        result = original(self, idempotency_key=idempotency_key)
+        with counter_lock:
+            lookup_count += 1
+            call_number = lookup_count
+            if call_number == 1:
+                winner_thread_id = get_ident()
+        if call_number <= 2:
+            both_lookups_complete.wait()
+        if call_number == 2:
+            assert winner_complete.wait(timeout=10)
+        return result
+
+    monkeypatch.setattr(
+        repository_type,
+        "get_by_decision_idempotency_key",
+        gated_lookup,
+    )
+
+    def mark_winner_complete() -> None:
+        if get_ident() == winner_thread_id:
+            winner_complete.set()
+
+    return mark_winner_complete
 
 
 def test_create_replay_compact_list_and_exact_detail(durable_environment) -> None:
@@ -292,15 +328,118 @@ def test_decision_write_failure_rolls_back_database(
     )[0].record.status == "awaiting_decision"
 
 
-def test_two_concurrent_decisions_have_one_winner(durable_environment) -> None:
+def test_failed_conditional_settlement_reclassifies_exact_replay(
+    durable_environment,
+    monkeypatch,
+) -> None:
     session_factory, artifact_root = durable_environment
     created = _create(durable_environment)
-    barrier = Barrier(2)
+    repository_type = portfolio_review_services.SqlAlchemyPortfolioReviewRepository
+    original = repository_type.settle_decision
 
-    def decide(index: int):
-        barrier.wait()
+    def settle_but_report_miss(self, **values):
+        settled = original(self, **values)
+        assert settled is not None
+        portfolio_review_services.write_portfolio_review_decision(
+            root=artifact_root,
+            source_id=settled.source_id,
+            decision=values["decision"],
+        )
+        return None
+
+    monkeypatch.setattr(repository_type, "settle_decision", settle_but_report_miss)
+    result = record_portfolio_review_decision_with_outcome(
+        session_factory=session_factory,
+        artifact_root=artifact_root,
+        review_id=created.review.record.review_id,
+        idempotency_key="synthetic-decision-key",
+        decision_id="synthetic-decision",
+        outcome="approved",
+        rationale="Synthetic governance-only decision",
+        reviewed_by="synthetic-founder",
+        reviewed_timestamp="2026-07-06T00:00:00Z",
+    )
+
+    assert result.outcome == "replayed"
+    assert result.review.record.status == "approved"
+    assert result.review.decision is not None
+
+
+def test_two_concurrent_identical_decisions_create_then_replay(
+    durable_environment,
+    monkeypatch,
+) -> None:
+    session_factory, artifact_root = durable_environment
+    created = _create(durable_environment)
+    mark_winner_complete = _gate_initial_decision_replay_misses(monkeypatch)
+
+    def decide(_index: int):
         try:
             return record_portfolio_review_decision_with_outcome(
+                session_factory=session_factory,
+                artifact_root=artifact_root,
+                review_id=created.review.record.review_id,
+                idempotency_key="shared-decision-key",
+                decision_id="shared-decision",
+                outcome="approved",
+                rationale="Synthetic shared decision",
+                reviewed_by="synthetic-founder",
+                reviewed_timestamp="2026-07-06T00:00:00Z",
+            )
+        finally:
+            mark_winner_complete()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = tuple(executor.map(decide, (1, 2)))
+
+    assert sorted(result.outcome for result in results) == ["created", "replayed"]
+    assert results[0].review == results[1].review
+
+
+def test_two_concurrent_different_decisions_with_same_key_conflict(
+    durable_environment,
+    monkeypatch,
+) -> None:
+    session_factory, artifact_root = durable_environment
+    created = _create(durable_environment)
+    mark_winner_complete = _gate_initial_decision_replay_misses(monkeypatch)
+
+    def decide(index: int):
+        try:
+            result = record_portfolio_review_decision_with_outcome(
+                session_factory=session_factory,
+                artifact_root=artifact_root,
+                review_id=created.review.record.review_id,
+                idempotency_key="shared-decision-key",
+                decision_id=f"decision-{index}",
+                outcome="approved" if index == 1 else "rejected",
+                rationale=f"Synthetic decision {index}",
+                reviewed_by=f"synthetic-founder-{index}",
+                reviewed_timestamp="2026-07-06T00:00:00Z",
+            )
+            return result.outcome
+        except PortfolioReviewIdempotencyConflictError:
+            return "idempotency_conflict"
+        finally:
+            mark_winner_complete()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        outcomes = tuple(executor.map(decide, (1, 2)))
+
+    assert sorted(outcomes) == ["created", "idempotency_conflict"]
+
+
+def test_two_concurrent_decisions_with_different_keys_have_one_winner(
+    durable_environment,
+    monkeypatch,
+) -> None:
+    session_factory, artifact_root = durable_environment
+    created = _create(durable_environment)
+    mark_winner_complete = _gate_initial_decision_replay_misses(monkeypatch)
+
+    def decide(index: int):
+        try:
+            result = record_portfolio_review_decision_with_outcome(
                 session_factory=session_factory,
                 artifact_root=artifact_root,
                 review_id=created.review.record.review_id,
@@ -311,13 +450,16 @@ def test_two_concurrent_decisions_have_one_winner(durable_environment) -> None:
                 reviewed_by=f"synthetic-founder-{index}",
                 reviewed_timestamp="2026-07-06T00:00:00Z",
             )
+            return result.outcome
         except PortfolioReviewSettledConflictError:
-            return None
+            return "settled_conflict"
+        finally:
+            mark_winner_complete()
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        results = tuple(executor.map(decide, (1, 2)))
+        outcomes = tuple(executor.map(decide, (1, 2)))
 
-    assert sum(result is not None for result in results) == 1
+    assert sorted(outcomes) == ["created", "settled_conflict"]
     detail = get_portfolio_review_detail(
         session_factory=session_factory,
         artifact_root=artifact_root,

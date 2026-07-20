@@ -1592,7 +1592,14 @@
           },
           "weights": {
             "additionalProperties": {
-              "type": "number"
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
             },
             "title": "Weights",
             "type": "object"
@@ -2791,7 +2798,14 @@
           },
           "weights": {
             "additionalProperties": {
-              "type": "number"
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
             },
             "title": "Weights",
             "type": "object"
@@ -3068,7 +3082,14 @@
         "properties": {
           "component_returns": {
             "items": {
-              "type": "number"
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
             },
             "title": "Component Returns",
             "type": "array"
@@ -3431,6 +3452,9 @@
           },
           "periods_per_year": {
             "anyOf": [
+              {
+                "type": "integer"
+              },
               {
                 "type": "number"
               },
