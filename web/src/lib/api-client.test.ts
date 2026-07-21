@@ -13,6 +13,7 @@ import {
   fetchResearchRuns,
   fetchStrategies,
   fetchStrategyDetail,
+  type DemoWorkspaceDescriptorResponse,
   type ResearchRunDetailResponse,
   type ResearchRunListResponse,
   type EvidenceManifestDetailResponse,
@@ -55,6 +56,97 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
     },
   };
 }
+
+function mutableDemoDescriptor(): DemoWorkspaceDescriptorResponse {
+  return structuredClone(
+    demoDescriptorFromVersionedSource(),
+  ) as unknown as DemoWorkspaceDescriptorResponse;
+}
+
+type DemoDescriptorMutation = (descriptor: DemoWorkspaceDescriptorResponse) => void;
+
+const malformedPortfolioReviewExamples: Array<[string, DemoDescriptorMutation]> = [
+  ["unsupported evidence reference type", (descriptor) => {
+    descriptor.portfolio_review_example.request.source.components[0]
+      .evidence_references[0].reference_type = "unsupported_reference_type";
+  }],
+  ["blank idempotency key", (descriptor) => {
+    descriptor.portfolio_review_example.create_idempotency_key = "   ";
+  }],
+  ["component without research-origin evidence", (descriptor) => {
+    descriptor.portfolio_review_example.request.source.components[0]
+      .evidence_references[0].reference_type = "promotion_record";
+  }],
+  ["duplicate component identity", (descriptor) => {
+    const components = descriptor.portfolio_review_example.request.source.components;
+    components[1].component_id = components[0].component_id;
+  }],
+  ["duplicate evidence identity", (descriptor) => {
+    const evidence = descriptor.portfolio_review_example.request.source.components[0]
+      .evidence_references;
+    evidence[1] = structuredClone(evidence[0]);
+  }],
+  ["fewer than two components", (descriptor) => {
+    descriptor.portfolio_review_example.request.source.components.pop();
+  }],
+  ["observation width mismatch", (descriptor) => {
+    descriptor.portfolio_review_example.request.source.return_observations[0]
+      .component_returns.pop();
+  }],
+  ["fewer than three observations", (descriptor) => {
+    descriptor.portfolio_review_example.request.source.return_observations.splice(2);
+  }],
+  ["timezone-naive observation", (descriptor) => {
+    descriptor.portfolio_review_example.request.source.return_observations[0].timestamp =
+      "2026-01-02T00:00:00";
+  }],
+  ["non-increasing observations", (descriptor) => {
+    const observations = descriptor.portfolio_review_example.request.source.return_observations;
+    observations[1].timestamp = "2026-01-01T00:00:00Z";
+  }],
+  ["missing scenario weight", (descriptor) => {
+    delete descriptor.portfolio_review_example.request.baseline_scenario
+      .weights["demo-msft-sleeve"];
+  }],
+  ["extra scenario weight", (descriptor) => {
+    descriptor.portfolio_review_example.request.proposed_scenario
+      .weights["extra-component"] = 0;
+  }],
+  ["negative scenario weight", (descriptor) => {
+    const weights = descriptor.portfolio_review_example.request.baseline_scenario.weights;
+    weights["demo-aapl-sleeve"] = -0.1;
+    weights["demo-msft-sleeve"] = 1.1;
+  }],
+  ["non-unit scenario weight total", (descriptor) => {
+    descriptor.portfolio_review_example.request.baseline_scenario
+      .weights["demo-aapl-sleeve"] = 0.7;
+  }],
+  ["boolean scenario weight", (descriptor) => {
+    descriptor.portfolio_review_example.request.baseline_scenario
+      .weights["demo-aapl-sleeve"] = true as unknown as number;
+  }],
+  ["missing proposed component", (descriptor) => {
+    descriptor.portfolio_review_example.request.proposed_scenario.proposed_component_id =
+      "missing-component";
+  }],
+  ["unchanged proposed component", (descriptor) => {
+    const request = descriptor.portfolio_review_example.request;
+    request.proposed_scenario.weights = structuredClone(
+      request.baseline_scenario.weights,
+    );
+  }],
+  ["identical scenario IDs", (descriptor) => {
+    const request = descriptor.portfolio_review_example.request;
+    request.proposed_scenario.scenario_id = request.baseline_scenario.scenario_id;
+  }],
+  ["blank normalized identity", (descriptor) => {
+    descriptor.portfolio_review_example.request.source.components[0].component_id = " ";
+  }],
+  ["extra nested key", (descriptor) => {
+    const source = descriptor.portfolio_review_example.request.source;
+    (source.components[0] as unknown as Record<string, unknown>).unexpected = true;
+  }],
+];
 
 function response(
   body: unknown,
@@ -172,6 +264,23 @@ describe("fetchDemoWorkspace", () => {
       publicMessage: "The local API returned an invalid response.",
     });
   });
+
+  it.each(malformedPortfolioReviewExamples)(
+    "rejects malformed successful Demo descriptor: %s",
+    async (_caseName, mutate) => {
+      const descriptor = mutableDemoDescriptor();
+      mutate(descriptor);
+      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(descriptor));
+
+      await expect(fetchDemoWorkspace(fetcher)).rejects.toMatchObject({
+        status: 200,
+        code: "api_response_invalid",
+        publicMessage: "The local API returned an invalid response.",
+        requestId: "request-123",
+      });
+      expect(fetcher).toHaveBeenCalledTimes(1);
+    },
+  );
 });
 
 const strategy = {

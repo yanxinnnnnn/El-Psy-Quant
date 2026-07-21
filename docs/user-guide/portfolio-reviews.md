@@ -56,9 +56,9 @@ Founder input.
 2. Enter source audit fields, evaluation settings, and optional assumptions,
    warnings, or missing-evidence statements.
 3. Define 2–12 components in authoritative order. Each component needs a
-   strategy ID and at least one evidence reference. At least one component must
-   contain a research-origin reference. Declared symbols are optional and are
-   never inferred.
+   strategy ID and at least one evidence reference. Every component must
+   contain at least one research-origin reference. Declared symbols are optional
+   and never inferred.
 4. Enter at least three strictly increasing, timezone-aware observation
    timestamps and one finite return for every component at every timestamp.
 5. Enter the baseline and proposed scenario identities, rationales, and exact

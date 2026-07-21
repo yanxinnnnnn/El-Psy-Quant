@@ -272,6 +272,45 @@ describe("PortfolioReviewCreateView", () => {
     );
   });
 
+  it("preserves the current draft when a malformed Demo descriptor is rejected", async () => {
+    Object.values(apiMocks).forEach((mock) => mock.mockReset());
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    apiMocks.fetchDemoWorkspace.mockRejectedValue(new ApiClientError({
+      status: 200,
+      code: "api_response_invalid",
+      publicMessage: "The local API returned an invalid response.",
+      requestId: "invalid-demo-descriptor",
+    }));
+    apiMocks.fetchResearchRuns.mockResolvedValue({
+      data: { runs: [] },
+      requestId: "research",
+    });
+    apiMocks.fetchEvidenceManifests.mockResolvedValue({
+      data: { manifests: [] },
+      requestId: "evidence",
+    });
+    const user = userEvent.setup();
+    render(
+      <WorkspaceShell>
+        <PortfolioReviewCreateView />
+      </WorkspaceShell>,
+    );
+
+    await user.type(screen.getByLabelText(/^Review ID/), "manual-draft-survives");
+    await user.type(screen.getByLabelText(/^Idempotency-Key/), "manual-key-survives");
+
+    expect(await screen.findByText(/api_response_invalid/)).toBeVisible();
+    expect(screen.queryByRole("button", {
+      name: "Load exact Demo create example",
+    })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/^Review ID/)).toHaveValue("manual-draft-survives");
+    expect(screen.getByLabelText(/^Idempotency-Key/)).toHaveValue(
+      "manual-key-survives",
+    );
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("applies selected research metadata without changing target financial inputs", async () => {
     renderCreate();
     await screen.findByText(
