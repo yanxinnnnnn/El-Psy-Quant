@@ -59,6 +59,23 @@
         "title": "DemoPaperJobSubmissionExampleResponse",
         "type": "object"
       },
+      "DemoPortfolioReviewExampleResponse": {
+        "properties": {
+          "create_idempotency_key": {
+            "title": "Create Idempotency Key",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/PortfolioReviewCreateRequest"
+          }
+        },
+        "required": [
+          "create_idempotency_key",
+          "request"
+        ],
+        "title": "DemoPortfolioReviewExampleResponse",
+        "type": "object"
+      },
       "DemoResearchRunReferenceResponse": {
         "properties": {
           "experiment_slug": {
@@ -125,11 +142,14 @@
             "title": "Paper Jobs",
             "type": "array"
           },
+          "portfolio_review_example": {
+            "$ref": "#/components/schemas/DemoPortfolioReviewExampleResponse"
+          },
           "research_run": {
             "$ref": "#/components/schemas/DemoResearchRunReferenceResponse"
           },
           "schema_version": {
-            "const": 1,
+            "const": 2,
             "title": "Schema Version",
             "type": "integer"
           },
@@ -151,7 +171,8 @@
           "comparison_candidate_job_ids",
           "lifecycle_proposal_example",
           "lifecycle_review_example",
-          "paper_job_submission_example"
+          "paper_job_submission_example",
+          "portfolio_review_example"
         ],
         "title": "DemoWorkspaceDescriptorResponse",
         "type": "object"

@@ -145,7 +145,8 @@
         "identity": "Workspace identity",
         "research": "Research storage",
         "evidence": "Evidence storage",
-        "jobs": "Product database"
+        "jobs": "Paper Job records",
+        "portfolioReviews": "Portfolio review records"
       }
     },
     "attention": {
@@ -266,6 +267,7 @@
         "jobs": "{step}. Browse or open Paper Job submission",
         "results": "{step}. Browse authoritative Portfolio Records",
         "comparison": "{step}. Begin an explicit comparison",
+        "portfolioReviews": "{step}. Browse Portfolio Reviews",
         "lifecycle": "{step}. Open the non-executing Lifecycle Review workspace"
       },
       "demo": {
@@ -275,6 +277,7 @@
         "job": "{step}. Inspect an exact Paper Job",
         "result": "{step}. Inspect its exact Portfolio Record",
         "comparison": "{step}. Open the descriptor-ordered comparison",
+        "portfolioReview": "{step}. Inspect the deterministic Demo Portfolio Review",
         "lifecycle": "{step}. Open Lifecycle Review with descriptor examples",
         "audit": "Descriptor-provided workflow identities",
         "proposal": "Proposal example",
@@ -294,7 +297,8 @@
         "process": "API process",
         "research": "Research",
         "evidence": "Evidence",
-        "jobs": "Paper Jobs"
+        "jobs": "Paper Jobs",
+        "portfolioReviews": "Portfolio Reviews"
       }
     }
   }

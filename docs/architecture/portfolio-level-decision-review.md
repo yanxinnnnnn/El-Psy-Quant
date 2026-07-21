@@ -565,8 +565,18 @@ Any Dashboard change belongs to the Web implementation Issue.
 
 ## Demo and Standard Workspace
 
-S176 should provide deterministic Demo source/review examples that visibly remain
-Demo-only and disposable.
+S176 provides one deterministic Demo dataset/descriptor v2 create example and
+one seeded durable `awaiting_decision` review. The descriptor is path-free; the
+Web loads it only after explicit replace confirmation and never auto-submits or
+selects a decision. Exact replay preserves a later valid human decision.
+
+Research-run integration copies only exact strategy identity, optional label,
+declared symbol order, and the opaque `<experiment_slug>/<run_id>` evidence
+pointer. Compatible governance, report, and lifecycle references are copied
+verbatim only from an explicitly selected evidence manifest. No public persisted
+paper-comparison-summary discovery contract exists, and summary metrics never
+become aligned return observations. Returns, weights, scenarios, audit input,
+and proposed-component selection remain explicit Founder authority.
 
 Standard startup remains unseeded. Demo installation never writes to Standard
 storage. Existing backup, volume-isolation, and fail-closed rules remain in force.

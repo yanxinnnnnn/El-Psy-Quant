@@ -31,6 +31,7 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
   const manifest = demoSourceJson("workspace-manifest.json");
   const paperJobs = manifest.paper_jobs as Array<Record<string, unknown>>;
   const submission = manifest.paper_submission_example as Record<string, unknown>;
+  const portfolioReview = manifest.portfolio_review_example as Record<string, unknown>;
   return {
     schema_version: manifest.schema_version,
     dataset_id: manifest.dataset_id,
@@ -47,6 +48,10 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
     paper_job_submission_example: {
       idempotency_key: submission.idempotency_key,
       request: demoSourceJson("paper_artifacts/submission-example.json"),
+    },
+    portfolio_review_example: {
+      create_idempotency_key: portfolioReview.create_idempotency_key,
+      request: demoSourceJson("portfolio_reviews/create-request.json"),
     },
   };
 }
@@ -140,7 +145,12 @@ describe("fetchDemoWorkspace", () => {
     const result = await fetchDemoWorkspace(fetcher);
 
     expect(result.data.dataset_id).toBe(descriptor.dataset_id);
+    expect(result.data.schema_version).toBe(2);
+    expect(result.data.dataset_version).toBe(2);
     expect(result.data.comparison_candidate_job_ids).toHaveLength(2);
+    expect(result.data.portfolio_review_example.request.review_id).toBe(
+      "demo-portfolio-review-001",
+    );
     expect(fetcher).toHaveBeenCalledWith("/api/backend/api/v1/demo-workspace", {
       method: "GET",
       cache: "no-store",

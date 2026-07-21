@@ -53,7 +53,8 @@ The dedicated logger emits a static event name plus a bounded subset of:
 ```text
 request_id, method, operation, route_template, status_code, duration_ms,
 error_code, command, job_id, durable_status, attempt_id, attempt_number,
-submission_outcome, recovery_outcome
+submission_outcome, recovery_outcome, review_id, decision_id, command_outcome,
+human_decision_outcome
 ```
 
 Standard and Demo Uvicorn startup displays these INFO events through its
@@ -62,10 +63,16 @@ existing local console handler; no additional persistent or remote sink exists.
 The `internal_execution_failure` value is a fixed sentinel for an unexpected or
 unverifiable callback outcome. It is not a persisted attempt error code.
 
-Never expect or add credentials, headers, cookies, query strings, bodies,
-idempotency keys, paths, SQL, exception text, tracebacks, financial values, or
-artifact payloads. If any appear, preserve the minimum necessary local evidence
-without sharing it and treat the behavior as a defect.
+Never expect or add credentials, Authorization/Cookie headers, query strings,
+request or response bodies, idempotency keys, return observations, weights,
+other financial values, artifact payloads, filesystem paths, SQL, exception
+text, or tracebacks. If any appear, preserve the minimum necessary local
+evidence without sharing it and treat the behavior as a defect.
+
+A portfolio-review command event reports only bounded durable identity and
+outcome. `approved`, `rejected`, or `deferred` is governance evidence; neither
+the event nor the decision proves account mutation, allocation, order
+authorization, execution, or lifecycle transition.
 
 ## Transient Versus Authoritative Evidence
 

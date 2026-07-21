@@ -85,7 +85,7 @@ An empty research or evidence root produces explicit first-run guidance rather
 than demo records. Standard startup never runs the demo installer and never
 seeds product state.
 Paper-job list and submission routes are available after the migration reaches
-the existing `0005_paper_job_result_references` head. Migrations never run from
+the existing `0006_portfolio_reviews` head. Migrations never run from
 the browser or Next.js process.
 
 Before upgrading code/images against an existing Standard volume, make a cold
@@ -138,7 +138,7 @@ backend-provided journey:
 
 ```text
 Strategy -> Research Evidence -> Governance Evidence -> Paper Run
-  -> Portfolio Result -> Comparison -> Lifecycle Review
+  -> Portfolio Result -> Comparison -> Portfolio Review -> Lifecycle Review
   -> Human Decision Evidence
 ```
 
@@ -146,6 +146,12 @@ The lifecycle example remains non-executing. Its deferred human-review input is
 governance evidence and does not create mutable current state. The optional
 Paper Job example only fills the form after an explicit user action; it never
 submits automatically.
+
+Demo dataset/descriptor v2 also exposes one deterministic seeded portfolio
+review and one exact create-example prefill. Loading requires explicit
+replace-draft confirmation and never submits or chooses a decision. An installed
+Demo v1 source conflicts with v2; use only the Demo reset below. Standard and
+Demo keep separate project names, databases, artifact roots, and volumes.
 
 Stop while preserving the installed Demo Workspace:
 
@@ -163,6 +169,37 @@ docker compose -f compose.yaml -f compose.demo.yaml up --build --detach
 This reset does not address the Standard `mvp-data` volume. To return to the
 Standard workspace, stop Demo and run `docker compose up --detach`. Never run a
 volume-removing command against the Standard project.
+
+## Sprint 176 Founder Acceptance
+
+Standard acceptance:
+
+```text
+build/start Standard with existing local procedure
+  -> migration reaches 0006_portfolio_reviews
+  -> Demo descriptor remains not configured
+  -> no bundled portfolio review is seeded
+  -> research/evidence integration is explicit
+  -> manual builder remains usable when configured sources are empty/unavailable
+  -> stop Standard without deleting its volume
+```
+
+Demo acceptance:
+
+```text
+explicitly reset disposable Demo v1 volume when required
+  -> build/start Demo using isolated Demo project/volume
+  -> descriptor v2 is visible and clearly labeled
+  -> seeded review appears in list/detail as exact synthetic evidence
+  -> load Demo create example explicitly; confirm no auto-submit
+  -> submit and observe exact replay/authoritative detail
+  -> record one explicit approved/rejected/deferred decision
+  -> restart Demo and confirm the valid decision persists
+  -> return to Standard and confirm Standard data is unchanged
+```
+
+Founder owns these Docker/container/browser steps and the merge decision. Codex
+owns deterministic checks and static Compose rendering only.
 
 ## End-to-End Smoke Verification
 
@@ -342,7 +379,7 @@ acceptance. In both workspaces and both locales, verify:
 The callback after Run is not a durable worker and does not provide
 exactly-once execution. If the process exits after claim, the durable job and
 attempt remain `running` for an explicit Recover decision. Migration head
-remains `0005_paper_job_result_references`; Sprint 165 adds no migration,
+was `0005_paper_job_result_references`; Sprint 165 added no migration,
 worker, lease, heartbeat, scheduler, polling, or cleanup behavior.
 
 Founder local Standard/Demo reliability acceptance and the Sprint 165 merge are

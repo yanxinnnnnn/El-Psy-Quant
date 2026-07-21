@@ -46,9 +46,9 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 1,
+  schema_version: 2,
   dataset_id: "dataset-from-api",
-  dataset_version: 1,
+  dataset_version: 2,
   display_name: "Founder Demo Workspace",
   warning: "Disposable example evidence, not real user data.",
   canonical_strategy_name: "strategy-from-api",
@@ -95,6 +95,22 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
       orders: [],
       fills: [],
     },
+  },
+  portfolio_review_example: {
+    create_idempotency_key: "demo-portfolio-review-create-v1",
+    request: JSON.parse(
+      readFileSync(
+        resolve(
+          process.cwd(),
+          "..",
+          "examples",
+          "demo_workspace",
+          "portfolio_reviews",
+          "create-request.json",
+        ),
+        "utf8",
+      ),
+    ) as DemoWorkspaceDescriptorResponse["portfolio_review_example"]["request"],
   },
 };
 
@@ -319,3 +335,5 @@ describe("FounderFirstRunPanel", () => {
     expect(screen.getByText("Safe unknown backend message").closest("details")).not.toBeNull();
   });
 });
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";

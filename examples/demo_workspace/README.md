@@ -7,7 +7,11 @@ installer into isolated demo storage.
 The dataset uses the registered `moving_average_crossover` strategy and links
 one review journey across saved research evidence, governance/report manifests,
 two completed paper-result chains, comparison candidates, and stateless
-lifecycle review examples. It contains no credentials, network dependency,
+lifecycle review examples. Dataset/descriptor v2 also supplies one exact
+portfolio-review create request. Installation uses existing domain/application
+authority to seed one isolated `awaiting_decision` review; it does not seed a
+decision, and exact replay preserves a later valid Founder decision. It contains
+no credentials, network dependency,
 profitability claim, suitability claim, live-readiness claim, or automatic
 approval.
 

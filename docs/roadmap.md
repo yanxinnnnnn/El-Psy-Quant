@@ -116,9 +116,9 @@ M30 is now In Progress through this sequence:
 | S171 | Concentration and Exposure Analysis Foundation | Complete |
 | S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Complete |
 | S173 | Portfolio Review Artifact and Human Decision Foundation | Complete |
-| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Implementation complete / pending Founder review |
-| S175 | Founder Portfolio Decision Review Web Workspace | Planned |
-| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Planned |
+| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Complete |
+| S175 | Founder Portfolio Decision Review Web Workspace | Complete |
+| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Implementation complete; Founder Standard/Demo runtime acceptance remains |
 | S177 | Milestone 30 Closeout and M31 Handoff | Planned |
 
 The M30 product chain is:
@@ -160,8 +160,10 @@ reopen and domain recalculation, one compact SQLite record, create/decision
 idempotency, one-winner settlement, four authenticated API routes, and explicit
 OpenAPI/generated TypeScript contracts. It adds no Founder Web, Demo data,
 lifecycle, account, order, execution, M31, private-edge, broker, or live
-capability. Migration head is `0006_portfolio_reviews`. Sprint 175 is next after
-merge.
+capability. Migration head is `0006_portfolio_reviews`. Sprint 176 adds explicit
+research/evidence composition, isolated Demo dataset/descriptor v2, and read-only
+acceptance verification. Sprint 177 is next only after merge and Founder runtime
+acceptance.
 
 ## Approved Paper Trading Runtime Sequence
 

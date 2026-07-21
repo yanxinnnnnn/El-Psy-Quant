@@ -134,4 +134,19 @@ conflicting, or unavailable.
 For a proposed component change in explicit portfolio context, follow the
 [Portfolio Reviews guide](portfolio-reviews.md). The browser does not discover
 sources, normalize weights, calculate financial evidence, or preselect an
-outcome.
+outcome. Research/evidence composition always requires explicit selection and
+leaves aligned returns manual.
+
+## Demo v2 Portfolio Review Tour
+
+Demo dataset/descriptor v2 adds one deterministic isolated portfolio review to
+the Dashboard after Comparison and before Lifecycle Review. On the create page,
+the visibly Demo-only load action requires explicit draft-replacement
+confirmation. Loading is prefill only: it never auto-loads on page open,
+submits, or selects/records a decision. Standard never exposes the control or
+seeds the bundled review.
+
+An installed Demo v1 dataset conflicts with v2 by design. Stop both projects and
+use only the documented Founder-owned Demo reset before starting v2. Standard
+and Demo retain separate Compose projects, databases, artifact roots, and named
+volumes; never substitute or remove Standard storage during a Demo reset.

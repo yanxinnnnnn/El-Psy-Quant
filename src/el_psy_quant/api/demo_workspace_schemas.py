@@ -9,6 +9,7 @@ from el_psy_quant.api.lifecycle_command_schemas import (
     LifecycleTransitionReviewCommandRequest,
 )
 from el_psy_quant.api.paper_run_schemas import PaperRunCommandRequest
+from el_psy_quant.api.portfolio_review_schemas import PortfolioReviewCreateRequest
 
 
 class DemoResearchRunReferenceResponse(BaseModel):
@@ -35,8 +36,13 @@ class DemoPaperJobSubmissionExampleResponse(BaseModel):
     request: PaperRunCommandRequest
 
 
+class DemoPortfolioReviewExampleResponse(BaseModel):
+    create_idempotency_key: str
+    request: PortfolioReviewCreateRequest
+
+
 class DemoWorkspaceDescriptorResponse(BaseModel):
-    schema_version: Literal[1]
+    schema_version: Literal[2]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -49,3 +55,4 @@ class DemoWorkspaceDescriptorResponse(BaseModel):
     lifecycle_proposal_example: LifecycleTransitionProposalCommandRequest
     lifecycle_review_example: LifecycleTransitionReviewCommandRequest
     paper_job_submission_example: DemoPaperJobSubmissionExampleResponse
+    portfolio_review_example: DemoPortfolioReviewExampleResponse

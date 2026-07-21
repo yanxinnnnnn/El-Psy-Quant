@@ -29,8 +29,28 @@ reporting the failure.
 
 ## Create a Review
 
-Choose **Create portfolio review**. Sprint 175 does not discover or select a
-source for you; enter the structured source and both scenarios manually.
+Choose **Create portfolio review**. The complete manual builder remains
+available. The integration region reads existing public research runs and
+evidence manifests independently, in backend order, and never preselects them.
+
+For an explicitly selected research run, choose a target component or add a new
+component. Only exact strategy ID, optional experiment-name label, declared
+symbol order, and one opaque `research_run` reference
+`<experiment_slug>/<run_id>` may be copied. Component ID, returns, weights,
+scenarios, audit fields, proposed component, and decision fields stay blank or
+unchanged.
+
+For an explicitly selected manifest, inspect raw manifest identity and grouped
+references, select a target and compatible references, then add them. Type, ID,
+label, and description are copied verbatim. Unsupported types remain visible
+and cannot be mapped or imported; exact duplicates in one component are refused.
+Governance, report, and lifecycle references are importable only when the exact
+compatible reference already exists in a manifest.
+
+Research metrics and browser comparison state are not aligned-return authority.
+There is currently no persisted public `paper_comparison_summary` discovery
+contract. Therefore aligned per-component return observations remain explicit
+Founder input.
 
 1. Enter a unique review ID and explicit `Idempotency-Key`.
 2. Enter source audit fields, evaluation settings, and optional assumptions,
@@ -111,6 +131,13 @@ allocate cash, create holdings, authorize an order, or execute.
 
 ## Standard and Demo
 
-Sprint 175 adds no Demo review data or Demo autofill. Standard data is never
-seeded by the browser. Sprint 176 owns any future isolated, deterministic Demo
-integration and Founder runtime acceptance.
+Standard is unseeded and has no Demo loader. Demo dataset/descriptor v2 seeds
+one exact isolated review, `demo-portfolio-review-001`, initially
+`awaiting_decision`. Its visibly Demo-only create-example action requires
+replace confirmation and only prefills the normal builder; it never auto-loads,
+submits, or decides. Normal submission may return exact `replayed` authority.
+
+A later valid `approved`, `rejected`, or `deferred` Demo decision persists across
+exact Demo replay. It remains governance evidence only and has no M31 account or
+execution effect. Existing Demo v1 storage conflicts with v2 and requires the
+documented Founder-owned Demo-only reset; Standard storage must remain untouched.

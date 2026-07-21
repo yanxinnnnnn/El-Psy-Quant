@@ -2,14 +2,23 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ErrorState, RequestId } from "@/components/data-states";
+import { useWorkspaceEnvironment } from "@/components/workspace-shell";
 import {
   ApiClientError,
   createPortfolioReview,
+  fetchEvidenceManifestDetail,
+  fetchEvidenceManifests,
+  fetchResearchRuns,
+  isPortfolioReviewCreateRequest,
+  type ApiResult,
+  type EvidenceManifestDetailResponse,
+  type EvidenceManifestListResponse,
   type PortfolioReviewCommandResponse,
   type PortfolioReviewCreateRequest,
+  type ResearchRunListResponse,
 } from "@/lib/api-client";
 import {
   acceptedScenarioWeightTotal,
@@ -58,6 +67,64 @@ type Failure = {
   requestId: string | null;
   httpStatus: number | null;
 };
+type PreservedRead<Data> = {
+  data: Data | null;
+  loading: boolean;
+  failure: Failure | null;
+  refresh: () => void;
+};
+
+function usePreservedRead<Data>(
+  request: () => Promise<ApiResult<Data>>,
+): PreservedRead<Data> {
+  const [data, setData] = useState<Data | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failure, setFailure] = useState<Failure | null>(null);
+  const sequence = useRef(0);
+  const refresh = useCallback(() => {
+    const current = ++sequence.current;
+    setLoading(true);
+    setFailure(null);
+    void request()
+      .then((result) => {
+        if (current === sequence.current) setData(result.data);
+      })
+      .catch((error: unknown) => {
+        if (current === sequence.current) setFailure(failureFrom(error));
+      })
+      .finally(() => {
+        if (current === sequence.current) setLoading(false);
+      });
+  }, [request]);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (active) refresh();
+    });
+    return () => {
+      active = false;
+      sequence.current += 1;
+    };
+  }, [refresh]);
+  return { data, loading, failure, refresh };
+}
+
+function manifestReferenceGroups(detail: EvidenceManifestDetailResponse) {
+  if (detail.manifest_type === "strategy_decision_manifest") {
+    return [
+      ["summary_references", detail.summary_references],
+      ["record_references", detail.record_references],
+    ] as const;
+  }
+  if (detail.manifest_type === "report_artifact_manifest") {
+    return [["references", detail.references]] as const;
+  }
+  return [
+    ["state_snapshot_references", detail.state_snapshot_references],
+    ["transition_proposal_references", detail.transition_proposal_references],
+    ["transition_record_references", detail.transition_record_references],
+  ] as const;
+}
 
 const initialComponents: ComponentRow[] = [
   {
@@ -213,6 +280,12 @@ export function PortfolioReviewCreateView() {
   const fields = useTranslations("portfolioReviews.fields");
   const validation = useTranslations("portfolioReviews.validation");
   const common = useTranslations("portfolioReviews.common");
+  const integration = useTranslations("portfolioReviews.integration");
+  const environment = useWorkspaceEnvironment();
+  const researchRequest = useCallback(() => fetchResearchRuns(), []);
+  const evidenceRequest = useCallback(() => fetchEvidenceManifests(), []);
+  const research = usePreservedRead<ResearchRunListResponse>(researchRequest);
+  const evidence = usePreservedRead<EvidenceManifestListResponse>(evidenceRequest);
   const keyRef = useRef(0);
   const pendingRef = useRef(false);
   const validationRef = useRef<HTMLDivElement>(null);
@@ -248,6 +321,230 @@ export function PortfolioReviewCreateView() {
     response: PortfolioReviewCommandResponse;
     requestId: string | null;
   } | null>(null);
+  const [integrationTargetKey, setIntegrationTargetKey] = useState("");
+  const [selectedResearchIdentity, setSelectedResearchIdentity] = useState("");
+  const [selectedManifestIdentity, setSelectedManifestIdentity] = useState("");
+  const [manifestDetail, setManifestDetail] =
+    useState<EvidenceManifestDetailResponse | null>(null);
+  const [manifestDetailLoading, setManifestDetailLoading] = useState(false);
+  const [manifestDetailFailure, setManifestDetailFailure] =
+    useState<Failure | null>(null);
+  const manifestSequence = useRef(0);
+  const [selectedManifestReferences, setSelectedManifestReferences] =
+    useState<string[]>([]);
+  const [integrationNotice, setIntegrationNotice] = useState<string | null>(null);
+  const [demoReplaceConfirmed, setDemoReplaceConfirmed] = useState(false);
+  const [demoLoadFailure, setDemoLoadFailure] = useState<Failure | null>(null);
+
+  function targetComponent(): ComponentRow | null {
+    const key = Number(integrationTargetKey);
+    return components.find((component) => component.key === key) ?? null;
+  }
+
+  function selectedResearchRun() {
+    return research.data?.runs.find(
+      (run) => `${run.experiment_slug}\u0000${run.run_id}` === selectedResearchIdentity,
+    ) ?? null;
+  }
+
+  function researchEvidence(run: ResearchRunListResponse["runs"][number]): EvidenceRow {
+    return {
+      key: nextKey(),
+      referenceType: "research_run",
+      referenceId: `${run.experiment_slug}/${run.run_id}`,
+      label: "",
+      description: "",
+    };
+  }
+
+  function addSelectedResearchComponent() {
+    const run = selectedResearchRun();
+    if (run === null || components.length >= 12) {
+      setIntegrationNotice(integration("selectResearchFirst"));
+      return;
+    }
+    const key = nextKey();
+    setComponents([...components, {
+      key,
+      componentId: "",
+      strategyId: run.strategy,
+      label: run.experiment_name,
+      description: "",
+      evidence: [researchEvidence(run)],
+      symbols: run.symbols.map((value) => ({ key: nextKey(), value })),
+      baselineWeight: "",
+      proposedWeight: "",
+    }]);
+    setObservations(observations.map((row) => ({
+      ...row,
+      returns: { ...row.returns, [key]: "" },
+    })));
+    setIntegrationNotice(integration("researchAdded"));
+  }
+
+  function applySelectedResearchToTarget() {
+    const run = selectedResearchRun();
+    const target = targetComponent();
+    if (run === null || target === null) {
+      setIntegrationNotice(integration("selectResearchAndTarget"));
+      return;
+    }
+    const referenceId = `${run.experiment_slug}/${run.run_id}`;
+    if (target.evidence.some((reference) =>
+      reference.referenceType === "research_run" &&
+      reference.referenceId === referenceId
+    )) {
+      setIntegrationNotice(integration("duplicateRefused"));
+      return;
+    }
+    setComponents(components.map((component) =>
+      component.key === target.key
+        ? {
+            ...component,
+            strategyId: run.strategy,
+            label: run.experiment_name,
+            symbols: run.symbols.map((value) => ({ key: nextKey(), value })),
+            evidence: [...component.evidence, researchEvidence(run)],
+          }
+        : component
+    ));
+    setIntegrationNotice(integration("researchApplied"));
+  }
+
+  function loadManifestDetail(identity = selectedManifestIdentity) {
+    const [manifestType, artifactKey] = identity.split("\u0000");
+    if (!manifestType || !artifactKey) return;
+    const current = ++manifestSequence.current;
+    setManifestDetailLoading(true);
+    setManifestDetailFailure(null);
+    setSelectedManifestReferences([]);
+    void fetchEvidenceManifestDetail(manifestType, artifactKey)
+      .then((response) => {
+        if (current === manifestSequence.current) setManifestDetail(response.data);
+      })
+      .catch((error: unknown) => {
+        if (current === manifestSequence.current) {
+          setManifestDetailFailure(failureFrom(error));
+        }
+      })
+      .finally(() => {
+        if (current === manifestSequence.current) setManifestDetailLoading(false);
+      });
+  }
+
+  function addSelectedManifestReferences() {
+    const target = targetComponent();
+    if (target === null || manifestDetail === null || selectedManifestReferences.length === 0) {
+      setIntegrationNotice(integration("selectManifestRefsAndTarget"));
+      return;
+    }
+    const selected = new Set(selectedManifestReferences);
+    const additions: EvidenceRow[] = [];
+    for (const [groupName, references] of manifestReferenceGroups(manifestDetail)) {
+      references.forEach((reference, index) => {
+        const key = `${groupName}\u0000${index}`;
+        if (!selected.has(key)) return;
+        if (!portfolioReviewEvidenceReferenceTypes.includes(
+          reference.reference_type as PortfolioReviewEvidenceReferenceType,
+        )) return;
+        additions.push({
+          key: nextKey(),
+          referenceType: reference.reference_type as PortfolioReviewEvidenceReferenceType,
+          referenceId: reference.reference_id,
+          label: reference.label ?? "",
+          description: reference.description ?? "",
+        });
+      });
+    }
+    const identities = new Set(target.evidence.map((reference) =>
+      `${reference.referenceType}\u0000${reference.referenceId}`
+    ));
+    const additionIdentities = additions.map((reference) =>
+      `${reference.referenceType}\u0000${reference.referenceId}`
+    );
+    if (
+      new Set(additionIdentities).size !== additionIdentities.length ||
+      additionIdentities.some((identity) => identities.has(identity))
+    ) {
+      setIntegrationNotice(integration("duplicateRefused"));
+      return;
+    }
+    setComponents(components.map((component) =>
+      component.key === target.key
+        ? { ...component, evidence: [...component.evidence, ...additions] }
+        : component
+    ));
+    setIntegrationNotice(integration("manifestReferencesAdded", { count: additions.length }));
+  }
+
+  function applyCreateRequest(
+    request: PortfolioReviewCreateRequest,
+    createIdempotencyKey: string,
+  ) {
+    const componentKeys = request.source.components.map(() => nextKey());
+    setReviewId(request.review_id);
+    setIdempotencyKey(createIdempotencyKey);
+    setSourceId(request.source.source_id);
+    setSourceCreatedBy(request.source.created_by);
+    setSourceCreatedTimestamp(request.source.created_timestamp);
+    setEvaluationFrequency(request.source.evaluation_frequency);
+    setPeriodsPerYear(request.source.periods_per_year === null
+      ? ""
+      : String(request.source.periods_per_year));
+    const rows = (values: string[]) => values.map((value) => ({ key: nextKey(), value }));
+    setSourceAssumptions(rows(request.source.assumptions));
+    setSourceWarnings(rows(request.source.warnings));
+    setSourceMissing(rows(request.source.missing_evidence));
+    setComponents(request.source.components.map((component, index) => ({
+      key: componentKeys[index],
+      componentId: component.component_id,
+      strategyId: component.strategy_id,
+      label: component.label ?? "",
+      description: component.description ?? "",
+      evidence: component.evidence_references.map((reference) => ({
+        key: nextKey(),
+        referenceType: reference.reference_type as PortfolioReviewEvidenceReferenceType,
+        referenceId: reference.reference_id,
+        label: reference.label ?? "",
+        description: reference.description ?? "",
+      })),
+      symbols: rows(component.symbols ?? []),
+      baselineWeight: String(request.baseline_scenario.weights[component.component_id]),
+      proposedWeight: String(request.proposed_scenario.weights[component.component_id]),
+    })));
+    setObservations(request.source.return_observations.map((observation) => ({
+      key: nextKey(),
+      timestamp: observation.timestamp,
+      returns: Object.fromEntries(componentKeys.map((key, index) => [
+        key,
+        String(observation.component_returns[index]),
+      ])),
+    })));
+    setBaseline({
+      scenarioId: request.baseline_scenario.scenario_id,
+      rationale: request.baseline_scenario.rationale,
+      assumptions: rows(request.baseline_scenario.assumptions),
+      warnings: rows(request.baseline_scenario.warnings),
+    });
+    setProposed({
+      scenarioId: request.proposed_scenario.scenario_id,
+      rationale: request.proposed_scenario.rationale,
+      assumptions: rows(request.proposed_scenario.assumptions),
+      warnings: rows(request.proposed_scenario.warnings),
+    });
+    setProposedComponentKey(request.proposed_scenario.proposed_component_id);
+    setAnalysisCreatedBy(request.analysis.created_by);
+    setAnalysisCreatedTimestamp(request.analysis.created_timestamp);
+    setAnalysisAssumptions(rows(request.analysis.assumptions));
+    setAnalysisWarnings(rows(request.analysis.warnings));
+    setAnalysisMissing(rows(request.analysis.missing_evidence));
+    setConfirmed(false);
+    setErrors({});
+    setServerError(null);
+    setResult(null);
+    setDemoLoadFailure(null);
+    setIntegrationNotice(integration("demoLoaded"));
+  }
 
   function addComponent() {
     if (components.length >= 12) return;
@@ -665,6 +962,273 @@ export function PortfolioReviewCreateView() {
             <RequestId value={result.requestId} />
           </div>
         ) : null}
+
+        {environment.state.status === "success" ? (
+          <fieldset className="form-section demo-portfolio-loader">
+            <legend>{integration("demoTitle")}</legend>
+            <p className="form-section__description">{integration("demoDescription")}</p>
+            {demoLoadFailure ? (
+              <ErrorState
+                code={demoLoadFailure.code}
+                title={integration("demoInvalid")}
+                message={demoLoadFailure.message}
+                requestId={demoLoadFailure.requestId}
+                httpStatus={demoLoadFailure.httpStatus}
+                operation="demo_workspace.read"
+              />
+            ) : null}
+            <label className="portfolio-confirmation">
+              <input
+                type="checkbox"
+                checked={demoReplaceConfirmed}
+                onChange={(event) => setDemoReplaceConfirmed(event.target.checked)}
+              />
+              <span>{integration("demoReplaceConfirmation")}</span>
+            </label>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={!demoReplaceConfirmed}
+              onClick={() => {
+                const example = environment.state.status === "success"
+                  ? environment.state.data.portfolio_review_example
+                  : null;
+                if (example === null || !isPortfolioReviewCreateRequest(example.request)) {
+                  setDemoLoadFailure({
+                    code: "api_response_invalid",
+                    message: integration("demoInvalid"),
+                    requestId: environment.state.status === "success"
+                      ? environment.state.requestId
+                      : null,
+                    httpStatus: null,
+                  });
+                  return;
+                }
+                applyCreateRequest(example.request, example.create_idempotency_key);
+                setDemoReplaceConfirmed(false);
+              }}
+            >
+              {integration("demoLoad")}
+            </button>
+          </fieldset>
+        ) : environment.state.status === "error" &&
+          environment.state.code !== "demo_workspace_not_configured" ? (
+          <ErrorState
+            className="form-alert form-alert--server"
+            code={environment.state.code}
+            title={integration("demoUnavailable")}
+            message={environment.state.message}
+            requestId={environment.state.requestId}
+            httpStatus={environment.state.httpStatus}
+            operation="demo_workspace.read"
+            onRetry={environment.retry}
+            retryLabel={integration("retry")}
+          />
+        ) : null}
+
+        <fieldset className="form-section portfolio-source-integration">
+          <legend>{integration("title")}</legend>
+          <p className="form-section__description">{integration("description")}</p>
+          <p className="neutral-note">{integration("returnsRemainManual")}</p>
+          <label>
+            {integration("targetComponent")}
+            <select
+              value={integrationTargetKey}
+              onChange={(event) => setIntegrationTargetKey(event.target.value)}
+            >
+              <option value="">{fields("selectExplicitly")}</option>
+              {components.map((component, index) => (
+                <option key={component.key} value={String(component.key)}>
+                  {component.componentId || `${t("component")} ${index + 1}`}
+                </option>
+              ))}
+            </select>
+          </label>
+          {integrationNotice ? <p className="mutation-notice" role="status">{integrationNotice}</p> : null}
+
+          <section aria-labelledby="portfolio-research-picker-title">
+            <div className="repeatable-heading">
+              <div>
+                <h3 id="portfolio-research-picker-title">{integration("researchTitle")}</h3>
+                <p>{integration("researchDescription")}</p>
+              </div>
+              <button className="quiet-button" type="button" onClick={research.refresh} disabled={research.loading}>
+                {research.loading ? integration("refreshing") : integration("refresh")}
+              </button>
+            </div>
+            {research.failure ? (
+              <ErrorState
+                code={research.failure.code}
+                title={integration("researchUnavailable")}
+                message={research.failure.message}
+                requestId={research.failure.requestId}
+                httpStatus={research.failure.httpStatus}
+                operation="research_run.list"
+                onRetry={research.refresh}
+                retryLabel={integration("retry")}
+              />
+            ) : null}
+            {research.loading && research.data === null ? (
+              <p role="status">{integration("researchLoading")}</p>
+            ) : research.data?.runs.length === 0 ? (
+              <p>{integration("researchEmpty")}</p>
+            ) : research.data ? (
+              <>
+                <label>
+                  {integration("researchSelect")}
+                  <select
+                    value={selectedResearchIdentity}
+                    onChange={(event) => setSelectedResearchIdentity(event.target.value)}
+                  >
+                    <option value="">{fields("selectExplicitly")}</option>
+                    {research.data.runs.map((run, index) => (
+                      <option
+                        key={`${run.experiment_slug}-${run.run_id}-${index}`}
+                        value={`${run.experiment_slug}\u0000${run.run_id}`}
+                      >
+                        {run.experiment_name} — {run.experiment_slug}/{run.run_id}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {selectedResearchRun() ? (
+                  <div className="integration-selection-card">
+                    <code>{selectedResearchRun()?.experiment_slug}/{selectedResearchRun()?.run_id}</code>
+                    <p>{selectedResearchRun()?.strategy}</p>
+                    <p>{selectedResearchRun()?.symbols.join(" · ")}</p>
+                    <Link
+                      className="text-link"
+                      target="_blank"
+                      rel="noreferrer"
+                      href={`/research-runs/${encodeURIComponent(selectedResearchRun()?.experiment_slug ?? "")}/${encodeURIComponent(selectedResearchRun()?.run_id ?? "")}`}
+                    >
+                      {integration("inspectResearch")}
+                    </Link>
+                  </div>
+                ) : null}
+                <div className="submission-actions">
+                  <button className="secondary-button" type="button" onClick={addSelectedResearchComponent} disabled={components.length >= 12}>
+                    {integration("addResearchComponent")}
+                  </button>
+                  <button className="secondary-button" type="button" onClick={applySelectedResearchToTarget}>
+                    {integration("applyResearchTarget")}
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </section>
+
+          <section aria-labelledby="portfolio-manifest-picker-title">
+            <div className="repeatable-heading">
+              <div>
+                <h3 id="portfolio-manifest-picker-title">{integration("manifestTitle")}</h3>
+                <p>{integration("manifestDescription")}</p>
+              </div>
+              <button className="quiet-button" type="button" onClick={evidence.refresh} disabled={evidence.loading}>
+                {evidence.loading ? integration("refreshing") : integration("refresh")}
+              </button>
+            </div>
+            {evidence.failure ? (
+              <ErrorState
+                code={evidence.failure.code}
+                title={integration("manifestUnavailable")}
+                message={evidence.failure.message}
+                requestId={evidence.failure.requestId}
+                httpStatus={evidence.failure.httpStatus}
+                operation="evidence_manifest.list"
+                onRetry={evidence.refresh}
+                retryLabel={integration("retry")}
+              />
+            ) : null}
+            {evidence.loading && evidence.data === null ? (
+              <p role="status">{integration("manifestLoading")}</p>
+            ) : evidence.data?.manifests.length === 0 ? (
+              <p>{integration("manifestEmpty")}</p>
+            ) : evidence.data ? (
+              <label>
+                {integration("manifestSelect")}
+                <select
+                  value={selectedManifestIdentity}
+                  onChange={(event) => {
+                    const identity = event.target.value;
+                    setSelectedManifestIdentity(identity);
+                    if (identity) loadManifestDetail(identity);
+                  }}
+                >
+                  <option value="">{fields("selectExplicitly")}</option>
+                  {evidence.data.manifests.map((manifest, index) => (
+                    <option
+                      key={`${manifest.manifest_type}-${manifest.artifact_key}-${index}`}
+                      value={`${manifest.manifest_type}\u0000${manifest.artifact_key}`}
+                    >
+                      {manifest.manifest_type} / {manifest.artifact_key} / {manifest.manifest_id}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            {selectedManifestIdentity ? (
+              <button className="quiet-button" type="button" onClick={() => loadManifestDetail()} disabled={manifestDetailLoading}>
+                {manifestDetailLoading ? integration("refreshing") : integration("refreshDetail")}
+              </button>
+            ) : null}
+            {manifestDetailFailure ? (
+              <ErrorState
+                code={manifestDetailFailure.code}
+                title={integration("manifestDetailUnavailable")}
+                message={manifestDetailFailure.message}
+                requestId={manifestDetailFailure.requestId}
+                httpStatus={manifestDetailFailure.httpStatus}
+                operation="evidence_manifest.detail"
+                onRetry={() => loadManifestDetail()}
+                retryLabel={integration("retry")}
+              />
+            ) : null}
+            {manifestDetail ? (
+              <div className="manifest-reference-picker">
+                <dl className="compact-definitions">
+                  <div><dt>{integration("manifestType")}</dt><dd><code>{manifestDetail.manifest_type}</code></dd></div>
+                  <div><dt>{integration("artifactKey")}</dt><dd><code>{manifestDetail.artifact_key}</code></dd></div>
+                  <div><dt>{integration("manifestId")}</dt><dd><code>{manifestDetail.manifest_id}</code></dd></div>
+                </dl>
+                {manifestReferenceGroups(manifestDetail).map(([groupName, references]) => (
+                  <fieldset key={groupName}>
+                    <legend><code>{groupName}</code></legend>
+                    {references.map((reference, index) => {
+                      const key = `${groupName}\u0000${index}`;
+                      const supported = portfolioReviewEvidenceReferenceTypes.includes(
+                        reference.reference_type as PortfolioReviewEvidenceReferenceType,
+                      );
+                      return (
+                        <label className="portfolio-confirmation" key={key}>
+                          <input
+                            type="checkbox"
+                            disabled={!supported}
+                            checked={selectedManifestReferences.includes(key)}
+                            onChange={(event) => setSelectedManifestReferences(
+                              event.target.checked
+                                ? [...selectedManifestReferences, key]
+                                : selectedManifestReferences.filter((item) => item !== key),
+                            )}
+                          />
+                          <span>
+                            <code>{reference.reference_type}</code> / <code>{reference.reference_id}</code>
+                            <span>{reference.label ?? common("notAvailable")}</span>
+                            <span>{reference.description ?? common("notAvailable")}</span>
+                            <strong>{supported ? integration("supported") : integration("unsupported")}</strong>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </fieldset>
+                ))}
+                <button className="secondary-button" type="button" onClick={addSelectedManifestReferences}>
+                  {integration("addSelectedReferences")}
+                </button>
+              </div>
+            ) : null}
+          </section>
+        </fieldset>
 
         <fieldset className="form-section">
           <legend>{t("identityLegend")}</legend>

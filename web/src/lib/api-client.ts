@@ -317,6 +317,119 @@ function isLifecycleReviewRequest(value: unknown): boolean {
   );
 }
 
+function hasOnlyKeys(
+  value: Record<string, unknown>,
+  keys: readonly string[],
+): boolean {
+  return Object.keys(value).length === keys.length &&
+    keys.every((key) => Object.prototype.hasOwnProperty.call(value, key));
+}
+
+function isPortfolioReviewEvidenceRequest(value: unknown): boolean {
+  return isObject(value) &&
+    hasOnlyKeys(value, ["reference_type", "reference_id", "label", "description"]) &&
+    isString(value.reference_type) &&
+    isString(value.reference_id) &&
+    isNullableString(value.label) &&
+    isNullableString(value.description);
+}
+
+function isPortfolioReviewComponentRequest(value: unknown): boolean {
+  return isObject(value) &&
+    hasOnlyKeys(value, [
+      "component_id",
+      "strategy_id",
+      "evidence_references",
+      "symbols",
+      "label",
+      "description",
+    ]) &&
+    isString(value.component_id) &&
+    isString(value.strategy_id) &&
+    Array.isArray(value.evidence_references) &&
+    value.evidence_references.every(isPortfolioReviewEvidenceRequest) &&
+    (value.symbols === null || isStringArray(value.symbols)) &&
+    isNullableString(value.label) &&
+    isNullableString(value.description);
+}
+
+function isPortfolioReviewScenarioRequest(
+  value: unknown,
+  proposed: boolean,
+): boolean {
+  const keys = ["scenario_id", "weights", "rationale", "assumptions", "warnings"];
+  if (proposed) keys.push("proposed_component_id");
+  return isObject(value) &&
+    hasOnlyKeys(value, keys) &&
+    isString(value.scenario_id) &&
+    isNumericRecord(value.weights) &&
+    isString(value.rationale) &&
+    isStringArray(value.assumptions) &&
+    isStringArray(value.warnings) &&
+    (!proposed || isString(value.proposed_component_id));
+}
+
+export function isPortfolioReviewCreateRequest(
+  value: unknown,
+): value is PortfolioReviewCreateRequest {
+  if (!isObject(value) || !hasOnlyKeys(value, [
+    "review_id",
+    "source",
+    "baseline_scenario",
+    "proposed_scenario",
+    "analysis",
+  ])) return false;
+  const source = value.source;
+  const analysis = value.analysis;
+  return isString(value.review_id) &&
+    isObject(source) &&
+    hasOnlyKeys(source, [
+      "source_id",
+      "components",
+      "return_observations",
+      "evaluation_frequency",
+      "periods_per_year",
+      "created_by",
+      "created_timestamp",
+      "assumptions",
+      "warnings",
+      "missing_evidence",
+    ]) &&
+    isString(source.source_id) &&
+    Array.isArray(source.components) &&
+    source.components.every(isPortfolioReviewComponentRequest) &&
+    Array.isArray(source.return_observations) &&
+    source.return_observations.every((observation) =>
+      isObject(observation) &&
+      hasOnlyKeys(observation, ["timestamp", "component_returns"]) &&
+      isString(observation.timestamp) &&
+      Array.isArray(observation.component_returns) &&
+      observation.component_returns.every(isNumber)
+    ) &&
+    isString(source.evaluation_frequency) &&
+    isNullableNumber(source.periods_per_year) &&
+    isString(source.created_by) &&
+    isString(source.created_timestamp) &&
+    isStringArray(source.assumptions) &&
+    isStringArray(source.warnings) &&
+    isStringArray(source.missing_evidence) &&
+    isPortfolioReviewScenarioRequest(value.baseline_scenario, false) &&
+    isPortfolioReviewScenarioRequest(value.proposed_scenario, true) &&
+    isObject(analysis) &&
+    hasOnlyKeys(analysis, [
+      "created_by",
+      "created_timestamp",
+      "assumptions",
+      "warnings",
+      "missing_evidence",
+    ]) &&
+    isString(analysis.created_by) &&
+    isString(analysis.created_timestamp) &&
+    isStringArray(analysis.assumptions) &&
+    isStringArray(analysis.warnings) &&
+    isStringArray(analysis.missing_evidence);
+}
+
 function isDemoWorkspaceDescriptor(
   value: unknown,
 ): value is DemoWorkspaceDescriptorResponse {
@@ -330,9 +443,9 @@ function isDemoWorkspaceDescriptor(
         .filter(isString)
     : [];
   return (
-    value.schema_version === 1 &&
+    value.schema_version === 2 &&
     isString(value.dataset_id) &&
-    Number.isInteger(value.dataset_version) &&
+    value.dataset_version === 2 &&
     isString(value.display_name) &&
     isString(value.warning) &&
     isString(value.canonical_strategy_name) &&
@@ -362,7 +475,10 @@ function isDemoWorkspaceDescriptor(
     isLifecycleReviewRequest(value.lifecycle_review_example) &&
     isObject(value.paper_job_submission_example) &&
     isString(value.paper_job_submission_example.idempotency_key) &&
-    isPaperCommandRequest(value.paper_job_submission_example.request)
+    isPaperCommandRequest(value.paper_job_submission_example.request) &&
+    isObject(value.portfolio_review_example) &&
+    isString(value.portfolio_review_example.create_idempotency_key) &&
+    isPortfolioReviewCreateRequest(value.portfolio_review_example.request)
   );
 }
 

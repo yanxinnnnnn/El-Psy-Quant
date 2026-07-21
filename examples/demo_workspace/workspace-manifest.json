@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "dataset_id": "founder-demo-workspace",
-  "dataset_version": 1,
+  "dataset_version": 2,
   "display_name": "Founder Demo Workspace",
   "warning": "DEMO ONLY — disposable example evidence, not real user data or trading advice.",
   "canonical_strategy_name": "moving_average_crossover",
@@ -52,5 +52,9 @@
   "paper_submission_example": {
     "idempotency_key": "demo-founder-submission-v1",
     "request_relative_path": "paper_artifacts/submission-example.json"
+  },
+  "portfolio_review_example": {
+    "create_idempotency_key": "demo-portfolio-review-create-v1",
+    "request_relative_path": "portfolio_reviews/create-request.json"
   }
 }
