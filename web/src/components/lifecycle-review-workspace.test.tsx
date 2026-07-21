@@ -22,8 +22,11 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
   const manifest = demoSourceJson("workspace-manifest.json");
   const jobs = manifest.paper_jobs as Array<{ job_id: string; run_id: string }>;
   const submission = manifest.paper_submission_example as { idempotency_key: string };
+  const portfolioReview = manifest.portfolio_review_example as {
+    create_idempotency_key: string;
+  };
   return {
-    schema_version: manifest.schema_version as 1,
+    schema_version: manifest.schema_version as 2,
     dataset_id: manifest.dataset_id as string,
     dataset_version: manifest.dataset_version as number,
     display_name: manifest.display_name as string,
@@ -38,6 +41,10 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
     paper_job_submission_example: {
       idempotency_key: submission.idempotency_key,
       request: demoSourceJson("paper_artifacts/submission-example.json") as DemoWorkspaceDescriptorResponse["paper_job_submission_example"]["request"],
+    },
+    portfolio_review_example: {
+      create_idempotency_key: portfolioReview.create_idempotency_key,
+      request: demoSourceJson("portfolio_reviews/create-request.json") as DemoWorkspaceDescriptorResponse["portfolio_review_example"]["request"],
     },
   };
 }

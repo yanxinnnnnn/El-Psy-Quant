@@ -145,7 +145,8 @@
         "identity": "工作区身份",
         "research": "研究存储",
         "evidence": "证据存储",
-        "jobs": "产品数据库"
+        "jobs": "模拟任务记录",
+        "portfolioReviews": "投资组合评审记录"
       }
     },
     "attention": {
@@ -266,6 +267,7 @@
         "jobs": "{step}. 浏览模拟任务或打开提交页",
         "results": "{step}. 浏览权威组合记录",
         "comparison": "{step}. 开始显式对比",
+        "portfolioReviews": "{step}. 浏览投资组合评审",
         "lifecycle": "{step}. 打开非执行性的生命周期审查工作台"
       },
       "demo": {
@@ -275,6 +277,7 @@
         "job": "{step}. 检查精确模拟任务",
         "result": "{step}. 检查其精确组合记录",
         "comparison": "{step}. 打开描述符有序对比",
+        "portfolioReview": "{step}. 检查确定性的演示投资组合评审",
         "lifecycle": "{step}. 使用描述符示例打开生命周期审查",
         "audit": "描述符提供的工作流身份",
         "proposal": "提案示例",
@@ -294,7 +297,8 @@
         "process": "API 进程",
         "research": "研究",
         "evidence": "证据",
-        "jobs": "模拟任务"
+        "jobs": "模拟任务",
+        "portfolioReviews": "投资组合评审"
       }
     }
   }

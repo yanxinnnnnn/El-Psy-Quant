@@ -455,6 +455,12 @@ export interface components {
             idempotency_key: string;
             request: components["schemas"]["PaperRunCommandRequest"];
         };
+        /** DemoPortfolioReviewExampleResponse */
+        DemoPortfolioReviewExampleResponse: {
+            /** Create Idempotency Key */
+            create_idempotency_key: string;
+            request: components["schemas"]["PortfolioReviewCreateRequest"];
+        };
         /** DemoResearchRunReferenceResponse */
         DemoResearchRunReferenceResponse: {
             /** Experiment Slug */
@@ -481,12 +487,13 @@ export interface components {
             paper_job_submission_example: components["schemas"]["DemoPaperJobSubmissionExampleResponse"];
             /** Paper Jobs */
             paper_jobs: components["schemas"]["DemoPaperJobReferenceResponse"][];
+            portfolio_review_example: components["schemas"]["DemoPortfolioReviewExampleResponse"];
             research_run: components["schemas"]["DemoResearchRunReferenceResponse"];
             /**
              * Schema Version
              * @constant
              */
-            schema_version: 1;
+            schema_version: 2;
             /** Warning */
             warning: string;
         };

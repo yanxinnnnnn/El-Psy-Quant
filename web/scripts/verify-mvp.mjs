@@ -21,6 +21,8 @@ export const TOP_LEVEL_ROUTES = Object.freeze([
   "/paper-jobs/new",
   "/portfolio-records",
   "/comparisons",
+  "/portfolio-reviews",
+  "/portfolio-reviews/new",
   "/lifecycle-review",
 ]);
 
@@ -28,6 +30,8 @@ export const FORBIDDEN_MUTATION_FRAGMENTS = Object.freeze([
   "/api/backend/api/v1/paper-jobs/",
   "/api/backend/api/v1/lifecycle-transition-proposals",
   "/api/backend/api/v1/lifecycle-transition-records",
+  "/api/backend/api/v1/portfolio-reviews",
+  "/decision",
 ]);
 
 function loadRootEnvironment(environment = process.env) {
@@ -274,6 +278,7 @@ async function verifyReadWorkflows(fetchImpl, origin, authorization) {
     ["/api/backend/api/v1/research-runs", "runs"],
     ["/api/backend/api/v1/evidence-manifests", "manifests"],
     ["/api/backend/api/v1/paper-jobs?limit=20", null],
+    ["/api/backend/api/v1/portfolio-reviews?limit=50", null],
   ];
   for (const [path, collectionKey] of reads) {
     const response = await request(fetchImpl, origin, path, { authorization });
@@ -298,6 +303,15 @@ function stableDescriptorIdentity(descriptor) {
       run_id,
     })),
     comparison_candidate_job_ids: descriptor.comparison_candidate_job_ids,
+    portfolio_review_example: {
+      create_idempotency_key:
+        descriptor.portfolio_review_example?.create_idempotency_key,
+      review_id: descriptor.portfolio_review_example?.request?.review_id,
+      source_id: descriptor.portfolio_review_example?.request?.source?.source_id,
+      proposed_component_id:
+        descriptor.portfolio_review_example?.request?.proposed_scenario
+          ?.proposed_component_id,
+    },
   };
 }
 
@@ -336,7 +350,8 @@ async function verifyDemoJourney(
     cookies.chineseCookie,
   );
   if (
-    descriptor.schema_version !== 1 ||
+    descriptor.schema_version !== 2 ||
+    descriptor.dataset_version !== 2 ||
     typeof descriptor.canonical_strategy_name !== "string" ||
     !Array.isArray(descriptor.evidence_manifests) ||
     !Array.isArray(descriptor.paper_jobs) ||
@@ -344,7 +359,12 @@ async function verifyDemoJourney(
     !Array.isArray(descriptor.comparison_candidate_job_ids) ||
     descriptor.comparison_candidate_job_ids.length < 2 ||
     new Set(descriptor.comparison_candidate_job_ids).size !==
-      descriptor.comparison_candidate_job_ids.length
+      descriptor.comparison_candidate_job_ids.length ||
+    typeof descriptor.portfolio_review_example?.create_idempotency_key !== "string" ||
+    typeof descriptor.portfolio_review_example?.request?.review_id !== "string" ||
+    typeof descriptor.portfolio_review_example?.request?.source?.source_id !== "string" ||
+    typeof descriptor.portfolio_review_example?.request?.proposed_scenario
+      ?.proposed_component_id !== "string"
   ) {
     throw new Error("Demo workspace descriptor returned an unexpected contract");
   }
@@ -395,6 +415,26 @@ async function verifyDemoJourney(
     );
     await expectStatus(resultResponse, 200, `Demo paper result ${job.job_id}`);
     await expectJson(resultResponse, `Demo paper result ${job.job_id}`);
+  }
+  const reviewExample = descriptor.portfolio_review_example;
+  const reviewResponse = await request(
+    fetchImpl,
+    origin,
+    `/api/backend/api/v1/portfolio-reviews/${encoded(reviewExample.request.review_id)}`,
+    { authorization },
+  );
+  await expectStatus(reviewResponse, 200, "Demo portfolio review");
+  const review = await expectJson(reviewResponse, "Demo portfolio review");
+  if (
+    review.record?.review_id !== reviewExample.request.review_id ||
+    review.source?.source_id !== reviewExample.request.source.source_id ||
+    review.analysis?.proposed_component_id !==
+      reviewExample.request.proposed_scenario.proposed_component_id ||
+    !["awaiting_decision", "approved", "rejected", "deferred"].includes(
+      review.record?.status,
+    )
+  ) {
+    throw new Error("Demo portfolio review returned an unexpected contract");
   }
   const comparisonQuery = new URLSearchParams();
   for (const jobId of descriptor.comparison_candidate_job_ids) {

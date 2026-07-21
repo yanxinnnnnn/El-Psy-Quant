@@ -52,6 +52,8 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
 
     assert response.status_code == 200
     descriptor = DemoWorkspaceDescriptorResponse.model_validate(response.json())
+    assert descriptor.schema_version == 2
+    assert descriptor.dataset_version == 2
     assert descriptor.dataset_id == "founder-demo-workspace"
     assert descriptor.comparison_candidate_job_ids == [
         "16000000-0000-4000-8000-000000000001",
@@ -63,6 +65,15 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
     )
     assert descriptor.paper_job_submission_example.request.run_id == (
         "demo-founder-submission-example"
+    )
+    assert descriptor.portfolio_review_example.create_idempotency_key == (
+        "demo-portfolio-review-create-v1"
+    )
+    assert descriptor.portfolio_review_example.request.review_id == (
+        "demo-portfolio-review-001"
+    )
+    assert descriptor.portfolio_review_example.request.source.source_id == (
+        "demo-portfolio-review-source-001"
     )
     assert str(installed_demo) not in response.text
     assert "paper_run_artifact.json" not in response.text

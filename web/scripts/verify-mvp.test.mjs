@@ -32,7 +32,7 @@ function response(body, status = 200, headers = {}) {
   );
 }
 
-function standardFetchRecorder() {
+function standardFetchRecorder(demoDescriptor = null) {
   const calls = [];
   const proxyChallenge = new Response("Founder authentication required", {
     status: 401,
@@ -88,11 +88,44 @@ function standardFetchRecorder() {
     ) {
       return response([]);
     }
+    if (
+      url.pathname === "/api/backend/api/v1/portfolio-reviews" &&
+      url.search === "?limit=50"
+    ) {
+      return response([]);
+    }
     if (url.pathname === "/api/backend/api/v1/demo-workspace") {
+      if (demoDescriptor !== null) {
+        return response(demoDescriptor);
+      }
       return response(
         { error: { code: "demo_workspace_not_configured" } },
         404,
       );
+    }
+    if (demoDescriptor !== null) {
+      if (
+        url.pathname.startsWith("/api/backend/api/v1/strategies/") ||
+        url.pathname.startsWith("/api/backend/api/v1/research-runs/") ||
+        url.pathname.startsWith("/api/backend/api/v1/evidence-manifests/")
+      ) {
+        return response({ exact: true });
+      }
+      if (url.pathname.startsWith("/api/backend/api/v1/paper-jobs/") &&
+        url.pathname.endsWith("/result")) {
+        return response({ exact: true });
+      }
+      if (url.pathname.startsWith("/api/backend/api/v1/paper-jobs/")) {
+        return response({ status: "succeeded", result_available: true });
+      }
+      if (url.pathname === "/api/backend/api/v1/portfolio-reviews/demo-review") {
+        return response({
+          record: { review_id: "demo-review", status: "awaiting_decision" },
+          source: { source_id: "demo-source" },
+          analysis: { proposed_component_id: "demo-component-b" },
+          decision: null,
+        });
+      }
     }
     if (
       url.pathname === "/api/backend/api/v1/paper-jobs" &&
@@ -141,16 +174,11 @@ describe("non-mutating bilingual MVP verifier", () => {
     expect(calls.some(({ options }) =>
       options.headers.Cookie === "el_psy_quant_locale=en"
     )).toBe(true);
-    for (const { path, options } of calls) {
-      if (options.method !== "GET") {
-        continue;
-      }
-      expect(
-        FORBIDDEN_MUTATION_FRAGMENTS.some((fragment) =>
-          path.includes(fragment) && !path.includes("?limit=")
-        ),
-      ).toBe(false);
-    }
+    expect(
+      posts.some(({ path }) =>
+        FORBIDDEN_MUTATION_FRAGMENTS.some((fragment) => path.includes(fragment))
+      ),
+    ).toBe(false);
   });
 
   it("keeps credentials and response bodies out of failure output", async () => {
@@ -163,6 +191,46 @@ describe("non-mutating bilingual MVP verifier", () => {
     await expect(
       expectStatus(failure, 200, "Bounded route check"),
     ).rejects.not.toThrow(secretBody);
+  });
+
+  it("verifies Demo descriptor v2 and exact seeded review without product mutation", async () => {
+    const descriptor = {
+      schema_version: 2,
+      dataset_id: "demo-dataset",
+      dataset_version: 2,
+      canonical_strategy_name: "moving_average_crossover",
+      research_run: { experiment_slug: "demo-experiment", run_id: "demo-run" },
+      evidence_manifests: [{
+        manifest_type: "report_artifact_manifest",
+        artifact_key: "demo-report",
+      }],
+      paper_jobs: [
+        { job_id: "demo-job-a", run_id: "demo-paper-a" },
+        { job_id: "demo-job-b", run_id: "demo-paper-b" },
+      ],
+      comparison_candidate_job_ids: ["demo-job-a", "demo-job-b"],
+      portfolio_review_example: {
+        create_idempotency_key: "demo-create-key",
+        request: {
+          review_id: "demo-review",
+          source: { source_id: "demo-source" },
+          proposed_scenario: { proposed_component_id: "demo-component-b" },
+        },
+      },
+    };
+    const { calls, fetcher } = standardFetchRecorder(descriptor);
+
+    await expect(runVerification({
+      environment: { ...environment, EL_PSY_QUANT_WORKSPACE_MODE: "demo" },
+      fetchImpl: fetcher,
+    })).resolves.toBe("demo");
+
+    expect(calls.some(({ path }) =>
+      path === "/api/backend/api/v1/portfolio-reviews/demo-review"
+    )).toBe(true);
+    expect(calls.filter(({ options }) => options.method === "POST").map(({ path }) =>
+      path
+    )).toEqual(["/api/locale", "/api/locale"]);
   });
 
   it("rejects non-loopback origins and unknown modes before product reads", async () => {

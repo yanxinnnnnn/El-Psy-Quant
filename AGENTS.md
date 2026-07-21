@@ -134,12 +134,12 @@ Milestone 30 is In Progress:
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Sprints 169–174 are Complete. Sprint 175 bilingual Founder Web implementation
-is complete pending Founder review. After merge, the next implementation
-sprint is:
+Sprints 169–175 are Complete. Sprint 176 implementation is complete; Founder
+Standard/Demo runtime acceptance remains. After Sprint 176 is merged and
+Founder acceptance is complete, the next sprint is:
 
 ```text
-Sprint 176 — Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
+Sprint 177 — Milestone 30 Closeout and M31 Handoff
 ```
 
 Authoritative M30 planning:
@@ -247,6 +247,18 @@ Implemented Sprint 175 Founder Web workspace:
   and
 - no backend, generated contract, Demo, lifecycle, Paper Job, Paper Account,
   M31, private-edge, broker, execution, or live capability was added.
+
+Implemented Sprint 176 integration and acceptance hardening:
+
+- existing public research and evidence reads support only explicit metadata and
+  compatible-reference composition; aligned returns and scenarios remain manual;
+- Demo dataset/descriptor v2 seeds one exact isolated `awaiting_decision` review
+  through existing domain/application authority and preserves valid decisions on replay;
+- the Demo create example is an explicit replace-confirmed prefill, never an
+  automatic submit or decision;
+- Dashboard and read-only verification cover portfolio reviews without mutation;
+- Standard remains unseeded and isolated from disposable Demo storage; and
+- Founder Docker, persistence, reset, and browser runtime acceptance remain pending.
 
 Migration head is `0006_portfolio_reviews`.
 

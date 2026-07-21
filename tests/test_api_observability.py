@@ -23,6 +23,7 @@ from el_psy_quant.api.observability import (
     ApiOperation,
     bounded_duration_ms,
     build_operation_indexes,
+    log_portfolio_review_command_completed,
 )
 
 EXPECTED_STABLE_CODES = {
@@ -317,6 +318,46 @@ def test_timing_normalization_is_deterministic_and_bounded() -> None:
     assert bounded_duration_ms(10.0, 9.0) == 0
     assert bounded_duration_ms(10.0, 10.0129) == 12
     assert bounded_duration_ms(0.0, float(MAX_DURATION_MS + 10)) == MAX_DURATION_MS
+
+
+def test_portfolio_review_command_event_is_bounded_to_approved_identity(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level("INFO", logger=PRODUCT_LOGGER_NAME)
+
+    log_portfolio_review_command_completed(
+        event="portfolio_review_decision_completed",
+        request_id="request-176",
+        command="decision",
+        review_id="review-176",
+        decision_id="decision-176",
+        durable_status="deferred",
+        command_outcome="created",
+        human_decision_outcome="deferred",
+    )
+
+    record = _product_records(caplog)[0]
+    assert record.event == "portfolio_review_decision_completed"
+    assert record.review_id == "review-176"
+    assert record.decision_id == "decision-176"
+    assert record.command_outcome == "created"
+    assert record.human_decision_outcome == "deferred"
+    for forbidden_field in (
+        "authorization",
+        "cookie",
+        "idempotency_key",
+        "request_body",
+        "response_body",
+        "return_observations",
+        "weights",
+        "financial_values",
+        "artifact_payload",
+        "filesystem_path",
+        "sql",
+        "exception_text",
+        "traceback",
+    ):
+        assert forbidden_field not in record.__dict__
 
 
 def test_app_construction_emits_no_product_event_or_io(

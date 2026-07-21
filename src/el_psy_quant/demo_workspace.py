@@ -11,9 +11,10 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 from uuid import UUID
 
+import pandas as pd
 from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
@@ -39,6 +40,10 @@ from el_psy_quant.application.paper_runs import (
     PaperOrderCommandInput,
     PaperRunCommand,
     create_paper_run_request_from_command,
+)
+from el_psy_quant.application.portfolio_reviews import (
+    create_portfolio_review_with_outcome,
+    get_portfolio_review_detail,
 )
 from el_psy_quant.application.research_artifacts import (
     get_research_run_detail,
@@ -71,9 +76,23 @@ from el_psy_quant.persistence.schema import (
     verify_product_schema,
 )
 from el_psy_quant.strategies import resolve_strategy
+from el_psy_quant.portfolio_review import (
+    PortfolioReviewScenarioPair,
+    PortfolioReviewSource,
+    create_portfolio_review_analysis_artifact,
+    create_portfolio_review_baseline_scenario,
+    create_portfolio_review_component,
+    create_portfolio_review_evidence_reference,
+    create_portfolio_review_proposed_scenario,
+    create_portfolio_review_scenario_pair,
+    create_portfolio_review_source,
+)
 
-DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 1
-DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 1
+if TYPE_CHECKING:
+    from el_psy_quant.api.portfolio_review_schemas import PortfolioReviewCreateRequest
+
+DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 2
+DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 2
 DEMO_WORKSPACE_INSTALL_SCHEMA_VERSION = 1
 DEMO_WORKSPACE_MODE = "demo"
 STANDARD_WORKSPACE_MODE = "standard"
@@ -82,6 +101,9 @@ DEMO_WORKSPACE_ROOT_ENV = "EL_PSY_QUANT_DEMO_WORKSPACE_ROOT"
 WORKSPACE_MANIFEST_FILE_NAME = "workspace-manifest.json"
 WORKSPACE_DESCRIPTOR_FILE_NAME = "workspace-descriptor.json"
 INSTALL_MARKER_FILE_NAME = ".demo-workspace-install.json"
+DEMO_PORTFOLIO_REVIEW_REQUEST_DIGEST = (
+    "3984a311d9d623c91424b2dea428f2d1d227fe2c74b85bfb69aa9e048374c4c2"
+)
 
 _SOURCE_ROOT_DIRECTORIES = (
     "strategies",
@@ -89,7 +111,9 @@ _SOURCE_ROOT_DIRECTORIES = (
     "evidence_manifests",
     "paper_artifacts",
     "lifecycle_records",
+    "portfolio_reviews",
 )
+_SOURCE_ROOT_FILES = ("README.md", WORKSPACE_MANIFEST_FILE_NAME)
 _INSTALLED_CHILDREN = (
     "research",
     "evidence",
@@ -149,8 +173,13 @@ class _PaperSubmissionSource(_StrictSourceModel):
     request_relative_path: str
 
 
+class _PortfolioReviewExampleSource(_StrictSourceModel):
+    create_idempotency_key: str
+    request_relative_path: str
+
+
 class _DemoWorkspaceSourceManifest(_StrictSourceModel):
-    schema_version: Literal[1]
+    schema_version: Literal[2]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -163,6 +192,7 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     lifecycle_proposal_relative_path: str
     lifecycle_review_relative_path: str
     paper_submission_example: _PaperSubmissionSource
+    portfolio_review_example: _PortfolioReviewExampleSource
 
     @field_validator(
         "dataset_id",
@@ -189,6 +219,8 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     def require_coherent_journey(self) -> _DemoWorkspaceSourceManifest:
         if "DEMO" not in self.warning.upper():
             raise ValueError("demo warning must identify demo data")
+        if self.dataset_version != 2:
+            raise ValueError("demo dataset version must be 2")
         if len(self.paper_jobs) < 2:
             raise ValueError("at least two paper jobs are required")
         job_ids = tuple(job.job_id for job in self.paper_jobs)
@@ -254,6 +286,9 @@ class _ValidatedDemoSource:
     lifecycle_proposal_payload: dict[str, Any]
     lifecycle_review_payload: dict[str, Any]
     paper_submission_payload: dict[str, Any]
+    portfolio_review_request: PortfolioReviewCreateRequest
+    portfolio_review_source: PortfolioReviewSource
+    portfolio_review_scenario_pair: PortfolioReviewScenarioPair
     descriptor: DemoWorkspaceDescriptor
 
 
@@ -554,12 +589,164 @@ def _review_command(value: object) -> LifecycleTransitionReviewCommand:
     )
 
 
+def _portfolio_review_domain_inputs(
+    command: PortfolioReviewCreateRequest,
+) -> tuple[PortfolioReviewSource, PortfolioReviewScenarioPair]:
+    components = tuple(
+        create_portfolio_review_component(
+            component_id=component.component_id,
+            strategy_id=component.strategy_id,
+            evidence_references=tuple(
+                create_portfolio_review_evidence_reference(
+                    reference_type=reference.reference_type,
+                    reference_id=reference.reference_id,
+                    label=reference.label,
+                    description=reference.description,
+                )
+                for reference in component.evidence_references
+            ),
+            symbols=component.symbols,
+            label=component.label,
+            description=component.description,
+        )
+        for component in command.source.components
+    )
+    component_ids = tuple(component.component_id for component in components)
+    source = create_portfolio_review_source(
+        source_id=command.source.source_id,
+        components=components,
+        aligned_returns=pd.DataFrame(
+            [
+                observation.component_returns
+                for observation in command.source.return_observations
+            ],
+            index=pd.DatetimeIndex(
+                [
+                    observation.timestamp
+                    for observation in command.source.return_observations
+                ]
+            ),
+            columns=component_ids,
+        ),
+        evaluation_frequency=command.source.evaluation_frequency,
+        periods_per_year=command.source.periods_per_year,
+        created_by=command.source.created_by,
+        created_timestamp=command.source.created_timestamp,
+        assumptions=command.source.assumptions,
+        warnings=command.source.warnings,
+        missing_evidence=command.source.missing_evidence,
+    )
+    baseline = create_portfolio_review_baseline_scenario(
+        scenario_id=command.baseline_scenario.scenario_id,
+        source=source,
+        weights=command.baseline_scenario.weights,
+        rationale=command.baseline_scenario.rationale,
+        assumptions=command.baseline_scenario.assumptions,
+        warnings=command.baseline_scenario.warnings,
+    )
+    proposed = create_portfolio_review_proposed_scenario(
+        scenario_id=command.proposed_scenario.scenario_id,
+        source=source,
+        weights=command.proposed_scenario.weights,
+        proposed_component_id=command.proposed_scenario.proposed_component_id,
+        rationale=command.proposed_scenario.rationale,
+        assumptions=command.proposed_scenario.assumptions,
+        warnings=command.proposed_scenario.warnings,
+    )
+    return source, create_portfolio_review_scenario_pair(
+        source=source,
+        baseline=baseline,
+        proposed=proposed,
+    )
+
+
+def _portfolio_review_reference_identities(detail: object) -> set[tuple[str, str]]:
+    identities: set[tuple[str, str]] = set()
+    for field_name in (
+        "summary_references",
+        "record_references",
+        "references",
+        "state_snapshot_references",
+        "transition_proposal_references",
+        "transition_record_references",
+    ):
+        for reference in getattr(detail, field_name, ()):
+            identities.add((reference.reference_type, reference.reference_id))
+    return identities
+
+
+def _validate_portfolio_review_example(
+    *,
+    payload: dict[str, Any],
+    manifest: _DemoWorkspaceSourceManifest,
+    evidence_reference_identities: set[tuple[str, str]],
+) -> tuple[PortfolioReviewCreateRequest, PortfolioReviewSource, PortfolioReviewScenarioPair]:
+    from el_psy_quant.api.portfolio_review_schemas import PortfolioReviewCreateRequest
+
+    if hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest() != (
+        DEMO_PORTFOLIO_REVIEW_REQUEST_DIGEST
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo portfolio review example is invalid"
+        )
+    try:
+        command = PortfolioReviewCreateRequest.model_validate(payload)
+        source, pair = _portfolio_review_domain_inputs(command)
+        analysis = create_portfolio_review_analysis_artifact(
+            review_id=command.review_id,
+            source=source,
+            scenario_pair=pair,
+            created_by=command.analysis.created_by,
+            created_timestamp=command.analysis.created_timestamp,
+            assumptions=command.analysis.assumptions,
+            warnings=command.analysis.warnings,
+            missing_evidence=command.analysis.missing_evidence,
+        )
+    except (TypeError, ValueError) as exc:
+        raise DemoWorkspaceSourceInvalidError(
+            "demo portfolio review example is invalid"
+        ) from exc
+    research_identity = (
+        f"{manifest.research_run.experiment_slug}/{manifest.research_run.run_id}"
+    )
+    for component in command.source.components:
+        if component.strategy_id != manifest.canonical_strategy_name:
+            raise DemoWorkspaceSourceInvalidError(
+                "demo portfolio review strategy is invalid"
+            )
+        for reference in component.evidence_references:
+            identity = (reference.reference_type, reference.reference_id)
+            if reference.reference_type == "research_run":
+                if reference.reference_id != research_identity:
+                    raise DemoWorkspaceSourceInvalidError(
+                        "demo portfolio review research reference is invalid"
+                    )
+            elif identity not in evidence_reference_identities:
+                raise DemoWorkspaceSourceInvalidError(
+                    "demo portfolio review evidence reference is invalid"
+                )
+    if (
+        command.review_id != "demo-portfolio-review-001"
+        or command.source.source_id != "demo-portfolio-review-source-001"
+        or command.proposed_scenario.proposed_component_id
+        != "demo-msft-sleeve"
+        or analysis.review_id != command.review_id
+        or not any("DEMO" in warning.upper() for warning in command.source.warnings)
+        or not any("DEMO" in warning.upper() for warning in command.analysis.warnings)
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo portfolio review identity is invalid"
+        )
+    return command, source, pair
+
+
 def _descriptor_payload(
     *,
     manifest: _DemoWorkspaceSourceManifest,
     proposal_payload: dict[str, Any],
     review_payload: dict[str, Any],
     submission_payload: dict[str, Any],
+    portfolio_review_payload: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "schema_version": DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION,
@@ -583,6 +770,12 @@ def _descriptor_payload(
             "idempotency_key": manifest.paper_submission_example.idempotency_key,
             "request": submission_payload,
         },
+        "portfolio_review_example": {
+            "create_idempotency_key": (
+                manifest.portfolio_review_example.create_idempotency_key
+            ),
+            "request": portfolio_review_payload,
+        },
     }
 
 
@@ -595,6 +788,12 @@ def validate_demo_workspace_source(
         if root.is_symlink() or not root.resolve(strict=True).is_dir():
             raise DemoWorkspaceSourceInvalidError("demo source root is invalid")
         root = root.resolve(strict=True)
+        if tuple(sorted(item.name for item in root.iterdir())) != tuple(
+            sorted((*_SOURCE_ROOT_DIRECTORIES, *_SOURCE_ROOT_FILES))
+        ):
+            raise DemoWorkspaceSourceInvalidError(
+                "demo source root children are invalid"
+            )
         for directory in _SOURCE_ROOT_DIRECTORIES:
             candidate = root / directory
             if candidate.is_symlink() or not candidate.is_dir():
@@ -627,15 +826,19 @@ def validate_demo_workspace_source(
         evidence_identities = {
             (item.manifest_type, item.artifact_key) for item in evidence_summaries
         }
+        evidence_reference_identities: set[tuple[str, str]] = set()
         for reference in manifest.evidence_manifests:
             if reference.manifest_type not in SUPPORTED_EVIDENCE_MANIFEST_TYPES:
                 raise DemoWorkspaceSourceInvalidError("demo evidence type is invalid")
             if (reference.manifest_type, reference.artifact_key) not in evidence_identities:
                 raise DemoWorkspaceSourceInvalidError("demo evidence reference is invalid")
-            get_evidence_manifest_detail(
+            evidence_detail = get_evidence_manifest_detail(
                 artifact_root=root / "evidence_manifests",
                 manifest_type=reference.manifest_type,
                 artifact_key=reference.artifact_key,
+            )
+            evidence_reference_identities.update(
+                _portfolio_review_reference_identities(evidence_detail)
             )
 
         paper_requests: list[object] = []
@@ -704,12 +907,35 @@ def validate_demo_workspace_source(
         create_paper_run_request_from_command(command=_paper_command(submission_payload))
         if not manifest.paper_submission_example.idempotency_key.strip():
             raise DemoWorkspaceSourceInvalidError("demo idempotency example is invalid")
+        portfolio_review_payload = _read_json_object(
+            _relative_source_path(
+                root,
+                manifest.portfolio_review_example.request_relative_path,
+            )
+        )
+        if (
+            manifest.portfolio_review_example.create_idempotency_key
+            != "demo-portfolio-review-create-v1"
+        ):
+            raise DemoWorkspaceSourceInvalidError(
+                "demo portfolio review idempotency example is invalid"
+            )
+        (
+            portfolio_review_request,
+            portfolio_review_source,
+            portfolio_review_scenario_pair,
+        ) = _validate_portfolio_review_example(
+            payload=portfolio_review_payload,
+            manifest=manifest,
+            evidence_reference_identities=evidence_reference_identities,
+        )
         descriptor = DemoWorkspaceDescriptor(
             payload=_descriptor_payload(
                 manifest=manifest,
                 proposal_payload=proposal_payload,
                 review_payload=review_payload,
                 submission_payload=submission_payload,
+                portfolio_review_payload=portfolio_review_payload,
             )
         )
         _validate_descriptor_payload(descriptor.to_dict())
@@ -722,6 +948,9 @@ def validate_demo_workspace_source(
             lifecycle_proposal_payload=proposal_payload,
             lifecycle_review_payload=review_payload,
             paper_submission_payload=submission_payload,
+            portfolio_review_request=portfolio_review_request,
+            portfolio_review_source=portfolio_review_source,
+            portfolio_review_scenario_pair=portfolio_review_scenario_pair,
             descriptor=descriptor,
         )
     except DemoWorkspaceSourceInvalidError:
@@ -747,12 +976,13 @@ def _validate_descriptor_payload(payload: object) -> None:
             "lifecycle_proposal_example",
             "lifecycle_review_example",
             "paper_job_submission_example",
+            "portfolio_review_example",
         },
     )
     if root["schema_version"] != DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["dataset_id"])
-    if type(root["dataset_version"]) is not int or root["dataset_version"] < 1:
+    if type(root["dataset_version"]) is not int or root["dataset_version"] != 2:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["display_name"])
     if "DEMO" not in _normalized_text(root["warning"]).upper():
@@ -799,6 +1029,44 @@ def _validate_descriptor_payload(payload: object) -> None:
     )
     _normalized_text(submission["idempotency_key"])
     create_paper_run_request_from_command(command=_paper_command(submission["request"]))
+    portfolio_review = _exact_object(
+        root["portfolio_review_example"],
+        {"create_idempotency_key", "request"},
+    )
+    if (
+        _normalized_text(portfolio_review["create_idempotency_key"])
+        != "demo-portfolio-review-create-v1"
+        or type(portfolio_review["request"]) is not dict
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo descriptor portfolio review is invalid"
+        )
+    request_payload = cast(dict[str, Any], portfolio_review["request"])
+    if hashlib.sha256(_canonical_json(request_payload).encode("utf-8")).hexdigest() != (
+        DEMO_PORTFOLIO_REVIEW_REQUEST_DIGEST
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo descriptor portfolio review is invalid"
+        )
+    try:
+        from el_psy_quant.api.portfolio_review_schemas import PortfolioReviewCreateRequest
+
+        command = PortfolioReviewCreateRequest.model_validate(request_payload)
+        source, pair = _portfolio_review_domain_inputs(command)
+        create_portfolio_review_analysis_artifact(
+            review_id=command.review_id,
+            source=source,
+            scenario_pair=pair,
+            created_by=command.analysis.created_by,
+            created_timestamp=command.analysis.created_timestamp,
+            assumptions=command.analysis.assumptions,
+            warnings=command.analysis.warnings,
+            missing_evidence=command.analysis.missing_evidence,
+        )
+    except (TypeError, ValueError) as exc:
+        raise DemoWorkspaceSourceInvalidError(
+            "demo descriptor portfolio review is invalid"
+        ) from exc
 
 
 @contextmanager
@@ -887,6 +1155,89 @@ def _populate_database(
                         created_timestamp=completed,
                     )
                 )
+    finally:
+        engine.dispose()
+
+
+def _seed_portfolio_review(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    session_factory = create_product_session_factory(engine=engine)
+    command = source.portfolio_review_request
+    try:
+        result = create_portfolio_review_with_outcome(
+            session_factory=session_factory,
+            artifact_root=paths.evidence_root,
+            idempotency_key=(
+                source.manifest.portfolio_review_example.create_idempotency_key
+            ),
+            review_id=command.review_id,
+            source=source.portfolio_review_source,
+            scenario_pair=source.portfolio_review_scenario_pair,
+            created_by=command.analysis.created_by,
+            created_timestamp=command.analysis.created_timestamp,
+            assumptions=tuple(command.analysis.assumptions),
+            warnings=tuple(command.analysis.warnings),
+            missing_evidence=tuple(command.analysis.missing_evidence),
+        )
+        if (
+            result.outcome != "created"
+            or result.review.record.status != "awaiting_decision"
+            or result.review.decision is not None
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "demo portfolio review seed is inconsistent"
+            )
+    finally:
+        engine.dispose()
+
+
+def _validate_seeded_portfolio_review(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    session_factory = create_product_session_factory(engine=engine)
+    command = source.portfolio_review_request
+    try:
+        detail = get_portfolio_review_detail(
+            session_factory=session_factory,
+            artifact_root=paths.evidence_root,
+            review_id=command.review_id,
+        )
+        replay = create_portfolio_review_with_outcome(
+            session_factory=session_factory,
+            artifact_root=paths.evidence_root,
+            idempotency_key=(
+                source.manifest.portfolio_review_example.create_idempotency_key
+            ),
+            review_id=command.review_id,
+            source=source.portfolio_review_source,
+            scenario_pair=source.portfolio_review_scenario_pair,
+            created_by=command.analysis.created_by,
+            created_timestamp=command.analysis.created_timestamp,
+            assumptions=tuple(command.analysis.assumptions),
+            warnings=tuple(command.analysis.warnings),
+            missing_evidence=tuple(command.analysis.missing_evidence),
+        )
+        if (
+            replay.outcome != "replayed"
+            or detail.source.to_dict() != source.portfolio_review_source.to_dict()
+            or replay.review.analysis.to_dict() != detail.analysis.to_dict()
+            or replay.review.record.status != detail.record.status
+            or replay.review.decision != detail.decision
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "demo portfolio review is inconsistent"
+            )
     finally:
         engine.dispose()
 
@@ -1079,6 +1430,14 @@ def _validate_installed_workspace(
                 raise DemoWorkspaceUnavailableError("demo paper result is inconsistent")
     finally:
         engine.dispose()
+    try:
+        _validate_seeded_portfolio_review(paths=paths, source=source)
+    except DemoWorkspaceUnavailableError:
+        raise
+    except Exception as exc:
+        raise DemoWorkspaceUnavailableError(
+            "demo portfolio review is unavailable"
+        ) from exc
     installed_descriptor = _read_json_object(paths.descriptor_path)
     if _canonical_json(installed_descriptor) != _canonical_json(
         source.descriptor.to_dict()
@@ -1209,6 +1568,7 @@ def install_demo_workspace(
             )
         _upgrade_database(staging.database_path, config_path)
         _populate_database(paths=staging, source=source)
+        _seed_portfolio_review(paths=staging, source=source)
         _write_json(staging.descriptor_path, source.descriptor.to_dict())
         _write_json(staging.marker_path, _install_marker(source))
         _validate_installed_workspace(paths=staging, source=source)
@@ -1328,6 +1688,22 @@ def validate_installed_demo_workspace(
                     raise DemoWorkspaceUnavailableError(
                         "demo paper result is inconsistent"
                     )
+            portfolio_review = payload["portfolio_review_example"]["request"]
+            review = get_portfolio_review_detail(
+                session_factory=factory,
+                artifact_root=paths.evidence_root,
+                review_id=portfolio_review["review_id"],
+            )
+            if (
+                review.source.source_id != portfolio_review["source"]["source_id"]
+                or review.analysis.proposed_component_id
+                != portfolio_review["proposed_scenario"]["proposed_component_id"]
+                or review.record.status
+                not in ("awaiting_decision", "approved", "rejected", "deferred")
+            ):
+                raise DemoWorkspaceUnavailableError(
+                    "demo portfolio review is inconsistent"
+                )
         finally:
             engine.dispose()
         return descriptor

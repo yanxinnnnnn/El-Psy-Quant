@@ -1,14 +1,15 @@
-"""Deterministic source and isolated installer coverage for Sprint 160."""
+"""Deterministic source and isolated Demo installer coverage."""
 
 import json
 import shutil
 from pathlib import Path
 
 import pytest
-from alembic import command
-from alembic.config import Config
-
 from el_psy_quant.application.paper_jobs import read_paper_job_result
+from el_psy_quant.application.portfolio_reviews import (
+    get_portfolio_review_detail,
+    record_portfolio_review_decision_with_outcome,
+)
 from el_psy_quant.demo_workspace import (
     DemoWorkspaceConflictError,
     DemoWorkspacePaths,
@@ -53,6 +54,14 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
     )
     assert len(set(source.manifest.comparison_candidate_job_ids)) == 2
     descriptor = source.descriptor.to_dict()
+    assert descriptor["schema_version"] == 2
+    assert descriptor["dataset_version"] == 2
+    assert descriptor["portfolio_review_example"]["create_idempotency_key"] == (
+        "demo-portfolio-review-create-v1"
+    )
+    assert descriptor["portfolio_review_example"]["request"]["review_id"] == (
+        "demo-portfolio-review-001"
+    )
     assert descriptor["lifecycle_review_example"]["review_outcome"] == "deferred"
     assert descriptor["lifecycle_review_example"]["resulting_snapshot"] is None
     assert "DEMO" in descriptor["warning"]
@@ -103,52 +112,79 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
                 paper_artifact_root=paths.paper_root,
             )
             assert result.job_id == job_id
+        review = get_portfolio_review_detail(
+            session_factory=factory,
+            artifact_root=paths.evidence_root,
+            review_id="demo-portfolio-review-001",
+        )
+        assert review.record.status == "awaiting_decision"
+        assert review.source.source_id == "demo-portfolio-review-source-001"
+        assert review.analysis.proposed_component_id == "demo-msft-sleeve"
+        assert review.decision is None
     finally:
         engine.dispose()
 
 
-def test_exact_demo_at_prior_revision_forward_upgrades_without_reinstall(
+def test_prior_dataset_marker_is_refused_without_reinstall_or_mutation(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     target = tmp_path / "demo-workspace"
     _install(DEMO_SOURCE, target)
     paths = DemoWorkspacePaths.from_root(target)
+    marker_path = target / ".demo-workspace-install.json"
+    marker = json.loads(marker_path.read_text(encoding="utf-8"))
+    marker["dataset_version"] = 1
+    marker_path.write_text(json.dumps(marker), encoding="utf-8")
     artifacts_before = {
         path.relative_to(target).as_posix(): path.read_bytes()
         for path in target.rglob("*")
         if path.is_file() and path != paths.database_path
     }
-    monkeypatch.setenv(
-        "EL_PSY_QUANT_PRODUCT_DATABASE_PATH",
-        str(paths.database_path),
-    )
-    command.downgrade(Config(str(ALEMBIC_CONFIG)), "0004_paper_job_recovery_audit")
 
-    result = _install(DEMO_SOURCE, target)
+    with pytest.raises(DemoWorkspaceConflictError):
+        _install(DEMO_SOURCE, target)
 
-    assert result.already_installed is True
     assert {
         path.relative_to(target).as_posix(): path.read_bytes()
         for path in target.rglob("*")
         if path.is_file() and path != paths.database_path
     } == artifacts_before
+
+
+def test_exact_replay_preserves_an_existing_human_decision(tmp_path: Path) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    paths = DemoWorkspacePaths.from_root(target)
     engine = create_product_database_engine(
-        config=resolve_product_database_config(
-            database_path=paths.database_path
-        )
+        config=resolve_product_database_config(database_path=paths.database_path)
     )
     factory = create_product_session_factory(engine=engine)
     try:
-        for job_id in (
-            "16000000-0000-4000-8000-000000000001",
-            "16000000-0000-4000-8000-000000000002",
-        ):
-            assert read_paper_job_result(
-                session_factory=factory,
-                job_id=job_id,
-                paper_artifact_root=paths.paper_root,
-            ).job_id == job_id
+        decided = record_portfolio_review_decision_with_outcome(
+            session_factory=factory,
+            artifact_root=paths.evidence_root,
+            review_id="demo-portfolio-review-001",
+            idempotency_key="demo-founder-decision-v1",
+            decision_id="demo-portfolio-decision-001",
+            outcome="deferred",
+            rationale="Founder acceptance test decision; no execution authority.",
+            reviewed_by="demo-founder",
+            reviewed_timestamp="2026-01-18T12:10:00Z",
+            notes=("Preserved across exact Demo replay.",),
+        )
+        assert decided.review.record.status == "deferred"
+
+        replay = _install(DEMO_SOURCE, target)
+
+        assert replay.already_installed is True
+        reopened = get_portfolio_review_detail(
+            session_factory=factory,
+            artifact_root=paths.evidence_root,
+            review_id="demo-portfolio-review-001",
+        )
+        assert reopened.record.status == "deferred"
+        assert reopened.decision is not None
+        assert reopened.decision.decision_id == "demo-portfolio-decision-001"
     finally:
         engine.dispose()
 
@@ -173,6 +209,65 @@ def test_source_validation_failure_precedes_target_creation(tmp_path: Path) -> N
     assert not target.exists()
 
 
+@pytest.mark.parametrize(
+    "case",
+    (
+        "invalid_path",
+        "extra_root_child",
+        "extra_request_key",
+        "unsupported_reference_type",
+        "duplicate_evidence",
+        "invalid_return_matrix",
+        "invalid_weight",
+        "invalid_timestamp",
+        "non_demo_warning",
+    ),
+)
+def test_portfolio_review_source_mutations_fail_before_target_creation(
+    tmp_path: Path,
+    case: str,
+) -> None:
+    source = tmp_path / f"source-{case}"
+    shutil.copytree(DEMO_SOURCE, source)
+    manifest_path = source / "workspace-manifest.json"
+    request_path = source / "portfolio_reviews" / "create-request.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    request = json.loads(request_path.read_text(encoding="utf-8"))
+    if case == "invalid_path":
+        manifest["portfolio_review_example"]["request_relative_path"] = (
+            "../create-request.json"
+        )
+    elif case == "extra_root_child":
+        (source / "unexpected").mkdir()
+    elif case == "extra_request_key":
+        request["unexpected"] = True
+    elif case == "unsupported_reference_type":
+        request["source"]["components"][0]["evidence_references"][0][
+            "reference_type"
+        ] = "unsupported_reference_type"
+    elif case == "duplicate_evidence":
+        references = request["source"]["components"][0]["evidence_references"]
+        references.append(dict(references[0]))
+    elif case == "invalid_return_matrix":
+        request["source"]["return_observations"][0]["component_returns"] = [0.01]
+    elif case == "invalid_weight":
+        request["baseline_scenario"]["weights"]["demo-aapl-sleeve"] = -0.1
+    elif case == "invalid_timestamp":
+        request["analysis"]["created_timestamp"] = "not-a-timestamp"
+    elif case == "non_demo_warning":
+        request["source"]["warnings"] = ["Synthetic evidence only."]
+    else:  # pragma: no cover - the parameter list is exhaustive
+        raise AssertionError(case)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    request_path.write_text(json.dumps(request), encoding="utf-8")
+    target = tmp_path / f"target-{case}"
+
+    with pytest.raises(DemoWorkspaceSourceInvalidError):
+        _install(source, target)
+
+    assert not target.exists()
+
+
 def test_conflicting_dataset_replay_is_refused_without_changes(
     tmp_path: Path,
 ) -> None:
@@ -187,7 +282,36 @@ def test_conflicting_dataset_replay_is_refused_without_changes(
         _install(source, target)
 
     assert (target / ".demo-workspace-install.json").read_bytes() == marker_before
-    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 1
+    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 2
+
+
+def test_descriptor_requires_exact_dataset_version_two(tmp_path: Path) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    descriptor_path = target / "workspace-descriptor.json"
+    descriptor = json.loads(descriptor_path.read_text(encoding="utf-8"))
+    descriptor["dataset_version"] = 1
+    descriptor_path.write_text(json.dumps(descriptor), encoding="utf-8")
+
+    with pytest.raises(DemoWorkspaceUnavailableError):
+        load_demo_workspace_descriptor(target)
+
+
+def test_seeded_portfolio_review_corruption_fails_closed(tmp_path: Path) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    source_path = next(
+        path
+        for path in (target / "evidence").rglob("*.json")
+        if json.loads(path.read_text(encoding="utf-8")).get("source_id")
+        == "demo-portfolio-review-source-001"
+    )
+    source_payload = json.loads(source_path.read_text(encoding="utf-8"))
+    source_payload["evaluation_frequency"] = "tampered"
+    source_path.write_text(json.dumps(source_payload), encoding="utf-8")
+
+    with pytest.raises(DemoWorkspaceUnavailableError):
+        _install(DEMO_SOURCE, target)
 
 
 def test_non_demo_and_nonempty_targets_are_refused(tmp_path: Path) -> None:

@@ -35,9 +35,9 @@ S176 Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
 S177 Milestone 30 Closeout and M31 Handoff
 ```
 
-Sprints 169–174 are complete. Sprint 175 bilingual Founder portfolio-review Web
-implementation is complete pending Founder review. Sprint 176 becomes the next
-implementation sprint after merge.
+Sprints 169–175 are complete. Sprint 176 implementation is complete; Founder
+Standard/Demo runtime acceptance remains. Sprint 177 is next only after Sprint
+176 is merged and that acceptance is complete.
 
 ## Product Delivered Through M29
 
@@ -112,6 +112,14 @@ validation, preserves drafts and previously loaded evidence across failures,
 and never normalizes weights or recalculates financial evidence. S175 adds no
 backend, generated contract, Demo, lifecycle, Paper Job, account, order,
 execution, M31, private-edge, broker, or live capability.
+
+Sprint 176 integrates the unchanged builder with explicit public research and
+evidence selection. Imports are limited to exact metadata and compatible
+references; aligned component returns, weights, scenarios, audit input, and the
+proposed component remain Founder authority. Demo dataset/descriptor v2 adds one
+isolated deterministic awaiting review and an explicit replace-confirmed prefill.
+It never auto-submits or decides. Standard remains unseeded, all portfolio
+analysis stays server-owned, and Founder Docker/browser acceptance remains.
 
 ## What the Current Product Is Not Yet
 

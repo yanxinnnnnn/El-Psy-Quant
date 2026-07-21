@@ -53,9 +53,12 @@ comparison decision. The Founder supplies the interpretation.
 
 ## Manual Portfolio Review Inputs
 
-Portfolio Reviews require manual structured source and scenario construction.
-There is no source-list discovery, candidate recommendation, weight optimizer,
-automatic normalization, or default decision outcome. The browser validates
+Portfolio Reviews permit explicit composition from current public research-run
+and evidence-manifest reads, but only bounded metadata and exact compatible
+references are copied. There is no persisted public paper-comparison-summary
+discovery contract, aligned-return import, inferred lifecycle relationship,
+candidate recommendation, weight optimizer, automatic normalization, or default
+decision outcome. The browser validates
 input shape and displays entered weight totals but does not recalculate
 concentration, overlap, correlation, behavior, drawdown, contribution, or
 impact.

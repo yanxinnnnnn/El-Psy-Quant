@@ -1,0 +1,114 @@
+{
+  "review_id": "demo-portfolio-review-001",
+  "source": {
+    "source_id": "demo-portfolio-review-source-001",
+    "components": [
+      {
+        "component_id": "demo-aapl-sleeve",
+        "strategy_id": "moving_average_crossover",
+        "evidence_references": [
+          {
+            "reference_type": "research_run",
+            "reference_id": "moving-average-crossover-demo/demo-research-001",
+            "label": "DEMO ONLY — configured research run",
+            "description": "Disposable public Demo research identity; not imported return authority."
+          },
+          {
+            "reference_type": "report_artifact_summary",
+            "reference_id": "moving-average-crossover-demo/demo-research-001",
+            "label": "DEMO ONLY — saved research evidence",
+            "description": "Exact compatible reference exposed by the Demo report manifest."
+          }
+        ],
+        "symbols": ["AAPL"],
+        "label": "DEMO ONLY — AAPL review sleeve",
+        "description": "Synthetic component used only to demonstrate portfolio-review governance."
+      },
+      {
+        "component_id": "demo-msft-sleeve",
+        "strategy_id": "moving_average_crossover",
+        "evidence_references": [
+          {
+            "reference_type": "research_run",
+            "reference_id": "moving-average-crossover-demo/demo-research-001",
+            "label": "DEMO ONLY — configured research run",
+            "description": "Disposable public Demo research identity; not imported return authority."
+          },
+          {
+            "reference_type": "strategy_decision_record",
+            "reference_id": "demo-human-review-deferred-001",
+            "label": "DEMO ONLY — deferred human decision",
+            "description": "Exact compatible governance reference exposed by the Demo decision manifest."
+          },
+          {
+            "reference_type": "strategy_lifecycle_state_snapshot",
+            "reference_id": "demo-research-review-snapshot-001",
+            "label": "DEMO ONLY — source snapshot",
+            "description": "Exact compatible lifecycle reference exposed by the Demo workflow manifest."
+          },
+          {
+            "reference_type": "strategy_lifecycle_transition_record",
+            "reference_id": "demo-human-review-deferred-001",
+            "label": "DEMO ONLY — human review record",
+            "description": "Exact compatible lifecycle review reference; not execution or approval."
+          }
+        ],
+        "symbols": ["MSFT"],
+        "label": "DEMO ONLY — MSFT review sleeve",
+        "description": "Synthetic proposed component used only to demonstrate governance."
+      }
+    ],
+    "return_observations": [
+      {"timestamp": "2026-01-02T00:00:00Z", "component_returns": [0.010, 0.006]},
+      {"timestamp": "2026-01-05T00:00:00Z", "component_returns": [-0.004, 0.002]},
+      {"timestamp": "2026-01-06T00:00:00Z", "component_returns": [0.007, -0.003]},
+      {"timestamp": "2026-01-07T00:00:00Z", "component_returns": [-0.012, -0.008]},
+      {"timestamp": "2026-01-08T00:00:00Z", "component_returns": [0.005, 0.009]},
+      {"timestamp": "2026-01-09T00:00:00Z", "component_returns": [0.003, 0.001]},
+      {"timestamp": "2026-01-12T00:00:00Z", "component_returns": [-0.006, 0.004]},
+      {"timestamp": "2026-01-13T00:00:00Z", "component_returns": [0.008, 0.005]}
+    ],
+    "evaluation_frequency": "daily",
+    "periods_per_year": 252.0,
+    "created_by": "demo-founder",
+    "created_timestamp": "2026-01-18T12:00:00Z",
+    "assumptions": [
+      "Synthetic daily component returns for Demo Workspace review only.",
+      "Static weights are review assumptions, not holdings or capital allocation."
+    ],
+    "warnings": [
+      "DEMO ONLY — disposable synthetic evidence, not real user data or trading advice."
+    ],
+    "missing_evidence": [
+      "No persisted paper_comparison_summary is available in the current public Demo workflow."
+    ]
+  },
+  "baseline_scenario": {
+    "scenario_id": "demo-baseline-001",
+    "weights": {
+      "demo-aapl-sleeve": 0.60,
+      "demo-msft-sleeve": 0.40
+    },
+    "rationale": "DEMO ONLY — inspect the existing static review assumption.",
+    "assumptions": ["Weights sum exactly to one and are not account holdings."],
+    "warnings": ["Synthetic scenario only."]
+  },
+  "proposed_scenario": {
+    "scenario_id": "demo-proposed-001",
+    "weights": {
+      "demo-aapl-sleeve": 0.40,
+      "demo-msft-sleeve": 0.60
+    },
+    "rationale": "DEMO ONLY — inspect an explicit increase to the MSFT review sleeve.",
+    "assumptions": ["The proposed change is Founder-authored Demo input, not a recommendation."],
+    "warnings": ["Synthetic scenario only."],
+    "proposed_component_id": "demo-msft-sleeve"
+  },
+  "analysis": {
+    "created_by": "demo-founder",
+    "created_timestamp": "2026-01-18T12:05:00Z",
+    "assumptions": ["Historical-scenario analysis only."],
+    "warnings": ["DEMO ONLY — no forecast, ranking, suitability, or execution claim."],
+    "missing_evidence": ["No persisted paper comparison summary is attached."]
+  }
+}

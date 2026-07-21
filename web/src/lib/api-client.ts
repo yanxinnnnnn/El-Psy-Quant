@@ -5,6 +5,13 @@ import {
   isPortfolioReviewListResponse,
   isPortfolioReviewStatus,
 } from "@/lib/portfolio-review-validators";
+import {
+  acceptedScenarioWeightTotal,
+  isTimezoneAwareTimestamp,
+  portfolioReviewEvidenceReferenceTypes,
+  portfolioReviewResearchReferenceTypes,
+  type PortfolioReviewEvidenceReferenceType,
+} from "@/lib/portfolio-reviews";
 
 const API_BASE_PATH = "/api/backend";
 const HEALTH_PATH = "/api/v1/health";
@@ -317,10 +324,217 @@ function isLifecycleReviewRequest(value: unknown): boolean {
   );
 }
 
+function hasOnlyKeys(
+  value: Record<string, unknown>,
+  keys: readonly string[],
+): boolean {
+  return Object.keys(value).length === keys.length &&
+    keys.every((key) => Object.prototype.hasOwnProperty.call(value, key));
+}
+
+function isNormalizedNonblankString(value: unknown): value is string {
+  return isString(value) && value.length > 0 && value === value.trim();
+}
+
+function isNormalizedStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(isNormalizedNonblankString);
+}
+
+function isNullableNormalizedString(value: unknown): value is string | null {
+  return value === null || isNormalizedNonblankString(value);
+}
+
+function isPortfolioReviewEvidenceRequest(value: unknown): boolean {
+  if (!isObject(value) ||
+    !hasOnlyKeys(value, ["reference_type", "reference_id", "label", "description"]) ||
+    !isNormalizedNonblankString(value.reference_type) ||
+    !portfolioReviewEvidenceReferenceTypes.includes(
+      value.reference_type as PortfolioReviewEvidenceReferenceType,
+    ) ||
+    !isNormalizedNonblankString(value.reference_id) ||
+    !isNullableNormalizedString(value.label) ||
+    !isNullableNormalizedString(value.description)
+  ) return false;
+  return true;
+}
+
+function isPortfolioReviewComponentRequest(value: unknown): boolean {
+  if (!isObject(value) ||
+    !hasOnlyKeys(value, [
+      "component_id",
+      "strategy_id",
+      "evidence_references",
+      "symbols",
+      "label",
+      "description",
+    ]) ||
+    !isNormalizedNonblankString(value.component_id) ||
+    !isNormalizedNonblankString(value.strategy_id) ||
+    !Array.isArray(value.evidence_references) ||
+    value.evidence_references.length === 0 ||
+    !value.evidence_references.every(isPortfolioReviewEvidenceRequest) ||
+    (value.symbols !== null && !isStringArray(value.symbols)) ||
+    !isNullableNormalizedString(value.label) ||
+    !isNullableNormalizedString(value.description)
+  ) return false;
+
+  const identities = new Set<string>();
+  let hasResearchOrigin = false;
+  for (const reference of value.evidence_references) {
+    if (!isObject(reference) ||
+      !isString(reference.reference_type) ||
+      !isString(reference.reference_id)
+    ) return false;
+    const identity = `${reference.reference_type}\u0000${reference.reference_id}`;
+    if (identities.has(identity)) return false;
+    identities.add(identity);
+    if (portfolioReviewResearchReferenceTypes.has(
+      reference.reference_type as PortfolioReviewEvidenceReferenceType,
+    )) hasResearchOrigin = true;
+  }
+  return hasResearchOrigin;
+}
+
+function isPortfolioReviewScenarioRequest(
+  value: unknown,
+  proposed: boolean,
+  componentIds: readonly string[],
+): boolean {
+  const keys = ["scenario_id", "weights", "rationale", "assumptions", "warnings"];
+  if (proposed) keys.push("proposed_component_id");
+  if (!isObject(value) ||
+    !hasOnlyKeys(value, keys) ||
+    !isNormalizedNonblankString(value.scenario_id) ||
+    !isObject(value.weights) ||
+    Object.keys(value.weights).length !== componentIds.length ||
+    !componentIds.every((componentId) =>
+      Object.prototype.hasOwnProperty.call(value.weights, componentId)
+    ) ||
+    !isNormalizedNonblankString(value.rationale) ||
+    !isNormalizedStringArray(value.assumptions) ||
+    !isNormalizedStringArray(value.warnings) ||
+    (proposed && !isNormalizedNonblankString(value.proposed_component_id))
+  ) return false;
+  const weights = Object.values(value.weights);
+  if (!weights.every(isNumber)) return false;
+  return weights.every((weight) => weight >= 0) &&
+    weights.some((weight) => weight > 0) &&
+    acceptedScenarioWeightTotal(weights.reduce((total, weight) => total + weight, 0));
+}
+
+export function isPortfolioReviewCreateRequest(
+  value: unknown,
+): value is PortfolioReviewCreateRequest {
+  if (!isObject(value) || !hasOnlyKeys(value, [
+    "review_id",
+    "source",
+    "baseline_scenario",
+    "proposed_scenario",
+    "analysis",
+  ])) return false;
+  const source = value.source;
+  const analysis = value.analysis;
+  if (!isNormalizedNonblankString(value.review_id) ||
+    !isObject(source) ||
+    !hasOnlyKeys(source, [
+      "source_id",
+      "components",
+      "return_observations",
+      "evaluation_frequency",
+      "periods_per_year",
+      "created_by",
+      "created_timestamp",
+      "assumptions",
+      "warnings",
+      "missing_evidence",
+    ]) ||
+    !isNormalizedNonblankString(source.source_id) ||
+    !Array.isArray(source.components) ||
+    source.components.length < 2 ||
+    source.components.length > 12 ||
+    !source.components.every(isPortfolioReviewComponentRequest) ||
+    !Array.isArray(source.return_observations) ||
+    source.return_observations.length < 3 ||
+    !isNormalizedNonblankString(source.evaluation_frequency) ||
+    (source.periods_per_year !== null &&
+      (!isNumber(source.periods_per_year) || source.periods_per_year <= 0)) ||
+    !isNormalizedNonblankString(source.created_by) ||
+    !isString(source.created_timestamp) ||
+    !isTimezoneAwareTimestamp(source.created_timestamp) ||
+    !isNormalizedStringArray(source.assumptions) ||
+    !isNormalizedStringArray(source.warnings) ||
+    !isNormalizedStringArray(source.missing_evidence) ||
+    !isObject(analysis) ||
+    !hasOnlyKeys(analysis, [
+      "created_by",
+      "created_timestamp",
+      "assumptions",
+      "warnings",
+      "missing_evidence",
+    ]) ||
+    !isNormalizedNonblankString(analysis.created_by) ||
+    !isString(analysis.created_timestamp) ||
+    !isTimezoneAwareTimestamp(analysis.created_timestamp) ||
+    !isNormalizedStringArray(analysis.assumptions) ||
+    !isNormalizedStringArray(analysis.warnings) ||
+    !isNormalizedStringArray(analysis.missing_evidence)
+  ) return false;
+
+  const componentIds = source.components.map((component) =>
+    (component as Record<string, unknown>).component_id as string
+  );
+  if (new Set(componentIds).size !== componentIds.length ||
+    !isPortfolioReviewScenarioRequest(value.baseline_scenario, false, componentIds) ||
+    !isPortfolioReviewScenarioRequest(value.proposed_scenario, true, componentIds)
+  ) return false;
+
+  let previousTimestamp = Number.NEGATIVE_INFINITY;
+  for (const observation of source.return_observations) {
+    if (!isObject(observation) ||
+      !hasOnlyKeys(observation, ["timestamp", "component_returns"]) ||
+      !isString(observation.timestamp) ||
+      !isTimezoneAwareTimestamp(observation.timestamp) ||
+      !Array.isArray(observation.component_returns) ||
+      observation.component_returns.length !== componentIds.length ||
+      !observation.component_returns.every(isNumber)
+    ) return false;
+    const timestamp = Date.parse(observation.timestamp);
+    if (timestamp <= previousTimestamp) return false;
+    previousTimestamp = timestamp;
+  }
+
+  const baseline = value.baseline_scenario as Record<string, unknown>;
+  const proposed = value.proposed_scenario as Record<string, unknown>;
+  if (baseline.scenario_id === proposed.scenario_id) return false;
+  const baselineWeights = baseline.weights as Record<string, number>;
+  const proposedWeights = proposed.weights as Record<string, number>;
+  const proposedComponentId = proposed.proposed_component_id as string;
+  return componentIds.includes(proposedComponentId) &&
+    componentIds.some((componentId) =>
+      baselineWeights[componentId] !== proposedWeights[componentId]
+    ) &&
+    baselineWeights[proposedComponentId] !== proposedWeights[proposedComponentId];
+}
+
 function isDemoWorkspaceDescriptor(
   value: unknown,
 ): value is DemoWorkspaceDescriptorResponse {
-  if (!isObject(value)) {
+  if (!isObject(value) || !hasOnlyKeys(value, [
+    "schema_version",
+    "dataset_id",
+    "dataset_version",
+    "display_name",
+    "warning",
+    "canonical_strategy_name",
+    "research_run",
+    "evidence_manifests",
+    "paper_jobs",
+    "comparison_candidate_job_ids",
+    "lifecycle_proposal_example",
+    "lifecycle_review_example",
+    "paper_job_submission_example",
+    "portfolio_review_example",
+  ])) {
     return false;
   }
   const jobIds = Array.isArray(value.paper_jobs)
@@ -330,9 +544,9 @@ function isDemoWorkspaceDescriptor(
         .filter(isString)
     : [];
   return (
-    value.schema_version === 1 &&
+    value.schema_version === 2 &&
     isString(value.dataset_id) &&
-    Number.isInteger(value.dataset_version) &&
+    value.dataset_version === 2 &&
     isString(value.display_name) &&
     isString(value.warning) &&
     isString(value.canonical_strategy_name) &&
@@ -362,7 +576,13 @@ function isDemoWorkspaceDescriptor(
     isLifecycleReviewRequest(value.lifecycle_review_example) &&
     isObject(value.paper_job_submission_example) &&
     isString(value.paper_job_submission_example.idempotency_key) &&
-    isPaperCommandRequest(value.paper_job_submission_example.request)
+    isPaperCommandRequest(value.paper_job_submission_example.request) &&
+    isObject(value.portfolio_review_example) &&
+    hasOnlyKeys(value.portfolio_review_example, ["create_idempotency_key", "request"]) &&
+    isNormalizedNonblankString(
+      value.portfolio_review_example.create_idempotency_key,
+    ) &&
+    isPortfolioReviewCreateRequest(value.portfolio_review_example.request)
   );
 }
 

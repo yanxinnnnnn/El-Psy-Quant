@@ -18,6 +18,7 @@ import {
   fetchEvidenceManifestDetail,
   fetchHealth,
   fetchPaperJobs,
+  fetchPortfolioReviews,
   fetchResearchRuns,
   type DemoWorkspaceDescriptorResponse,
   type EvidenceManifestListResponse,
@@ -25,6 +26,7 @@ import {
   type HealthResponse,
   type PaperJobListResponse,
   type PaperJobResponse,
+  type PortfolioReviewListResponse,
   type ResearchRunListResponse,
 } from "@/lib/api-client";
 import {
@@ -188,7 +190,8 @@ function sourceCount(
   source:
     | ApiResourceState<ResearchRunListResponse>
     | ApiResourceState<EvidenceManifestListResponse>
-    | ApiResourceState<PaperJobListResponse>,
+    | ApiResourceState<PaperJobListResponse>
+    | ApiResourceState<PortfolioReviewListResponse>,
 ): number | null {
   if (source.status !== "success") return null;
   if (Array.isArray(source.data)) return source.data.length;
@@ -418,22 +421,26 @@ function ReadinessRegion({
   research,
   evidence,
   jobs,
+  reviews,
   retryHealth,
   retryEnvironment,
   retryResearch,
   retryEvidence,
   retryJobs,
+  retryReviews,
 }: {
   health: ApiResourceState<HealthResponse>;
   environment: ApiResourceState<DemoWorkspaceDescriptorResponse>;
   research: ApiResourceState<ResearchRunListResponse>;
   evidence: ApiResourceState<EvidenceManifestListResponse>;
   jobs: ApiResourceState<PaperJobListResponse>;
+  reviews: ApiResourceState<PortfolioReviewListResponse>;
   retryHealth: Retry;
   retryEnvironment: Retry;
   retryResearch: Retry;
   retryEvidence: Retry;
   retryJobs: Retry;
+  retryReviews: Retry;
 }) {
   const t = useTranslations("overview.dashboard.readiness");
   const healthPresentation = apiResourcePresentation(health);
@@ -441,6 +448,7 @@ function ReadinessRegion({
   const researchPresentation = apiResourcePresentation(research);
   const evidencePresentation = apiResourcePresentation(evidence);
   const jobsPresentation = apiResourcePresentation(jobs);
+  const reviewsPresentation = apiResourcePresentation(reviews);
   const effectiveHealth = healthPresentation.evidence;
   const effectiveIdentity = environmentDependencyState(
     environmentPresentation.evidence,
@@ -448,12 +456,14 @@ function ReadinessRegion({
   const effectiveResearch = researchPresentation.evidence;
   const effectiveEvidence = evidencePresentation.evidence;
   const effectiveJobs = jobsPresentation.evidence;
+  const effectiveReviews = reviewsPresentation.evidence;
   const sources = [
     effectiveHealth,
     effectiveIdentity,
     effectiveResearch,
     effectiveEvidence,
     effectiveJobs,
+    effectiveReviews,
   ];
   const successCount = sources.filter((source) => source.status === "success").length;
   const errorCount = sources.filter((source) => source.status === "error").length;
@@ -463,7 +473,8 @@ function ReadinessRegion({
   const populated =
     (sourceCount(effectiveResearch) ?? 0) +
       (sourceCount(effectiveEvidence) ?? 0) +
-      (sourceCount(effectiveJobs) ?? 0) >
+      (sourceCount(effectiveJobs) ?? 0) +
+      (sourceCount(effectiveReviews) ?? 0) >
     0;
   const healthUnavailable =
     effectiveHealth.status === "error" &&
@@ -549,6 +560,14 @@ function ReadinessRegion({
           count={sourceCount(effectiveJobs)}
           refreshPending={jobsPresentation.refreshPending}
           retry={retryJobs}
+        />
+        <ReadinessSource
+          label={t("sources.portfolioReviews")}
+          endpoint="/api/v1/portfolio-reviews?limit=50"
+          state={effectiveReviews}
+          count={sourceCount(effectiveReviews)}
+          refreshPending={reviewsPresentation.refreshPending}
+          retry={retryReviews}
         />
       </ul>
     </section>
@@ -1273,8 +1292,14 @@ function DemoWorkflow({
           </Link>
         </li>
         <li>
+          <Link href={`/portfolio-reviews/${encodeURIComponent(descriptor.portfolio_review_example.request.review_id)}`}>
+            <span>{t("demo.portfolioReview", { step: comparisonStep + 1 })}</span>
+            <code>{descriptor.portfolio_review_example.request.review_id}</code>
+          </Link>
+        </li>
+        <li>
           <Link href="/lifecycle-review">
-            <span>{t("demo.lifecycle", { step: comparisonStep + 1 })}</span>
+            <span>{t("demo.lifecycle", { step: comparisonStep + 2 })}</span>
             <code>{descriptor.lifecycle_proposal_example.proposal_id}</code>
           </Link>
         </li>
@@ -1326,6 +1351,7 @@ function WorkflowRegion({
               ["/paper-jobs", "standard.jobs"],
               ["/portfolio-records", "standard.results"],
               ["/comparisons", "standard.comparison"],
+              ["/portfolio-reviews", "standard.portfolioReviews"],
               ["/lifecycle-review", "standard.lifecycle"],
             ] as const).map(([href, key], index) => (
               <li key={href}>
@@ -1458,10 +1484,15 @@ export function FounderDashboard() {
     () => fetchPaperJobs({ status: null, limit: DASHBOARD_JOB_LIMIT }),
     [],
   );
+  const reviewsRequest = useCallback(
+    () => fetchPortfolioReviews({ status: null, limit: 50 }),
+    [],
+  );
   const health = useApiResource(healthRequest);
   const research = useApiResource(researchRequest);
   const evidence = useApiResource(evidenceRequest);
   const jobs = useApiResource(jobsRequest);
+  const reviews = useApiResource(reviewsRequest);
   const technicalSources = useMemo(
     () => [
       {
@@ -1494,6 +1525,12 @@ export function FounderDashboard() {
         state: jobs.state as ApiResourceState<unknown>,
         retry: jobs.retry,
       },
+      {
+        label: t("technical.sources.portfolioReviews"),
+        endpoint: "/api/v1/portfolio-reviews?limit=50",
+        state: reviews.state as ApiResourceState<unknown>,
+        retry: reviews.retry,
+      },
     ],
     [
       environment.retry,
@@ -1506,6 +1543,8 @@ export function FounderDashboard() {
       jobs.state,
       research.retry,
       research.state,
+      reviews.retry,
+      reviews.state,
       t,
     ],
   );
@@ -1531,11 +1570,13 @@ export function FounderDashboard() {
           research={research.state}
           evidence={evidence.state}
           jobs={jobs.state}
+          reviews={reviews.state}
           retryHealth={health.retry}
           retryEnvironment={environment.retry}
           retryResearch={research.retry}
           retryEvidence={evidence.retry}
           retryJobs={jobs.retry}
+          retryReviews={reviews.retry}
         />
         <AttentionRegion
           health={health.state}

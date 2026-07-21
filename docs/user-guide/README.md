@@ -64,3 +64,12 @@ A research result is evidence, not a forecast. A completed paper run is a local
 simulation record, not proof of future performance. A lifecycle proposal is a
 request for review, and a human review record is governance evidence. Neither
 one automatically changes a strategy's lifecycle state or authorizes trading.
+
+## Portfolio Review Integration
+
+The journey places Portfolio Reviews after Comparisons and before Lifecycle
+Review. Creation may explicitly copy bounded research metadata and compatible
+evidence-manifest references, but it never imports or infers aligned returns
+from summary metrics. An `approved`, `rejected`, or `deferred` result is
+governance evidence only and has no account, allocation, order, or execution
+effect.

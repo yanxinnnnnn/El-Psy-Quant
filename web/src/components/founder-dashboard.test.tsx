@@ -18,6 +18,7 @@ const apiMocks = vi.hoisted(() => ({
   fetchEvidenceManifests: vi.fn(),
   fetchHealth: vi.fn(),
   fetchPaperJobs: vi.fn(),
+  fetchPortfolioReviews: vi.fn(),
   fetchResearchRuns: vi.fn(),
 }));
 
@@ -53,7 +54,7 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 1,
+  schema_version: 2,
   dataset_id: "dataset-from-descriptor",
   dataset_version: 7,
   display_name: "Descriptor Demo Name",
@@ -109,6 +110,46 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
       },
       orders: [],
       fills: [],
+    },
+  },
+  portfolio_review_example: {
+    create_idempotency_key: "portfolio-review-from-descriptor",
+    request: {
+      review_id: "review-from-descriptor",
+      source: {
+        source_id: "source-from-descriptor",
+        components: [],
+        return_observations: [],
+        evaluation_frequency: "daily",
+        periods_per_year: 252,
+        created_by: "demo-founder",
+        created_timestamp: "2026-07-01T00:00:00Z",
+        assumptions: [],
+        warnings: [],
+        missing_evidence: [],
+      },
+      baseline_scenario: {
+        scenario_id: "baseline-from-descriptor",
+        weights: {},
+        rationale: "Demo baseline",
+        assumptions: [],
+        warnings: [],
+      },
+      proposed_scenario: {
+        scenario_id: "proposed-from-descriptor",
+        weights: {},
+        rationale: "Demo proposed",
+        assumptions: [],
+        warnings: [],
+        proposed_component_id: "component-from-descriptor",
+      },
+      analysis: {
+        created_by: "demo-founder",
+        created_timestamp: "2026-07-01T00:01:00Z",
+        assumptions: [],
+        warnings: [],
+        missing_evidence: [],
+      },
     },
   },
 };
@@ -278,6 +319,10 @@ function renderDashboard(locale: "en" | "zh-CN" = "en") {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  apiMocks.fetchPortfolioReviews.mockResolvedValue({
+    data: [],
+    requestId: "portfolio-reviews-request",
+  });
 });
 
 describe("FounderDashboard", () => {
@@ -443,6 +488,9 @@ describe("FounderDashboard", () => {
       );
       apiMocks.fetchPaperJobs.mockRejectedValue(
         apiFailure("product_database_unavailable", "jobs-failure"),
+      );
+      apiMocks.fetchPortfolioReviews.mockRejectedValue(
+        apiFailure("product_database_unavailable", "portfolio-reviews-failure"),
       );
 
       renderDashboard();
@@ -1009,6 +1057,14 @@ describe("FounderDashboard", () => {
     expect(screen.getAllByText("proposal-from-descriptor").length).toBeGreaterThan(0);
     expect(screen.getByText("decision-record-from-descriptor")).toBeInTheDocument();
     expect(screen.getByText("submission-from-descriptor")).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: /投资组合评审/ }).find((link) =>
+        link.getAttribute("href") === "/portfolio-reviews/review-from-descriptor"
+      ),
+    ).toHaveAttribute(
+      "href",
+      "/portfolio-reviews/review-from-descriptor",
+    );
     expect(apiMocks.fetchDemoWorkspace).toHaveBeenCalledTimes(1);
   });
 

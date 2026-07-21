@@ -15,9 +15,10 @@ The current product migration chain is exactly:
   -> 0003_paper_jobs
   -> 0004_paper_job_recovery_audit
   -> 0005_paper_job_result_references
+  -> 0006_portfolio_reviews
 ```
 
-`0005_paper_job_result_references` is the single current head. Supported Founder
+`0006_portfolio_reviews` is the single current head. Supported Founder
 upgrades move forward to that head. Alembic downgrade is developer/test
 behavior, not a supported Founder recovery path.
 
@@ -84,7 +85,7 @@ Before Uvicorn starts, the backend:
 
 ```text
 creates only absent /data/research, /data/evidence, and /data/paper directories
-  -> if product.sqlite3 exists, reads exactly one approved 0001-0005 revision
+  -> if product.sqlite3 exists, reads exactly one approved 0001-0006 revision
      without writes; a missing file follows the fresh-install path
   -> runs the forward Alembic upgrade
   -> verifies /data read-only in Standard mode
@@ -113,7 +114,8 @@ and copy, locale switch/restoration, top-level and representative detail
 routes, valid empty reads, stable raw values, request IDs on authenticated
 backend responses and backend failures, and sanitized errors. The Web
 proxy-owned unauthenticated Basic challenge is checked without claiming a
-backend request ID. Verification sends no Paper Job or lifecycle command.
+backend request ID. Verification sends no Paper Job, portfolio-review
+create/decision, or lifecycle command.
 
 ## Cold Backup Before a Standard Upgrade
 
@@ -195,6 +197,13 @@ docker compose -f compose.yaml -f compose.demo.yaml exec web node /app/verify-mv
 An invalid source, conflicting marker/digest, unrelated target, Standard target,
 failed migration, invalid descriptor/reference, or partial installation fails
 closed without hidden reinstall or reset.
+
+Bundled Demo source and descriptor are version 2. An installed v1 marker/source
+conflicts deliberately: startup does not rewrite, reseed, or replace it. The
+Founder must use the exact Demo-only reset below. Demo v2 seeds one isolated
+portfolio review as `awaiting_decision`; exact replay preserves a later valid
+human decision and never touches Standard. The Demo create loader is browser
+prefill only and never auto-submits or records a decision.
 
 Reset only disposable Demo storage:
 
