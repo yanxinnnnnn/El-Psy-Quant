@@ -6,6 +6,7 @@ export type WorkspaceDestination = Readonly<{
     | "paperJobs"
     | "portfolioRecords"
     | "comparisons"
+    | "portfolioReviews"
     | "lifecycleReview";
   sprint: `S${number}`;
   href?: string;
@@ -45,6 +46,12 @@ export const workspaceDestinations: readonly WorkspaceDestination[] = [
     available: true,
   },
   {
+    labelKey: "portfolioReviews",
+    sprint: "S175",
+    href: "/portfolio-reviews",
+    available: true,
+  },
+  {
     labelKey: "lifecycleReview",
     sprint: "S158",
     href: "/lifecycle-review",
@@ -81,6 +88,12 @@ export function isDestinationActive(
   }
   if (destination.href === "/comparisons") {
     return pathname === "/comparisons";
+  }
+  if (destination.href === "/portfolio-reviews") {
+    return (
+      pathname === "/portfolio-reviews" ||
+      pathname.startsWith("/portfolio-reviews/")
+    );
   }
   if (destination.href === "/lifecycle-review") {
     return pathname === "/lifecycle-review";

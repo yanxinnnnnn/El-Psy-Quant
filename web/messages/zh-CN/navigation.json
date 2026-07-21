@@ -7,6 +7,7 @@
   "paperJobs": "模拟任务",
   "portfolioRecords": "组合记录",
   "comparisons": "对比分析",
+  "portfolioReviews": "投资组合评审",
   "lifecycleReview": "生命周期审查",
   "skip": "跳到工作台内容",
   "brandContext": "仅供创始人使用的本地模拟交易工作台",
@@ -17,8 +18,8 @@
   "demoAria": "演示工作区：可丢弃的示例证据，并非真实用户数据",
   "demo": "演示工作区",
   "demoWarning": "仅供演示——可丢弃的示例证据，不是真实用户数据，也不构成交易建议。",
-  "sidebarMilestone": "里程碑 29",
-  "sidebarNote": "双语审查与显式模拟操作",
+  "sidebarMilestone": "里程碑 30",
+  "sidebarNote": "投资组合级决策评审与显式人工治理",
   "strategySectionAria": "策略与研究",
   "strategies": "策略",
   "researchRuns": "研究运行"

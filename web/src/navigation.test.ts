@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { isDestinationActive, workspaceDestinations } from "./navigation";
 
 describe("workspace navigation", () => {
-  it("enables the seven delivered destinations", () => {
+  it("enables the eight delivered destinations", () => {
     expect(workspaceDestinations.filter((item) => item.available)).toEqual([
       { labelKey: "overview", sprint: "S152", href: "/", available: true },
       {
@@ -37,6 +37,12 @@ describe("workspace navigation", () => {
         available: true,
       },
       {
+        labelKey: "portfolioReviews",
+        sprint: "S175",
+        href: "/portfolio-reviews",
+        available: true,
+      },
+      {
         labelKey: "lifecycleReview",
         sprint: "S158",
         href: "/lifecycle-review",
@@ -63,6 +69,9 @@ describe("workspace navigation", () => {
     ["/portfolio-records", "portfolioRecords"],
     ["/portfolio-records/123", "portfolioRecords"],
     ["/comparisons", "comparisons"],
+    ["/portfolio-reviews", "portfolioReviews"],
+    ["/portfolio-reviews/new", "portfolioReviews"],
+    ["/portfolio-reviews/review-175", "portfolioReviews"],
     ["/lifecycle-review", "lifecycleReview"],
   ])("marks only the matching route family active for %s", (pathname, labelKey) => {
     expect(

@@ -133,6 +133,15 @@ What explicit human decision was recorded?
 - explicit human decision record; and
 - bilingual Web/API inspection and audit.
 
+### Current implementation
+
+Sprints 169–174 are complete. Sprint 175 bilingual Founder Web implementation
+is complete pending Founder review. The product now exposes exact
+backend-ordered review listing, manual structured source and scenario creation,
+full reopened evidence inspection, and one explicit governance-only decision
+through the checked-in generated contracts. Sprint 176 is next and owns
+integration, isolated Demo evidence, and Founder acceptance hardening.
+
 ### Architecture boundary
 
 M30 may introduce bounded portfolio review schemas, application services,

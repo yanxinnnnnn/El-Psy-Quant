@@ -112,7 +112,22 @@ The comparison does not align trades, calculate cross-run differences, rank
 runs, or choose a winner. Open each linked Portfolio Record for the full orders
 and fills, then document your own conclusion and its assumptions.
 
-## 7. Prepare a Lifecycle Proposal
+## 7. Review a Proposed Portfolio Change
+
+Open **Portfolio Reviews** when one explicit proposed component change needs
+portfolio-level historical context. Construct the ordered source and exact
+baseline/proposed static weights manually, or open an existing review. Inspect
+concentration, exposure, overlap, correlation, behavior, drawdown,
+contribution, exact impact, limitations, and digests without treating
+unavailable evidence as zero.
+
+Record one explicit `approved`, `rejected`, or `deferred` human decision only
+after reviewing the evidence and non-execution boundary. The page does not
+discover candidates, normalize weights, recommend an outcome, mutate lifecycle
+state, allocate capital, create an account, place orders, or execute. See
+[Portfolio Reviews](portfolio-reviews.md).
+
+## 8. Prepare a Lifecycle Proposal
 
 Open **Lifecycle Review** only after the evidence chain is ready. Enter an
 explicit source snapshot, target state, rationale, and evidence references.
@@ -125,7 +140,7 @@ In Demo Workspace mode, **Load demo lifecycle example** fills these command
 inputs from the backend descriptor. Review every value before submitting. The
 action does not submit, approve, or apply a transition.
 
-## 8. Record Human Decision Evidence
+## 9. Record Human Decision Evidence
 
 Using the normalized proposal, enter a transition record ID, an explicit human
 outcome, reviewer details, rationale, notes, and warnings. Include a resulting

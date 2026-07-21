@@ -7,6 +7,7 @@ import navigationEn from "../../messages/en/navigation.json";
 import overviewEn from "../../messages/en/overview.json";
 import paperJobsEn from "../../messages/en/paper-jobs.json";
 import portfolioRecordsEn from "../../messages/en/portfolio-records.json";
+import portfolioReviewsEn from "../../messages/en/portfolio-reviews.json";
 import researchEn from "../../messages/en/research.json";
 import strategiesEn from "../../messages/en/strategies.json";
 import commonZhCn from "../../messages/zh-CN/common.json";
@@ -18,6 +19,7 @@ import navigationZhCn from "../../messages/zh-CN/navigation.json";
 import overviewZhCn from "../../messages/zh-CN/overview.json";
 import paperJobsZhCn from "../../messages/zh-CN/paper-jobs.json";
 import portfolioRecordsZhCn from "../../messages/zh-CN/portfolio-records.json";
+import portfolioReviewsZhCn from "../../messages/zh-CN/portfolio-reviews.json";
 import researchZhCn from "../../messages/zh-CN/research.json";
 import strategiesZhCn from "../../messages/zh-CN/strategies.json";
 
@@ -33,6 +35,7 @@ const EN_MESSAGES = {
   paperJobs: paperJobsEn,
   portfolioRecords: portfolioRecordsEn,
   comparisons: comparisonsEn,
+  portfolioReviews: portfolioReviewsEn,
   lifecycle: lifecycleEn,
   errors: errorsEn,
 } as const;
@@ -47,6 +50,7 @@ const ZH_CN_MESSAGES: typeof EN_MESSAGES = {
   paperJobs: paperJobsZhCn,
   portfolioRecords: portfolioRecordsZhCn,
   comparisons: comparisonsZhCn,
+  portfolioReviews: portfolioReviewsZhCn,
   lifecycle: lifecycleZhCn,
   errors: errorsZhCn,
 };

@@ -10,9 +10,9 @@ Planned sprint range:
 S169–S177
 ```
 
-Sprints 169–173 are Complete. Sprint 174 durable portfolio-review artifact,
-persistence, application, and API implementation is complete pending Founder
-review. Sprint 175 is next after merge.
+Sprints 169–174 are Complete. Sprint 175 bilingual Founder portfolio-review Web
+implementation is complete pending Founder review. Sprint 176 is next after
+merge.
 
 ## Product Goal
 
@@ -351,8 +351,8 @@ approved milestone contract.
 | S171 | Complete | Codex | Add concentration and exposure evidence. | Deterministic concentration, weight-delta, review-exposure, and available universe-coverage summaries. | No correlation, optimization, or recommendation. |
 | S172 | Complete | Codex | Add interaction and proposed impact. | Symbol overlap, return interaction, baseline/proposed portfolio behavior, and historical deltas. | No forecast, allocation, factor model, VaR, or runtime. |
 | S173 | Complete | Codex | Add review and decision artifacts. | Immutable analysis/decision payloads, references, digest rules, and explicit outcomes. | No database, API, Web, lifecycle mutation, or execution. |
-| S174 | Implementation complete / pending Founder review | Codex | Add durable product and API boundary. | Compact SQLite persistence, migration, hashed write-once artifact I/O, application services, OpenAPI, and versioned API. | No Founder Web, account ledger, or M31 behavior. |
-| S175 | Planned | Codex | Add Founder Web workflow. | Bilingual list/create/detail/decision workspace using generated contracts. | No browser financial calculation or recommendation. |
+| S174 | Complete | Codex | Add durable product and API boundary. | Compact SQLite persistence, migration, hashed write-once artifact I/O, application services, OpenAPI, and versioned API. | No Founder Web, account ledger, or M31 behavior. |
+| S175 | Implementation complete / pending Founder review | Codex | Add Founder Web workflow. | Bilingual list/create/detail/decision workspace using generated contracts. | No browser financial calculation or recommendation. |
 | S176 | Planned | Codex | Integrate and harden acceptance. | Source workflow integration, deterministic Demo evidence, errors, tests, docs, and Founder acceptance checklist. | Founder owns Docker/browser runtime acceptance; no M31+. |
 | S177 | Planned | CTO | Close M30 and hand off to M31. | Exit verification, closeout record, roadmap update, and account/ledger handoff. | Documentation only. |
 

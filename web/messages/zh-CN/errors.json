@@ -163,6 +163,51 @@
     "explanation": "审查记录不符合后端人工控制规则。",
     "recovery": "请检查显式结果和结果快照要求后重新提交。"
   },
+  "portfolio_review_not_found": {
+    "title": "未找到投资组合评审",
+    "explanation": "持久化产品状态中不存在该精确投资组合评审 ID。",
+    "recovery": "请返回投资组合评审列表并选择可用记录。"
+  },
+  "portfolio_review_invalid": {
+    "title": "投资组合评审请求无效",
+    "explanation": "显式来源、情景、分析审计或决策不符合后端契约。",
+    "recovery": "请保留表单，检查输入的传输值，并仅在修正后重新提交。"
+  },
+  "portfolio_review_conflict": {
+    "title": "投资组合评审身份冲突",
+    "explanation": "请求的评审身份与现有持久化权威记录冲突。",
+    "recovery": "请先检查现有评审，再决定是否使用不同身份。"
+  },
+  "portfolio_review_idempotency_conflict": {
+    "title": "投资组合评审幂等冲突",
+    "explanation": "同一显式幂等键已绑定到不同的规范投资组合评审输入。",
+    "recovery": "请保留表单和幂等键。仅重放原始精确请求，或有意输入不同键；页面不会自动重新提交。"
+  },
+  "portfolio_review_settled_conflict": {
+    "title": "投资组合评审已结算",
+    "explanation": "在当前决策命令完成前，另一项显式决策已结算该评审。",
+    "recovery": "请保留决策草稿，并手动刷新评审以检查不可变的已结算决策。"
+  },
+  "portfolio_review_artifact_conflict": {
+    "title": "投资组合评审制品冲突",
+    "explanation": "现有不可变投资组合评审证据与请求的权威内容不同，因此未发生覆盖。",
+    "recovery": "请保留当前证据并检查现有评审；系统不提供强制覆盖操作。"
+  },
+  "portfolio_review_artifact_invalid": {
+    "title": "投资组合评审制品无效",
+    "explanation": "权威投资组合评审证据未通过后端架构、摘要或交叉验证。",
+    "recovery": "请记录稳定错误码和请求 ID，然后检查运维指引；不要在浏览器中修复证据。"
+  },
+  "portfolio_review_artifact_unavailable": {
+    "title": "投资组合评审制品不可用",
+    "explanation": "后端当前无法重新打开全部权威来源、分析或决策证据。",
+    "recovery": "请验证配置的证据存储并重试，不要删除或替换制品。"
+  },
+  "portfolio_review_artifact_root_unavailable": {
+    "title": "投资组合评审制品根目录不可用",
+    "explanation": "当前无法安全检查配置的权威证据根目录。",
+    "recovery": "请验证配置的证据存储并重试，不要暴露路径或删除数据。"
+  },
   "request_validation_error": {
     "title": "命令结构无效",
     "explanation": "提交的请求与生成的 API 契约不一致。",

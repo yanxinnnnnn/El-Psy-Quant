@@ -27,6 +27,7 @@ records do not change with the presentation language.
    - [Paper jobs](features/paper-jobs.md)
    - [Portfolio records](features/portfolio-records.md)
    - [Comparisons](features/comparisons.md)
+   - [Portfolio reviews](portfolio-reviews.md)
    - [Lifecycle review](features/lifecycle-review.md)
 4. Read the [current limitations](limitations.md) before relying on a result or
    recording a decision.

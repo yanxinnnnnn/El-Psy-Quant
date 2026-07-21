@@ -110,6 +110,9 @@ cold complete-workspace backup before code/image upgrades.
 - **Paper Runs** creates and controls durable local paper jobs.
 - **Portfolio Records** opens authoritative results from succeeded jobs.
 - **Comparisons** places two to four available results side by side.
+- **Portfolio Reviews** lists durable portfolio-review evidence, constructs an
+  explicit source and static-weight scenarios, and records one governance-only
+  human decision.
 - **Lifecycle Review** creates a non-executing proposal and records a separate
   human review response.
 
@@ -127,3 +130,8 @@ before preparing any paper job.
 Continue through the complete [Founder workflow](founder-workflow.md). Keep a
 written rationale for every conclusion, especially when evidence is incomplete,
 conflicting, or unavailable.
+
+For a proposed component change in explicit portfolio context, follow the
+[Portfolio Reviews guide](portfolio-reviews.md). The browser does not discover
+sources, normalize weights, calculate financial evidence, or preselect an
+outcome.

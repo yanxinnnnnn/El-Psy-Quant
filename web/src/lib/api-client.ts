@@ -1,4 +1,10 @@
 import type { paths } from "@/generated/api-types";
+import {
+  isPortfolioReviewCommandResponse,
+  isPortfolioReviewDetailResponse,
+  isPortfolioReviewListResponse,
+  isPortfolioReviewStatus,
+} from "@/lib/portfolio-review-validators";
 
 const API_BASE_PATH = "/api/backend";
 const HEALTH_PATH = "/api/v1/health";
@@ -23,6 +29,10 @@ const LIFECYCLE_TRANSITION_PROPOSALS_PATH =
   "/api/v1/lifecycle-transition-proposals";
 const LIFECYCLE_TRANSITION_RECORDS_PATH =
   "/api/v1/lifecycle-transition-records";
+const PORTFOLIO_REVIEWS_PATH = "/api/v1/portfolio-reviews";
+const PORTFOLIO_REVIEW_DETAIL_PATH = "/api/v1/portfolio-reviews/{review_id}";
+const PORTFOLIO_REVIEW_DECISION_PATH =
+  "/api/v1/portfolio-reviews/{review_id}/decision";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -106,6 +116,23 @@ export type LifecycleTransitionReviewRequest = PostRequestBody<
 export type LifecycleTransitionReviewResponse = PostSuccessResponse<
   typeof LIFECYCLE_TRANSITION_RECORDS_PATH,
   200
+>;
+export type PortfolioReviewListResponse = SuccessResponse<
+  typeof PORTFOLIO_REVIEWS_PATH
+>;
+export type PortfolioReviewStatus = PortfolioReviewListResponse[number]["status"];
+export type PortfolioReviewDetailResponse = SuccessResponse<
+  typeof PORTFOLIO_REVIEW_DETAIL_PATH
+>;
+export type PortfolioReviewCreateRequest = PostRequestBody<
+  typeof PORTFOLIO_REVIEWS_PATH
+>;
+export type PortfolioReviewDecisionRequest = PostRequestBody<
+  typeof PORTFOLIO_REVIEW_DECISION_PATH
+>;
+export type PortfolioReviewCommandResponse = PostSuccessResponse<
+  typeof PORTFOLIO_REVIEWS_PATH,
+  201
 >;
 
 export type ApiResult<Response> = {
@@ -1222,6 +1249,89 @@ export function submitLifecycleTransitionReview(
     method: "POST",
     requestBody: request,
     validate: isLifecycleTransitionReviewResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPortfolioReviews(
+  filters: { status: PortfolioReviewStatus | null; limit: number },
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PortfolioReviewListResponse>> {
+  if (
+    !Number.isInteger(filters.limit) ||
+    filters.limit < 1 ||
+    filters.limit > 200
+  ) {
+    throw new TypeError(
+      "Portfolio review limit must be an integer between 1 and 200.",
+    );
+  }
+  if (filters.status !== null && !isPortfolioReviewStatus(filters.status)) {
+    throw new TypeError("Portfolio review status is not supported.");
+  }
+  const query = new URLSearchParams();
+  if (filters.status !== null) {
+    query.set("status", filters.status);
+  }
+  query.set("limit", String(filters.limit));
+  return requestJson({
+    path: `${PORTFOLIO_REVIEWS_PATH}?${query.toString()}`,
+    validate: isPortfolioReviewListResponse,
+    fetchImplementation,
+  });
+}
+
+function portfolioReviewPath(template: string, reviewId: string): string {
+  return template.replace("{review_id}", encodeURIComponent(reviewId));
+}
+
+export function fetchPortfolioReviewDetail(
+  reviewId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PortfolioReviewDetailResponse>> {
+  return requestJson({
+    path: portfolioReviewPath(PORTFOLIO_REVIEW_DETAIL_PATH, reviewId),
+    validate: isPortfolioReviewDetailResponse,
+    fetchImplementation,
+  });
+}
+
+function requireIdempotencyKey(idempotencyKey: string): Record<string, string> {
+  if (idempotencyKey.trim().length === 0) {
+    throw new TypeError("An explicit nonblank Idempotency-Key is required.");
+  }
+  return { "Idempotency-Key": idempotencyKey };
+}
+
+export function createPortfolioReview(
+  request: PortfolioReviewCreateRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PortfolioReviewCommandResponse>> {
+  return requestJson({
+    path: PORTFOLIO_REVIEWS_PATH,
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isPortfolioReviewCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function submitPortfolioReviewDecision(
+  reviewId: string,
+  request: PortfolioReviewDecisionRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PortfolioReviewCommandResponse>> {
+  return requestJson({
+    path: portfolioReviewPath(PORTFOLIO_REVIEW_DECISION_PATH, reviewId),
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isPortfolioReviewCommandResponse,
     fetchImplementation,
   });
 }
