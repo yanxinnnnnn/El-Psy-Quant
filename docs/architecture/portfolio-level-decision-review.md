@@ -2,467 +2,240 @@
 
 ## Status
 
-Approved planning architecture for Milestone 30.
+**Implemented and accepted through Milestone 30.**
 
-Sprint 169 is documentation-only. No M30 runtime capability exists until the
-subsequent implementation sprints are merged and accepted.
+This document records the completed architecture. Formal closeout:
+
+```text
+docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
+```
 
 ## Purpose
 
 Milestone 30 adds one explicit portfolio-aware review layer before stateful Paper
 Account and market-driven runtime work begins.
 
-The Founder should be able to answer:
+The Founder can inspect how an explicit proposed strategy/component and static
+scenario would have changed historical portfolio evidence, then record one
+separate human decision.
 
-```text
-What portfolio scenario is being reviewed?
-Which strategies and evidence are included?
-Where is concentration located?
-What exposure and universe overlap exist?
-How do the strategy return streams interact?
-How would the proposed scenario have changed historical portfolio behavior?
-Which assumptions and warnings limit the conclusion?
-What explicit human decision was recorded?
-```
+M30 does not allocate capital, approve execution, mutate an account, generate
+orders, simulate fills, or start a runtime.
 
-The architecture is designed to improve human judgment. It is not an optimizer,
-recommendation engine, allocation engine, account ledger, order pipeline, or
-execution runtime.
-
-## Audited Starting Point
-
-### Portfolio calculation foundations
-
-Milestones 13 and 14 already provide deterministic domain helpers for:
-
-- aligned strategy-return inputs;
-- equal-weight and caller-supplied static-weight portfolio returns;
-- strict non-negative weights summing to `1.0`;
-- portfolio performance summaries;
-- portfolio return distribution and loss-frequency summaries;
-- worst drawdown inspection;
-- static-weight symbol contribution; and
-- standalone portfolio and attribution summary artifacts.
-
-Those foundations are intentionally static. They do not provide optimization,
-dynamic rebalancing, account holdings, factor exposure, VaR, stress testing, or
-runtime execution.
-
-### Governance foundations
-
-Milestones 20–24 provide local immutable contracts for:
-
-- research-to-paper promotion evidence;
-- Paper Run comparison and review;
-- strategy-level decision governance;
-- report artifact packaging; and
-- non-executing lifecycle proposals and human reviews.
-
-Those contracts establish useful identity, reference, rationale, actor,
-timestamp, warning, and immutable-record conventions. Most summary facts are
-caller supplied. M30 must reuse their governance semantics without reducing
-portfolio analysis to caller-written prose.
-
-### Product and persistence foundations
-
-Milestones 26–29 provide:
+## Architecture Overview
 
 ```text
 Browser
   -> Next.js Founder Workspace
   -> fixed same-origin /api/backend gateway
   -> versioned FastAPI API
-  -> thin application services
-  -> domain modules and artifact readers
-  -> isolated SQLite and authoritative artifact roots
+  -> thin portfolio-review application services
+  -> portfolio-review domain modules and artifact readers/writers
+  -> compact SQLite workflow state + authoritative artifact files
 ```
 
-SQLite currently owns compact artifact index and Paper Job operational metadata.
-Completed files own full artifact payloads. The Web does not calculate financial
-truth.
+### Authority split
 
-### Identified data gap
+- Domain modules own validation and quantitative/governance calculations.
+- Full source, analysis, and decision payloads are authoritative files.
+- SQLite owns compact metadata, idempotency, status, version, and references.
+- FastAPI owns the versioned transport boundary.
+- The Web owns bilingual presentation and explicit draft composition only.
+- Human decisions remain governance evidence.
+- Standard and Demo storage remain isolated.
 
-Configured research runs currently expose manifest and summary-metric artifacts.
-They do not preserve or expose the aligned strategy return observations needed to
-reproduce portfolio interaction and proposed-impact calculations.
+No competing browser, SQL, report-prose, or Demo-only financial authority exists.
 
-M30 therefore requires a new explicit review-source artifact boundary. It must
-not fabricate interaction from summary metrics or silently connect unrelated
-runs.
-
-## Product Model
-
-### Portfolio review source
-
-A `PortfolioReviewSource` is one immutable, versioned, digestible input package
-containing the data and references required to reproduce a review.
-
-It contains at minimum:
-
-- stable source ID;
-- ordered component definitions;
-- strategy/component identity;
-- explicit research and governance evidence references;
-- ordered aligned return observations for every component;
-- one shared `DatetimeIndex`-equivalent timestamp sequence;
-- evaluation frequency and optional periods-per-year assumption;
-- component symbol/universe coverage where authoritative;
-- source creator and UTC timestamp;
-- assumptions, warnings, and missing-evidence notes;
-- schema version; and
-- deterministic payload digest.
-
-The source artifact may be produced by an explicit local importer, CLI, or
-approved programmatic writer. It is not discovered automatically by the browser.
-Existing research runs are not retroactively declared compatible merely because
-they have summary metrics.
-
-### Portfolio component
-
-A component is one explicitly identified strategy return stream used in a review.
-For the first M30 version:
-
-- components are strategy-level review inputs, not runtime positions;
-- component order is explicit and stable;
-- every component has a unique component ID within one source;
-- every component has one finite aligned historical return observation per source
-  timestamp;
-- every component may declare an ordered symbol/universe set when supported by
-  evidence; and
-- missing symbol metadata remains visible rather than inferred.
-
-A component is not an account position, order, fill, broker instrument, or capital
-reservation.
-
-### Baseline scenario
-
-A baseline scenario is the Founder's explicit description of the portfolio before
-the proposed decision.
-
-It contains:
-
-- stable scenario ID;
-- source ID and source digest;
-- ordered component weights;
-- rationale;
-- assumptions and warnings; and
-- exact evaluation identity inherited from the source.
-
-### Proposed scenario
-
-A proposed scenario uses the same source, timestamps, and evaluation assumptions
-as the baseline but changes at least one explicit component weight.
-
-It additionally identifies the proposed strategy/component under review.
-
-The first version supports a bounded union of at most 12 components across the
-baseline and proposed scenarios. Each scenario contains at least one positive
-weight. Weight keys must match the approved scenario component set exactly,
-weights must be finite and non-negative, and each scenario must sum to `1.0`
-through the existing strict weight-validation boundary. No automatic scaling is
-performed.
-
-A component absent from one scenario may be represented explicitly with weight
-`0.0` when the scenario contract requires a common ordered union. Hidden missing
-keys are not treated as zero.
-
-### Portfolio review analysis
-
-A review analysis is immutable financial and contextual evidence calculated from
-one source, one baseline scenario, and one proposed scenario.
-
-It contains:
-
-- stable review ID;
-- exact source/scenario identities and digests;
-- concentration summaries;
-- review-exposure and universe-overlap summaries;
-- strategy interaction evidence;
-- baseline and proposed portfolio summaries;
-- baseline-versus-proposed deltas;
-- contribution/attribution context;
-- assumptions, warnings, missing evidence, and sample limitations;
-- calculation/schema versions;
-- creator and UTC timestamp; and
-- deterministic analysis digest.
-
-### Portfolio review decision
-
-A decision is a separate immutable human governance artifact linked to one exact
-analysis digest.
-
-Supported outcomes are exactly:
+## Core Objects
 
 ```text
-approved
-rejected
-deferred
+PortfolioReviewSource
+PortfolioReviewComponent
+PortfolioReviewEvidenceReference
+PortfolioReviewReturnObservation
+PortfolioReviewBaselineScenario
+PortfolioReviewProposedScenario
+PortfolioReviewAnalysisArtifact
+PortfolioReviewDecisionArtifact
+PortfolioReviewRecord
 ```
 
-A decision contains:
+## Review Source Contract
 
-- stable decision ID;
-- review ID and analysis digest;
-- outcome;
-- required human rationale;
-- reviewer identity;
-- reviewed UTC timestamp;
-- notes and warnings; and
-- schema version and deterministic digest.
+A source contains:
 
-`approved` means approved as portfolio-review governance evidence only.
+- one normalized source ID;
+- 2–12 unique ordered components;
+- one normalized component and strategy ID per component;
+- one or more supported evidence references per component;
+- at least one research-origin reference per component;
+- optional non-empty authoritative symbols;
+- at least three ordered aligned return observations;
+- exactly one finite return per component per timestamp;
+- evaluation frequency and optional periods per year;
+- creator and timezone-aware creation timestamp;
+- assumptions, warnings, and missing evidence; and
+- a canonical digest.
 
-A review has at most one settled decision in M30. Reconsideration, changed
-weights, changed evidence, or changed assumptions require a new review identity.
-Settled analysis and decision artifacts are never overwritten.
+The source is explicit. The product does not join, fill, sort, resample, infer, or
+reconstruct aligned returns from summary metrics or unrelated records.
 
-## Quantitative Boundary
+## Evidence References
 
-## Input validation
-
-The source calculation boundary requires:
-
-- at least three aligned observations;
-- a monotonic, unique timestamp sequence;
-- one exact timestamp sequence for all components;
-- no missing, non-numeric, boolean, infinite, or NaN returns;
-- unique nonblank component IDs;
-- deterministic component and timestamp order;
-- an explicit positive periods-per-year value when annualized values are
-  requested; and
-- immutable caller inputs.
-
-A constant return series is valid evidence but makes Pearson correlation
-undefined. The analysis must return an explicit unavailable value and warning,
-not `NaN`, infinity, or a fabricated zero correlation.
-
-## Concentration
-
-For each scenario, calculate at minimum:
+Supported evidence types are a closed product vocabulary. References preserve:
 
 ```text
-largest_component_weight
-largest_component_id
-top_3_weight
-herfindahl_hirschman_index
-effective_component_count
+reference_type
+reference_id
+optional label
+optional description
 ```
 
-Definitions:
+Exact duplicate `(reference_type, reference_id)` values are refused inside one
+component. Evidence pointers do not imply automatic dereferencing, return
+import, candidate selection, approval, or execution authority.
 
-```text
-top_3_weight = sum of the three largest weights,
-               or all weights when fewer than three components exist
+Existing research-run and evidence-manifest APIs may supply exact metadata and
+compatible pointers after explicit Founder selection. Unsupported references
+remain visible but cannot be silently mapped.
 
-herfindahl_hirschman_index = sum(weight_i ** 2)
+## Scenario Contract
 
-effective_component_count = 1 / herfindahl_hirschman_index
-```
+Baseline and proposed scenarios:
 
-Also expose ordered per-component weight deltas:
+- bind to the exact source;
+- have distinct normalized scenario IDs;
+- use every source component exactly once in source order;
+- use finite non-negative static weights;
+- require at least one positive weight;
+- sum to `1.0` within absolute tolerance `1e-12`;
+- include explicit rationale, assumptions, and warnings;
+- require at least one changed weight; and
+- require the explicit proposed component's own weight to change.
 
-```text
-proposed_weight - baseline_weight
-```
+No automatic normalization, optimization, recommendation, ranking, allocation,
+dynamic rebalancing, or target holding generation occurs.
 
-The product must not label lower concentration as automatically better or higher
-concentration as automatically unacceptable.
+## Quantitative Analysis
 
-## Review exposure
+### Concentration and review exposure
 
-M30 uses the term **review exposure** narrowly.
+For baseline and proposed scenarios, the domain calculates:
 
-It means:
+- largest component and weight;
+- top-three weight;
+- Herfindahl-Hirschman index;
+- effective component count;
+- ordered baseline/proposed weights and exact deltas;
+- added, removed, increased, decreased, or unchanged classification;
+- active flags; and
+- source and active-scenario symbol-evidence coverage.
 
-- static strategy/component weights in the reviewed scenarios;
-- added, removed, increased, decreased, and unchanged component weight;
-- declared symbol/universe coverage from source evidence; and
-- missing/incompatible coverage evidence.
+Declared symbols are review evidence. They are not runtime holdings, market value,
+notional, leverage, margin, or broker exposure.
 
-It does not mean current account holdings, market value, notional exposure,
-delta, beta, sector exposure, leverage, margin, financing, or broker position.
-Those values must not be inferred.
+### Symbol overlap and return interaction
 
-## Symbol and universe overlap
+For every unique unordered component pair in source order, the domain exposes:
 
-Where both components provide authoritative symbol sets, calculate transparent
-set evidence:
+- symbol overlap availability;
+- shared symbols and counts;
+- union count;
+- Jaccard overlap;
+- pairwise Pearson historical correlation; and
+- exact missing/undefined evidence reasons.
 
-```text
-shared_symbol_count
-union_symbol_count
-jaccard_overlap = shared_symbol_count / union_symbol_count
-shared_symbols
-```
+It also calculates the explicit proposed component's correlation to the baseline
+portfolio using the exact aligned historical window and baseline weights.
 
-If either side lacks symbol metadata, overlap is unavailable with an explicit
-warning. No natural-language or model-generated similarity substitutes for
-missing evidence.
+Zero variance or missing evidence produces an explicit unavailable result, never
+`NaN`, infinity, or fabricated zero.
 
-## Return interaction
+### Historical behavior and proposed impact
 
-Using the one shared aligned historical window, calculate:
+The domain reuses existing portfolio return, risk, equity, drawdown, and
+contribution authority to compare baseline and proposed historical scenarios.
 
-- pairwise Pearson return correlation for every ordered component pair;
-- candidate-to-baseline-portfolio return correlation; and
-- observation count and evaluation window for every interaction result.
+Supported evidence includes:
 
-Correlation is descriptive historical evidence. The product must not turn it
-into a recommendation, score, ranking, clustering result, or diversification
-claim.
-
-Covariance-derived values are not required for the first M30 version. Adding one
-later requires an explicit implementation Issue amendment with formula, units,
-sample behavior, and UI meaning.
-
-## Baseline and proposed portfolio behavior
-
-Use existing portfolio authority where practical:
-
-```text
-aligned component returns
-  -> validated static weights
-  -> weighted portfolio return
-  -> equity curve
-  -> portfolio risk summary
-  -> drawdown inspection
-  -> component contribution
-```
-
-For both scenarios expose an approved subset including:
-
-- observation count;
-- arithmetic mean return;
-- sample volatility;
+- observation count and window identity;
+- mean return and volatility;
 - optional annualized volatility;
-- minimum and maximum period return;
-- positive, negative, and zero period counts;
-- loss rate;
-- worst drawdown and its peak/trough/recovery context; and
-- component contribution summaries.
+- loss rate and min/max period return;
+- ending equity and cumulative return;
+- worst drawdown context;
+- ordered component contribution; and
+- exact scalar and contribution deltas as `proposed - baseline`.
 
-Proposed impact is the deterministic difference:
-
-```text
-proposed value - baseline value
-```
-
-for compatible scalar values. Non-scalar context is shown side by side rather
-than collapsed into a misleading number.
-
-Every page and artifact must identify this as historical scenario evidence, not
-forecast performance, expected alpha, an investment recommendation, or an
-execution instruction.
+Results are historical scenario evidence only. They are not forecasts,
+profitability claims, expected alpha, rankings, recommendations, or investment
+advice.
 
 ## Artifact Authority
 
-M30 uses immutable files for full payload authority.
-
-Sprint 174 implements this fixed logical layout under the configured evidence
-artifact root:
+Logical artifact classes:
 
 ```text
-portfolio-reviews/
-  sources/<source-key>/source.json
-  reviews/<review-key>/analysis.json
-  reviews/<review-key>/decision.json
+portfolio review source
+portfolio review analysis
+portfolio review decision
 ```
 
-The source and review keys are lowercase SHA-256 of the exact normalized UTF-8
-IDs. Raw IDs never become path fragments. The implemented safe path contract
-preserves:
+Files are:
 
-- root containment;
-- no arbitrary HTTP paths;
-- no absolute or traversal references;
-- no symlink escape;
-- schema and digest validation;
-- deterministic JSON-compatible values;
-- write-once collision refusal; and
-- reopen/cross-validation before API return.
+- versioned;
+- deterministic and strictly JSON-compatible;
+- digest-protected;
+- written once under fixed server-owned hashed paths;
+- reopened through strict schemas and cross-validation; and
+- never overwritten by a conflicting request.
 
-Source, analysis, and decision payloads remain separate. A decision does not
-rewrite the analysis artifact.
+Analysis reopen reconstructs the source and scenarios and recalculates derived
+M30 evidence. Decision reopen reconstructs the exact analysis relationship.
 
-## SQLite Persistence Boundary
+Raw caller IDs never become filesystem path fragments. No API accepts an
+arbitrary path.
 
-Sprint 174 adds exactly migration `0006_portfolio_reviews`, following
-`0005_paper_job_result_references`, with one compact `portfolio_reviews` table.
+## Persistence Architecture
 
-SQLite may store compact product-owned metadata such as:
+SQLite stores one compact `portfolio_reviews` record per review with:
 
-- review ID;
-- source ID and source digest;
-- baseline/proposed request digest;
-- analysis artifact key and digest;
-- decision artifact key and digest when settled;
-- workflow status;
-- create-command idempotency key and digest;
-- decision-command idempotency key and digest;
-- created/reviewed actor and UTC timestamps;
-- optimistic version or other deterministic conflict field; and
-- sanitized stable failure identity where approved.
+- record and artifact schema versions;
+- review, source, scenario, proposed-component, analysis, and decision identity;
+- digests and safe relative artifact paths;
+- create and decision idempotency bindings and command digests;
+- workflow status and outcome;
+- actor and UTC timestamps; and
+- optimistic version state.
 
-SQLite must not store:
+SQLite does not store full return observations, full analysis results, matrices,
+contributions, full decision payloads, balances, positions, orders, fills, fees,
+or ledger entries.
 
-- full aligned returns;
-- full symbol-overlap matrices;
-- full correlation matrices;
-- complete analysis payloads;
-- complete decision payloads;
-- account cash or positions;
-- orders, fills, or ledger entries.
+Concurrent conflicting decisions use a conditional status/version update so one
+settlement wins. A losing request cannot overwrite files or durable state.
 
-Implemented review workflow statuses are:
+Migration chain:
 
 ```text
-awaiting_decision
-approved
-rejected
-deferred
+0001_product_baseline
+  -> 0002_artifact_index
+  -> 0003_paper_jobs
+  -> 0004_paper_job_recovery_audit
+  -> 0005_paper_job_result_references
+  -> 0006_portfolio_reviews
 ```
 
-They describe the M30 review record only. They are not strategy lifecycle state
-and are not Paper Job state.
+The installed project wheel owns the Alembic migration resources used by the
+runtime-only backend image.
 
-## Idempotency and Concurrency
+## Application and API Architecture
 
-### Review creation
+Application services own transaction boundaries and file/database ordering.
+Routes remain thin and translate stable domain/application failures to bounded
+public error codes.
 
-`POST /api/v1/portfolio-reviews` requires one explicit idempotency key.
-
-```text
-same key + same normalized command digest -> exact replay
-same key + different digest                -> stable conflict
-new key + existing analysis identity       -> explicit duplicate/collision policy
-```
-
-The application must settle the authoritative analysis artifact and compact
-record consistently. Partial write failures remain visible and recoverable only
-through an explicitly specified bounded contract; they are never hidden by
-creating competing artifacts.
-
-### Decision recording
-
-`POST /api/v1/portfolio-reviews/{review_id}/decision` also requires explicit
-idempotency.
-
-```text
-same key + same decision digest -> exact replay
-same key + different digest     -> stable conflict
-already-settled different input -> settled-review conflict
-```
-
-Concurrent different decisions have one deterministic winner. The loser receives
-a stable conflict and can inspect the settled decision.
-
-No command automatically creates a lifecycle proposal, Paper Account, order,
-fill, or Paper Job.
-
-## Application and API Boundary
-
-The approved API shape is conceptually:
+Exact API:
 
 ```text
 POST /api/v1/portfolio-reviews
@@ -471,29 +244,16 @@ GET  /api/v1/portfolio-reviews/{review_id}
 POST /api/v1/portfolio-reviews/{review_id}/decision
 ```
 
-Implementation rules:
+Both POST routes require explicit caller-supplied idempotency keys and distinguish
+created from replayed outcomes. Reads reopen authoritative artifacts rather than
+trusting stale duplicated payloads.
 
-- request schemas remain bounded and versioned;
-- handlers only translate transport to application commands/views;
-- application services coordinate repositories, artifact readers/writers, and
-  domain calculations;
-- list responses contain compact product metadata only;
-- detail responses reopen and cross-validate authoritative artifacts;
-- raw source, analysis, decision, schema, digest, timestamp, and warning identity
-  remain visible;
-- errors use stable codes, request IDs, sanitized messages, and existing
-  observability rules;
-- no endpoint accepts an arbitrary filesystem path;
-- no update/delete endpoint mutates settled evidence; and
-- no account, lifecycle, order, execution, or broker side effect exists.
+No update, delete, recommendation, optimization, source-discovery, import,
+lifecycle bridge, account bridge, or execution route exists.
 
-Stable Sprint 174 errors include review not found/invalid/conflict, idempotency
-and settled conflicts, artifact conflict/invalid/unavailable, unavailable
-artifact root, and unavailable product database.
+## Founder Web Architecture
 
-## Founder Web Boundary
-
-Recommended routes are:
+Routes:
 
 ```text
 /portfolio-reviews
@@ -501,163 +261,110 @@ Recommended routes are:
 /portfolio-reviews/[reviewId]
 ```
 
-### List
+The Web provides complete English and Simplified Chinese presentation for:
 
-Show compact review identity, source, candidate, status, created/reviewed time,
-and exact detail link. Preserve backend ordering. Do not sort by return, risk, or
-approval outcome unless an explicit product contract later defines neutral
-ordering.
+- loading, empty, available, partial, stale, failed, invalid, conflict, awaiting,
+  and settled states;
+- raw IDs, statuses, versions, digests, timestamps, values, and error codes;
+- exact backend ordering and duplicate visibility;
+- a complete manual source/scenario builder;
+- explicit research/evidence composition;
+- entered weight totals without normalization;
+- authoritative analysis and unavailable evidence; and
+- one explicit governance-only decision.
 
-### Create
+Drafts are not stored in URLs, cookies, logs, analytics, or browser storage.
+Integration read failures do not disable valid manual submission.
 
-The Founder explicitly selects one approved source, baseline/proposed weights,
-the proposed component, and rationale. The form validates shape for usability,
-but the backend remains authority.
+## Demo Architecture
 
-The UI must not:
+Demo dataset/descriptor v2:
 
-- discover or auto-select a candidate;
-- normalize weights silently;
-- propose weights;
-- infer relationships between unrelated evidence;
-- calculate concentration, correlation, risk, drawdown, or impact; or
-- submit automatically.
+- uses a separate Compose project and volume;
+- validates one exact synthetic source before installation;
+- seeds one exact durable review through existing authority;
+- exposes one path-free explicit create prefill;
+- requires replace confirmation;
+- never auto-submits or decides;
+- replays exactly through the normal create service;
+- preserves a valid later decision; and
+- never writes to Standard storage.
 
-### Detail and decision
+The read-only verifier includes portfolio-review list/detail checks and issues no
+portfolio-review mutation.
 
-Display:
+## Observability and Error Boundary
 
-- review identity and source audit;
-- baseline and proposed weights;
-- concentration;
-- review exposure and symbol overlap;
-- interaction matrix/evidence;
-- baseline/proposed portfolio behavior and deltas;
-- contribution context;
-- assumptions, limitations, warnings, and missing evidence;
-- raw schema/digest/timestamp values; and
-- explicit decision form or immutable settled decision.
+Portfolio-review events contain bounded operation, route, request, review,
+decision, status, and outcome identity only.
 
-Charts are optional and must visualize backend-owned values without recomputation.
-Tables and accessible text remain sufficient authority.
+They exclude:
 
-### Product language
+- credentials and authentication material;
+- request/response bodies;
+- idempotency keys;
+- return observations and weights;
+- financial payloads;
+- filesystem paths;
+- SQL;
+- exception text and tracebacks; and
+- artifact contents.
 
-The entire M30 workflow is complete in `en` and `zh-CN`. Raw strategy names,
-component IDs, source/review/decision IDs, status values, schema versions,
-digests, timestamps, weights, metrics, and error codes remain inspectable and
-untranslated. Localized explanations may accompany them.
+Known migration-resource absence fails before database mutation, Demo
+installation, or serving with a bounded safe identity.
 
-## Dashboard Boundary
+## Human-Control Boundary
 
-After durable review list semantics exist, the Overview may provide a neutral
-link or bounded attention item for `awaiting_decision` reviews.
+An M30 decision does not:
 
-It must not:
+- change strategy lifecycle automatically;
+- approve a Paper Job;
+- create or fund a Paper Account;
+- reserve or allocate cash;
+- create positions, orders, fills, fees, or ledger entries;
+- trigger a worker or scheduler; or
+- imply broker or live readiness.
 
-- recommend approval or rejection;
-- rank reviews;
-- call lower risk or correlation automatically better;
-- infer pending reviews from in-memory state; or
-- hide source-specific failures.
+A later milestone may reference an approved M30 review only through a separately
+approved contract.
 
-Any Dashboard change belongs to the Web implementation Issue.
+## Accepted Runtime Boundary
 
-## Demo and Standard Workspace
+Founder acceptance confirmed:
 
-S176 provides one deterministic Demo dataset/descriptor v2 create example and
-one seeded durable `awaiting_decision` review. The descriptor is path-free; the
-Web loads it only after explicit replace confirmation and never auto-submits or
-selects a decision. Exact replay preserves a later valid human decision.
-
-Research-run integration copies only exact strategy identity, optional label,
-declared symbol order, and the opaque `<experiment_slug>/<run_id>` evidence
-pointer. Compatible governance, report, and lifecycle references are copied
-verbatim only from an explicitly selected evidence manifest. No public persisted
-paper-comparison-summary discovery contract exists, and summary metrics never
-become aligned return observations. Returns, weights, scenarios, audit input,
-and proposed-component selection remain explicit Founder authority.
-
-Standard startup remains unseeded. Demo installation never writes to Standard
-storage. Existing backup, volume-isolation, and fail-closed rules remain in force.
-
-Codex does not run Docker builds, pulls, Compose startup, container smoke, or
-volume removal. The Founder owns local Standard/Demo and browser acceptance.
+- preserved Standard 0005-to-0006 upgrade;
+- Standard verification and non-mutating smoke;
+- Standard remains unseeded;
+- Demo v2 seeded review and explicit prefill;
+- exact create/replay and authoritative detail;
+- explicit decision persistence across restart;
+- return-to-Standard isolation; and
+- bilingual browser behavior with unchanged raw truth.
 
 ## M31 Handoff
 
-M30 hands M31:
+M31 must create a separate durable Paper Account and ledger source of truth.
 
-- stable portfolio review identity;
-- immutable source and analysis evidence;
-- explicit human decision evidence;
-- scenario assumptions and warnings; and
-- a compact auditable reference boundary.
+M30 scenario weights remain review assumptions. M30 decisions remain governance
+evidence. Neither may become cash, positions, available capital, orders, fills,
+fees, or ledger events by implication.
 
-M30 does **not** hand M31 account truth.
+M31 planning must decide account identity, ledger entries, funding and adjustment
+semantics, order/fill persistence boundaries, fees, concurrency, idempotency,
+snapshots, reconciliation, derived balances, evidence links, migrations, API,
+Web, Demo, and acceptance before implementation begins.
 
-M31 may reference an approved M30 decision, but must separately establish:
+## Explicit Non-goals
 
-- Paper Account identity;
-- cash and position ledger truth;
-- orders and fills;
-- account versioning;
-- snapshot derivation;
-- reconciliation; and
-- deterministic write concurrency.
+M30 does not add:
 
-M30 weights are review assumptions. They are not account balances, current
-holdings, reserved cash, orders, fills, ledger events, or executable allocation
-instructions. No approved review automatically creates or funds an account.
-
-## Approved Sprint Dependencies
-
-```text
-S169 architecture and planning
-  -> S170 source/input and scenario contracts
-  -> S171 concentration and review-exposure analysis
-  -> S172 interaction and proposed-impact analysis
-  -> S173 immutable review/decision artifacts
-  -> S174 persistence, application services, and API
-  -> S175 bilingual Founder Web workflow
-  -> S176 integration, Demo, and acceptance hardening
-  -> S177 closeout and M31 handoff
-```
-
-Each sprint receives its own authoritative Issue after its predecessor is merged.
-No future Issue may weaken this architecture silently. Material changes require
-an explicit Issue amendment and CTO review.
-
-## Architecture Risks and Mitigations
-
-| Risk | Mitigation |
-|---|---|
-| Summary metrics are mistaken for enough interaction evidence. | Require aligned return observations and exact evaluation identity. |
-| M30 becomes another caller-supplied governance shell. | Domain calculations own concentration, overlap, correlation, risk, drawdown, and deltas. |
-| Review weights are mistaken for capital allocation. | Label them scenario assumptions and separate them from M31 account truth. |
-| Correlation is presented as recommendation. | Preserve raw descriptive values, sample limits, and neutral copy. |
-| Missing symbol metadata is silently inferred. | Return unavailable overlap with explicit warnings. |
-| Old research runs are declared compatible without returns. | Require a validated M30 source artifact; no retroactive compatibility claim. |
-| Full payloads bloat SQLite. | Keep files authoritative and persist compact identity/reference metadata only. |
-| Concurrent decisions overwrite evidence. | One settled decision, idempotency, deterministic winner/loser conflict. |
-| Web duplicates financial calculations. | Generated API contracts and backend-owned values only. |
-| M30 leaks into M31–M36. | Explicit account, market, order, runtime, broker, and live non-goals. |
-| Demo evidence contaminates Standard. | Preserve visible mode identity and isolated volumes/roots. |
-
-## Exit Architecture
-
-M30 is architecturally complete only when the Founder can create and inspect one
-reproducible portfolio review, understand concentration/exposure/interaction and
-historical proposed impact, record one explicit human decision, and inspect all
-raw evidence and limitations through the bilingual product.
-
-Completion must still prove:
-
-- no automatic allocation;
-- no optimization or recommendation;
-- no account or ledger mutation;
-- no market/session runtime;
-- no order or fill generation;
-- no worker or scheduler;
-- no broker/QMT/live behavior; and
-- a clean handoff to a separately authoritative M31 account/ledger milestone.
+- automatic strategy approval, ranking, recommendation, or optimization;
+- capital allocation or dynamic rebalancing;
+- account, cash, position, fee, order, fill, or ledger truth;
+- market-data replay, trading calendar, or session clock;
+- strategy-to-order generation or pre-trade order risk;
+- execution simulation;
+- worker, scheduler, queue, checkpoint, or multi-day runtime;
+- broker, QMT, MiniQMT, private-edge, live, or real-money behavior;
+- distributed infrastructure; or
+- public SaaS or multi-tenancy.
