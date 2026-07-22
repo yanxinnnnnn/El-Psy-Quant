@@ -32,12 +32,14 @@ S173 Portfolio Review Artifact and Human Decision Foundation
 S174 Durable Portfolio Review Persistence and Application/API Foundation
 S175 Founder Portfolio Decision Review Web Workspace
 S176 Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
-S177 Milestone 30 Closeout and M31 Handoff
+S177 Backend Runtime Alembic Resource Packaging and Startup Recovery
+S178 Milestone 30 Closeout and M31 Handoff
 ```
 
-Sprints 169–175 are complete. Sprint 176 implementation is complete; Founder
-Standard/Demo runtime acceptance remains. Sprint 177 is next only after Sprint
-176 is merged and that acceptance is complete.
+Sprints 169–176 are complete. Sprint 177 implementation fixes the installed-wheel
+Alembic resource blocker found during Founder Standard startup. Founder recovery
+and complete Standard/Demo runtime acceptance remain. Sprint 178 closeout is
+next only after Sprint 177 is merged and that acceptance succeeds.
 
 ## Product Delivered Through M29
 

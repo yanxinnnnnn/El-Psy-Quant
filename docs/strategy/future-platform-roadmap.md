@@ -34,13 +34,14 @@ M26 — Paper Trading Application Service Foundation          Complete
 M27 — Persistence and Paper Job Control Foundation          Complete
 M28 — Founder Paper Trading Web Workspace                   Complete
 M29 — Product Feedback and Hardening                        Complete
-M30 — Portfolio-Level Decision Review Foundation            In Progress (S169-S177)
+M30 — Portfolio-Level Decision Review Foundation            In Progress (S169-S178)
 M31-M36 — Stateful Paper Trading Runtime sequence           Planned
 ```
 
-Sprint 169 establishes the M30 architecture and milestone plan. Sprint 170 is the
-next implementation sprint after Founder review and merge of the S169 planning
-PR.
+Sprints 169–176 are complete. Sprint 177 fixes the installed-wheel Alembic
+resource blocker found during Founder Standard startup. Founder recovery and
+complete Standard/Demo runtime acceptance remain; Sprint 178 closeout is blocked
+until that acceptance succeeds.
 
 M29 completed the transition from a working local MVP to a bilingual, modern,
 actionable, and dependable Founder product.
@@ -149,7 +150,7 @@ M30 Portfolio-Level Decision Review Foundation
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-M30 now has an approved S169–S177 architecture. M31–M36 sprint counts and dates
+M30 now has an approved S169–S178 architecture. M31–M36 sprint counts and dates
 remain `TBD`. Every milestone receives its own planning Issue before
 implementation.
 
@@ -157,7 +158,7 @@ implementation.
 
 ### Status
 
-In Progress through S169–S177.
+In Progress through S169–S178.
 
 Authoritative M30 planning:
 
@@ -248,15 +249,16 @@ An M30 approval is portfolio-review governance evidence only. It does not:
 
 | Sprint | Deliverable | Owner | Status |
 |---:|---|---|---|
-| S169 | Milestone 30 Architecture and Planning | CTO | In review |
-| S170 | Portfolio Review Input and Scenario Contract Foundation | Codex | Next after S169 merge |
-| S171 | Concentration and Exposure Analysis Foundation | Codex | Planned |
-| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Codex | Planned |
-| S173 | Portfolio Review Artifact and Human Decision Foundation | Codex | Planned |
-| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Codex | Planned |
-| S175 | Founder Portfolio Decision Review Web Workspace | Codex | Planned |
-| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Codex | Planned |
-| S177 | Milestone 30 Closeout and M31 Handoff | CTO | Planned |
+| S169 | Milestone 30 Architecture and Planning | CTO | Complete |
+| S170 | Portfolio Review Input and Scenario Contract Foundation | Codex | Complete |
+| S171 | Concentration and Exposure Analysis Foundation | Codex | Complete |
+| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Codex | Complete |
+| S173 | Portfolio Review Artifact and Human Decision Foundation | Codex | Complete |
+| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Codex | Complete |
+| S175 | Founder Portfolio Decision Review Web Workspace | Codex | Complete |
+| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Codex | Complete; Founder runtime acceptance remains |
+| S177 | Backend Runtime Alembic Resource Packaging and Startup Recovery | Codex | Implementation complete; Founder recovery acceptance remains |
+| S178 | Milestone 30 Closeout and M31 Handoff | CTO | Planned |
 
 ### Boundary
 

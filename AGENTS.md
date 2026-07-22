@@ -134,12 +134,14 @@ Milestone 30 is In Progress:
 M30 — Portfolio-Level Decision Review Foundation
 ```
 
-Sprints 169–175 are Complete. Sprint 176 implementation is complete; Founder
-Standard/Demo runtime acceptance remains. After Sprint 176 is merged and
-Founder acceptance is complete, the next sprint is:
+Sprints 169–176 are Complete. Founder Standard startup exposed an installed-wheel
+Alembic resource defect before runtime acceptance could complete. Sprint 177
+fixes that bounded backend-runtime blocker; Founder Standard/Demo recovery
+acceptance remains. After Sprint 177 is merged and acceptance is complete, the
+next sprint is:
 
 ```text
-Sprint 177 — Milestone 30 Closeout and M31 Handoff
+Sprint 178 — Milestone 30 Closeout and M31 Handoff
 ```
 
 Authoritative M30 planning:
@@ -161,7 +163,8 @@ S169 architecture and planning
   -> S174 persistence, application services, and API
   -> S175 bilingual Founder Web workflow
   -> S176 integration, Demo, and acceptance hardening
-  -> S177 closeout and M31 handoff
+  -> S177 backend runtime Alembic resource packaging and startup recovery
+  -> S178 closeout and M31 handoff
 ```
 
 Implemented Sprint 170 contract:
