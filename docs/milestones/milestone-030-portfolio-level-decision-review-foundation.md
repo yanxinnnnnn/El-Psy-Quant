@@ -2,177 +2,112 @@
 
 ## Status
 
-**In Progress.**
+**Complete after Sprint 178 merges.**
 
-Planned sprint range:
+Completed sprint range:
 
 ```text
 S169–S178
 ```
 
-Sprints 169–176 are Complete. Sprint 177 fixes the installed-wheel Alembic
-resource blocker exposed during Founder Standard startup. Founder preserved-volume
-recovery and complete Standard/Demo acceptance remain. Sprint 178 closeout is
-next only after Sprint 177 is merged and that acceptance succeeds.
+Formal closeout:
+
+```text
+docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
+```
 
 ## Product Goal
 
-Before a strategy is considered by the future stateful Paper Trading runtime,
-the Founder can review it in the context of an explicit portfolio scenario.
+Milestone 30 adds one explicit portfolio-aware decision layer before stateful
+Paper Account and market-driven runtime work begins.
 
-The completed milestone should answer:
+The Founder can answer:
 
 ```text
-What portfolio and proposal are under review?
+What portfolio source and scenarios are under review?
 Which strategy and evidence inputs are included?
-How concentrated is the baseline and proposed scenario?
+Where is concentration located?
 Which component and universe exposures change?
-How do strategy return streams and symbol sets overlap?
-How would the proposal have changed historical portfolio behavior?
-What assumptions, missing evidence, and warnings limit the review?
+How do return streams and symbol sets interact?
+How would the proposed scenario have changed historical behavior?
+Which assumptions, warnings, and missing evidence limit the review?
 What explicit human decision was recorded?
 ```
 
-M30 remains human-controlled portfolio decision review. It does not allocate
-capital, approve execution, mutate an account, generate orders, simulate fills,
-or start a runtime.
+M30 remains human-controlled portfolio governance. It does not allocate capital,
+mutate an account, generate orders, simulate fills, or start a runtime.
 
-## Why This Milestone Comes Now
-
-Milestones 13 and 14 established static portfolio construction, risk, drawdown,
-contribution, and attribution foundations.
-
-Milestones 20–24 established human-controlled promotion, comparison, decision,
-report, and lifecycle governance.
-
-Milestones 26–29 exposed and hardened those capabilities through a local
-bilingual Founder product.
-
-The next missing decision layer is not another strategy-level record. It is the
-ability to inspect the effect of a proposed strategy on the portfolio as a whole
-before future account and execution automation is introduced.
-
-The approved sequence remains:
+## Delivered Product Chain
 
 ```text
-M30 portfolio decision review
-  -> M31 durable Paper Account and ledger truth
-  -> M32 market-session truth
-  -> M33 strategy-to-order and pre-trade risk truth
-  -> M34 execution truth
-  -> M35 durable runtime truth
-  -> M36 multi-day operations
+explicit immutable review source
+  -> explicit baseline and proposed static scenarios
+  -> domain-calculated concentration and review exposure
+  -> symbol overlap and historical return interaction
+  -> baseline/proposed historical behavior and impact
+  -> immutable analysis evidence
+  -> explicit approve / reject / defer decision
+  -> bilingual Founder inspection and audit
 ```
 
-## Audited Existing Capability
+## Core Product Authority
 
-### Reused portfolio authority
+### Review source
 
-M30 should reuse existing domain behavior for:
+One source owns:
 
-- return alignment;
-- strict static-weight validation;
-- weighted portfolio returns;
-- equity construction;
-- portfolio risk summaries;
-- worst drawdown inspection;
-- component contribution; and
-- deterministic artifact conventions.
+- 2–12 ordered components;
+- explicit component and strategy identities;
+- supported evidence references;
+- at least one research-origin reference per component;
+- optional authoritative symbol metadata;
+- at least three exact ordered aligned historical return observations;
+- evaluation and audit identity;
+- assumptions, warnings, and missing evidence; and
+- a canonical SHA-256 digest.
 
-### Reused governance authority
+The product never reconstructs aligned returns from summary metrics, prose,
+screenshots, comparisons, or unrelated records.
 
-M30 should follow existing conventions for:
+### Baseline and proposed scenarios
 
-- stable IDs and schema versions;
-- typed evidence references;
-- immutable descriptive and decision records;
-- required rationale;
-- reviewer and timestamp identity;
-- assumptions, warnings, and missing evidence;
-- deterministic JSON-compatible export; and
-- explicit human control.
+Both scenarios:
 
-### Reused product authority
+- bind to the same exact source;
+- use the complete source component set in source order;
+- use explicit non-negative static weights summing to one;
+- preserve exact caller values without normalization;
+- have distinct scenario identities; and
+- require a real weight change for the explicit proposed component.
 
-M30 should preserve:
-
-```text
-Browser
-  -> Next.js Founder Workspace
-  -> same-origin backend gateway
-  -> versioned FastAPI API
-  -> thin application services
-  -> domain modules and artifact readers/writers
-  -> authoritative artifact roots and compact SQLite state
-```
-
-### Capability gap M30 must close
-
-Current research artifacts expose manifests and summary metrics but not the
-aligned strategy return observations required to calculate reproducible
-interaction and proposed portfolio impact.
-
-M30 must introduce an explicit immutable review-source artifact. It must not infer
-correlation or portfolio impact from summary metrics, screenshots, user prose, or
-unrelated records.
-
-## User Journey
-
-The target Founder journey is:
-
-```text
-select validated portfolio review source
-  -> declare baseline static weights
-  -> declare proposed static weights and candidate
-  -> submit explicit review command
-  -> inspect immutable concentration/exposure/interaction/impact evidence
-  -> inspect assumptions, warnings, raw identities, and source digests
-  -> record approve / reject / defer with rationale
-  -> retain immutable decision evidence for later reference
-```
-
-A proposal is not automatically approved. An approval is not execution.
-
-## Core Product Objects
-
-M30 introduces bounded equivalents of:
-
-```text
-PortfolioReviewSource
-PortfolioReviewComponent
-PortfolioReviewScenario
-PortfolioReviewAnalysis
-PortfolioReviewDecision
-PortfolioReviewReference / compact product record
-```
-
-Exact names are implementation decisions, but competing hidden authorities are
-not allowed.
-
-### Source
-
-The source contains explicit component identities, evidence references, aligned
-historical return observations, symbol/universe metadata where authoritative,
-evaluation assumptions, and a deterministic digest.
-
-### Scenarios
-
-Baseline and proposed scenarios use the same source and evaluation window. They
-contain explicit non-negative static weights summing to `1.0`. No automatic
-scaling, optimization, or weight recommendation occurs.
-
-The first M30 version supports a union of at most 12 explicitly selected strategy
-components. At least one proposed weight differs from baseline.
+Weights are review assumptions, not holdings, cash, available capital, reserved
+capital, or account allocation.
 
 ### Analysis
 
-The analysis contains domain-calculated concentration, review exposure, symbol
-or universe overlap, return interaction, baseline/proposed historical behavior,
-and explicit deltas.
+Domain-owned analysis includes:
 
-### Decision
+- largest-component weight;
+- top-three concentration;
+- Herfindahl-Hirschman index;
+- effective component count;
+- ordered component exposure and weight changes;
+- declared-symbol evidence and active coverage;
+- shared symbols and Jaccard overlap;
+- pairwise historical return correlation;
+- proposed-component-to-baseline correlation;
+- baseline/proposed historical risk and behavior;
+- equity and drawdown context;
+- ordered component contribution; and
+- exact proposed-minus-baseline deltas.
 
-The decision is separate immutable human evidence with exactly:
+Undefined or missing evidence remains explicitly unavailable. Results are
+historical scenario evidence, not forecasts, rankings, recommendations, expected
+alpha, or investment advice.
+
+### Human decision
+
+One review supports at most one settled immutable decision:
 
 ```text
 approved
@@ -180,107 +115,52 @@ rejected
 deferred
 ```
 
-One M30 review has at most one settled decision. Changed evidence, assumptions,
-or weights create a new review.
+The decision contains exact review and analysis identity, reviewer, UTC timestamp,
+rationale, notes, warnings, scope, and digest. Approval is governance evidence
+only; it does not approve execution or create account state.
 
-## Quantitative Scope
+## Artifact and Persistence Authority
 
-## Concentration
+Full source, analysis, and decision payloads remain separate write-once files
+under fixed server-owned hashed paths. Readers reject unsafe paths, symlinks,
+duplicate JSON keys, non-finite values, schema/digest conflicts, and mismatched
+nested authority.
 
-At minimum:
+SQLite stores compact product metadata and workflow state only:
 
-- largest component and weight;
-- top-three concentration;
-- Herfindahl-Hirschman index;
-- effective component count; and
-- ordered baseline/proposed weight deltas.
+- review/source/scenario/analysis/decision identity and digests;
+- safe relative artifact references;
+- create and decision idempotency bindings;
+- status and optimistic version state;
+- actor and UTC timestamps; and
+- deterministic one-winner settlement state.
 
-## Review exposure
+It does not store full observations, matrices, calculations, complete artifact
+payloads, account balances, positions, orders, fills, or ledger entries.
 
-M30 review exposure means:
-
-- static strategy/component scenario weights;
-- added, removed, increased, decreased, and unchanged components; and
-- declared symbol/universe coverage from authoritative source evidence.
-
-It does not mean runtime holdings, account market value, notional, leverage,
-margin, financing, or broker exposure.
-
-## Interaction and overlap
-
-At minimum where evidence is available:
-
-- shared-symbol counts and explicit shared-symbol identity;
-- Jaccard symbol-set overlap;
-- pairwise Pearson historical return correlation;
-- candidate-to-baseline-portfolio correlation; and
-- observation count and evaluation-window identity.
-
-Undefined correlation remains unavailable with a warning. It is never serialized
-as `NaN`, infinity, or a fabricated zero.
-
-## Proposed impact
-
-Use the same aligned historical observations and assumptions for baseline and
-proposed scenarios. Compare an approved subset of:
-
-- mean return;
-- volatility and optional annualized volatility;
-- loss rate;
-- min/max period return;
-- worst drawdown;
-- concentration;
-- component contribution; and
-- interaction/overlap context.
-
-Scalar deltas are `proposed - baseline`. Non-scalar evidence is shown side by
-side.
-
-All results are historical scenario evidence, not forecasts, rankings,
-recommendations, or investment advice.
-
-## Data and Artifact Authority
-
-Full payload authority remains immutable files under a safe configured artifact
-root.
-
-Recommended logical artifacts:
+The exact migration chain is:
 
 ```text
-portfolio review source artifact
-portfolio review analysis artifact
-portfolio review decision artifact
+0001_product_baseline
+  -> 0002_artifact_index
+  -> 0003_paper_jobs
+  -> 0004_paper_job_recovery_audit
+  -> 0005_paper_job_result_references
+  -> 0006_portfolio_reviews
 ```
 
-They remain separate, versioned, digestible, deterministic, and cross-validatable.
-No API accepts an arbitrary path. No settled artifact is overwritten.
+Single head:
 
-Existing old research runs remain readable. They are not modified or falsely
-upgraded into M30 sources without the required return evidence.
+```text
+0006_portfolio_reviews
+```
 
-## Persistence Requirement
+The installed backend wheel contains the complete authoritative Alembic resource
+tree. Runtime startup does not depend on `/app/src` or a repository checkout.
 
-M30 added one reviewed Alembic migration in Sprint 174. The current single
-migration head is `0006_portfolio_reviews`.
+## API and Web Boundary
 
-SQLite stores compact product-owned metadata only, including an approved subset
-of:
-
-- review/source identity and digests;
-- analysis/decision artifact references and digests;
-- workflow status;
-- create and decision idempotency bindings;
-- actor and UTC timestamps;
-- deterministic conflict/version information; and
-- sanitized stable failure identity where approved.
-
-SQLite does not store full return observations, matrices, full analysis payloads,
-full decision payloads, account balances, positions, orders, fills, or ledger
-entries.
-
-## API Requirement
-
-The target bounded API is equivalent to:
+The portfolio-review API remains exactly:
 
 ```text
 POST /api/v1/portfolio-reviews
@@ -289,206 +169,135 @@ GET  /api/v1/portfolio-reviews/{review_id}
 POST /api/v1/portfolio-reviews/{review_id}/decision
 ```
 
-Required behavior:
+The bilingual Founder Web provides:
 
-- explicit idempotency for creation and decision;
-- compact neutral list semantics;
-- exact immutable detail reads;
-- authoritative artifact reopen and cross-validation;
-- stable conflict, invalid, unavailable, and not-found errors;
-- existing request-ID and sanitized observability conventions;
-- one deterministic winner for concurrent conflicting decisions; and
-- no lifecycle, account, order, execution, or broker side effect.
+- exact backend-ordered list/filter/refresh;
+- a complete manual create builder;
+- explicit research-run and compatible evidence-manifest composition;
+- strict finite input validation without browser financial calculation;
+- complete authoritative detail and audit presentation;
+- visible unavailable-evidence meaning;
+- one awaiting-only explicit decision action; and
+- immutable settled-decision presentation.
 
-## Web Requirement
+The browser never reads files or SQLite, calculates portfolio evidence, infers a
+candidate, normalizes weights, or records a decision automatically.
 
-Target routes are equivalent to:
+## Demo and Standard Workspace
 
-```text
-/portfolio-reviews
-/portfolio-reviews/new
-/portfolio-reviews/[reviewId]
-```
+Demo dataset/descriptor v2 provides:
 
-The Web must provide:
+- one isolated exact synthetic source and durable review;
+- one explicit replace-confirmed create prefill;
+- no automatic submit or decision;
+- exact create replay through the existing API;
+- preservation of a valid later human decision; and
+- read-only verifier coverage.
 
-- complete English and Simplified Chinese copy;
-- explicit source and scenario selection;
-- visible weight validation without silent normalization;
-- concentration, review exposure, overlap, interaction, behavior, delta,
-  contribution, assumptions, warning, and audit presentation;
-- one explicit decision action;
-- immutable settled decision presentation;
-- accessible loading, empty, unavailable, invalid, conflict, partial, and settled
-  states; and
-- raw IDs, versions, digests, timestamps, values, and error codes.
+Standard remains unseeded. Standard and Demo use separate project identities,
+volumes, databases, and artifact roots.
 
-The Web does not calculate financial values, select a candidate, propose weights,
-rank strategies, or infer record relationships.
+## Completed Sprint Sequence
 
-## Human-Control Boundary
+| Sprint | Outcome | Status |
+|---:|---|---|
+| S169 | Architecture, scope, data authority, acceptance model, sprint plan, and M31 boundary | Complete |
+| S170 | Immutable source, component, evidence, aligned-return, and scenario contracts | Complete |
+| S171 | Concentration, exposure, and declared-symbol coverage analysis | Complete |
+| S172 | Overlap, correlation, historical behavior, contribution, and proposed impact | Complete |
+| S173 | Immutable analysis, decision, digest, and typed-reference artifacts | Complete |
+| S174 | Write-once artifact I/O, compact persistence, migration, application services, and API | Complete |
+| S175 | Bilingual Founder list/create/detail/decision workspace | Complete |
+| S176 | Explicit workflow integration, Demo v2, verification, errors, and acceptance hardening | Complete |
+| S177 | Installed-wheel Alembic resource packaging and preserved-volume startup recovery | Complete |
+| S178 | Formal closeout and M31 planning handoff | Complete after merge |
 
-M30 decision outcomes are governance evidence.
+## Verification and Founder Acceptance
 
-They do not:
+Deterministic implementation gates covered Python tests and linting, package and
+CLI behavior, installed-wheel migration resources, OpenAPI/generated TypeScript,
+locale catalogs, Web lint/type/tests/build, Alembic head, and static Compose
+configuration.
 
-- automatically change an M24 lifecycle state;
-- approve Paper Job execution;
-- create a Paper Account;
-- reserve or allocate cash;
-- create positions, orders, fills, or ledger entries;
-- trigger a worker or scheduler; or
-- imply broker or live readiness.
+Founder local acceptance confirmed:
 
-A later workflow may reference an approved M30 decision only through a separately
-approved milestone contract.
+- the preserved Standard volume upgraded from 0005 to 0006;
+- Standard read-only verification and non-mutating smoke passed;
+- Standard remained unseeded;
+- Demo Workspace v2 installed and verified;
+- the exact create prefill did not auto-submit;
+- exact create/replay and authoritative detail passed;
+- one explicit decision persisted across Demo restart;
+- returning to Standard preserved data isolation; and
+- English and Simplified Chinese browser acceptance passed while raw values
+  remained unchanged.
 
-## Sprint Sequence
+## Exit Criteria
 
-| Sprint | Status | Owner | Goal | Main deliverable | Guardrail |
-|---:|---|---|---|---|---|
-| S169 | Complete | CTO | Plan M30. | Architecture, milestone scope, data authority, sprint sequence, and M31 handoff. | Documentation only. |
-| S170 | Complete | Codex | Define review sources and scenarios. | Immutable source/component/evidence/aligned-return and baseline/proposed scenario contracts. | No analysis, persistence, API, or Web. |
-| S171 | Complete | Codex | Add concentration and exposure evidence. | Deterministic concentration, weight-delta, review-exposure, and available universe-coverage summaries. | No correlation, optimization, or recommendation. |
-| S172 | Complete | Codex | Add interaction and proposed impact. | Symbol overlap, return interaction, baseline/proposed portfolio behavior, and historical deltas. | No forecast, allocation, factor model, VaR, or runtime. |
-| S173 | Complete | Codex | Add review and decision artifacts. | Immutable analysis/decision payloads, references, digest rules, and explicit outcomes. | No database, API, Web, lifecycle mutation, or execution. |
-| S174 | Complete | Codex | Add durable product and API boundary. | Compact SQLite persistence, migration, hashed write-once artifact I/O, application services, OpenAPI, and versioned API. | No Founder Web, account ledger, or M31 behavior. |
-| S175 | Complete | Codex | Add Founder Web workflow. | Bilingual list/create/detail/decision workspace using generated contracts. | No browser financial calculation or recommendation. |
-| S176 | Complete; Founder Standard/Demo runtime acceptance remains | Codex | Integrate and harden acceptance. | Explicit source workflow integration, deterministic Demo v2 review, errors, read-only verification, tests, docs, and Founder acceptance checklist. | Founder owns Docker/browser runtime acceptance; no M31+. |
-| S177 | Implementation complete; Founder recovery acceptance remains | Codex | Repair installed-wheel migration authority. | Packaged Alembic resource resolution, startup preflight, installed-wheel regression gate, recovery docs, and preservation tests. | No migration/schema/product behavior change; Founder owns runtime recovery. |
-| S178 | Planned | CTO | Close M30 and hand off to M31. | Exit verification, closeout record, roadmap update, and account/ledger handoff. | Documentation only. |
+M30 completed every approved exit criterion:
 
-Future implementation Issues must be created one sprint at a time after the
-predecessor is merged.
+- reproducible explicit source and scenarios;
+- inspectable concentration, exposure, overlap, interaction, behavior, and impact;
+- visible assumptions, warnings, missing evidence, versions, timestamps, and
+  digests;
+- immutable source, analysis, and decision authority;
+- compact SQLite state and explicit idempotency;
+- exact versioned API and bilingual Web workflow;
+- write-once settled evidence;
+- preserved Standard/Demo isolation;
+- successful Founder acceptance; and
+- no premature M31–M36 behavior.
 
-## Sprint Dependencies
-
-### S170 depends on
-
-- merged S169 architecture;
-- existing portfolio alignment and static-weight rules;
-- existing immutable governance-contract conventions; and
-- an explicit decision on source artifact schema and return observation format.
-
-### S171 depends on
-
-- validated source/component/scenario contracts; and
-- exact weight ordering and scenario-union rules.
-
-### S172 depends on
-
-- aligned finite return observations;
-- deterministic scenario portfolio returns;
-- exact sample/undefined-correlation behavior; and
-- reused M13/M14 helpers.
-
-### S173 depends on
-
-- settled analysis schemas;
-- exact assumptions/warning semantics; and
-- explicit `approved`, `rejected`, `deferred` decision meaning.
-
-### S174 depends on
-
-- stable artifact payload schemas and digests;
-- one approved migration design;
-- exact idempotency and conflict semantics; and
-- safe root/path/write-once contracts.
-
-### S175 depends on
-
-- checked-in OpenAPI and generated TypeScript contracts;
-- stable list/detail/decision APIs; and
-- complete bilingual terminology.
-
-### S176 depends on
-
-- end-to-end backend and Web behavior;
-- deterministic isolated Demo source/review data;
-- error and audit inventories; and
-- non-destructive Standard/Demo verification.
-
-### S177 depends on
-
-- the reproduced runtime-only image migration-resource failure;
-- the healthy preserved Standard database and complete cold backup evidence;
-- the unchanged exact 0001–0006 migration chain; and
-- a deterministic installed-wheel regression path outside repository source.
-
-### S178 depends on
-
-- Founder local acceptance of the complete supported workflow;
-- green repository gates;
-- all S170–S177 Issues closed and PRs merged; and
-- no unresolved M30 blocker.
-
-## Milestone Exit Criteria
-
-M30 completes only when:
-
-- one explicit validated review source can support reproducible portfolio analysis;
-- baseline and proposed scenarios have stable identity and strict static weights;
-- concentration and review exposure are inspectable;
-- supported overlap and interaction evidence are inspectable with sample limits;
-- baseline/proposed historical behavior and deltas are domain calculated;
-- assumptions, warnings, missing evidence, source versions, and digests are visible;
-- one immutable human decision can be recorded with reviewer, timestamp, outcome,
-  and rationale;
-- full source/analysis/decision payloads remain authoritative artifacts;
-- SQLite contains only compact product metadata and idempotency state;
-- the complete workflow is available through versioned API and bilingual Web;
-- settled evidence cannot be silently overwritten;
-- Standard/Demo isolation and existing product hardening remain intact;
-- Founder acceptance confirms the workflow improves portfolio-level judgment; and
-- no M31–M36 behavior has been implemented prematurely.
-
-## Explicit Non-goals
+## Explicit Non-goals and Remaining Debt
 
 M30 does not introduce:
 
-- automatic strategy approval;
-- automatic portfolio optimization;
-- automatic weight generation or normalization;
-- automatic capital allocation;
-- strategy scoring, ranking, recommendation, or winner selection;
-- dynamic weights or rebalancing;
-- factor models, VaR, stress-test engines, leverage, margin, or financing;
-- durable account, cash, position, order, fill, fee, or ledger truth;
-- market-data replay, trading calendar, session clock, or live feed;
-- strategy signal evaluation for runtime order generation;
-- pre-trade order risk;
-- simulated execution;
-- worker, scheduler, queue, checkpoint, or multi-day runtime;
-- broker, QMT, MiniQMT, or real-money behavior;
-- microservices or distributed infrastructure; or
-- public SaaS, multi-tenancy, or complex RBAC.
+- durable Paper Account, cash, position, fee, order, fill, or ledger truth;
+- account funding or capital allocation from scenario weights;
+- market-data replay, trading calendar, or session clock;
+- strategy-signal-to-order generation;
+- pre-trade risk for generated orders;
+- order lifecycle or execution simulation;
+- durable worker, scheduler, checkpoints, or multi-session runtime;
+- continuous multi-day Paper Trading;
+- broker, QMT, MiniQMT, private-edge, live, or real-money behavior;
+- automatic strategy ranking, approval, optimization, or recommendation;
+- public SaaS, multi-tenancy, or complex RBAC; or
+- automatic backup or full restore tooling.
 
 ## M31 Handoff
 
-M31 may reference approved M30 review evidence but must create an independent
-Paper Account and ledger source of truth.
+The next milestone is:
 
-M30 scenario weights remain review assumptions. They are not account cash,
-positions, available capital, reserved capital, orders, fills, or ledger events.
-No M30 decision creates or funds an account.
+```text
+M31 — Stateful Paper Account and Ledger Foundation
+```
+
+M31 must create an independent durable account and ledger source of truth. An
+approved M30 review may be attached as evidence, but it cannot create, fund, or
+mutate an account and is not ledger truth.
 
 M31 planning must explicitly decide:
 
-- account identity;
-- cash and position ledger entries;
-- order/fill persistence;
+- account identity and lifecycle;
+- initial cash and controlled funding/adjustment semantics;
+- immutable cash and position ledger entries;
+- order/fill persistence boundaries without execution;
 - fee and adjustment semantics;
-- account versioning and concurrency;
-- snapshots and reconciliation; and
-- how an approved M30 review reference is attached without becoming ledger truth.
+- versioning, optimistic concurrency, and idempotency;
+- snapshots, reconciliation, and derived-balance authority;
+- the exact M30 evidence-reference relationship;
+- persistence, artifact, API, Web, Demo, migration, and Founder acceptance; and
+- deferral of M32+ market/session/order-generation/execution/runtime behavior.
 
-## Authoritative Architecture
+After Sprint 178 merges, the next action is an M31 architecture-and-planning
+Issue, not direct implementation.
 
-See:
+## Authoritative Records
 
 ```text
 docs/architecture/portfolio-level-decision-review.md
+docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
+docs/sprints/sprint-178-milestone-030-closeout-and-m31-handoff.md
+docs/strategy/paper-trading-runtime-roadmap.md
 ```
-
-That architecture constrains S170–S178 unless an authoritative Issue amendment is
-approved before implementation.
