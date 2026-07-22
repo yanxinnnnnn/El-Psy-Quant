@@ -21,7 +21,7 @@ flowchart LR
     M16 --> M20["M20-M24<br/>Governance & Review Workflow ✅"]
     M20 --> M25["M25-M29<br/>Founder Productization & Hardening ✅"]
     M25 --> M30["M30<br/>Portfolio Decision Review ✅"]
-    M30 --> M31["M31<br/>Stateful Account & Ledger — Next"]
+    M30 --> M31["M31<br/>Stateful Account & Ledger — In Progress"]
     M31 --> M32["M32-M34<br/>Market-Driven Paper Trading"]
     M32 --> M35["M35-M36<br/>Durable Multi-day Operations"]
     M35 --> FUTURE["Future<br/>Execution Readiness & Broker Adapter"]
@@ -61,15 +61,16 @@ flowchart LR
 | M28 — Founder Paper Trading Web Workspace | S152-160 | Complete | First usable local Founder Web MVP | The complete paper-decision journey is usable through Web/API. |
 | M29 — Product Feedback and Hardening | S161-168 | Complete | Bilingual daily-use product reliability | The modernized product is dependable for routine Founder use. |
 | M30 — Portfolio-Level Decision Review Foundation | S169-178 | Complete | Portfolio-aware human decision governance | Concentration, exposure, interaction, historical impact, and one human decision are reproducibly reviewable without automatic allocation. |
-| M31 — Stateful Paper Account and Ledger Foundation | TBD | Next / Planning | Durable account truth | One auditable ledger owns cash, positions, adjustments, and account-derived state across sessions. |
+| M31 — Stateful Paper Account and Ledger Foundation | S179-188 | In Progress | Durable account truth | One auditable ledger owns cash, positions, adjustments, and account-derived state across sessions. |
 | M32 — Market Data Replay, Trading Calendar, and Session Clock | TBD | Planned | Deterministic market-time inputs | Validated historical sessions can drive later Paper runtime behavior. |
 | M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | TBD | Planned | Account-aware order intent | Strategy output becomes idempotent risk-checked Paper order intent. |
 | M34 — Paper Execution Simulator and First True Paper Trading | TBD | Planned | Market/strategy-driven Paper Trading | The platform generates and fills orders from market data and strategy output, then updates the durable account. |
 | M35 — Durable Paper Runtime and Recovery | TBD | Planned | Reliable session execution | Durable claims, checkpoints, controls, duplicate prevention, and interruption recovery exist. |
 | M36 — Multi-day Paper Operations and Acceptance | TBD | Planned | Continuous multi-session Paper Trading | One account runs safely across sessions and trading days with reconciliation and Founder acceptance. |
 
-M31–M36 sprint ranges remain intentionally `TBD`. Each milestone receives its own
-architecture-and-planning Issue before implementation.
+M31 uses the approved S179–S188 sequence. M32–M36 retain intentionally unassigned
+sprint ranges and each receives its own architecture-and-planning Issue before
+implementation.
 
 ## Completed Milestone 29
 
@@ -147,13 +148,14 @@ docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
 docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
 ```
 
-## Next Milestone — M31
+## Current Milestone — M31
 
 ```text
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-The next action is architecture and planning, not direct implementation.
+Sprint 179 architecture and planning is Complete. Sprint 180 is the first
+implementation sprint and adds only pure immutable domain contracts.
 
 M31 must establish independent account and ledger authority for:
 
@@ -170,11 +172,30 @@ M31 must establish independent account and ledger authority for:
 M30 scenario weights remain review assumptions. M30 approval remains governance
 evidence. Neither becomes account or ledger truth.
 
+Approved M31 sprint chain:
+
+```text
+S179 planning
+  -> S180 contracts
+  -> S181 cash/event authority
+  -> S182 position/cost-basis authority
+  -> S183 snapshot/reconciliation authority
+  -> S184 persistence/application transaction authority
+  -> S185 API
+  -> S186 Web
+  -> S187 integration and Founder acceptance
+  -> S188 closeout
+```
+
+S179 is Complete. S180 establishes only exact Decimal, identity, lifecycle,
+command digest, and approved-M30 provenance-reference contracts. Migration head
+remains `0006_portfolio_reviews`.
+
 ## Approved Paper Trading Runtime Sequence
 
 ```text
 M30 Portfolio-Level Decision Review Foundation — Complete
-  -> M31 Stateful Paper Account and Ledger Foundation — Next
+  -> M31 Stateful Paper Account and Ledger Foundation — In Progress
   -> M32 Market Data Replay, Trading Calendar, and Session Clock
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
   -> M34 Paper Execution Simulator and First True Paper Trading

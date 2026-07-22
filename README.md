@@ -21,8 +21,10 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-The next action is M31 architecture and planning. Direct implementation does not
-begin until that plan is reviewed and merged.
+M31 is **In Progress** through the Founder-approved S179–S188 sequence. Sprint
+179 architecture and planning is Complete; Sprint 180 is the first implementation
+sprint and adds only pure immutable account identity, lifecycle, exact Decimal,
+command-digest, and approved-M30 evidence-reference contracts.
 
 Current migration head:
 
@@ -138,7 +140,7 @@ account and does not authorize execution.
 
 ```text
 M30 Portfolio-Level Decision Review Foundation — Complete
-  -> M31 Stateful Paper Account and Ledger Foundation — Next
+  -> M31 Stateful Paper Account and Ledger Foundation — In Progress
   -> M32 Market Data Replay, Trading Calendar, and Session Clock
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
   -> M34 Paper Execution Simulator and First True Paper Trading
@@ -146,8 +148,8 @@ M30 Portfolio-Level Decision Review Foundation — Complete
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-M31–M36 have no fixed dates or sprint ranges. Each milestone receives its own
-architecture-and-planning Issue before implementation.
+M31 has the approved S179–S188 sequence. M32–M36 retain no sprint ranges and each
+receives its own architecture-and-planning Issue before implementation.
 
 ### M31 — Account and ledger truth
 
@@ -155,8 +157,22 @@ M31 must establish an independent durable source of truth for account identity,
 cash, positions, adjustments, fees, order/fill references, snapshots,
 reconciliation, idempotency, and concurrency.
 
+Sprint 180 establishes only the separate `el_psy_quant.paper_account` contract
+boundary. It does not yet create ledger events, balances, persistence, API, Web,
+Demo, or execution behavior. The existing `el_psy_quant.paper` evidence model is
+unchanged.
+
 An approved M30 review may be linked as evidence, but it is not ledger truth and
 cannot itself create or fund an account.
+
+Canonical M31 records:
+
+```text
+docs/architecture/stateful-paper-account-and-ledger.md
+docs/milestones/milestone-031-stateful-paper-account-and-ledger-foundation.md
+docs/sprints/sprint-179-milestone-31-architecture-and-planning.md
+docs/sprints/sprint-180-paper-account-identity-lifecycle-decimal-and-evidence-reference-contract-foundation.md
+```
 
 ### M34 — First true Paper Trading
 
