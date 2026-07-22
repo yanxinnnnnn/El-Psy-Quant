@@ -13,35 +13,24 @@ operate, and improve trading ideas before real capital is deployed.
 
 ## Current Status
 
-Milestones 1–29 are **Complete**.
+Milestones 1–30 are **Complete** after Sprint 178 merges.
 
-Milestone 30 is **In Progress**:
-
-```text
-M30 — Portfolio-Level Decision Review Foundation
-```
-
-The approved M30 sequence is:
+The next milestone is:
 
 ```text
-S169 Milestone 30 Architecture and Planning
-S170 Portfolio Review Input and Scenario Contract Foundation
-S171 Concentration and Exposure Analysis Foundation
-S172 Strategy Interaction and Proposed Portfolio Impact Foundation
-S173 Portfolio Review Artifact and Human Decision Foundation
-S174 Durable Portfolio Review Persistence and Application/API Foundation
-S175 Founder Portfolio Decision Review Web Workspace
-S176 Portfolio Review Workflow Integration, Demo, and Acceptance Hardening
-S177 Backend Runtime Alembic Resource Packaging and Startup Recovery
-S178 Milestone 30 Closeout and M31 Handoff
+M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-Sprints 169–176 are complete. Sprint 177 implementation fixes the installed-wheel
-Alembic resource blocker found during Founder Standard startup. Founder recovery
-and complete Standard/Demo runtime acceptance remain. Sprint 178 closeout is
-next only after Sprint 177 is merged and that acceptance succeeds.
+The next action is M31 architecture and planning. Direct implementation does not
+begin until that plan is reviewed and merged.
 
-## Product Delivered Through M29
+Current migration head:
+
+```text
+0006_portfolio_reviews
+```
+
+## Product Delivered Through M30
 
 The current product provides:
 
@@ -50,22 +39,62 @@ The current product provides:
 - paired minimal Founder authentication;
 - complete English and Simplified Chinese product support;
 - a modern responsive AI Quant Decision Workspace visual system;
-- a bounded Founder Dashboard for operational attention and workflow navigation;
+- a bounded Founder Dashboard for workflow navigation and operational attention;
 - authoritative strategy, research, governance, report, Paper Job, result,
-  comparison, and lifecycle-review inspection;
+  comparison, portfolio-review, and lifecycle-review inspection;
 - explicit Paper Job submit, replay, Run, Cancel, Retry, Recover, attempt, and
   result workflows;
 - stable localized error meaning with raw codes, request IDs, and technical audit
   details;
-- sanitized local request and Paper Job correlation events;
+- sanitized local request and command correlation events;
 - SQLite/Alembic persistence through one exact migration chain;
-- fail-closed Standard and Demo startup with read-only workspace verification;
+- fail-closed Standard and Demo startup with read-only verification;
 - locked Python build/runtime inputs and `npm ci` for the Web image;
 - isolated persistent Standard and disposable Demo storage;
 - non-mutating bilingual runtime smoke verification; and
 - cold-backup, upgrade, Demo-only reset, and return-to-Standard guidance.
 
-The complete current user journey remains:
+M30 adds a complete portfolio-level decision-review workflow:
+
+```text
+explicit immutable review source
+  -> explicit baseline and proposed scenarios
+  -> concentration and review exposure
+  -> symbol overlap and historical return interaction
+  -> baseline/proposed historical behavior and impact
+  -> immutable analysis evidence
+  -> explicit approve / reject / defer decision
+  -> bilingual Founder inspection and audit
+```
+
+M30 includes:
+
+- 2–12 ordered review components;
+- typed evidence references and per-component research origin;
+- exact ordered aligned historical returns;
+- strict non-negative static weights with no automatic normalization;
+- domain-calculated concentration, exposure, overlap, correlation, behavior,
+  contribution, drawdown, and proposed impact;
+- immutable source, analysis, and human-decision artifacts;
+- compact SQLite metadata and idempotency state;
+- exactly four versioned portfolio-review API routes;
+- three bilingual Founder portfolio-review routes;
+- explicit research-run and compatible evidence-manifest composition;
+- deterministic isolated Demo Workspace v2 review and create prefill;
+- exact replay and persisted human-decision evidence;
+- installed-wheel Alembic resources for the runtime-only backend; and
+- successful Founder Standard/Demo, persistence, isolation, and bilingual browser
+  acceptance.
+
+Formal M30 records:
+
+```text
+docs/architecture/portfolio-level-decision-review.md
+docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
+docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
+```
+
+## Current Founder Journey
 
 ```text
 Strategy
@@ -74,54 +103,15 @@ Strategy
   -> Paper Run
   -> Portfolio Result
   -> Comparison
+  -> Portfolio Review
   -> Lifecycle Review
   -> Human Decision Evidence
 ```
 
-M30 is planned to extend that product with:
-
-```text
-validated portfolio review source
-  -> explicit baseline and proposed scenarios
-  -> concentration and review exposure
-  -> strategy interaction and symbol overlap
-  -> historical portfolio impact
-  -> explicit human portfolio decision evidence
-```
-
-Sprint 170 supplies immutable in-memory portfolio-review source and static
-scenario contracts. Sprint 171 adds pure domain-calculated concentration,
-ordered component weight-change exposure, declared-symbol evidence, and active
-coverage results. Sprint 172 adds source-ordered declared-symbol overlap,
-pairwise and candidate-to-baseline historical correlation, baseline/proposed
-historical portfolio behavior, ordered contribution, and exact
-proposed-minus-baseline impact. These are immutable in-memory domain results;
-Sprint 173 adds immutable historical-scenario analysis and governance-only
-decision payloads, canonical SHA-256 digests, UTC audit normalization, and typed
-source/analysis/decision references. Source return observations remain separate.
-Sprint 174 adds hashed fixed-layout write-once source/analysis/decision files,
-strict reopen and S171/S172 recalculation, one compact SQLite review record,
-create/decision idempotency, one-winner settlement, four versioned API routes,
-and explicit OpenAPI/generated TypeScript contracts. Migration head is
-`0006_portfolio_reviews`. S174 adds no Founder Web, Demo data, lifecycle,
-account, order, execution, M31, private-edge, broker, or live capability.
-
-Sprint 175 adds three bilingual Founder routes for exact backend-ordered review
-listing, manual structured source/scenario construction, complete authoritative
-evidence inspection, and one explicit governance-only decision. The Web client
-uses the checked-in generated contracts with complete nested runtime
-validation, preserves drafts and previously loaded evidence across failures,
-and never normalizes weights or recalculates financial evidence. S175 adds no
-backend, generated contract, Demo, lifecycle, Paper Job, account, order,
-execution, M31, private-edge, broker, or live capability.
-
-Sprint 176 integrates the unchanged builder with explicit public research and
-evidence selection. Imports are limited to exact metadata and compatible
-references; aligned component returns, weights, scenarios, audit input, and the
-proposed component remain Founder authority. Demo dataset/descriptor v2 adds one
-isolated deterministic awaiting review and an explicit replace-confirmed prefill.
-It never auto-submits or decides. Standard remains unseeded, all portfolio
-analysis stays server-owned, and Founder Docker/browser acceptance remains.
+Portfolio-review creation keeps aligned returns, scenario weights, audit input,
+and proposed-component selection under explicit Founder control. The browser does
+not calculate portfolio evidence, normalize weights, select a candidate, or
+record a decision automatically.
 
 ## What the Current Product Is Not Yet
 
@@ -130,22 +120,25 @@ not yet a continuous market-driven Paper Trading runtime.
 
 It does not yet provide:
 
-- a persistent Paper Account cash/position ledger across sessions;
+- a durable Paper Account cash/position ledger across sessions;
+- account-funded interpretation of M30 scenario weights;
 - market-data replay tied to a trading calendar and session clock;
 - automatic strategy-signal-to-order conversion;
 - pre-trade risk checks for automatically generated orders;
 - a runtime order lifecycle and execution simulator;
-- a durable worker/checkpoint/recovery loop; or
-- continuous multi-day Paper Trading.
+- a durable worker/checkpoint/recovery loop;
+- continuous multi-day Paper Trading;
+- broker, QMT, MiniQMT, private-edge, live, or real-money behavior; or
+- automatic strategy ranking, approval, optimization, or capital allocation.
 
-M30 also does not authorize automatic strategy ranking, portfolio optimization,
-capital allocation, account mutation, order generation, or execution.
+M30 approval is governance evidence only. It does not create, fund, or mutate an
+account and does not authorize execution.
 
 ## Approved Route to Genuine Paper Trading
 
 ```text
-M30 Portfolio-Level Decision Review Foundation
-  -> M31 Stateful Paper Account and Ledger Foundation
+M30 Portfolio-Level Decision Review Foundation — Complete
+  -> M31 Stateful Paper Account and Ledger Foundation — Next
   -> M32 Market Data Replay, Trading Calendar, and Session Clock
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
   -> M34 Paper Execution Simulator and First True Paper Trading
@@ -153,7 +146,17 @@ M30 Portfolio-Level Decision Review Foundation
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-Two product gates define progress:
+M31–M36 have no fixed dates or sprint ranges. Each milestone receives its own
+architecture-and-planning Issue before implementation.
+
+### M31 — Account and ledger truth
+
+M31 must establish an independent durable source of truth for account identity,
+cash, positions, adjustments, fees, order/fill references, snapshots,
+reconciliation, idempotency, and concurrency.
+
+An approved M30 review may be linked as evidence, but it is not ledger truth and
+cannot itself create or fund an account.
 
 ### M34 — First true Paper Trading
 
@@ -169,7 +172,7 @@ The same account advances across multiple sessions and trading days with durable
 checkpoints, reconciliation, explicit controls, duplicate prevention, and
 interruption recovery.
 
-See:
+Authoritative runtime roadmap:
 
 ```text
 docs/strategy/paper-trading-runtime-roadmap.md
@@ -183,28 +186,27 @@ Browser
   -> fixed same-origin /api/backend gateway
   -> versioned FastAPI API
   -> thin application services / use cases
-  -> existing domain modules and artifact readers
-  -> isolated SQLite product state and authoritative artifact roots
+  -> domain modules and artifact readers/writers
+  -> compact SQLite product state and authoritative artifact roots
 ```
 
 Authority rules:
 
-- domain modules own financial, Paper Trading, comparison, governance, lifecycle,
-  and future portfolio-review calculations;
+- domain modules own quantitative, Paper Trading, comparison, governance,
+  lifecycle, and portfolio-review calculations;
 - API handlers and the Web layer do not duplicate financial calculations;
-- completed artifact files remain payload authority;
+- completed artifact files remain full payload authority;
 - SQLite stores compact indexes, references, idempotency records, attempts, jobs,
-  and operational state rather than complete artifact payloads;
-- Paper Job state remains separate from lifecycle governance;
-- future portfolio-review status remains separate from strategy lifecycle and
-  future Paper Account truth;
+  reviews, and operational state rather than complete artifact payloads;
+- Paper Job, lifecycle, portfolio review, and future Paper Account state remain
+  separate authorities;
 - lifecycle proposals remain non-executing;
 - human review remains explicit governance evidence;
-- raw IDs, states, versions, timestamps, codes, and artifact content remain
-  authoritative and untranslated;
+- raw IDs, states, versions, timestamps, codes, digests, values, and artifact
+  content remain authoritative and untranslated;
 - the browser never directly accesses SQLite, artifact directories, Python, QMT,
   MiniQMT, or a broker; and
-- Demo data remains isolated from real user data.
+- Demo data remains isolated from Standard user data.
 
 ## Quick Start
 
@@ -283,23 +285,24 @@ Run the complete repository gate:
 uv run python scripts/check.py
 ```
 
-The gate verifies lock/export parity, Python tests and linting, package/CLI
-behavior, OpenAPI/generated TypeScript freshness, message catalogs, ESLint,
-strict TypeScript, Web tests, and the production Next.js build.
+The gate verifies lock/export parity, installed-wheel migration resources, Python
+tests and linting, package/CLI behavior, OpenAPI/generated TypeScript freshness,
+message catalogs, ESLint, strict TypeScript, Web tests, and the production Next.js
+build.
 
 ## Key Records
 
 ```text
-docs/milestones/milestone-029-product-feedback-and-hardening.md
-docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
-docs/product/milestone-029-product-feedback-and-hardening-plan.md
-docs/architecture/portfolio-level-decision-review.md
-docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
-docs/sprints/sprint-169-milestone-30-architecture-and-planning.md
-docs/sprints/sprint-173-portfolio-review-artifact-and-human-decision-foundation.md
+AGENTS.md
+docs/roadmap.md
 docs/strategy/future-platform-roadmap.md
 docs/strategy/paper-trading-runtime-roadmap.md
-docs/roadmap.md
+docs/milestones/milestone-029-product-feedback-and-hardening.md
+docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
+docs/architecture/portfolio-level-decision-review.md
+docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
+docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
+docs/sprints/sprint-178-milestone-030-closeout-and-m31-handoff.md
 ```
 
 ## Explicitly Deferred
