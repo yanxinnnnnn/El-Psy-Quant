@@ -59,7 +59,7 @@ flowchart LR
 | M27 — Persistence and Paper Job Control Foundation | S145-151 | Complete | Durable controllable local jobs. | Product metadata and jobs are inspectable, idempotent, and recoverable. |
 | M28 — Founder Paper Trading Web Workspace | S152-160 | Complete | First usable local Founder Web MVP. | The complete paper-decision journey is usable through Web/API. |
 | M29 — Product Feedback and Hardening | S161-168 | Complete | Bilingual daily-use product reliability. | The modernized product is dependable for routine Founder use. |
-| M30 — Portfolio-Level Decision Review Foundation | S169-177 | In Progress | Portfolio-aware human decision governance. | Concentration, review exposure, interaction, and historical portfolio impact are reproducibly reviewable without automatic allocation. |
+| M30 — Portfolio-Level Decision Review Foundation | S169-178 | In Progress | Portfolio-aware human decision governance. | Concentration, review exposure, interaction, and historical portfolio impact are reproducibly reviewable without automatic allocation. |
 | M31 — Stateful Paper Account and Ledger Foundation | TBD | Planned | Durable account truth. | Cash, positions, orders, fills, and snapshots persist across sessions through one auditable ledger. |
 | M32 — Market Data Replay, Trading Calendar, and Session Clock | TBD | Planned | Deterministic market-time inputs. | Validated historical market sessions can drive the Paper runtime with explicit calendars and freshness rules. |
 | M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | TBD | Planned | Account-aware automated order intent. | Strategy output becomes idempotent risk-checked Paper orders without Founder-authored orders. |
@@ -67,7 +67,7 @@ flowchart LR
 | M35 — Durable Paper Runtime and Recovery | TBD | Planned | Reliable session execution. | Durable claims, checkpoints, explicit controls, duplicate prevention, and interruption recovery exist. |
 | M36 — Multi-day Paper Operations and Acceptance | TBD | Planned | Continuous multi-session Paper Trading. | One account can run safely across trading days with reconciliation and Founder operational acceptance. |
 
-M30 now has an approved S169–S177 architecture. M31–M36 sprint ranges remain
+M30 now has an approved S169–S178 architecture. M31–M36 sprint ranges remain
 intentionally `TBD`; each milestone receives its own planning Issue before
 implementation.
 
@@ -118,8 +118,9 @@ M30 is now In Progress through this sequence:
 | S173 | Portfolio Review Artifact and Human Decision Foundation | Complete |
 | S174 | Durable Portfolio Review Persistence and Application/API Foundation | Complete |
 | S175 | Founder Portfolio Decision Review Web Workspace | Complete |
-| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Implementation complete; Founder Standard/Demo runtime acceptance remains |
-| S177 | Milestone 30 Closeout and M31 Handoff | Planned |
+| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Complete; Founder Standard/Demo runtime acceptance remains |
+| S177 | Backend Runtime Alembic Resource Packaging and Startup Recovery | Implementation complete; Founder recovery acceptance remains |
+| S178 | Milestone 30 Closeout and M31 Handoff | Planned |
 
 The M30 product chain is:
 
@@ -162,8 +163,9 @@ OpenAPI/generated TypeScript contracts. It adds no Founder Web, Demo data,
 lifecycle, account, order, execution, M31, private-edge, broker, or live
 capability. Migration head is `0006_portfolio_reviews`. Sprint 176 adds explicit
 research/evidence composition, isolated Demo dataset/descriptor v2, and read-only
-acceptance verification. Sprint 177 is next only after merge and Founder runtime
-acceptance.
+acceptance verification. Sprint 177 fixes the installed-wheel migration-resource
+blocker found during Founder Standard startup. Sprint 178 is next only after the
+recovery fix is merged and complete Founder runtime acceptance succeeds.
 
 ## Approved Paper Trading Runtime Sequence
 

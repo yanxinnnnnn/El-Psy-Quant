@@ -28,6 +28,10 @@ from el_psy_quant.persistence.schema import (
     verify_product_schema,
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
+from el_psy_quant.persistence.migration_resources import (
+    MigrationResourceError,
+    validate_migration_resources,
+)
 
 WorkspaceMode = Literal["standard", "demo"]
 
@@ -145,8 +149,9 @@ def upgrade_product_database(
 ) -> None:
     """Run the supported forward-only Alembic upgrade for one explicit database."""
     try:
-        if not alembic_config_path.resolve(strict=True).is_file():
-            raise LocalWorkspaceError("Alembic configuration is unavailable")
+        alembic_config = preflight_product_migration_resources(
+            alembic_config_path=alembic_config_path
+        )
         if database_path.is_symlink():
             raise LocalWorkspaceError("product database may not be a symlink")
         try:
@@ -159,14 +164,32 @@ def upgrade_product_database(
             except ProductSchemaVerificationError as exc:
                 raise LocalWorkspaceError(str(exc)) from exc
         with _database_environment(database_path):
-            alembic_command.upgrade(
-                AlembicConfig(str(alembic_config_path.resolve(strict=True))),
-                "head",
-            )
+            alembic_command.upgrade(alembic_config, "head")
     except LocalWorkspaceError:
         raise
     except Exception as exc:
         raise LocalWorkspaceError("product database migration failed") from exc
+
+
+def preflight_product_migration_resources(
+    *, alembic_config_path: Path
+) -> AlembicConfig:
+    """Resolve and validate the installed migration authority without database I/O."""
+    try:
+        resolved = alembic_config_path.resolve(strict=True)
+        if not resolved.is_file():
+            raise LocalWorkspaceError("Alembic configuration is unavailable")
+        config = AlembicConfig(str(resolved))
+        validate_migration_resources(config)
+        return config
+    except LocalWorkspaceError:
+        raise
+    except MigrationResourceError as exc:
+        raise LocalWorkspaceError(
+            "product migration resources are unavailable"
+        ) from exc
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise LocalWorkspaceError("Alembic configuration is unavailable") from exc
 
 
 def prepare_standard_workspace(
@@ -265,6 +288,9 @@ def start_local_backend(
 ) -> LocalWorkspaceVerification:
     """Prepare, verify, and only then replace the process with Uvicorn."""
     _require_exact_runtime_configuration(mode=mode, workspace_root=workspace_root)
+    preflight_product_migration_resources(
+        alembic_config_path=alembic_config_path
+    )
     if mode == STANDARD_WORKSPACE_MODE:
         if demo_source_root is not None:
             raise LocalWorkspaceError(
@@ -312,6 +338,7 @@ __all__ = [
     "LocalWorkspaceVerification",
     "format_verification_success",
     "prepare_standard_workspace",
+    "preflight_product_migration_resources",
     "start_local_backend",
     "upgrade_product_database",
     "verify_local_workspace",

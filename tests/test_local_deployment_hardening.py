@@ -330,6 +330,64 @@ def test_standard_startup_orders_prepare_verify_serve_and_failures_never_serve(
     assert events == ["prepare"]
 
 
+def test_migration_resource_failure_precedes_mutation_demo_install_and_serve(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    standard = tmp_path / "standard"
+    standard.mkdir()
+    existing_artifact = standard / "existing.json"
+    existing_artifact.write_bytes(b'{"preserve":true}\n')
+    _runtime_environment(monkeypatch, root=standard, mode="standard")
+    events: list[str] = []
+
+    def fail_preflight(**_kwargs) -> None:
+        raise LocalWorkspaceError("product migration resources are unavailable")
+
+    monkeypatch.setattr(
+        local_module,
+        "preflight_product_migration_resources",
+        fail_preflight,
+    )
+    monkeypatch.setattr(
+        local_module,
+        "prepare_standard_workspace",
+        lambda **_kwargs: events.append("prepare"),
+    )
+    monkeypatch.setattr(
+        local_module,
+        "install_demo_workspace",
+        lambda **_kwargs: events.append("install"),
+    )
+
+    with pytest.raises(LocalWorkspaceError, match="migration resources"):
+        start_local_backend(
+            mode="standard",
+            workspace_root=standard,
+            alembic_config_path=ALEMBIC_CONFIG,
+            serve=lambda: events.append("serve"),
+        )
+
+    assert events == []
+    assert existing_artifact.read_bytes() == b'{"preserve":true}\n'
+    assert not (standard / "product.sqlite3").exists()
+    assert not any((standard / name).exists() for name in ("research", "evidence", "paper"))
+
+    demo = tmp_path / "demo"
+    _runtime_environment(monkeypatch, root=demo, mode="demo")
+    with pytest.raises(LocalWorkspaceError, match="migration resources"):
+        start_local_backend(
+            mode="demo",
+            workspace_root=demo,
+            alembic_config_path=ALEMBIC_CONFIG,
+            demo_source_root=DEMO_SOURCE,
+            serve=lambda: events.append("serve"),
+        )
+
+    assert events == []
+    assert not demo.exists()
+
+
 @pytest.mark.parametrize(
     ("revision_state", "expected_message"),
     (
@@ -656,6 +714,9 @@ def test_backend_image_uses_locked_builder_and_runtime_only_final_stage() -> Non
     project = tomllib.loads(
         (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     )
+    alembic_configuration = (
+        PROJECT_ROOT / "alembic.ini"
+    ).read_text(encoding="utf-8")
 
     builder, runtime = dockerfile.split(
         "FROM python:3.11-slim AS runtime",
@@ -683,6 +744,15 @@ def test_backend_image_uses_locked_builder_and_runtime_only_final_stage() -> Non
     ) in normalized_runtime
     assert "requirements-build.txt" not in runtime
     assert "hatchling" not in runtime.lower()
+    assert "COPY src" not in runtime
+    assert "COPY . " not in runtime
+    assert "/app/src" not in runtime
+    assert "COPY alembic.ini ./" in runtime
+    assert (
+        "script_location = el_psy_quant.persistence:migrations"
+        in alembic_configuration
+    )
+    assert "%(here)s/src" not in alembic_configuration
     assert "-e ." not in runtime_requirements
     assert "el-psy-quant" not in runtime_requirements
     assert "hatchling" not in runtime_requirements
@@ -737,3 +807,4 @@ def test_build_and_runtime_exports_match_lock_and_ci_refuses_lock_drift() -> Non
     assert '("uv", "lock", "--check")' in quality_gate
     assert "scripts/check_build_requirements.py" in quality_gate
     assert "scripts/check_runtime_requirements.py" in quality_gate
+    assert "scripts/check_packaged_migration_resources.py" in quality_gate

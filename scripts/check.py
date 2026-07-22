@@ -12,6 +12,7 @@ CHECKS = (
     ("uv", "lock", "--check"),
     ("uv", "run", "python", "scripts/check_build_requirements.py"),
     ("uv", "run", "python", "scripts/check_runtime_requirements.py"),
+    ("uv", "run", "python", "scripts/check_packaged_migration_resources.py"),
     ("uv", "run", "pytest"),
     ("uv", "run", "ruff", "check", "."),
     ("uv", "run", "python", "-c", "import el_psy_quant"),

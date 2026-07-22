@@ -26,6 +26,7 @@ build = [
     "hatchling==1.27.0",
 ]
 dev = [
+    "hatchling==1.27.0",
     "httpx>=0.28",
     "pytest>=8.3",
     "ruff>=0.11",

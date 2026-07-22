@@ -7,12 +7,13 @@
 Planned sprint range:
 
 ```text
-S169–S177
+S169–S178
 ```
 
-Sprints 169–175 are Complete. Sprint 176 implementation is complete; Founder
-Standard/Demo runtime acceptance remains. Sprint 177 is next only after Sprint
-176 is merged and that acceptance is complete.
+Sprints 169–176 are Complete. Sprint 177 fixes the installed-wheel Alembic
+resource blocker exposed during Founder Standard startup. Founder preserved-volume
+recovery and complete Standard/Demo acceptance remain. Sprint 178 closeout is
+next only after Sprint 177 is merged and that acceptance succeeds.
 
 ## Product Goal
 
@@ -353,8 +354,9 @@ approved milestone contract.
 | S173 | Complete | Codex | Add review and decision artifacts. | Immutable analysis/decision payloads, references, digest rules, and explicit outcomes. | No database, API, Web, lifecycle mutation, or execution. |
 | S174 | Complete | Codex | Add durable product and API boundary. | Compact SQLite persistence, migration, hashed write-once artifact I/O, application services, OpenAPI, and versioned API. | No Founder Web, account ledger, or M31 behavior. |
 | S175 | Complete | Codex | Add Founder Web workflow. | Bilingual list/create/detail/decision workspace using generated contracts. | No browser financial calculation or recommendation. |
-| S176 | Implementation complete; Founder Standard/Demo runtime acceptance remains | Codex | Integrate and harden acceptance. | Explicit source workflow integration, deterministic Demo v2 review, errors, read-only verification, tests, docs, and Founder acceptance checklist. | Founder owns Docker/browser runtime acceptance; no M31+. |
-| S177 | Planned | CTO | Close M30 and hand off to M31. | Exit verification, closeout record, roadmap update, and account/ledger handoff. | Documentation only. |
+| S176 | Complete; Founder Standard/Demo runtime acceptance remains | Codex | Integrate and harden acceptance. | Explicit source workflow integration, deterministic Demo v2 review, errors, read-only verification, tests, docs, and Founder acceptance checklist. | Founder owns Docker/browser runtime acceptance; no M31+. |
+| S177 | Implementation complete; Founder recovery acceptance remains | Codex | Repair installed-wheel migration authority. | Packaged Alembic resource resolution, startup preflight, installed-wheel regression gate, recovery docs, and preservation tests. | No migration/schema/product behavior change; Founder owns runtime recovery. |
+| S178 | Planned | CTO | Close M30 and hand off to M31. | Exit verification, closeout record, roadmap update, and account/ledger handoff. | Documentation only. |
 
 Future implementation Issues must be created one sprint at a time after the
 predecessor is merged.
@@ -408,9 +410,16 @@ predecessor is merged.
 
 ### S177 depends on
 
+- the reproduced runtime-only image migration-resource failure;
+- the healthy preserved Standard database and complete cold backup evidence;
+- the unchanged exact 0001–0006 migration chain; and
+- a deterministic installed-wheel regression path outside repository source.
+
+### S178 depends on
+
 - Founder local acceptance of the complete supported workflow;
 - green repository gates;
-- all S170–S176 Issues closed and PRs merged; and
+- all S170–S177 Issues closed and PRs merged; and
 - no unresolved M30 blocker.
 
 ## Milestone Exit Criteria
@@ -481,5 +490,5 @@ See:
 docs/architecture/portfolio-level-decision-review.md
 ```
 
-That architecture constrains S170–S177 unless an authoritative Issue amendment is
+That architecture constrains S170–S178 unless an authoritative Issue amendment is
 approved before implementation.

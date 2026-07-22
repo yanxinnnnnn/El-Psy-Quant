@@ -58,7 +58,9 @@ The builder stage installs only the exact build export and creates the local
 wheel with dependency resolution and build isolation disabled. The final stage
 installs the exact runtime export and that wheel with dependency resolution
 disabled; build and test dependencies are not copied into the final image. The
-Web image continues to use `package-lock.json` through `npm ci`.
+wheel owns the complete single Alembic resource tree, and `alembic.ini` resolves
+that installed-package authority without `/app/src` or a repository checkout.
+The Web image continues to use `package-lock.json` through `npm ci`.
 
 These locks do not make a cold image build offline. Uncached base images,
 package artifacts, and floating upstream image tags still require an available
@@ -174,6 +176,37 @@ If migration or verification fails, Uvicorn does not start. Do not delete the
 volume, edit `alembic_version`, downgrade, reset, reinstall over the data, or
 copy only selected files as a repair. Preserve the failed volume and logs for
 diagnosis, retain the cold backup, and review the code/configuration mismatch.
+
+## Sprint 177 Preserved-Volume Recovery
+
+Founder Standard startup before Sprint 177 failed because the runtime-only image
+installed the project wheel but `alembic.ini` still pointed at repository source
+under `/app/src`. The stopped Standard database was healthy at exact revision
+`0005_paper_job_result_references`, the expected 0005 tables and data were
+present, the complete cold backup was retained, and the same database upgraded
+successfully through repository-source migrations. The defect was migration
+resource location, not database corruption, schema drift, partial 0006 state,
+permissions, or volume identity.
+
+After the Sprint 177 fix is reviewed and merged:
+
+1. Keep the existing complete cold backup. Do not replace, remove, reset, or
+   recreate the Standard volume.
+2. Do not hand-edit or stamp `alembic_version`, downgrade the database, or copy
+   selected files over the preserved workspace.
+3. Rebuild the backend image from the reviewed commit and start it against the
+   same preserved Standard volume.
+4. Confirm startup performs the supported
+   `0005_paper_job_result_references -> 0006_portfolio_reviews` upgrade and only
+   serves after read-only workspace verification succeeds.
+5. Run the read-only Standard verification and bilingual MVP smoke shown above.
+6. Continue Demo v2 reset/install, exact replay, decision-persistence, return to
+   Standard, volume-isolation, and bilingual browser acceptance.
+
+The Founder owns every Docker and browser step in this recovery. Sprint 177
+repository checks do not claim runtime acceptance, and Sprint 178 closeout
+remains blocked until the preserved-volume recovery and complete Standard/Demo
+acceptance succeed.
 
 ## Fresh Demo, Exact Replay, Reset, and Return
 

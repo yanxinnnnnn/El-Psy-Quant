@@ -2,12 +2,14 @@
 
 ## Status
 
-**Implementation complete; Founder Standard/Demo runtime acceptance remains.**
+**Complete; Founder Standard/Demo runtime acceptance remains blocked on Sprint
+177 recovery.**
 
-Sprints 169–175 are Complete. Milestone 30 remains In Progress. Sprint 177 —
-Milestone 30 Closeout and M31 Handoff is next only after Sprint 176 is merged and
-Founder acceptance is complete. The single migration head remains
-`0006_portfolio_reviews`.
+Sprints 169–176 are Complete. Milestone 30 remains In Progress. Founder Standard
+startup exposed the installed-wheel Alembic resource defect recorded in Sprint
+177. Sprint 178 — Milestone 30 Closeout and M31 Handoff is next only after the
+recovery fix is merged and complete Founder acceptance succeeds. The single
+migration head remains `0006_portfolio_reviews`.
 
 ## Delivered boundary
 
@@ -98,5 +100,5 @@ explicitly reset disposable Demo v1 volume when required
 There is no automatic source/candidate/weight/outcome selection, return repair,
 normalization, recommendation, persisted comparison summary, lifecycle bridge,
 Paper Account, ledger, market clock, order/fill simulation, worker, broker, QMT,
-MiniQMT, or live behavior. Sprint 177 may close M30 only after Founder acceptance;
+MiniQMT, or live behavior. Sprint 178 may close M30 only after Founder acceptance;
 it hands immutable review evidence to M31 without handing off account truth.

@@ -88,6 +88,9 @@ Paper-job list and submission routes are available after the migration reaches
 the existing `0006_portfolio_reviews` head. Migrations never run from
 the browser or Next.js process.
 
+The runtime-only backend resolves the complete migration tree from the installed
+project wheel. It does not depend on a repository checkout or `/app/src`.
+
 Before upgrading code/images against an existing Standard volume, make a cold
 copy of the complete stopped `/data` tree and record the source commit plus
 migration revision. Never treat an SQLite-only or live-file copy as a complete,
@@ -200,6 +203,14 @@ explicitly reset disposable Demo v1 volume when required
 
 Founder owns these Docker/container/browser steps and the merge decision. Codex
 owns deterministic checks and static Compose rendering only.
+
+Sprint 177 recovery must use the same preserved Standard volume and retained
+cold backup. Do not reset, replace, stamp, downgrade, or hand-edit the Standard
+database. After rebuilding the reviewed fixed image, confirm the supported
+0005-to-0006 upgrade, run read-only Standard verification and MVP smoke, then
+complete Demo v2, decision persistence, return-to-Standard, isolation, and
+bilingual acceptance. Sprint 178 closeout remains blocked until that Founder
+acceptance succeeds.
 
 ## End-to-End Smoke Verification
 

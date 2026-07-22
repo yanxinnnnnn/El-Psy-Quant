@@ -325,6 +325,7 @@ build = [
     { name = "hatchling" },
 ]
 dev = [
+    { name = "hatchling" },
     { name = "httpx" },
     { name = "pytest" },
     { name = "ruff" },
@@ -344,6 +345,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 build = [{ name = "hatchling", specifier = "==1.27.0" }]
 dev = [
+    { name = "hatchling", specifier = "==1.27.0" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "ruff", specifier = ">=0.11" },

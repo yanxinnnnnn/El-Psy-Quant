@@ -268,3 +268,35 @@ def test_cli_main_is_importable() -> None:
     from el_psy_quant import cli
 
     assert cli.main is main
+
+
+def test_startup_resource_failure_prints_only_safe_bounded_identity(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    def fail_startup(**_kwargs) -> None:
+        try:
+            raise FileNotFoundError("C:/private/runtime/site-packages/migrations/env.py")
+        except FileNotFoundError as error:
+            raise cli.LocalWorkspaceError(
+                "product migration resources are unavailable"
+            ) from error
+
+    monkeypatch.setattr(cli, "start_local_backend", fail_startup)
+
+    exit_code = main(
+        [
+            "start-local-backend",
+            "--mode",
+            "standard",
+            "--workspace-root",
+            str(tmp_path / "standard"),
+            "--alembic-config",
+            str(tmp_path / "alembic.ini"),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert captured.err == "error: product migration resources are unavailable\n"
+    assert "private" not in captured.err
