@@ -13,7 +13,7 @@ Issues, Founder acceptance, and manual merge.
 
 ```text
 M30 — Complete
-M31 — In Progress (S179 Complete; S180 contract foundation)
+M31 — In Progress (S179–S180 Complete; S181 cash/event foundation)
 M32–M36 — Planned
 ```
 
@@ -98,7 +98,7 @@ execution, or runtime truth.
 
 ### Status
 
-**In Progress — S179 planning Complete; S180 contract foundation.**
+**In Progress — S179–S180 Complete; S181 cash/event foundation.**
 
 ### User-visible outcome
 
@@ -144,16 +144,19 @@ The approved architecture defines:
 - errors, observability, backup, recovery, and Founder acceptance; and
 - exact linkage to approved M30 evidence.
 
-Sprint 180 adds only the separate pure `el_psy_quant.paper_account` contracts:
+Sprint 180 established the separate pure `el_psy_quant.paper_account` contracts:
 canonical exact Decimal values, identity/reference values, closed lifecycle
 validation, deterministic commands, and a trusted bounded approved-M30
-provenance reference. It adds no ledger event, posting, balance, replay,
-persistence, migration, API, Web, Demo, order, fill, or execution behavior.
+provenance reference. Sprint 181 adds immutable account events and cash postings,
+exact cash-only state, contiguous versions, and fail-closed digest-chain replay.
+The state is rebuildable but not persisted. Position and cost-basis authority
+remain S182; S183–S187 retain snapshot/reconciliation, persistence, API, Web,
+Demo, and acceptance.
 
 ### M30 relationship
 
-An approved M30 review may be attached as evidence to an M31 account command or
-record only through an explicit future contract.
+An approved M30 review may be attached as evidence through the bounded Sprint
+180 reference and Sprint 181 evidence-link event.
 
 That reference:
 

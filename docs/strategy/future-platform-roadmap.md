@@ -47,8 +47,8 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-M31 is In Progress through the approved S179–S188 sequence. Sprint 179 planning
-is Complete and Sprint 180 begins the pure immutable contract foundation.
+M31 is In Progress through the approved S179–S188 sequence. Sprints 179–180 are
+Complete, and Sprint 181 adds the pure immutable cash/event authority.
 
 ## Completed M29 Productization and Hardening
 
@@ -144,10 +144,13 @@ Issue #355 defines:
 - Founder acceptance; and
 - how an approved M30 review reference is attached without becoming ledger truth.
 
-Sprint 180 implements only canonical Decimal values, immutable account identity
-and lifecycle commands, deterministic command digests, and a bounded reference
-from a genuine approved M30 decision. It adds no ledger, persistence, migration,
-API, Web, Demo, order, fill, or execution behavior.
+Sprint 180 established canonical Decimal values, immutable account identity and
+lifecycle commands, deterministic command digests, and a bounded reference from
+a genuine approved M30 decision. Sprint 181 adds immutable cash/account events,
+exact cash postings, cash-only state, and fail-closed digest-chain replay. That
+state is rebuildable but not persisted. Position/cost basis remain S182 and
+snapshot/reconciliation, persistence, API, Web, Demo, and acceptance remain
+S183–S187.
 
 ### Explicit M31 non-goals
 

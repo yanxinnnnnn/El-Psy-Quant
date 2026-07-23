@@ -154,8 +154,8 @@ docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-Sprint 179 architecture and planning is Complete. Sprint 180 is the first
-implementation sprint and adds only pure immutable domain contracts.
+Sprints 179–180 are Complete. Sprint 181 adds the pure immutable account-event
+and cash-ledger authority on the merged Sprint 180 contracts.
 
 M31 must establish independent account and ledger authority for:
 
@@ -187,8 +187,11 @@ S179 planning
   -> S188 closeout
 ```
 
-S179 is Complete. S180 establishes only exact Decimal, identity, lifecycle,
-command digest, and approved-M30 provenance-reference contracts. Migration head
+S179–S180 are Complete. S181 adds creation, cash-movement, evidence-link, and
+lifecycle events; exact immutable cash postings; cash-only derived state; and
+fail-closed digest-chain replay. The state is rebuildable but not persisted.
+Position and cost-basis authority remain S182; S183–S187 retain snapshot,
+reconciliation, persistence, API, Web, Demo, and acceptance. Migration head
 remains `0006_portfolio_reviews`.
 
 ## Approved Paper Trading Runtime Sequence

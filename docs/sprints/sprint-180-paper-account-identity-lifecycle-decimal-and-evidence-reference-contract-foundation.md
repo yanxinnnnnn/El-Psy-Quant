@@ -2,9 +2,9 @@
 
 ## Status
 
-**Implementation complete / pending Founder review.** GitHub Issue #356 is the
-authoritative implementation specification. Issue #355 remains the authoritative
-M31 architecture source.
+**Complete.** PR #357 is merged. GitHub Issue #356 is the authoritative
+implementation specification. Issue #355 remains the authoritative M31
+architecture source.
 
 ## Objective
 
@@ -66,4 +66,5 @@ market/session behavior, worker, scheduler, broker, QMT, MiniQMT, private-edge,
 live, or real-money capability.
 
 The existing `el_psy_quant.paper` package is unchanged. Migration head remains
-`0006_portfolio_reviews`. S181 is next only after Sprint 180 merges.
+`0006_portfolio_reviews`. Sprint 181 builds its cash/event authority on these
+contracts without changing their meaning.

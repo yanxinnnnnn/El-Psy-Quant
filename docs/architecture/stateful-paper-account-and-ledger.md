@@ -6,9 +6,9 @@ GitHub Issue #355 is the authoritative Milestone 31 architecture specification.
 This document records the approved repository-level architecture. If this
 summary and Issue #355 differ, Issue #355 controls.
 
-Milestone 31 is **In Progress** through Sprints 179–188. Sprint 179 completed
-architecture and planning. Sprint 180 begins implementation with pure immutable
-contracts only.
+Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–180 are
+Complete. Sprint 181 implements the pure immutable account-event and cash-ledger
+slice on the merged Sprint 180 contracts.
 
 ## Product goal
 
@@ -81,12 +81,18 @@ sequence starts at 1, is contiguous, and equals the resulting account version.
 Commands will be protected by explicit idempotency keys, canonical command
 digests, expected versions, and one-winner optimistic concurrency.
 
-Future S181–S182 authority will add:
+Sprint 181 adds:
 
 - append-only cash postings and exact cash replay;
-- append-only position and aggregate-cost-basis postings;
 - exact event and chain digests;
-- no negative cash, quantity, or aggregate cost basis;
+- contiguous per-account sequence and version rules;
+- exact cash-only state with `available_cash == cash_balance`; and
+- no negative cash.
+
+Future S182 authority will add:
+
+- append-only position and aggregate-cost-basis postings;
+- no negative quantity or aggregate cost basis;
 - zero cost basis whenever quantity reaches zero; and
 - no shorting, margin, tax lots, market value, or PnL.
 
@@ -147,6 +153,28 @@ Sprint 180 adds no event, posting, replay, balance, position, persistence,
 migration, API, Web, Demo, Docker, order, fill, execution, market, worker,
 broker, private-edge, or live behavior. Migration head remains
 `0006_portfolio_reviews`.
+
+## Sprint 181 boundary
+
+Sprint 181 adds only pure domain authority:
+
+- `PostPaperCashMovementCommand` for deposit, withdrawal, manual adjustment,
+  fee, commission, and tax facts;
+- immutable `PaperAccountEvent` and `PaperCashLedgerEntry` records;
+- creation and `initial_cash`, cash-movement, approved-M30 evidence-link, and
+  lifecycle event construction;
+- deterministic command verification plus entry, event, and chain digests;
+- exact contiguous per-account sequence/version rules;
+- `PaperAccountCashState` with exact non-negative cash and
+  `available_cash == cash_balance`;
+- pure command application; and
+- fail-closed replay that verifies command, entry, event, and chain integrity
+  without repair.
+
+This cash-only state is rebuildable in memory and is not yet persisted or a
+complete M31 account. Position and aggregate-cost-basis authority remain S182.
+Snapshot/reconciliation, persistence, API, Web, Demo, and acceptance remain
+S183–S187. Migration head remains `0006_portfolio_reviews`.
 
 ## Explicit deferrals
 
