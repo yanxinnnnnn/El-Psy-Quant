@@ -166,6 +166,10 @@ def _create_position(
 def _validate_position(position: object) -> PaperAccountPosition:
     if type(position) is not PaperAccountPosition:
         raise ValueError("state contains an invalid position")
+    if type(position.average_unit_cost_is_rounded) is not bool:
+        raise ValueError(
+            "position average_unit_cost_is_rounded must be a boolean"
+        )
     try:
         rebuilt_quantity = PaperQuantity.parse(position.quantity.canonical)
         rebuilt_cost = PaperMoney.parse(position.aggregate_cost_basis.canonical)
@@ -176,6 +180,32 @@ def _validate_position(position: object) -> PaperAccountPosition:
         )
     except (AttributeError, ValueError) as exc:
         raise ValueError("state contains a non-canonical position") from exc
+    if rebuilt.quantity.decimal_value == 0:
+        if position.average_unit_cost is not None:
+            raise ValueError(
+                "zero-quantity position average_unit_cost must be None"
+            )
+        if position.average_unit_cost_is_rounded is not False:
+            raise ValueError(
+                "zero-quantity position average cost cannot be rounded"
+            )
+    else:
+        if type(position.average_unit_cost) is not str:
+            raise ValueError(
+                "positive-quantity position average_unit_cost must be a string"
+            )
+        if position.average_unit_cost != rebuilt.average_unit_cost:
+            raise ValueError(
+                "position average_unit_cost is not the canonical derived value"
+            )
+        if (
+            position.average_unit_cost_is_rounded
+            is not rebuilt.average_unit_cost_is_rounded
+        ):
+            raise ValueError(
+                "position average_unit_cost_is_rounded does not match "
+                "the derived value"
+            )
     if (
         rebuilt != position
         or rebuilt.quantity.decimal_value.as_tuple()

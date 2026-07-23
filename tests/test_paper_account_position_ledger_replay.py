@@ -3,7 +3,7 @@ import hashlib
 import json
 from dataclasses import FrozenInstanceError
 from datetime import datetime, timedelta, timezone
-from decimal import Inexact, localcontext
+from decimal import Decimal, Inexact, localcontext
 
 import pytest
 
@@ -34,7 +34,9 @@ from el_psy_quant.paper_account import (
     replay_paper_account_ledger,
 )
 from el_psy_quant.paper_account.ledger_state import (
+    _create_position,
     _derive_average_unit_cost,
+    _validate_position,
 )
 
 CREATED = datetime(2026, 7, 23, 10, tzinfo=timezone.utc)
@@ -626,6 +628,53 @@ def test_position_application_rejects_tampered_command_value_contract() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("quantity", "cost", "expected_flag", "alias"),
+    (
+        ("3", "10", True, 1),
+        ("3", "10", True, 1.0),
+        ("2", "5", False, 0),
+        ("2", "5", False, 0.0),
+    ),
+)
+def test_position_application_rejects_rounding_flag_numeric_aliases(
+    quantity: str,
+    cost: str,
+    expected_flag: bool,
+    alias: object,
+) -> None:
+    state = replay_paper_account_ledger((_creation(),))
+    opened = _apply_position(state, quantity=quantity, cost=cost)
+    position = opened.resulting_state.positions[0]
+    assert position.average_unit_cost_is_rounded is expected_flag
+    next_command = _position_command(
+        opened.resulting_state,
+        quantity="0",
+        cost="1",
+    )
+    command_digest = next_command.command_digest
+    posting_digests = _position_authority_digests(opened)
+
+    object.__setattr__(
+        position,
+        "average_unit_cost_is_rounded",
+        alias,
+    )
+
+    assert next_command.command_digest == command_digest
+    assert _position_authority_digests(opened) == posting_digests
+    with pytest.raises(ValueError, match="must be a boolean"):
+        apply_paper_position_adjustment(
+            opened.resulting_state,
+            next_command,
+            event_id="event-003",
+            position_entry_id="position-003",
+            recorded_timestamp_utc=CREATED,
+        )
+    assert next_command.command_digest == command_digest
+    assert _position_authority_digests(opened) == posting_digests
+
+
 def test_mixed_cash_position_evidence_lifecycle_history_replays_to_close() -> None:
     history = _mixed_history()
     first = replay_paper_account_ledger(history)
@@ -662,6 +711,18 @@ def _canonical_digest(payload: dict[str, object]) -> str:
         sort_keys=True,
     )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _position_authority_digests(
+    bundle: PaperAccountLedgerEventBundle,
+) -> tuple[str, str, str, str]:
+    assert bundle.position_entry is not None
+    return (
+        bundle.event.command_digest,
+        bundle.position_entry.entry_digest,
+        bundle.event.event_digest,
+        bundle.event.chain_digest,
+    )
 
 
 def _refresh_position_entry_digest(bundle: PaperAccountLedgerEventBundle) -> None:
@@ -710,6 +771,97 @@ def test_full_replay_rejects_position_index_and_cardinality_tampering(
         object.__setattr__(position, "position_entries", ())
     with pytest.raises(ValueError):
         replay_paper_account_ledger((created, position))
+
+
+@pytest.mark.parametrize(
+    ("quantity", "cost", "expected_flag", "alias"),
+    (
+        ("3", "10", True, 1),
+        ("3", "10", True, 1.0),
+        ("2", "5", False, 0),
+        ("2", "5", False, 0.0),
+    ),
+)
+def test_full_replay_rejects_rounding_flag_numeric_aliases_in_resulting_state(
+    quantity: str,
+    cost: str,
+    expected_flag: bool,
+    alias: object,
+) -> None:
+    created = _creation()
+    state = replay_paper_account_ledger((created,))
+    bundle = _apply_position(state, quantity=quantity, cost=cost)
+    position = bundle.resulting_state.positions[0]
+    assert position.average_unit_cost_is_rounded is expected_flag
+    authority_digests = _position_authority_digests(bundle)
+
+    object.__setattr__(
+        position,
+        "average_unit_cost_is_rounded",
+        alias,
+    )
+
+    assert _position_authority_digests(bundle) == authority_digests
+    with pytest.raises(ValueError, match="must be a boolean"):
+        replay_paper_account_ledger((created, bundle))
+    assert _position_authority_digests(bundle) == authority_digests
+
+
+@pytest.mark.parametrize(
+    "invalid_average",
+    (
+        Decimal("2.5"),
+        2,
+        2.5,
+        " 2.5",
+        "2.5 ",
+        "2.50",
+        "2.5e0",
+        "2,5",
+        "2.4",
+        None,
+    ),
+)
+def test_full_replay_rejects_invalid_average_unit_cost_scalars(
+    invalid_average: object,
+) -> None:
+    created = _creation()
+    state = replay_paper_account_ledger((created,))
+    bundle = _apply_position(state, quantity="2", cost="5")
+    authority_digests = _position_authority_digests(bundle)
+    object.__setattr__(
+        bundle.resulting_state.positions[0],
+        "average_unit_cost",
+        invalid_average,
+    )
+
+    assert _position_authority_digests(bundle) == authority_digests
+    with pytest.raises(ValueError, match="average_unit_cost"):
+        replay_paper_account_ledger((created, bundle))
+    assert _position_authority_digests(bundle) == authority_digests
+
+
+def test_zero_value_position_helper_requires_exact_display_scalars() -> None:
+    zero_position = _create_position(
+        symbol="AAPL",
+        quantity=PaperQuantity.parse("0"),
+        aggregate_cost_basis=PaperMoney.parse("0"),
+    )
+    assert zero_position.average_unit_cost is None
+    assert zero_position.average_unit_cost_is_rounded is False
+
+    object.__setattr__(zero_position, "average_unit_cost", "0")
+    with pytest.raises(ValueError, match="must be None"):
+        _validate_position(zero_position)
+
+    zero_position = _create_position(
+        symbol="AAPL",
+        quantity=PaperQuantity.parse("0"),
+        aggregate_cost_basis=PaperMoney.parse("0"),
+    )
+    object.__setattr__(zero_position, "average_unit_cost_is_rounded", 0)
+    with pytest.raises(ValueError, match="must be a boolean"):
+        _validate_position(zero_position)
 
 
 def test_full_replay_rejects_recomputed_lower_entry_and_event_tampering() -> None:
