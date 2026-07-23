@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from el_psy_quant.paper_account.decimals import PaperMoney
+from el_psy_quant.paper_account.decimals import PaperMoney, PaperQuantity
 
 _LOWERCASE_HEXADECIMAL = frozenset("0123456789abcdef")
 
@@ -86,3 +86,13 @@ def money_from_decimal(value: Decimal) -> PaperMoney:
     if canonical in {"", "-0"}:
         canonical = "0"
     return PaperMoney.parse(canonical)
+
+
+def quantity_from_decimal(value: Decimal) -> PaperQuantity:
+    """Create canonical PaperQuantity from exact domain arithmetic."""
+    canonical = format(value, "f")
+    if "." in canonical:
+        canonical = canonical.rstrip("0").rstrip(".")
+    if canonical in {"", "-0"}:
+        canonical = "0"
+    return PaperQuantity.parse(canonical)

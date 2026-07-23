@@ -17,13 +17,19 @@ from el_psy_quant.paper_account.cash_commands import (
     PostPaperCashMovementType,
 )
 from el_psy_quant.paper_account.cash_ledger import PaperCashLedgerEntry
-from el_psy_quant.paper_account.decimals import PaperMoney
+from el_psy_quant.paper_account.decimals import PaperMoney, PaperQuantity
 from el_psy_quant.paper_account.identity import (
     MAX_PAPER_ACCOUNT_ACTOR_LENGTH,
     MAX_PAPER_ACCOUNT_ID_LENGTH,
     PaperAccountIdentity,
 )
 from el_psy_quant.paper_account.lifecycle import PaperAccountLifecycleStatus
+from el_psy_quant.paper_account.position_commands import (
+    PaperPositionAdjustmentCategory,
+)
+from el_psy_quant.paper_account.position_ledger import (
+    PaperPositionLedgerEntry,
+)
 from el_psy_quant.paper_account.references import (
     ApprovedPortfolioReviewReference,
 )
@@ -39,6 +45,7 @@ PAPER_ACCOUNT_GENESIS_CHAIN_DIGEST = hashlib.sha256(
 PaperAccountEventType = Literal[
     "account_created",
     "cash_movement_posted",
+    "position_adjustment_posted",
     "portfolio_review_evidence_linked",
     "account_frozen",
     "account_reactivated",
@@ -48,6 +55,7 @@ PaperAccountEventType = Literal[
 SUPPORTED_PAPER_ACCOUNT_EVENT_TYPES = (
     "account_created",
     "cash_movement_posted",
+    "position_adjustment_posted",
     "portfolio_review_evidence_linked",
     "account_frozen",
     "account_reactivated",
@@ -92,6 +100,29 @@ class _CashMovementPostedDetails:
 
 
 @dataclass(frozen=True, init=False)
+class _PositionAdjustmentPostedDetails:
+    symbol: str
+    adjustment_category: PaperPositionAdjustmentCategory
+    signed_quantity_delta: PaperQuantity
+    signed_cost_basis_delta: PaperMoney
+
+    __init__ = _reject_public_construction
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "details_type": "position_adjustment_posted",
+            "symbol": self.symbol,
+            "adjustment_category": self.adjustment_category,
+            "signed_quantity_delta": (
+                self.signed_quantity_delta.to_json_value()
+            ),
+            "signed_cost_basis_delta": (
+                self.signed_cost_basis_delta.to_json_value()
+            ),
+        }
+
+
+@dataclass(frozen=True, init=False)
 class _PortfolioReviewEvidenceLinkedDetails:
     approved_portfolio_review: ApprovedPortfolioReviewReference
 
@@ -124,6 +155,7 @@ class _LifecycleChangedDetails:
 _PaperAccountEventDetails: TypeAlias = (
     _AccountCreatedDetails
     | _CashMovementPostedDetails
+    | _PositionAdjustmentPostedDetails
     | _PortfolioReviewEvidenceLinkedDetails
     | _LifecycleChangedDetails
 )
@@ -213,6 +245,33 @@ def _evidence_linked_details(
     return result
 
 
+def _position_adjustment_details(
+    *,
+    symbol: str,
+    adjustment_category: PaperPositionAdjustmentCategory,
+    signed_quantity_delta: PaperQuantity,
+    signed_cost_basis_delta: PaperMoney,
+) -> _PositionAdjustmentPostedDetails:
+    result = object.__new__(_PositionAdjustmentPostedDetails)
+    object.__setattr__(result, "symbol", symbol)
+    object.__setattr__(
+        result,
+        "adjustment_category",
+        adjustment_category,
+    )
+    object.__setattr__(
+        result,
+        "signed_quantity_delta",
+        signed_quantity_delta,
+    )
+    object.__setattr__(
+        result,
+        "signed_cost_basis_delta",
+        signed_cost_basis_delta,
+    )
+    return result
+
+
 def _lifecycle_changed_details(
     source_status: PaperAccountLifecycleStatus,
     target_status: PaperAccountLifecycleStatus,
@@ -226,12 +285,18 @@ def _lifecycle_changed_details(
 def _event_digest_payload(
     event: PaperAccountEvent,
     cash_entries: tuple[PaperCashLedgerEntry, ...],
+    position_entries: tuple[PaperPositionLedgerEntry, ...] = (),
 ) -> dict[str, object]:
-    return {
+    payload: dict[str, object] = {
         "event_header": event._header_without_result_digests(),
         "event_details": event.details.to_dict(),
         "cash_entries": [entry.to_dict() for entry in cash_entries],
     }
+    if event.event_type == "position_adjustment_posted":
+        payload["position_entries"] = [
+            entry.to_dict() for entry in position_entries
+        ]
+    return payload
 
 
 def _create_event(
@@ -250,6 +315,7 @@ def _create_event(
     previous_chain_digest: str,
     details: _PaperAccountEventDetails,
     cash_entries: tuple[PaperCashLedgerEntry, ...],
+    position_entries: tuple[PaperPositionLedgerEntry, ...] = (),
 ) -> PaperAccountEvent:
     normalized_event_id = normalize_bounded_string(
         event_id,
@@ -333,7 +399,9 @@ def _create_event(
         previous_chain_digest,
     )
     object.__setattr__(result, "details", details)
-    event_digest = canonical_digest(_event_digest_payload(result, cash_entries))
+    event_digest = canonical_digest(
+        _event_digest_payload(result, cash_entries, position_entries)
+    )
     object.__setattr__(result, "event_digest", event_digest)
     chain_digest = hashlib.sha256(
         (previous_chain_digest + event_digest).encode("ascii")

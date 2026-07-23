@@ -6,9 +6,10 @@ GitHub Issue #355 is the authoritative Milestone 31 architecture specification.
 This document records the approved repository-level architecture. If this
 summary and Issue #355 differ, Issue #355 controls.
 
-Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–180 are
-Complete. Sprint 181 implements the pure immutable account-event and cash-ledger
-slice on the merged Sprint 180 contracts.
+Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–181 are
+Complete. Sprint 182 implements the pure immutable position-ledger,
+aggregate-cost-basis, and complete cash-plus-position replay slice on the merged
+Sprint 180–181 contracts.
 
 ## Product goal
 
@@ -81,7 +82,7 @@ sequence starts at 1, is contiguous, and equals the resulting account version.
 Commands will be protected by explicit idempotency keys, canonical command
 digests, expected versions, and one-winner optimistic concurrency.
 
-Sprint 181 adds:
+Sprint 181 added:
 
 - append-only cash postings and exact cash replay;
 - exact event and chain digests;
@@ -89,12 +90,16 @@ Sprint 181 adds:
 - exact cash-only state with `available_cash == cash_balance`; and
 - no negative cash.
 
-Future S182 authority will add:
+Sprint 182 adds:
 
 - append-only position and aggregate-cost-basis postings;
 - no negative quantity or aggregate cost basis;
 - zero cost basis whenever quantity reaches zero; and
-- no shorting, margin, tax lots, market value, or PnL.
+- no shorting, margin, tax lots, market value, or PnL;
+- display-only average unit cost with explicit eight-place half-even rounding;
+- one complete deterministic cash-plus-position ledger state; and
+- mixed cash, position, evidence, and lifecycle replay through the same event
+  and chain authority.
 
 Fee, commission, tax, and corporate-action inputs remain explicit manual facts.
 They are not calculated or inferred from market data.
@@ -171,10 +176,38 @@ Sprint 181 adds only pure domain authority:
 - fail-closed replay that verifies command, entry, event, and chain integrity
   without repair.
 
-This cash-only state is rebuildable in memory and is not yet persisted or a
-complete M31 account. Position and aggregate-cost-basis authority remain S182.
-Snapshot/reconciliation, persistence, API, Web, Demo, and acceptance remain
-S183–S187. Migration head remains `0006_portfolio_reviews`.
+This cash-only state remains a supported incomplete compatibility view. Sprint
+181 is Complete after PR #359 merged. Its valid event exports and digests remain
+byte-for-byte stable under the Sprint 182 extension.
+
+## Sprint 182 boundary
+
+Sprint 182 adds only pure domain authority:
+
+- `PostPaperPositionAdjustmentCommand` with the four approved manual
+  adjustment categories and normalized one-symbol scope;
+- immutable `PaperPositionLedgerEntry` records;
+- the typed `position_adjustment_posted` event in the existing sequence and
+  digest chain;
+- exact long-only quantity and aggregate-cost-basis application;
+- `PaperAccountPosition` with display-only average unit cost rounded explicitly
+  with `ROUND_HALF_EVEN` to at most eight fractional digits;
+- `PaperAccountLedgerState` as the complete cash-plus-position derived state;
+- a position event bundle that contains exactly one position entry and no cash
+  entry; and
+- fail-closed full replay of mixed cash, position, evidence, and lifecycle
+  histories.
+
+Quantity and aggregate cost basis remain the exact replay authorities. Reducing
+one does not infer a change to the other, position adjustments infer no cash
+posting, and zero quantity requires zero aggregate cost basis before the symbol
+is omitted from current positions. Average unit cost never enters a command,
+posting, digest, replay, validation, or reconstruction calculation.
+
+This complete state is rebuildable in memory only. It is not persisted and is
+not yet a usable Founder account workflow. Snapshot/reconciliation,
+persistence, API, Web, Demo, and acceptance remain S183–S187. Migration head
+remains `0006_portfolio_reviews`.
 
 ## Explicit deferrals
 

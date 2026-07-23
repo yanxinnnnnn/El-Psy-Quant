@@ -19,8 +19,8 @@ governance, Paper Jobs, and future account/ledger truth as separate authorities.
 |---:|---|---|
 | S179 | Milestone 31 Architecture and Planning | Complete |
 | S180 | Identity, Lifecycle, Decimal, and Evidence Reference Contracts | Complete |
-| S181 | Immutable Cash Ledger and Account Event Foundation | Implementation complete / pending Founder review |
-| S182 | Immutable Position Ledger and Aggregate Cost Basis Foundation | Planned |
+| S181 | Immutable Cash Ledger and Account Event Foundation | Complete |
+| S182 | Immutable Position Ledger and Aggregate Cost Basis Foundation | Implementation complete / pending Founder review |
 | S183 | Snapshot, Reconciliation, and Projection Rebuild Foundation | Planned |
 | S184 | Persistence, Migration, Concurrency, and Application Services | Planned |
 | S185 | Versioned API, Errors, and Audit Surface | Planned |
@@ -63,10 +63,30 @@ The second implementation slice reuses the Sprint 180 contracts and provides:
 - fail-closed deterministic replay with no repair or caller-authored ending
   balance authority.
 
-This state is rebuildable but not persisted, and it is not a complete
-position-aware account. Position and aggregate-cost-basis authority remain S182.
-Snapshot/reconciliation, persistence, API, Web, Demo, and acceptance remain
-S183–S187.
+This cash-only state remains rebuildable but not persisted. Sprint 181 is
+Complete after PR #359 merged.
+
+## Sprint 182 result boundary
+
+The third implementation slice reuses the single Sprint 181 event chain and
+provides:
+
+- one immutable normalized-symbol position-adjustment command;
+- the exact `opening_balance`, `manual_correction`, `corporate_action`, and
+  `other` categories;
+- immutable position entries and the typed `position_adjustment_posted` event;
+- exact ordered quantity and aggregate-cost-basis replay with long-only,
+  non-negative, and zero-quantity/zero-cost-basis invariants;
+- display-only average unit cost with explicit eight-place half-even rounding
+  and a rounding indicator;
+- one complete `PaperAccountLedgerState` containing exact cash, ordered current
+  positions, lifecycle, evidence references, and head identity; and
+- fail-closed replay of mixed cash, position, evidence, and lifecycle histories
+  without changing valid Sprint 181 event digests.
+
+This state remains pure and rebuildable in memory. It is not persisted and does
+not add snapshot/reconciliation, API, Web, Demo, order/fill, market, execution,
+or runtime behavior. Those boundaries remain S183–S187.
 
 ## Completion gate
 
@@ -95,4 +115,5 @@ docs/architecture/stateful-paper-account-and-ledger.md
 docs/sprints/sprint-179-milestone-31-architecture-and-planning.md
 docs/sprints/sprint-180-paper-account-identity-lifecycle-decimal-and-evidence-reference-contract-foundation.md
 docs/sprints/sprint-181-immutable-cash-ledger-and-account-event-foundation.md
+docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-foundation.md
 ```

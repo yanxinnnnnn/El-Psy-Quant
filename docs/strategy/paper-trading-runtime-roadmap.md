@@ -13,7 +13,7 @@ Issues, Founder acceptance, and manual merge.
 
 ```text
 M30 — Complete
-M31 — In Progress (S179–S180 Complete; S181 cash/event foundation)
+M31 — In Progress (S179–S181 Complete; S182 position/cost-basis foundation)
 M32–M36 — Planned
 ```
 
@@ -98,7 +98,7 @@ execution, or runtime truth.
 
 ### Status
 
-**In Progress — S179–S180 Complete; S181 cash/event foundation.**
+**In Progress — S179–S181 Complete; S182 position/cost-basis foundation.**
 
 ### User-visible outcome
 
@@ -147,11 +147,13 @@ The approved architecture defines:
 Sprint 180 established the separate pure `el_psy_quant.paper_account` contracts:
 canonical exact Decimal values, identity/reference values, closed lifecycle
 validation, deterministic commands, and a trusted bounded approved-M30
-provenance reference. Sprint 181 adds immutable account events and cash postings,
-exact cash-only state, contiguous versions, and fail-closed digest-chain replay.
-The state is rebuildable but not persisted. Position and cost-basis authority
-remain S182; S183–S187 retain snapshot/reconciliation, persistence, API, Web,
-Demo, and acceptance.
+provenance reference. Sprint 181 added immutable account events and cash
+postings, exact cash-only state, contiguous versions, and fail-closed
+digest-chain replay. Sprint 182 adds immutable position postings, exact
+long-only quantity and aggregate cost basis, display-only average unit cost,
+and complete mixed-ledger replay through the same chain. The state is
+rebuildable but not persisted. S183–S187 retain snapshot/reconciliation,
+persistence, API, Web, Demo, and acceptance.
 
 ### M30 relationship
 
