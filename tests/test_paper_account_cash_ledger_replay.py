@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 from dataclasses import FrozenInstanceError
 from datetime import datetime, timezone
@@ -283,6 +284,49 @@ def _mixed_history() -> tuple[PaperAccountEventBundle, ...]:
     )
     bundles.append(closed)
     return tuple(bundles)
+
+
+def _canonical_digest(payload: dict[str, object]) -> str:
+    canonical = json.dumps(
+        payload,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _refresh_event_digests(bundle: PaperAccountEventBundle) -> None:
+    event = bundle.event
+    event_digest = _canonical_digest(
+        {
+            "event_header": event._header_without_result_digests(),
+            "event_details": event.details.to_dict(),
+            "cash_entries": [
+                entry.to_dict() for entry in bundle.cash_entries
+            ],
+        }
+    )
+    object.__setattr__(event, "event_digest", event_digest)
+    object.__setattr__(
+        event,
+        "chain_digest",
+        hashlib.sha256(
+            (event.previous_chain_digest + event_digest).encode("ascii")
+        ).hexdigest(),
+    )
+
+
+def _refresh_entry_and_event_digests(bundle: PaperAccountEventBundle) -> None:
+    entry = bundle.cash_entry
+    assert entry is not None
+    object.__setattr__(
+        entry,
+        "entry_digest",
+        _canonical_digest(entry._payload_without_digest()),
+    )
+    _refresh_event_digests(bundle)
 
 
 @pytest.mark.parametrize("initial_cash", ("0", "100.125"))
@@ -711,6 +755,86 @@ def test_replay_rejects_cardinality_order_creation_state_and_closed_violations()
         replay_paper_account_cash_ledger(
             (empty, closed, frozen_from_old_head)
         )
+
+
+@pytest.mark.parametrize(
+    ("bundle_index", "field_name", "replacement"),
+    (
+        (0, "sequence_number", True),
+        (0, "sequence_number", 1.0),
+        (0, "account_version", True),
+        (0, "account_version", 1.0),
+        (1, "expected_account_version", True),
+        (1, "expected_account_version", 1.0),
+    ),
+)
+def test_replay_rejects_noninteger_event_authority_even_with_fresh_digests(
+    bundle_index: int,
+    field_name: str,
+    replacement: object,
+) -> None:
+    history = copy.deepcopy(_mixed_history()[: bundle_index + 1])
+    object.__setattr__(history[bundle_index].event, field_name, replacement)
+    _refresh_event_digests(history[bundle_index])
+
+    with pytest.raises(ValueError, match="exact positive integer"):
+        replay_paper_account_cash_ledger(history)
+
+
+@pytest.mark.parametrize("entry_index", (False, 0.0, "0", -1, 1))
+def test_replay_rejects_noncanonical_entry_indexes_with_fresh_digests(
+    entry_index: object,
+) -> None:
+    history = copy.deepcopy(_mixed_history()[:1])
+    entry = history[0].cash_entry
+    assert entry is not None
+    object.__setattr__(entry, "entry_index", entry_index)
+    _refresh_entry_and_event_digests(history[0])
+
+    with pytest.raises(ValueError, match="entry_index"):
+        replay_paper_account_cash_ledger(history)
+
+
+@pytest.mark.parametrize("head_version", (True, 1.0))
+def test_replay_rejects_noninteger_resulting_state_without_digest_changes(
+    head_version: object,
+) -> None:
+    history = copy.deepcopy(_mixed_history()[:1])
+    object.__setattr__(
+        history[0].resulting_state,
+        "head_version",
+        head_version,
+    )
+
+    with pytest.raises(ValueError, match="head version"):
+        replay_paper_account_cash_ledger(history)
+
+
+@pytest.mark.parametrize(
+    ("field_name", "replacement"),
+    (
+        ("head_event_id", True),
+        ("head_chain_digest", "A" * 64),
+        ("lifecycle_status", True),
+        ("cash_balance", "100"),
+        ("available_cash", "100"),
+        ("account_identity", object()),
+        ("approved_portfolio_reviews", []),
+    ),
+)
+def test_replay_strictly_validates_all_supplied_resulting_state_authority(
+    field_name: str,
+    replacement: object,
+) -> None:
+    history = copy.deepcopy(_mixed_history()[:1])
+    object.__setattr__(
+        history[0].resulting_state,
+        field_name,
+        replacement,
+    )
+
+    with pytest.raises(ValueError):
+        replay_paper_account_cash_ledger(history)
 
 
 def test_public_authority_records_are_immutable_and_not_directly_constructible() -> None:

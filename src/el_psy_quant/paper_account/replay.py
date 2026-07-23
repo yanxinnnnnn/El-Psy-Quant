@@ -25,6 +25,7 @@ from el_psy_quant.paper_account.cash_state import (
     PaperAccountEventBundle,
     _create_state,
     _signed_cash_movement,
+    _validate_state,
 )
 from el_psy_quant.paper_account.commands import (
     MAX_PAPER_ACCOUNT_COMMAND_IDEMPOTENCY_KEY_LENGTH,
@@ -144,12 +145,32 @@ def _validate_event_header(
         raise ValueError("event account_id does not match account history")
     if event.event_type not in SUPPORTED_PAPER_ACCOUNT_EVENT_TYPES:
         raise ValueError("history contains an unsupported event type")
+    if type(event.sequence_number) is not int or event.sequence_number <= 0:
+        raise ValueError(
+            "event sequence_number must be an exact positive integer"
+        )
+    if type(event.account_version) is not int or event.account_version <= 0:
+        raise ValueError(
+            "event account_version must be an exact positive integer"
+        )
     if (
         event.sequence_number != sequence_number
         or event.account_version != sequence_number
     ):
         raise ValueError("event sequence and version must be contiguous")
     expected_version = None if sequence_number == 1 else sequence_number - 1
+    if sequence_number == 1:
+        if event.expected_account_version is not None:
+            raise ValueError(
+                "creation expected_account_version must be None"
+            )
+    elif (
+        type(event.expected_account_version) is not int
+        or event.expected_account_version <= 0
+    ):
+        raise ValueError(
+            "event expected_account_version must be an exact positive integer"
+        )
     if event.expected_account_version != expected_version:
         raise ValueError("event expected version does not match prior version")
     if event.previous_chain_digest != previous_chain_digest:
@@ -202,8 +223,8 @@ def _validate_entry(
         raise ValueError("history contains an invalid cash entry")
     if entry.account_id != event.account_id or entry.event_id != event.event_id:
         raise ValueError("cash entry identity does not match its event")
-    if entry.entry_index != 0:
-        raise ValueError("cash entry indexes must be contiguous from zero")
+    if type(entry.entry_index) is not int or entry.entry_index != 0:
+        raise ValueError("cash entry_index must be the exact integer zero")
     if entry.currency != base_currency:
         raise ValueError("cash entry currency does not match account currency")
     normalize_bounded_string(
@@ -522,6 +543,12 @@ def replay_paper_account_cash_ledger(
             head_event_id=event.event_id,
             head_chain_digest=event.chain_digest,
         )
+        try:
+            _validate_state(bundle.resulting_state)
+        except ValueError as exc:
+            raise ValueError(
+                f"bundle resulting state is invalid: {exc}"
+            ) from exc
         if bundle.resulting_state != rebuilt_state:
             raise ValueError(
                 "bundle resulting state does not match immutable records"

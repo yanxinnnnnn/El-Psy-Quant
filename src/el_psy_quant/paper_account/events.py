@@ -261,12 +261,21 @@ def _create_event(
         field_name="account_id",
         maximum_length=MAX_PAPER_ACCOUNT_ID_LENGTH,
     )
-    if (
-        isinstance(sequence_number, bool)
-        or not isinstance(sequence_number, int)
-        or sequence_number <= 0
-    ):
+    if type(sequence_number) is not int or sequence_number <= 0:
         raise ValueError("sequence_number must be a positive integer")
+    if sequence_number == 1:
+        if expected_account_version is not None:
+            raise ValueError(
+                "creation expected_account_version must be None"
+            )
+    elif (
+        type(expected_account_version) is not int
+        or expected_account_version <= 0
+        or expected_account_version != sequence_number - 1
+    ):
+        raise ValueError(
+            "expected_account_version must be the exact prior integer version"
+        )
     if event_type not in SUPPORTED_PAPER_ACCOUNT_EVENT_TYPES:
         raise ValueError("unsupported Paper Account event type")
     normalized_actor = normalize_bounded_string(

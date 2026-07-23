@@ -73,8 +73,7 @@ class PostPaperCashMovementCommand:
             ),
         )
         if (
-            isinstance(self.expected_account_version, bool)
-            or not isinstance(self.expected_account_version, int)
+            type(self.expected_account_version) is not int
             or self.expected_account_version <= 0
         ):
             raise ValueError(

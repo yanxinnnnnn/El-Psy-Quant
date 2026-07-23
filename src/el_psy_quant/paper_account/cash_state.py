@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
 
 from el_psy_quant.paper_account._shared import (
     canonical_digest,
     money_from_decimal,
+    normalize_bounded_string,
     normalize_utc_datetime,
     validate_digest,
 )
@@ -28,6 +30,7 @@ from el_psy_quant.paper_account.commands import (
 from el_psy_quant.paper_account.decimals import PaperMoney
 from el_psy_quant.paper_account.events import (
     PAPER_ACCOUNT_GENESIS_CHAIN_DIGEST,
+    MAX_PAPER_ACCOUNT_EVENT_ID_LENGTH,
     PaperAccountEvent,
     _account_created_details,
     _cash_movement_details,
@@ -178,28 +181,89 @@ def _validate_state(state: PaperAccountCashState) -> None:
         raise ValueError("state must be PaperAccountCashState")
     if type(state.account_identity) is not PaperAccountIdentity:
         raise ValueError("state account identity is invalid")
-    if state.lifecycle_status not in SUPPORTED_PAPER_ACCOUNT_LIFECYCLE_STATUSES:
+    try:
+        rebuilt_identity = PaperAccountIdentity(
+            account_id=state.account_identity.account_id,
+            display_name=state.account_identity.display_name,
+            base_currency=state.account_identity.base_currency,
+            created_by=state.account_identity.created_by,
+            created_timestamp=state.account_identity.created_timestamp,
+        )
+    except ValueError as exc:
+        raise ValueError("state account identity is invalid") from exc
+    if rebuilt_identity.to_dict() != state.account_identity.to_dict():
+        raise ValueError("state account identity is not canonical")
+    if (
+        type(state.lifecycle_status) is not str
+        or state.lifecycle_status
+        not in SUPPORTED_PAPER_ACCOUNT_LIFECYCLE_STATUSES
+    ):
         raise ValueError("state lifecycle status is invalid")
     if (
         type(state.cash_balance) is not PaperMoney
         or type(state.available_cash) is not PaperMoney
     ):
         raise ValueError("state cash values must be PaperMoney")
-    if state.cash_balance != state.available_cash:
+    for money, field_name in (
+        (state.cash_balance, "cash_balance"),
+        (state.available_cash, "available_cash"),
+    ):
+        if (
+            type(money.canonical) is not str
+            or type(money.decimal_value) is not Decimal
+        ):
+            raise ValueError(f"state {field_name} is not canonical PaperMoney")
+        try:
+            rebuilt_money = PaperMoney.parse(money.canonical)
+        except ValueError as exc:
+            raise ValueError(
+                f"state {field_name} is not canonical PaperMoney"
+            ) from exc
+        if rebuilt_money.decimal_value.as_tuple() != (
+            money.decimal_value.as_tuple()
+        ):
+            raise ValueError(
+                f"state {field_name} is not canonical PaperMoney"
+            )
+    if state.cash_balance.canonical != state.available_cash.canonical:
         raise ValueError("available_cash must equal cash_balance")
     if state.cash_balance.decimal_value < 0:
         raise ValueError("cash balance must not be negative")
-    if (
-        isinstance(state.head_version, bool)
-        or not isinstance(state.head_version, int)
-        or state.head_version <= 0
-    ):
+    if type(state.head_version) is not int or state.head_version <= 0:
         raise ValueError("state head version must be a positive integer")
+    normalized_head_event_id = normalize_bounded_string(
+        state.head_event_id,
+        field_name="head_event_id",
+        maximum_length=MAX_PAPER_ACCOUNT_EVENT_ID_LENGTH,
+    )
+    if normalized_head_event_id != state.head_event_id:
+        raise ValueError("state head event ID is not normalized")
     validate_digest(state.head_chain_digest, "head_chain_digest")
+    if type(state.approved_portfolio_reviews) is not tuple:
+        raise ValueError("state evidence references must use tuple ordering")
     decision_ids: set[str] = set()
     for reference in state.approved_portfolio_reviews:
         if type(reference) is not ApprovedPortfolioReviewReference:
             raise ValueError("state contains an invalid evidence reference")
+        for field_name in ("review_id", "source_id", "decision_id"):
+            value = getattr(reference, field_name)
+            normalized = normalize_bounded_string(
+                value,
+                field_name=field_name,
+                maximum_length=512,
+            )
+            if normalized != value:
+                raise ValueError(
+                    "state contains a non-canonical evidence reference"
+                )
+        for field_name in (
+            "source_digest",
+            "analysis_digest",
+            "decision_digest",
+        ):
+            validate_digest(getattr(reference, field_name), field_name)
+        if type(reference.outcome) is not str or reference.outcome != "approved":
+            raise ValueError("state evidence reference outcome is invalid")
         if reference.decision_id in decision_ids:
             raise ValueError("state contains duplicate evidence decision IDs")
         decision_ids.add(reference.decision_id)
