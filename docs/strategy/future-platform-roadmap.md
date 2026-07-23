@@ -47,8 +47,8 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-The next action is an M31 architecture-and-planning Issue. Direct implementation
-is not authorized before that plan is reviewed and merged.
+M31 is In Progress through the approved S179–S188 sequence. Sprint 179 planning
+is Complete and Sprint 180 begins the pure immutable contract foundation.
 
 ## Completed M29 Productization and Hardening
 
@@ -104,9 +104,10 @@ docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout
 
 ## Approved M31–M36 Sequence
 
-M31–M36 are an architectural sequence, not fixed dates or sprint commitments.
-Each milestone must receive its own planning Issue, architecture review,
-implementation Issues, Founder acceptance, and manual merge.
+M31 has the approved S179–S188 sequence. M32–M36 remain an architectural
+sequence without sprint ranges; each must receive its own planning Issue,
+architecture review, implementation Issues, Founder acceptance, and manual
+merge.
 
 ```text
 M31 Stateful Paper Account and Ledger Foundation
@@ -125,9 +126,9 @@ The Founder can create and inspect a durable local Paper Account whose cash,
 positions, controlled adjustments, and account history derive from one auditable
 ledger and remain consistent across restarts.
 
-### Required architecture planning
+### Approved architecture
 
-M31 planning must decide:
+Issue #355 defines:
 
 - account identity and lifecycle;
 - initial cash and controlled funding/adjustment semantics;
@@ -142,6 +143,11 @@ M31 planning must decide:
 - migration and upgrade behavior;
 - Founder acceptance; and
 - how an approved M30 review reference is attached without becoming ledger truth.
+
+Sprint 180 implements only canonical Decimal values, immutable account identity
+and lifecycle commands, deterministic command digests, and a bounded reference
+from a genuine approved M30 decision. It adds no ledger, persistence, migration,
+API, Web, Demo, order, fill, or execution behavior.
 
 ### Explicit M31 non-goals
 

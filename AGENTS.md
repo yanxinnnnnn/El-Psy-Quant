@@ -157,15 +157,16 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-The next action after Sprint 178 merges is an **M31 architecture-and-planning
-Issue**. Direct M31 implementation is not authorized before that plan is reviewed
-and merged.
+M31 is **In Progress** through the approved S179–S188 sequence. Sprint 179
+architecture and planning is Complete. Sprint 180 is the first implementation
+sprint and is limited to pure immutable identity, lifecycle, Decimal, command,
+and approved-M30 evidence-reference contracts.
 
 M31 must establish independent durable account and ledger truth. It may reference
 approved M30 review evidence, but that evidence cannot create, fund, or mutate an
 account and is not a ledger entry.
 
-M31 planning must explicitly decide:
+The approved Issue #355 architecture defines:
 
 - account identity and lifecycle;
 - initial cash and controlled funding/adjustment semantics;
@@ -182,7 +183,7 @@ M31 planning must explicitly decide:
 
 ```text
 M30 Portfolio-Level Decision Review Foundation — Complete
-  -> M31 Stateful Paper Account and Ledger Foundation — Next
+  -> M31 Stateful Paper Account and Ledger Foundation — In Progress
   -> M32 Market Data Replay, Trading Calendar, and Session Clock
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
   -> M34 Paper Execution Simulator and First True Paper Trading
@@ -190,8 +191,8 @@ M30 Portfolio-Level Decision Review Foundation — Complete
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-M31–M36 sprint ranges remain `TBD`. Each milestone receives its own planning Issue
-before implementation.
+M31 uses S179–S188. M32–M36 retain no sprint ranges; each milestone receives its
+own planning Issue before implementation.
 
 ### M34 product gate
 
@@ -237,8 +238,8 @@ Browser
 
 ## M31 Boundary
 
-M31 may introduce durable account and ledger objects only after architecture
-planning. It must not silently reinterpret:
+M31 implementation follows Issue #355 and the strict S179–S188 sequence. Sprint
+180 adds contracts only and must not silently reinterpret:
 
 - M30 scenario weights as holdings;
 - M30 approval as account authorization;

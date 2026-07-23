@@ -13,11 +13,12 @@ Issues, Founder acceptance, and manual merge.
 
 ```text
 M30 — Complete
-M31 — Next / architecture planning
+M31 — In Progress (S179 Complete; S180 contract foundation)
 M32–M36 — Planned
 ```
 
-M31–M36 sprint ranges remain `TBD` until each milestone is planned.
+M31 uses the approved S179–S188 sequence. M32–M36 remain unassigned until each
+milestone is planned.
 
 ## Starting Product After M30
 
@@ -54,7 +55,7 @@ Neither creates or funds an account or becomes ledger truth.
 
 ```text
 M30 Portfolio-Level Decision Review Foundation — Complete
-  -> M31 Stateful Paper Account and Ledger Foundation — Next
+  -> M31 Stateful Paper Account and Ledger Foundation — In Progress
   -> M32 Market Data Replay, Trading Calendar, and Session Clock
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
   -> M34 Paper Execution Simulator and First True Paper Trading
@@ -97,7 +98,7 @@ execution, or runtime truth.
 
 ### Status
 
-**Next — architecture planning required.**
+**In Progress — S179 planning Complete; S180 contract foundation.**
 
 ### User-visible outcome
 
@@ -105,9 +106,9 @@ The Founder can create and inspect a durable local Paper Account whose cash,
 positions, controlled adjustments, and account history are derived from one
 auditable ledger and remain consistent across restarts.
 
-### Required durable/domain capability
+### Approved durable/domain capability
 
-M31 planning must define an approved equivalent of:
+Issue #355 defines the approved equivalent of:
 
 ```text
 PaperAccount
@@ -121,9 +122,9 @@ AccountReference
 Exact names are implementation decisions. Competing mutable balance authorities
 are not allowed.
 
-### Required decisions
+### Approved decisions
 
-M31 architecture planning must decide:
+The approved architecture defines:
 
 - account ID and lifecycle;
 - creation and initial-cash semantics;
@@ -142,6 +143,12 @@ M31 architecture planning must decide:
 - deterministic isolated Demo data;
 - errors, observability, backup, recovery, and Founder acceptance; and
 - exact linkage to approved M30 evidence.
+
+Sprint 180 adds only the separate pure `el_psy_quant.paper_account` contracts:
+canonical exact Decimal values, identity/reference values, closed lifecycle
+validation, deterministic commands, and a trusted bounded approved-M30
+provenance reference. It adds no ledger event, posting, balance, replay,
+persistence, migration, API, Web, Demo, order, fill, or execution behavior.
 
 ### M30 relationship
 
