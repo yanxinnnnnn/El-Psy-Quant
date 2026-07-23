@@ -157,10 +157,10 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-M31 is **In Progress** through the approved S179–S188 sequence. Sprint 179
-architecture and planning is Complete. Sprint 180 is the first implementation
-sprint and is limited to pure immutable identity, lifecycle, Decimal, command,
-and approved-M30 evidence-reference contracts.
+M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–180
+are Complete. Sprint 181 is the current implementation slice and is limited to
+pure immutable account events, cash ledger entries, cash-only derived state,
+exact replay, and deterministic command, entry, event, and chain digests.
 
 M31 must establish independent durable account and ledger truth. It may reference
 approved M30 review evidence, but that evidence cannot create, fund, or mutate an
@@ -239,13 +239,17 @@ Browser
 ## M31 Boundary
 
 M31 implementation follows Issue #355 and the strict S179–S188 sequence. Sprint
-180 adds contracts only and must not silently reinterpret:
+181 reuses the Sprint 180 contracts and adds pure rebuildable cash/event
+authority only; it must not silently reinterpret:
 
 - M30 scenario weights as holdings;
 - M30 approval as account authorization;
 - Paper Job results as ledger events;
 - lifecycle state as cash or position authority; or
 - user-entered balances as a substitute for immutable ledger entries.
+
+Sprint 181 cash state is not persisted and is not a complete position-aware
+account. Position and aggregate-cost-basis authority remain S182.
 
 M31 does not pre-authorize:
 

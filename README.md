@@ -21,10 +21,10 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-M31 is **In Progress** through the Founder-approved S179–S188 sequence. Sprint
-179 architecture and planning is Complete; Sprint 180 is the first implementation
-sprint and adds only pure immutable account identity, lifecycle, exact Decimal,
-command-digest, and approved-M30 evidence-reference contracts.
+M31 is **In Progress** through the Founder-approved S179–S188 sequence. Sprints
+179–180 are Complete. Sprint 181 adds the pure immutable account-event chain,
+cash postings, cash-only state, exact replay, and deterministic digest authority.
+This state is rebuildable in memory only; durable persistence begins in S184.
 
 Current migration head:
 
@@ -157,10 +157,13 @@ M31 must establish an independent durable source of truth for account identity,
 cash, positions, adjustments, fees, order/fill references, snapshots,
 reconciliation, idempotency, and concurrency.
 
-Sprint 180 establishes only the separate `el_psy_quant.paper_account` contract
-boundary. It does not yet create ledger events, balances, persistence, API, Web,
-Demo, or execution behavior. The existing `el_psy_quant.paper` evidence model is
-unchanged.
+Sprint 180 established the separate `el_psy_quant.paper_account` contract
+boundary. Sprint 181 builds pure immutable creation, cash-movement,
+approved-evidence-link, and lifecycle events; exact cash postings; contiguous
+version and digest chains; and fail-closed cash-only replay on those contracts.
+It does not persist a usable account. Position and aggregate-cost-basis authority
+remain S182; snapshot/reconciliation, persistence, API, Web, Demo, and acceptance
+remain S183–S187. The existing `el_psy_quant.paper` evidence model is unchanged.
 
 An approved M30 review may be linked as evidence, but it is not ledger truth and
 cannot itself create or fund an account.
@@ -172,6 +175,7 @@ docs/architecture/stateful-paper-account-and-ledger.md
 docs/milestones/milestone-031-stateful-paper-account-and-ledger-foundation.md
 docs/sprints/sprint-179-milestone-31-architecture-and-planning.md
 docs/sprints/sprint-180-paper-account-identity-lifecycle-decimal-and-evidence-reference-contract-foundation.md
+docs/sprints/sprint-181-immutable-cash-ledger-and-account-event-foundation.md
 ```
 
 ### M34 — First true Paper Trading
