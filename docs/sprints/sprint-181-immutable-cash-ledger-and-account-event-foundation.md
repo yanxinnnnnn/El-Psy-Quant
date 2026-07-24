@@ -2,9 +2,9 @@
 
 ## Status
 
-**Implementation complete / pending Founder review.** GitHub Issue #358 is the
-authoritative implementation specification. Issue #355 remains the authoritative
-M31 architecture source.
+**Complete.** GitHub Issue #358 is the authoritative implementation
+specification. PR #359 merged the Sprint 181 result. Issue #355 remains the
+authoritative M31 architecture source.
 
 ## Objective
 
@@ -49,11 +49,10 @@ timestamps never determine ordering. Frozen and closed accounts cannot accept
 cash movements, closed is terminal, and close requires zero replayed cash plus
 the explicit Sprint 180 eligibility facts.
 
-The resulting cash state is pure and rebuildable in memory. It is not persisted,
-is not a complete position-aware account, and is not yet a usable durable
-Founder workflow. Position and aggregate-cost-basis authority remain S182.
-Snapshot and reconciliation remain S183; persistence remains S184; API, Web,
-Demo, and Founder acceptance remain S185–S187.
+The resulting cash state is pure and rebuildable in memory. It remains an
+explicitly incomplete compatibility view after Sprint 182 adds the complete
+cash-plus-position state. Snapshot and reconciliation remain S183; persistence
+remains S184; API, Web, Demo, and Founder acceptance remain S185–S187.
 
 ## Digest scheme
 
@@ -85,8 +84,8 @@ uv run python scripts/check.py
 
 ## Explicit non-goals
 
-Sprint 181 adds no position posting, quantity, aggregate cost basis, average
-cost, snapshot, reconciliation, projection persistence, SQLite, SQLAlchemy,
+Sprint 181 itself added no position posting, quantity, aggregate cost basis,
+average cost, snapshot, reconciliation, projection persistence, SQLite, SQLAlchemy,
 Alembic migration, application service, transaction, API, OpenAPI, generated
 TypeScript, Founder Web, localization, Demo, Docker/runtime, order, fill,
 reservation, execution, market data, session clock, strategy-to-order, risk
