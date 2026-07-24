@@ -43,6 +43,7 @@ from el_psy_quant.persistence.schema import (
     REQUIRED_PRODUCT_INDEXES,
     REQUIRED_PRODUCT_TABLE_COLUMNS,
     REQUIRED_PRODUCT_TRIGGERS,
+    read_product_schema_revision,
     verify_product_schema,
 )
 
@@ -106,6 +107,18 @@ def _migrate(path: Path, revision: str) -> None:
     os.environ[PRODUCT_DATABASE_PATH_ENV] = str(path)
     try:
         command.upgrade(_config(), revision)
+    finally:
+        if prior is None:
+            os.environ.pop(PRODUCT_DATABASE_PATH_ENV, None)
+        else:
+            os.environ[PRODUCT_DATABASE_PATH_ENV] = prior
+
+
+def _downgrade(path: Path, revision: str) -> None:
+    prior = os.environ.get(PRODUCT_DATABASE_PATH_ENV)
+    os.environ[PRODUCT_DATABASE_PATH_ENV] = str(path)
+    try:
+        command.downgrade(_config(), revision)
     finally:
         if prior is None:
             os.environ.pop(PRODUCT_DATABASE_PATH_ENV, None)
@@ -182,15 +195,7 @@ def test_migration_adds_exact_tables_indexes_triggers_and_downgrades(
     finally:
         engine.dispose()
 
-    prior = os.environ.get(PRODUCT_DATABASE_PATH_ENV)
-    os.environ[PRODUCT_DATABASE_PATH_ENV] = str(path)
-    try:
-        command.downgrade(_config(), PREVIOUS_REVISION)
-    finally:
-        if prior is None:
-            os.environ.pop(PRODUCT_DATABASE_PATH_ENV, None)
-        else:
-            os.environ[PRODUCT_DATABASE_PATH_ENV] = prior
+    _downgrade(path, PREVIOUS_REVISION)
     engine = _engine(path)
     try:
         assert set(inspect(engine).get_table_names()) == before
@@ -198,6 +203,153 @@ def test_migration_adds_exact_tables_indexes_triggers_and_downgrades(
         engine.dispose()
     _migrate(path, "head")
     assert verify_product_schema(path) == REVISION
+
+
+def test_populated_downgrade_removes_only_s184_graph_and_reupgrades(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "product.sqlite3"
+    _migrate(path, PREVIOUS_REVISION)
+    engine = _engine(path)
+    before_tables = set(inspect(engine).get_table_names())
+    with engine.begin() as connection:
+        assert connection.scalar(text("PRAGMA foreign_keys")) == 1
+        connection.execute(
+            text(
+                "INSERT INTO artifact_index_entries "
+                "(record_schema_version, artifact_type, artifact_key, "
+                "root_type, relative_path, source_id) "
+                "VALUES (1, 'research_run_manifest', 'preserved-s184-test', "
+                "'research', 'preserved/manifest.json', 'preserved-source')"
+            )
+        )
+    engine.dispose()
+
+    _migrate(path, "head")
+    engine = _engine(path)
+    session_factory = create_product_session_factory(engine=engine)
+    service = _service(session_factory)
+    created = _create(service)
+    adjusted = service.post_position_adjustment(
+        account_id=created.account.account_id,
+        expected_account_version=1,
+        command_idempotency_key="opening-position",
+        actor="founder",
+        reason="populated downgrade coverage",
+        symbol="AAPL",
+        adjustment_category="opening_balance",
+        signed_quantity_delta=PaperQuantity.parse("2"),
+        signed_cost_basis_delta=PaperMoney.parse("40"),
+    )
+    snapshot = service.create_snapshot(
+        account_id=created.account.account_id,
+        expected_account_version=2,
+        expected_head_event_id=adjusted.account.head_event_id,
+        expected_head_chain_digest=adjusted.account.head_chain_digest,
+        operation_idempotency_key="populated-downgrade-snapshot",
+        actor="founder",
+        reason="populated downgrade coverage",
+    )
+    reconciliation = service.reconcile_projection(
+        account_id=created.account.account_id,
+        expected_account_version=2,
+        expected_head_event_id=adjusted.account.head_event_id,
+        expected_head_chain_digest=adjusted.account.head_chain_digest,
+        operation_idempotency_key="populated-downgrade-reconciliation",
+        actor="founder",
+        reason="populated downgrade coverage",
+    )
+
+    expected_counts = {
+        "paper_accounts": 1,
+        "paper_account_events": 2,
+        "paper_cash_ledger_entries": 1,
+        "paper_position_ledger_entries": 1,
+        "paper_account_creation_keys": 1,
+        "paper_account_projections": 1,
+        "paper_account_position_projections": 1,
+        "paper_account_snapshots": 1,
+        "paper_account_reconciliations": 1,
+    }
+    with engine.connect() as connection:
+        assert connection.scalar(text("PRAGMA foreign_keys")) == 1
+        for table_name, expected_count in expected_counts.items():
+            assert connection.scalar(
+                text(f'SELECT COUNT(*) FROM "{table_name}"')
+            ) == expected_count
+        s184_index_trigger_names = {
+            row[1]
+            for row in connection.execute(
+                text(
+                    "SELECT type, name, tbl_name FROM sqlite_master "
+                    "WHERE type IN ('index', 'trigger')"
+                )
+            )
+            if row[2] in NEW_TABLES
+        }
+    history = service.get_account_history(
+        account_id=created.account.account_id
+    )
+    assert len(history) == 2
+    assert service.get_current_projection(
+        account_id=created.account.account_id
+    ).projection_digest == adjusted.projection.projection_digest
+    assert service.get_snapshot(
+        snapshot_id=snapshot.snapshot.snapshot_id
+    ) == snapshot.snapshot
+    assert service.get_reconciliation(
+        reconciliation_id=reconciliation.reconciliation.reconciliation_id
+    ) == reconciliation.reconciliation
+    engine.dispose()
+
+    _downgrade(path, PREVIOUS_REVISION)
+    engine = _engine(path)
+    try:
+        assert read_product_schema_revision(path) == PREVIOUS_REVISION
+        assert set(inspect(engine).get_table_names()) == before_tables
+        with engine.connect() as connection:
+            assert connection.scalar(text("PRAGMA foreign_keys")) == 1
+            assert connection.execute(
+                text(
+                    "SELECT relative_path, source_id "
+                    "FROM artifact_index_entries "
+                    "WHERE artifact_key = 'preserved-s184-test'"
+                )
+            ).one() == (
+                "preserved/manifest.json",
+                "preserved-source",
+            )
+            remaining_objects = {
+                row[1]
+                for row in connection.execute(
+                    text(
+                        "SELECT type, name FROM sqlite_master "
+                        "WHERE type IN ('index', 'trigger')"
+                    )
+                )
+            }
+        assert remaining_objects.isdisjoint(s184_index_trigger_names)
+    finally:
+        engine.dispose()
+
+    _migrate(path, "head")
+    engine = _engine(path)
+    try:
+        inspector = inspect(engine)
+        assert read_product_schema_revision(path) == REVISION
+        assert set(inspector.get_table_names()) == before_tables | NEW_TABLES
+        with engine.connect() as connection:
+            assert connection.scalar(text("PRAGMA foreign_keys")) == 1
+            assert all(
+                connection.scalar(
+                    text(f'SELECT COUNT(*) FROM "{table_name}"')
+                )
+                == 0
+                for table_name in NEW_TABLES
+            )
+        assert verify_product_schema(path) == REVISION
+    finally:
+        engine.dispose()
 
 
 def test_creation_mutations_idempotency_snapshot_reconciliation_and_restart(

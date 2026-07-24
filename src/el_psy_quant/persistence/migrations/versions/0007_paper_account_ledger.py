@@ -660,8 +660,8 @@ def upgrade() -> None:
     )
 
 
-def downgrade() -> None:
-    """Remove only Sprint 184 objects in dependency-safe order."""
+def _drop_sprint_184_objects() -> None:
+    """Remove the complete Sprint 184 object graph."""
     op.execute(sa.text('DROP TRIGGER "trg_paper_accounts_immutable_identity"'))
     op.execute(sa.text('DROP TRIGGER "trg_paper_accounts_no_delete"'))
     for table_name in reversed(_APPEND_ONLY_TABLES):
@@ -687,3 +687,25 @@ def downgrade() -> None:
         table_name="paper_accounts",
     )
     op.drop_table("paper_accounts")
+
+
+def downgrade() -> None:
+    """Remove only Sprint 184 objects in dependency-safe order."""
+    context = op.get_context()
+    connection = op.get_bind()
+    # SQLite ignores foreign_keys changes inside a transaction. Alembic's
+    # autocommit boundary commits first, so the account/event cycle can be
+    # dropped, and the finally block restores enforcement before returning.
+    with context.autocommit_block():
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        try:
+            _drop_sprint_184_objects()
+        finally:
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+            if (
+                connection.exec_driver_sql("PRAGMA foreign_keys").scalar_one()
+                != 1
+            ):
+                raise RuntimeError(
+                    "failed to restore SQLite foreign-key enforcement"
+                )
