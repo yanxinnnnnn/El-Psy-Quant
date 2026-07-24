@@ -22,10 +22,10 @@ M31 — Stateful Paper Account and Ledger Foundation
 ```
 
 M31 is **In Progress** through the Founder-approved S179–S188 sequence. Sprints
-179–181 are Complete. Sprint 182 adds immutable position postings, exact
-aggregate-cost-basis authority, display-only average unit cost, and complete
-cash-plus-position replay through the single event chain. This state is
-rebuildable in memory only; durable persistence begins in S184.
+179–182 are Complete. Sprint 183 is implementation-complete and pending Founder
+review. It adds deterministic projection rebuild and strict no-repair
+verification plus immutable snapshot and reconciliation evidence. All remain
+pure in-memory derived records; durable persistence begins in S184.
 
 Current migration head:
 
@@ -161,12 +161,16 @@ reconciliation, idempotency, and concurrency.
 Sprint 180 established the separate `el_psy_quant.paper_account` contract
 boundary. Sprint 181 added pure immutable creation, cash-movement,
 approved-evidence-link, and lifecycle events; exact cash postings; contiguous
-version and digest chains; and fail-closed cash-only replay. Sprint 182 adds
+version and digest chains; and fail-closed cash-only replay. Sprint 182 added
 normalized-symbol position commands and postings, long-only quantity and
 aggregate-cost-basis invariants, display-only average cost, and one complete
 mixed-ledger state and replay boundary without changing valid Sprint 181 event
-digests. It does not persist a usable account. Snapshot/reconciliation,
-persistence, API, Web, Demo, and acceptance remain S183–S187. The existing
+digests. Sprint 183 adds a canonical complete projection, verification statuses
+`current` and `reconciliation_required`, closed ordered mismatch codes, and
+immutable snapshot/reconciliation evidence anchored to replayed history.
+Verification never silently repairs or replaces a candidate projection. No
+persistence, filesystem artifacts, API, Web, Demo, or usable durable account
+workflow exists yet; those boundaries remain S184–S187. The existing
 `el_psy_quant.paper` evidence model is unchanged.
 
 An approved M30 review may be linked as evidence, but it is not ledger truth and
@@ -181,6 +185,7 @@ docs/sprints/sprint-179-milestone-31-architecture-and-planning.md
 docs/sprints/sprint-180-paper-account-identity-lifecycle-decimal-and-evidence-reference-contract-foundation.md
 docs/sprints/sprint-181-immutable-cash-ledger-and-account-event-foundation.md
 docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-foundation.md
+docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-foundation.md
 ```
 
 ### M34 — First true Paper Trading

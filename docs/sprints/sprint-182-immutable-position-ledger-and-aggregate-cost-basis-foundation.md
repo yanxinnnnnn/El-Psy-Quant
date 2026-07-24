@@ -2,9 +2,9 @@
 
 ## Status
 
-**Implementation complete / pending Founder review.** GitHub Issue #360 is the
+**Complete.** GitHub Issue #360 is the
 authoritative implementation specification. Issue #355 remains the
-authoritative M31 architecture source.
+authoritative M31 architecture source. PR #361 is merged.
 
 ## Objective
 

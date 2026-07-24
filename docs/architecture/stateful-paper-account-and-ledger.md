@@ -6,10 +6,10 @@ GitHub Issue #355 is the authoritative Milestone 31 architecture specification.
 This document records the approved repository-level architecture. If this
 summary and Issue #355 differ, Issue #355 controls.
 
-Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–181 are
-Complete. Sprint 182 implements the pure immutable position-ledger,
-aggregate-cost-basis, and complete cash-plus-position replay slice on the merged
-Sprint 180–181 contracts.
+Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–182 are
+Complete. Sprint 183 is implementation-complete and pending Founder review; it
+adds only pure projection rebuild/verification and immutable snapshot and
+reconciliation evidence on the merged Sprint 180–182 replay authority.
 
 ## Product goal
 
@@ -204,10 +204,34 @@ posting, and zero quantity requires zero aggregate cost basis before the symbol
 is omitted from current positions. Average unit cost never enters a command,
 posting, digest, replay, validation, or reconstruction calculation.
 
-This complete state is rebuildable in memory only. It is not persisted and is
-not yet a usable Founder account workflow. Snapshot/reconciliation,
-persistence, API, Web, Demo, and acceptance remain S183–S187. Migration head
-remains `0006_portfolio_reviews`.
+This complete state is rebuildable in memory only. Sprint 182 is Complete after
+PR #361 merged, and its event, posting, and chain digest formats remain stable.
+
+## Sprint 183 boundary
+
+Sprint 183 adds only pure derived-domain capability:
+
+- non-mutating snapshot and reconciliation operation commands anchored to one
+  exact replayed account head;
+- `PaperAccountProjection`, rebuilt only through
+  `replay_paper_account_ledger(...)`, with canonical cash, ordered positions,
+  ordered approved-M30 evidence references, source anchors, and digest;
+- strict candidate verification returning only `current` or
+  `reconciliation_required` with closed, ordered mismatch codes;
+- immutable `PaperAccountSnapshot` evidence embedding one exact projection; and
+- immutable `PaperAccountReconciliation` evidence recording matched or
+  mismatched candidate and authoritative anchors.
+
+Projection verification validates the candidate before comparison and never
+silently repairs, replaces, or invalidates it. Projection, snapshot, and
+reconciliation are rebuildable derived evidence only: they create no event or
+posting, increment no account version, and change no lifecycle, cash, position,
+evidence-link, event-digest, or chain-digest authority.
+
+No persistence, migration, filesystem artifact, application service, API, Web,
+localization, Demo, Docker, order/fill, market, execution, worker, broker, or
+usable durable Founder account workflow is added. Those boundaries remain
+S184–S187. Migration head remains `0006_portfolio_reviews`.
 
 ## Explicit deferrals
 

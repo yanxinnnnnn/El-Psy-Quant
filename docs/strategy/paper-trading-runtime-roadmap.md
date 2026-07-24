@@ -13,7 +13,7 @@ Issues, Founder acceptance, and manual merge.
 
 ```text
 M30 — Complete
-M31 — In Progress (S179–S181 Complete; S182 position/cost-basis foundation)
+M31 — In Progress (S179–S182 Complete; S183 derived-evidence foundation)
 M32–M36 — Planned
 ```
 
@@ -98,7 +98,7 @@ execution, or runtime truth.
 
 ### Status
 
-**In Progress — S179–S181 Complete; S182 position/cost-basis foundation.**
+**In Progress — S179–S182 Complete; S183 implementation-complete/pending Founder review.**
 
 ### User-visible outcome
 
@@ -149,11 +149,14 @@ canonical exact Decimal values, identity/reference values, closed lifecycle
 validation, deterministic commands, and a trusted bounded approved-M30
 provenance reference. Sprint 181 added immutable account events and cash
 postings, exact cash-only state, contiguous versions, and fail-closed
-digest-chain replay. Sprint 182 adds immutable position postings, exact
+digest-chain replay. Sprint 182 added immutable position postings, exact
 long-only quantity and aggregate cost basis, display-only average unit cost,
-and complete mixed-ledger replay through the same chain. The state is
-rebuildable but not persisted. S183–S187 retain snapshot/reconciliation,
-persistence, API, Web, Demo, and acceptance.
+and complete mixed-ledger replay through the same chain. Sprint 183 adds
+deterministic complete projections rebuilt from that history, strict candidate
+verification without silent repair, and immutable snapshot/reconciliation
+evidence. These remain non-authoritative in-memory records. S184–S187 retain
+persistence, API, Web, Demo, and acceptance; migration head remains
+`0006_portfolio_reviews`.
 
 ### M30 relationship
 
