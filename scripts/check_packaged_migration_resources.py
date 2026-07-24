@@ -23,16 +23,34 @@ EXPECTED_MIGRATION_RESOURCES = (
     f"{WHEEL_MIGRATION_ROOT}/versions/0004_paper_job_recovery_audit.py",
     f"{WHEEL_MIGRATION_ROOT}/versions/0005_paper_job_result_references.py",
     f"{WHEEL_MIGRATION_ROOT}/versions/0006_portfolio_reviews.py",
+    f"{WHEEL_MIGRATION_ROOT}/versions/0007_paper_account_ledger.py",
 )
-EXPECTED_HEAD_OUTPUT = "0006_portfolio_reviews (head)"
+EXPECTED_HEAD_OUTPUT = "0007_paper_account_ledger (head)"
 EXPECTED_PRODUCT_TABLES = {
+    "alembic_version",
+    "artifact_index_entries",
+    "paper_account_creation_keys",
+    "paper_account_events",
+    "paper_account_position_projections",
+    "paper_account_projections",
+    "paper_account_reconciliations",
+    "paper_account_snapshots",
+    "paper_accounts",
+    "paper_cash_ledger_entries",
+    "paper_jobs",
+    "paper_job_submission_keys",
+    "paper_job_attempts",
+    "paper_job_result_references",
+    "paper_position_ledger_entries",
+    "portfolio_reviews",
+}
+EXPECTED_0007_TABLES = EXPECTED_PRODUCT_TABLES - {
     "alembic_version",
     "artifact_index_entries",
     "paper_jobs",
     "paper_job_submission_keys",
     "paper_job_attempts",
     "paper_job_result_references",
-    "portfolio_reviews",
 }
 EXPECTED_PORTFOLIO_REVIEW_COLUMNS = (
     "record_schema_version",
@@ -215,7 +233,7 @@ def _verify_fresh_upgrade(
         revision_rows = connection.execute(
             "SELECT version_num FROM alembic_version"
         ).fetchall()
-        if revision_rows != [("0006_portfolio_reviews",)]:
+        if revision_rows != [("0007_paper_account_ledger",)]:
             raise GateError("fresh installed-wheel upgrade did not reach head")
         if _tables(connection) != EXPECTED_PRODUCT_TABLES:
             raise GateError("fresh installed-wheel upgrade created an invalid schema")
@@ -264,9 +282,9 @@ def _verify_0005_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0006_portfolio_reviews",)]:
-            raise GateError("installed-wheel 0005 upgrade did not reach 0006")
-        if _tables(connection) != before_tables | {"portfolio_reviews"}:
+        ).fetchall() != [("0007_paper_account_ledger",)]:
+            raise GateError("installed-wheel 0005 upgrade did not reach 0007")
+        if _tables(connection) != before_tables | EXPECTED_0007_TABLES:
             raise GateError("installed-wheel 0005 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
             raise GateError("installed-wheel 0005 upgrade changed existing data")
@@ -386,13 +404,13 @@ def main() -> int:
                 mismatched
                 / Path(WHEEL_MIGRATION_ROOT)
                 / "versions"
-                / "0006_portfolio_reviews.py"
+                / "0007_paper_account_ledger.py"
             )
             revision_text = revision_path.read_text(encoding="utf-8")
             revision_path.write_text(
                 revision_text.replace(
-                    'revision: str = "0006_portfolio_reviews"',
-                    'revision: str = "0007_unexpected_head"',
+                    'revision: str = "0007_paper_account_ledger"',
+                    'revision: str = "0008_unexpected_head"',
                     1,
                 ),
                 encoding="utf-8",
@@ -409,7 +427,8 @@ def main() -> int:
 
     print(
         "installed-wheel migration-resource gate passed: complete resources; "
-        "0006_portfolio_reviews head; fresh and 0005 upgrades; fail-closed probes"
+        "0007_paper_account_ledger head; fresh and 0005 upgrades; "
+        "fail-closed probes"
     )
     return 0
 

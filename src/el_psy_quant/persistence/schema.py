@@ -5,13 +5,14 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-CURRENT_PRODUCT_SCHEMA_REVISION = "0006_portfolio_reviews"
+CURRENT_PRODUCT_SCHEMA_REVISION = "0007_paper_account_ledger"
 APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0001_product_baseline",
     "0002_artifact_index",
     "0003_paper_jobs",
     "0004_paper_job_recovery_audit",
     "0005_paper_job_result_references",
+    "0006_portfolio_reviews",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -94,7 +95,177 @@ REQUIRED_PRODUCT_TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
         "version",
         "updated_timestamp",
     ),
+    "paper_accounts": (
+        "record_schema_version",
+        "account_id",
+        "display_name",
+        "base_currency",
+        "lifecycle_status",
+        "head_version",
+        "head_event_id",
+        "head_chain_digest",
+        "projection_status",
+        "created_by",
+        "created_timestamp",
+        "updated_timestamp",
+        "closed_timestamp",
+    ),
+    "paper_account_events": (
+        "record_schema_version",
+        "event_schema_version",
+        "event_id",
+        "account_id",
+        "sequence_number",
+        "account_version",
+        "event_type",
+        "command_idempotency_key",
+        "command_digest",
+        "expected_account_version",
+        "actor",
+        "reason",
+        "effective_timestamp",
+        "recorded_timestamp",
+        "details_payload",
+        "previous_chain_digest",
+        "event_digest",
+        "chain_digest",
+    ),
+    "paper_cash_ledger_entries": (
+        "record_schema_version",
+        "entry_schema_version",
+        "cash_entry_id",
+        "account_id",
+        "event_id",
+        "entry_index",
+        "movement_type",
+        "currency",
+        "signed_amount",
+        "entry_digest",
+    ),
+    "paper_position_ledger_entries": (
+        "record_schema_version",
+        "entry_schema_version",
+        "position_entry_id",
+        "account_id",
+        "event_id",
+        "entry_index",
+        "symbol",
+        "signed_quantity_delta",
+        "signed_cost_basis_delta",
+        "adjustment_category",
+        "entry_digest",
+    ),
+    "paper_account_creation_keys": (
+        "record_schema_version",
+        "creation_idempotency_key",
+        "creation_request_digest",
+        "account_id",
+        "creation_event_id",
+        "created_timestamp",
+    ),
+    "paper_account_projections": (
+        "record_schema_version",
+        "projection_schema_version",
+        "account_id",
+        "lifecycle_status",
+        "cash_balance",
+        "available_cash",
+        "approved_portfolio_reviews_payload",
+        "source_account_version",
+        "source_event_id",
+        "source_chain_digest",
+        "projection_digest",
+        "updated_timestamp",
+    ),
+    "paper_account_position_projections": (
+        "record_schema_version",
+        "position_projection_schema_version",
+        "account_id",
+        "symbol",
+        "quantity",
+        "aggregate_cost_basis",
+        "average_unit_cost",
+        "average_unit_cost_is_rounded",
+    ),
+    "paper_account_snapshots": (
+        "record_schema_version",
+        "snapshot_schema_version",
+        "snapshot_id",
+        "account_id",
+        "account_version",
+        "head_event_id",
+        "head_chain_digest",
+        "operation_idempotency_key",
+        "operation_command_digest",
+        "created_by",
+        "recorded_timestamp",
+        "reason",
+        "projection_payload",
+        "projection_digest",
+        "snapshot_digest",
+    ),
+    "paper_account_reconciliations": (
+        "record_schema_version",
+        "reconciliation_schema_version",
+        "reconciliation_id",
+        "account_id",
+        "operation_idempotency_key",
+        "operation_command_digest",
+        "created_by",
+        "recorded_timestamp",
+        "reason",
+        "outcome",
+        "mismatch_codes_payload",
+        "authoritative_account_version",
+        "authoritative_event_id",
+        "authoritative_chain_digest",
+        "authoritative_projection_digest",
+        "candidate_account_version",
+        "candidate_event_id",
+        "candidate_chain_digest",
+        "candidate_projection_digest",
+        "reconciliation_digest",
+    ),
 }
+
+REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
+    "paper_accounts": (
+        "ix_paper_accounts_created_timestamp",
+        "ix_paper_accounts_lifecycle_status",
+    ),
+    "paper_account_events": (
+        "ix_paper_account_events_account_recorded",
+    ),
+    "paper_cash_ledger_entries": (
+        "ix_paper_cash_entries_account_event",
+    ),
+    "paper_position_ledger_entries": (
+        "ix_paper_position_entries_account_event",
+    ),
+    "paper_account_snapshots": (
+        "ix_paper_account_snapshots_account_version",
+    ),
+    "paper_account_reconciliations": (
+        "ix_paper_account_reconciliations_account_recorded",
+    ),
+}
+
+REQUIRED_PRODUCT_TRIGGERS = (
+    "trg_paper_accounts_immutable_identity",
+    "trg_paper_accounts_no_delete",
+    "trg_paper_account_events_no_update",
+    "trg_paper_account_events_no_delete",
+    "trg_paper_cash_ledger_entries_no_update",
+    "trg_paper_cash_ledger_entries_no_delete",
+    "trg_paper_position_ledger_entries_no_update",
+    "trg_paper_position_ledger_entries_no_delete",
+    "trg_paper_account_creation_keys_no_update",
+    "trg_paper_account_creation_keys_no_delete",
+    "trg_paper_account_snapshots_no_update",
+    "trg_paper_account_snapshots_no_delete",
+    "trg_paper_account_reconciliations_no_update",
+    "trg_paper_account_reconciliations_no_delete",
+)
 
 
 class ProductSchemaVerificationError(Exception):
@@ -205,6 +376,29 @@ def verify_product_schema(database_path: str | Path) -> str:
                 raise ProductSchemaVerificationError(
                     "product database schema is incompatible"
                 )
+        for table_name, required_names in REQUIRED_PRODUCT_INDEXES.items():
+            indexes = {
+                row[1]
+                for row in connection.execute(
+                    f'PRAGMA index_list("{table_name}")'
+                ).fetchall()
+                if isinstance(row[1], str)
+            }
+            if not set(required_names).issubset(indexes):
+                raise ProductSchemaVerificationError(
+                    "product database schema is incompatible"
+                )
+        triggers = {
+            row[0]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'trigger'"
+            ).fetchall()
+            if isinstance(row[0], str)
+        }
+        if not set(REQUIRED_PRODUCT_TRIGGERS).issubset(triggers):
+            raise ProductSchemaVerificationError(
+                "product database schema is incompatible"
+            )
         return CURRENT_PRODUCT_SCHEMA_REVISION
     except ProductSchemaVerificationError:
         raise
@@ -235,7 +429,9 @@ __all__ = [
     "APPROVED_PRODUCT_SCHEMA_REVISIONS",
     "CURRENT_PRODUCT_SCHEMA_REVISION",
     "ProductSchemaVerificationError",
+    "REQUIRED_PRODUCT_INDEXES",
     "REQUIRED_PRODUCT_TABLE_COLUMNS",
+    "REQUIRED_PRODUCT_TRIGGERS",
     "product_schema_is_compatible",
     "read_product_schema_revision",
     "verify_product_schema",

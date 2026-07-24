@@ -157,11 +157,11 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–182
-are Complete. Sprint 183 is implementation-complete and pending Founder review;
-it adds only pure deterministic projection rebuild and verification plus
-immutable snapshot and reconciliation evidence over the existing ledger replay
-authority.
+M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–183
+are Complete. Sprint 184 is implementation-complete and pending Founder review;
+it adds durable SQLite account/event/posting authority, rebuildable projection
+caches, immutable snapshot/reconciliation evidence, strict mapping, durable
+idempotency, one-winner concurrency, and internal application services.
 
 M31 must establish independent durable account and ledger truth. It may reference
 approved M30 review evidence, but that evidence cannot create, fund, or mutate an
@@ -240,8 +240,9 @@ Browser
 ## M31 Boundary
 
 M31 implementation follows Issue #355 and the strict S179–S188 sequence. Sprint
-183 reuses the Sprint 180–182 contracts and adds derived projection, snapshot,
-and reconciliation evidence only; it must not silently reinterpret:
+184 reuses the Sprint 180–183 contracts and makes their account, ledger,
+projection, snapshot, and reconciliation authority durable; it must not silently
+reinterpret:
 
 - M30 scenario weights as holdings;
 - M30 approval as account authorization;
@@ -249,11 +250,12 @@ and reconciliation evidence only; it must not silently reinterpret:
 - lifecycle state as cash or position authority; or
 - user-entered balances as a substitute for immutable ledger entries.
 
-Sprint 183 projection, snapshot, and reconciliation records are derived,
-non-authoritative, and in-memory only. Ordinary verification never repairs a
-stale projection; it returns `reconciliation_required`. No durable account
-workflow, persistence, filesystem artifact, API, Web, or Demo behavior exists
-yet. Persistence and durable enforcement remain S184.
+Sprint 184 account events and cash/position entries are durable mutation
+authority. `replay_paper_account_ledger(...)` remains state authority;
+projection rows are replaceable caches; snapshot and reconciliation rows are
+immutable derived evidence. Ordinary reads never repair a stale projection.
+No public API, Founder Web, Demo, filesystem evidence artifact, Docker runtime,
+order/fill, market, execution, or Sprint 185+ behavior exists yet.
 
 M31 does not pre-authorize:
 

@@ -6,10 +6,10 @@ GitHub Issue #355 is the authoritative Milestone 31 architecture specification.
 This document records the approved repository-level architecture. If this
 summary and Issue #355 differ, Issue #355 controls.
 
-Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–182 are
-Complete. Sprint 183 is implementation-complete and pending Founder review; it
-adds only pure projection rebuild/verification and immutable snapshot and
-reconciliation evidence on the merged Sprint 180–182 replay authority.
+Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–183 are
+Complete. Sprint 184 is implementation-complete and pending Founder review; it
+makes the merged account, ledger, projection, snapshot, and reconciliation
+contracts durable without adding public API or Founder Web behavior.
 
 ## Product goal
 
@@ -28,8 +28,8 @@ explicit account command
   -> derived snapshot and reconciliation evidence
 ```
 
-SQLite event and posting rows will be mutation authority. Projections will be
-rebuildable caches. Snapshot and reconciliation artifacts will be derived
+SQLite event and posting rows are mutation authority. Projections are
+rebuildable caches. Durable snapshot and reconciliation rows are derived
 evidence, not competing account truth.
 
 ## Existing Paper model boundary
@@ -115,21 +115,24 @@ creates no cash, position, order, fill, allocation, or execution authority.
 Rejected, deferred, awaiting, missing, or digest-invalid evidence cannot be
 attached as approved evidence.
 
-## Persistence and transaction direction
+## Persistence and transaction authority
 
-S184 will add one additive migration after `0006_portfolio_reviews`, expected as
-`0007_paper_account_ledger`, and the approved equivalent of account, event,
-posting, creation-key, projection, snapshot, and reconciliation tables.
+S184 adds the single additive `0007_paper_account_ledger` revision and durable
+account, event, cash-entry, position-entry, creation-key, projection,
+snapshot, and reconciliation tables. Named SQLite triggers reject update/delete
+of immutable history and evidence rows and reject account deletion.
 
-Every later account mutation will be one SQLite transaction that resolves
-idempotent replay before version rejection, verifies the current projection,
-conditionally advances the head, appends the event and postings, updates the
-projection, and commits all-or-nothing. Ordinary reads never silently repair a
-stale projection.
+Every account mutation is one `BEGIN IMMEDIATE` SQLite transaction that resolves
+idempotent replay before version rejection, reconstructs and replays immutable
+history, verifies the persisted projection, invokes the merged pure operation,
+appends one event/posting group, advances the head through a guarded
+account/version/event/digest compare-and-swap, replaces projection rows, and
+commits all-or-nothing. Ordinary reads never silently repair a stale projection.
 
-Snapshot and reconciliation files will be generated only through separate
-explicit idempotent operations after committed ledger truth exists. File writes
-will not be account-mutation authority.
+Snapshots and reconciliations are separate durable idempotent evidence
+operations and do not change account version. Explicit rebuild is the only
+non-mutation operation that replaces projection rows. Filesystem evidence
+materialization remains deferred to S187.
 
 ## API, Web, Demo, and acceptance direction
 
@@ -230,8 +233,21 @@ evidence-link, event-digest, or chain-digest authority.
 
 No persistence, migration, filesystem artifact, application service, API, Web,
 localization, Demo, Docker, order/fill, market, execution, worker, broker, or
-usable durable Founder account workflow is added. Those boundaries remain
-S184–S187. Migration head remains `0006_portfolio_reviews`.
+usable durable Founder account workflow was added in S183. S184 now owns
+durable SQLite and internal application transaction authority.
+
+## Sprint 184 boundary
+
+Sprint 184 adds migration `0007_paper_account_ledger`, append-only account
+events and postings, immutable creation/snapshot/reconciliation idempotency,
+strict canonical mapping and full-history replay validation, replaceable
+projection caches, typed persistence/application errors, explicit
+reconciliation and rebuild, and one-winner guarded transactions.
+
+It adds no FastAPI route, OpenAPI/generated TypeScript, Founder Web,
+localization, Demo seed, Docker runtime acceptance, filesystem evidence
+artifact, order/fill persistence, reservation, market data, PnL, execution,
+worker, scheduler, broker, private-edge, live, or real-money behavior.
 
 ## Explicit deferrals
 

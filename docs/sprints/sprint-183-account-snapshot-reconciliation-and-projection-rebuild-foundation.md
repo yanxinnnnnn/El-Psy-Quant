@@ -67,7 +67,7 @@ repair the candidate projection.
 
 Snapshot and reconciliation commands contain exact account-head anchors,
 operation idempotency key, actor, reason, and canonical command digest.
-Idempotency is contractual only; S184 begins durable enforcement.
+Idempotency is contractual in S183; S184 now provides durable enforcement.
 
 Snapshots embed one exact replayed projection and bind it to an explicit
 snapshot ID and normalized UTC timestamp. Reconciliation artifacts record a
@@ -99,9 +99,10 @@ localization, Demo, Docker/runtime behavior, order, fill, market data, PnL,
 equity, tax lot, worker, scheduler, broker, QMT, MiniQMT, private-edge, live, or
 real-money behavior.
 
-There is still no persisted or usable durable Founder Paper Account workflow.
-Persistence and application transaction authority begin in S184. Migration head
-remains `0006_portfolio_reviews`.
+S183 itself adds no persisted or usable durable Founder Paper Account workflow.
+S184 now provides persistence and internal application transaction authority at
+migration head `0007_paper_account_ledger`; public API, Web, and Demo behavior
+remain later scope.
 
 M32–M36 retain no sprint ranges. M34 remains the first genuine
 market/strategy-driven Paper Trading gate, and M36 remains the continuous

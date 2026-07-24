@@ -47,10 +47,10 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-M31 is In Progress through the approved S179–S188 sequence. Sprints 179–182 are
-Complete. Sprint 183 is implementation-complete and pending Founder review; it
-adds pure projection rebuild/verification and immutable snapshot/reconciliation
-evidence without persistence.
+M31 is In Progress through the approved S179–S188 sequence. Sprints 179–183 are
+Complete. Sprint 184 is implementation-complete and pending Founder review; it
+adds durable ledger persistence, strict replay-backed mapping, idempotency,
+projection caches, derived evidence rows, and guarded application transactions.
 
 ## Completed M29 Productization and Hardening
 
@@ -152,13 +152,12 @@ a genuine approved M30 decision. Sprint 181 added immutable cash/account events,
 exact cash postings, cash-only state, and fail-closed digest-chain replay.
 Sprint 182 added immutable position postings, exact long-only quantity and
 aggregate cost basis, display-only average unit cost, and complete mixed-ledger
-replay through the same event chain. That state is rebuildable but not
-persisted. Sprint 183 adds a canonical complete projection rebuilt only through
+replay through the same event chain. Sprint 183 adds a canonical complete projection rebuilt only through
 that replay, strict `current` or `reconciliation_required` verification with no
 silent repair, and immutable snapshot/reconciliation evidence at exact account
-heads. These records are derived and in-memory only. Persistence, API, Web,
-Demo, and acceptance remain S184–S187; migration head remains
-`0006_portfolio_reviews`.
+heads. Sprint 184 persists immutable ledger authority, replaceable projections,
+and immutable snapshot/reconciliation evidence at migration head
+`0007_paper_account_ledger`. API, Web, Demo, and acceptance remain S185–S187.
 
 ### Explicit M31 non-goals
 

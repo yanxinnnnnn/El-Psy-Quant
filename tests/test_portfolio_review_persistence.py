@@ -12,6 +12,7 @@ from el_psy_quant.persistence import (
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 from el_psy_quant.persistence.schema import REQUIRED_PRODUCT_TABLE_COLUMNS
+from el_psy_quant.persistence.schema import CURRENT_PRODUCT_SCHEMA_REVISION
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PREVIOUS_REVISION = "0005_paper_job_result_references"
@@ -39,7 +40,11 @@ def _current(path: Path) -> str | None:
 
 def test_portfolio_review_is_one_exact_linear_head() -> None:
     scripts = ScriptDirectory.from_config(_config())
-    assert scripts.get_heads() == [PORTFOLIO_REVIEW_REVISION]
+    assert scripts.get_heads() == [CURRENT_PRODUCT_SCHEMA_REVISION]
+    assert (
+        scripts.get_revision(CURRENT_PRODUCT_SCHEMA_REVISION).down_revision
+        == PORTFOLIO_REVIEW_REVISION
+    )
     assert scripts.get_revision(PORTFOLIO_REVIEW_REVISION).down_revision == (
         PREVIOUS_REVISION
     )
@@ -58,7 +63,7 @@ def test_upgrade_adds_only_compact_portfolio_review_table(
     finally:
         before_engine.dispose()
 
-    command.upgrade(_config(), "head")
+    command.upgrade(_config(), PORTFOLIO_REVIEW_REVISION)
 
     assert _current(path) == PORTFOLIO_REVIEW_REVISION
     engine = _engine(path)
@@ -128,7 +133,7 @@ def test_downgrade_removes_only_portfolio_reviews(
 ) -> None:
     path = tmp_path / "product.sqlite3"
     monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(path))
-    command.upgrade(_config(), "head")
+    command.upgrade(_config(), PORTFOLIO_REVIEW_REVISION)
     engine = _engine(path)
     try:
         before = set(inspect(engine).get_table_names())

@@ -13,7 +13,7 @@ Issues, Founder acceptance, and manual merge.
 
 ```text
 M30 — Complete
-M31 — In Progress (S179–S182 Complete; S183 derived-evidence foundation)
+M31 — In Progress (S179–S183 Complete; S184 durable persistence foundation)
 M32–M36 — Planned
 ```
 
@@ -98,7 +98,7 @@ execution, or runtime truth.
 
 ### Status
 
-**In Progress — S179–S182 Complete; S183 implementation-complete/pending Founder review.**
+**In Progress — S179–S183 Complete; S184 implementation-complete/pending Founder review.**
 
 ### User-visible outcome
 
@@ -154,9 +154,11 @@ long-only quantity and aggregate cost basis, display-only average unit cost,
 and complete mixed-ledger replay through the same chain. Sprint 183 adds
 deterministic complete projections rebuilt from that history, strict candidate
 verification without silent repair, and immutable snapshot/reconciliation
-evidence. These remain non-authoritative in-memory records. S184–S187 retain
-persistence, API, Web, Demo, and acceptance; migration head remains
-`0006_portfolio_reviews`.
+evidence. Sprint 184 makes ledger authority, projection caches, and derived
+snapshot/reconciliation evidence durable with strict reconstruction,
+idempotency, append-only triggers, and one-winner transactions. S185–S187 retain
+API, Web, Demo, and acceptance; migration head is
+`0007_paper_account_ledger`.
 
 ### M30 relationship
 
