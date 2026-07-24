@@ -154,9 +154,10 @@ docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-Sprints 179–181 are Complete. Sprint 182 adds the pure immutable position-ledger,
-aggregate-cost-basis, and complete cash-plus-position replay authority on the
-merged Sprint 180–181 contracts.
+Sprints 179–182 are Complete. Sprint 183 is implementation-complete and pending
+Founder review; it adds pure deterministic projection rebuild/verification and
+immutable snapshot/reconciliation evidence on the merged Sprint 180–182
+contracts without persistence.
 
 M31 must establish independent account and ledger authority for:
 
@@ -188,11 +189,13 @@ S179 planning
   -> S188 closeout
 ```
 
-S179–S181 are Complete. S182 adds normalized-symbol position commands, immutable
+S179–S182 are Complete. S182 added normalized-symbol position commands, immutable
 position postings, exact long-only quantity and aggregate-cost-basis state,
 display-only average unit cost, and full mixed-ledger replay without changing
-valid S181 event digests. The complete state is rebuildable but not persisted.
-S183–S187 retain snapshot, reconciliation, persistence, API, Web, Demo, and
+valid S181 event digests. S183 is implementation-complete and pending Founder
+review; it adds canonical complete projection rebuild, strict no-repair
+verification, and immutable snapshot/reconciliation evidence. All remain
+derived in-memory records. S184–S187 retain persistence, API, Web, Demo, and
 acceptance. Migration head remains `0006_portfolio_reviews`.
 
 ## Approved Paper Trading Runtime Sequence

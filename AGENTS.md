@@ -157,11 +157,11 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–181
-are Complete. Sprint 182 is the current implementation slice and is limited to
-pure immutable position events and entries, exact long-only quantity and
-aggregate-cost-basis state, display-only average unit cost, and complete mixed
-cash-plus-position replay through the existing event and digest chain.
+M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–182
+are Complete. Sprint 183 is implementation-complete and pending Founder review;
+it adds only pure deterministic projection rebuild and verification plus
+immutable snapshot and reconciliation evidence over the existing ledger replay
+authority.
 
 M31 must establish independent durable account and ledger truth. It may reference
 approved M30 review evidence, but that evidence cannot create, fund, or mutate an
@@ -240,9 +240,8 @@ Browser
 ## M31 Boundary
 
 M31 implementation follows Issue #355 and the strict S179–S188 sequence. Sprint
-182 reuses the Sprint 180–181 contracts and adds pure rebuildable
-position/cost-basis and full-ledger replay authority only; it must not silently
-reinterpret:
+183 reuses the Sprint 180–182 contracts and adds derived projection, snapshot,
+and reconciliation evidence only; it must not silently reinterpret:
 
 - M30 scenario weights as holdings;
 - M30 approval as account authorization;
@@ -250,8 +249,11 @@ reinterpret:
 - lifecycle state as cash or position authority; or
 - user-entered balances as a substitute for immutable ledger entries.
 
-Sprint 182 full ledger state is not persisted and is not yet a durable Founder
-account workflow. Snapshot/reconciliation remain S183; persistence remains S184.
+Sprint 183 projection, snapshot, and reconciliation records are derived,
+non-authoritative, and in-memory only. Ordinary verification never repairs a
+stale projection; it returns `reconciliation_required`. No durable account
+workflow, persistence, filesystem artifact, API, Web, or Demo behavior exists
+yet. Persistence and durable enforcement remain S184.
 
 M31 does not pre-authorize:
 

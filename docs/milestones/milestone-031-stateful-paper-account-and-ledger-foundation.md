@@ -20,8 +20,8 @@ governance, Paper Jobs, and future account/ledger truth as separate authorities.
 | S179 | Milestone 31 Architecture and Planning | Complete |
 | S180 | Identity, Lifecycle, Decimal, and Evidence Reference Contracts | Complete |
 | S181 | Immutable Cash Ledger and Account Event Foundation | Complete |
-| S182 | Immutable Position Ledger and Aggregate Cost Basis Foundation | Implementation complete / pending Founder review |
-| S183 | Snapshot, Reconciliation, and Projection Rebuild Foundation | Planned |
+| S182 | Immutable Position Ledger and Aggregate Cost Basis Foundation | Complete |
+| S183 | Snapshot, Reconciliation, and Projection Rebuild Foundation | Implementation complete / pending Founder review |
 | S184 | Persistence, Migration, Concurrency, and Application Services | Planned |
 | S185 | Versioned API, Errors, and Audit Surface | Planned |
 | S186 | Bilingual Founder Paper Account Web Workspace | Planned |
@@ -86,7 +86,26 @@ provides:
 
 This state remains pure and rebuildable in memory. It is not persisted and does
 not add snapshot/reconciliation, API, Web, Demo, order/fill, market, execution,
-or runtime behavior. Those boundaries remain S183–S187.
+or runtime behavior. Sprint 182 is Complete after PR #361 merged.
+
+## Sprint 183 result boundary
+
+The fourth implementation slice reuses full ledger replay and provides:
+
+- canonical complete projections rebuilt only from immutable history;
+- strict candidate validation and deterministic `current` or
+  `reconciliation_required` verification without silent repair;
+- the nine closed, ordered projection mismatch codes;
+- immutable snapshot evidence at one exact replayed account head;
+- immutable matched/mismatched reconciliation evidence with exact candidate and
+  authoritative projection anchors; and
+- canonical operation-command, projection, snapshot, and reconciliation
+  digests with fail-closed scalar and nested-record validation.
+
+These records are derived, non-authoritative, and in-memory only. They create no
+event or posting and increment no account version. No persistence, migration,
+filesystem artifact, API, Web, Demo, Docker, execution, or usable durable
+account workflow is added. Those boundaries remain S184–S187.
 
 ## Completion gate
 
@@ -116,4 +135,5 @@ docs/sprints/sprint-179-milestone-31-architecture-and-planning.md
 docs/sprints/sprint-180-paper-account-identity-lifecycle-decimal-and-evidence-reference-contract-foundation.md
 docs/sprints/sprint-181-immutable-cash-ledger-and-account-event-foundation.md
 docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-foundation.md
+docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-foundation.md
 ```
