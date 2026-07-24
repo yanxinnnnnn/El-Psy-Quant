@@ -444,6 +444,7 @@ class PaperAccountProjectionVerification:
 
     def to_dict(self) -> dict[str, object]:
         """Return deterministic verification evidence."""
+        _validate_verification(self)
         return {
             "schema_version": PAPER_ACCOUNT_PROJECTION_VERIFICATION_SCHEMA_VERSION,
             "status": self.status,
@@ -488,7 +489,73 @@ def _create_verification(
     object.__setattr__(
         result, "candidate_projection_digest", candidate.projection_digest
     )
+    _validate_verification(result)
     return result
+
+
+def _validate_verification(
+    verification: object,
+) -> PaperAccountProjectionVerification:
+    if type(verification) is not PaperAccountProjectionVerification:
+        raise ValueError(
+            "verification must be PaperAccountProjectionVerification"
+        )
+    if (
+        type(verification.status) is not str
+        or verification.status
+        not in SUPPORTED_PAPER_ACCOUNT_PROJECTION_VERIFICATION_STATUSES
+    ):
+        raise ValueError("projection verification status is invalid")
+    if type(verification.mismatch_codes) is not tuple:
+        raise ValueError(
+            "verification mismatch codes must use immutable tuple ordering"
+        )
+    indexes: list[int] = []
+    for code in verification.mismatch_codes:
+        if type(code) is not str:
+            raise ValueError("verification mismatch codes must be exact strings")
+        try:
+            indexes.append(
+                SUPPORTED_PAPER_ACCOUNT_PROJECTION_MISMATCH_CODES.index(code)
+            )
+        except ValueError as exc:
+            raise ValueError(
+                "projection verification mismatch code is invalid"
+            ) from exc
+    if indexes != sorted(set(indexes)):
+        raise ValueError(
+            "verification mismatch codes must be ordered and deduplicated"
+        )
+    if verification.status == "current" and verification.mismatch_codes:
+        raise ValueError("current verification requires no mismatch codes")
+    if (
+        verification.status == "reconciliation_required"
+        and not verification.mismatch_codes
+    ):
+        raise ValueError(
+            "reconciliation_required verification requires mismatch codes"
+        )
+    for field_name in (
+        "authoritative_account_version",
+        "candidate_account_version",
+    ):
+        value = getattr(verification, field_name)
+        if type(value) is not int or value <= 0:
+            raise ValueError(f"{field_name} must be an exact positive integer")
+    for field_name in ("authoritative_event_id", "candidate_event_id"):
+        _exact_normalized(
+            getattr(verification, field_name),
+            field_name=field_name,
+            maximum_length=MAX_PAPER_ACCOUNT_EVENT_ID_LENGTH,
+        )
+    for field_name in (
+        "authoritative_chain_digest",
+        "authoritative_projection_digest",
+        "candidate_chain_digest",
+        "candidate_projection_digest",
+    ):
+        _exact_digest(getattr(verification, field_name), field_name)
+    return verification
 
 
 def verify_paper_account_projection(

@@ -16,6 +16,7 @@ from el_psy_quant.paper_account import (
     PaperAccountIdentity,
     PaperAccountPositionProjection,
     PaperAccountProjection,
+    PaperAccountProjectionVerification,
     PaperAccountReconciliation,
     PaperAccountSnapshot,
     PaperMoney,
@@ -340,6 +341,7 @@ def test_projection_verification_is_current_or_ordered_reconciliation_only() -> 
 
     assert current_result.status == "current"
     assert current_result.mismatch_codes == ()
+    assert current_result.to_dict()["mismatch_codes"] == []
     assert stale_result.status == "reconciliation_required"
     assert stale_result.mismatch_codes == (
         "source_account_version_mismatch",
@@ -350,6 +352,7 @@ def test_projection_verification_is_current_or_ordered_reconciliation_only() -> 
         "positions_mismatch",
         "evidence_references_mismatch",
     )
+    assert stale_result.to_dict()["status"] == "reconciliation_required"
     assert stale.to_dict() == stale_before
 
 
@@ -480,6 +483,123 @@ def test_projection_rejects_unordered_duplicate_and_noncanonical_nested_values()
         verify_paper_account_projection(history, candidate)
 
 
+@pytest.mark.parametrize(
+    ("result_kind", "field_name", "replacement", "message"),
+    (
+        ("current", "status", "unsupported", "status"),
+        ("current", "status", True, "status"),
+        (
+            "current",
+            "mismatch_codes",
+            ("identity_mismatch",),
+            "current verification",
+        ),
+        (
+            "stale",
+            "mismatch_codes",
+            (),
+            "requires mismatch codes",
+        ),
+        (
+            "stale",
+            "mismatch_codes",
+            ["identity_mismatch"],
+            "tuple ordering",
+        ),
+        (
+            "stale",
+            "mismatch_codes",
+            ("identity_mismatch", "identity_mismatch"),
+            "ordered and deduplicated",
+        ),
+        (
+            "stale",
+            "mismatch_codes",
+            (
+                "identity_mismatch",
+                "source_account_version_mismatch",
+            ),
+            "ordered and deduplicated",
+        ),
+        (
+            "stale",
+            "mismatch_codes",
+            ("unsupported_mismatch",),
+            "mismatch code",
+        ),
+        (
+            "stale",
+            "mismatch_codes",
+            (True,),
+            "exact strings",
+        ),
+        (
+            "current",
+            "authoritative_account_version",
+            True,
+            "exact positive integer",
+        ),
+        (
+            "current",
+            "candidate_account_version",
+            1.0,
+            "exact positive integer",
+        ),
+        (
+            "current",
+            "authoritative_event_id",
+            " padded-event",
+            "already be normalized",
+        ),
+        (
+            "current",
+            "candidate_event_id",
+            "padded-event ",
+            "already be normalized",
+        ),
+        (
+            "current",
+            "candidate_event_id",
+            183,
+            "non-empty string",
+        ),
+        (
+            "current",
+            "authoritative_chain_digest",
+            "A" * 64,
+            "lowercase",
+        ),
+        (
+            "current",
+            "candidate_projection_digest",
+            "short",
+            "lowercase",
+        ),
+        (
+            "current",
+            "authoritative_projection_digest",
+            183,
+            "lowercase",
+        ),
+    ),
+)
+def test_projection_verification_result_rejects_state_only_tampering(
+    result_kind: str,
+    field_name: str,
+    replacement: object,
+    message: str,
+) -> None:
+    history = _active_mixed_history()
+    candidate = rebuild_paper_account_projection(
+        history if result_kind == "current" else history[:1]
+    )
+    result = verify_paper_account_projection(history, candidate)
+    object.__setattr__(result, field_name, replacement)
+
+    with pytest.raises(ValueError, match=message):
+        result.to_dict()
+
+
 @pytest.mark.parametrize("index", (0, 1, 2))
 def test_snapshot_creation_supports_all_lifecycle_states_without_mutation(
     index: int,
@@ -570,6 +690,47 @@ def test_snapshot_rejects_anchor_command_digest_and_nested_tampering() -> None:
         "1" * 64,
     )
     with pytest.raises(ValueError, match="projection digest"):
+        snapshot.to_dict()
+
+
+@pytest.mark.parametrize(
+    ("field_name", "replacement"),
+    (
+        ("operation_idempotency_key", " snapshot-operation-183"),
+        ("operation_idempotency_key", "snapshot-operation-183 "),
+        ("operation_idempotency_key", " "),
+        ("operation_idempotency_key", 183),
+        ("created_by", " founder"),
+        ("created_by", "founder "),
+        ("created_by", " "),
+        ("created_by", False),
+        ("reason", " Capture exact derived evidence"),
+        ("reason", "Capture exact derived evidence "),
+        ("reason", " "),
+        ("reason", 183.0),
+    ),
+)
+def test_snapshot_rejects_recomputed_digest_metadata_tampering(
+    field_name: str,
+    replacement: object,
+) -> None:
+    history = _active_mixed_history()
+    snapshot = create_paper_account_snapshot(
+        history,
+        _snapshot_command(history),
+        snapshot_id="snapshot-metadata-tamper",
+        recorded_timestamp_utc=CREATED,
+    )
+    command_digest = snapshot.operation_command_digest
+    object.__setattr__(snapshot, field_name, replacement)
+    object.__setattr__(
+        snapshot,
+        "snapshot_digest",
+        canonical_digest(_snapshot_payload_without_digest(snapshot)),
+    )
+
+    assert snapshot.operation_command_digest == command_digest
+    with pytest.raises(ValueError, match=field_name):
         snapshot.to_dict()
 
 
@@ -687,10 +848,54 @@ def test_reconciliation_rejects_anchor_and_recomputed_scalar_tampering() -> None
         artifact.to_dict()
 
 
+@pytest.mark.parametrize(
+    ("field_name", "replacement"),
+    (
+        ("operation_idempotency_key", " reconciliation-operation-183"),
+        ("operation_idempotency_key", "reconciliation-operation-183 "),
+        ("operation_idempotency_key", " "),
+        ("operation_idempotency_key", 183),
+        ("created_by", " founder"),
+        ("created_by", "founder "),
+        ("created_by", " "),
+        ("created_by", False),
+        ("reason", " Compare candidate without repair"),
+        ("reason", "Compare candidate without repair "),
+        ("reason", " "),
+        ("reason", 183.0),
+    ),
+)
+def test_reconciliation_rejects_recomputed_digest_metadata_tampering(
+    field_name: str,
+    replacement: object,
+) -> None:
+    history = _active_mixed_history()
+    candidate = rebuild_paper_account_projection(history)
+    artifact = reconcile_paper_account_projection(
+        history,
+        candidate,
+        _reconciliation_command(history),
+        reconciliation_id="reconciliation-metadata-tamper",
+        recorded_timestamp_utc=CREATED,
+    )
+    command_digest = artifact.operation_command_digest
+    object.__setattr__(artifact, field_name, replacement)
+    object.__setattr__(
+        artifact,
+        "reconciliation_digest",
+        canonical_digest(_reconciliation_payload_without_digest(artifact)),
+    )
+
+    assert artifact.operation_command_digest == command_digest
+    with pytest.raises(ValueError, match=field_name):
+        artifact.to_dict()
+
+
 def test_derived_records_are_frozen_and_not_directly_constructible() -> None:
     for record_type in (
         PaperAccountPositionProjection,
         PaperAccountProjection,
+        PaperAccountProjectionVerification,
         PaperAccountSnapshot,
         PaperAccountReconciliation,
     ):
@@ -700,6 +905,12 @@ def test_derived_records_are_frozen_and_not_directly_constructible() -> None:
     projection = rebuild_paper_account_projection(_active_mixed_history())
     with pytest.raises(FrozenInstanceError):
         projection.source_account_version = 99  # type: ignore[misc]
+    verification = verify_paper_account_projection(
+        _active_mixed_history(),
+        rebuild_paper_account_projection(_active_mixed_history()),
+    )
+    with pytest.raises(FrozenInstanceError):
+        verification.status = "unsupported"  # type: ignore[misc]
 
 
 def test_sprint_181_and_182_digest_vectors_remain_stable() -> None:

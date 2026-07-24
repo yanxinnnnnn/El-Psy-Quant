@@ -12,12 +12,19 @@ from el_psy_quant.paper_account._shared import (
     normalize_utc_datetime,
     validate_digest,
 )
+from el_psy_quant.paper_account.commands import (
+    MAX_PAPER_ACCOUNT_COMMAND_IDEMPOTENCY_KEY_LENGTH,
+    MAX_PAPER_ACCOUNT_COMMAND_REASON_LENGTH,
+)
 from el_psy_quant.paper_account.evidence_operations import (
     ReconcilePaperAccountProjectionCommand,
     _validate_operation_command,
 )
 from el_psy_quant.paper_account.events import MAX_PAPER_ACCOUNT_EVENT_ID_LENGTH
-from el_psy_quant.paper_account.identity import MAX_PAPER_ACCOUNT_ID_LENGTH
+from el_psy_quant.paper_account.identity import (
+    MAX_PAPER_ACCOUNT_ACTOR_LENGTH,
+    MAX_PAPER_ACCOUNT_ID_LENGTH,
+)
 from el_psy_quant.paper_account.ledger_replay import (
     PaperAccountLedgerHistoryBundle,
 )
@@ -152,6 +159,21 @@ def _validate_reconciliation(
         artifact.account_id,
         field_name="account_id",
         maximum_length=MAX_PAPER_ACCOUNT_ID_LENGTH,
+    )
+    _exact_normalized(
+        artifact.operation_idempotency_key,
+        field_name="operation_idempotency_key",
+        maximum_length=MAX_PAPER_ACCOUNT_COMMAND_IDEMPOTENCY_KEY_LENGTH,
+    )
+    _exact_normalized(
+        artifact.created_by,
+        field_name="created_by",
+        maximum_length=MAX_PAPER_ACCOUNT_ACTOR_LENGTH,
+    )
+    _exact_normalized(
+        artifact.reason,
+        field_name="reason",
+        maximum_length=MAX_PAPER_ACCOUNT_COMMAND_REASON_LENGTH,
     )
     if (
         type(artifact.outcome) is not str

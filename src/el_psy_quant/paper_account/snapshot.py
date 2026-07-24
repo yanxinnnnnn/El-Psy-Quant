@@ -16,7 +16,14 @@ from el_psy_quant.paper_account.evidence_operations import (
     CreatePaperAccountSnapshotCommand,
     _validate_operation_command,
 )
-from el_psy_quant.paper_account.identity import MAX_PAPER_ACCOUNT_ID_LENGTH
+from el_psy_quant.paper_account.commands import (
+    MAX_PAPER_ACCOUNT_COMMAND_IDEMPOTENCY_KEY_LENGTH,
+    MAX_PAPER_ACCOUNT_COMMAND_REASON_LENGTH,
+)
+from el_psy_quant.paper_account.identity import (
+    MAX_PAPER_ACCOUNT_ACTOR_LENGTH,
+    MAX_PAPER_ACCOUNT_ID_LENGTH,
+)
 from el_psy_quant.paper_account.ledger_replay import (
     PaperAccountLedgerHistoryBundle,
 )
@@ -126,6 +133,21 @@ def _validate_snapshot(snapshot: object) -> PaperAccountSnapshot:
         snapshot.account_id,
         field_name="account_id",
         maximum_length=MAX_PAPER_ACCOUNT_ID_LENGTH,
+    )
+    _exact_normalized(
+        snapshot.operation_idempotency_key,
+        field_name="operation_idempotency_key",
+        maximum_length=MAX_PAPER_ACCOUNT_COMMAND_IDEMPOTENCY_KEY_LENGTH,
+    )
+    _exact_normalized(
+        snapshot.created_by,
+        field_name="created_by",
+        maximum_length=MAX_PAPER_ACCOUNT_ACTOR_LENGTH,
+    )
+    _exact_normalized(
+        snapshot.reason,
+        field_name="reason",
+        maximum_length=MAX_PAPER_ACCOUNT_COMMAND_REASON_LENGTH,
     )
     if type(snapshot.account_version) is not int or snapshot.account_version <= 0:
         raise ValueError("account_version must be an exact positive integer")
