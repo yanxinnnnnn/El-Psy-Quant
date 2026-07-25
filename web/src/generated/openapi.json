@@ -1,6 +1,57 @@
 {
   "components": {
     "schemas": {
+      "ApprovedPortfolioReviewReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis_digest": {
+            "title": "Analysis Digest",
+            "type": "string"
+          },
+          "decision_digest": {
+            "title": "Decision Digest",
+            "type": "string"
+          },
+          "decision_id": {
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "outcome": {
+            "const": "approved",
+            "title": "Outcome",
+            "type": "string"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "review_id",
+          "source_id",
+          "source_digest",
+          "analysis_digest",
+          "decision_id",
+          "decision_digest",
+          "outcome"
+        ],
+        "title": "ApprovedPortfolioReviewReferenceResponse",
+        "type": "object"
+      },
       "DemoEvidenceManifestReferenceResponse": {
         "properties": {
           "artifact_key": {
@@ -536,6 +587,1077 @@
         "title": "LifecycleTransitionReviewCommandResponse",
         "type": "object"
       },
+      "PaperAccountCashMovementRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "effective_timestamp_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Timestamp Utc"
+          },
+          "expected_account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Account Version",
+            "type": "integer"
+          },
+          "movement_type": {
+            "enum": [
+              "deposit",
+              "withdrawal",
+              "manual_adjustment",
+              "fee",
+              "commission",
+              "tax"
+            ],
+            "title": "Movement Type",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Reason",
+            "type": "string"
+          },
+          "requested_amount": {
+            "title": "Requested Amount",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_account_version",
+          "actor",
+          "reason",
+          "movement_type",
+          "requested_amount"
+        ],
+        "title": "PaperAccountCashMovementRequest",
+        "type": "object"
+      },
+      "PaperAccountCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/PaperAccountSummaryResponse"
+          },
+          "event": {
+            "$ref": "#/components/schemas/PaperAccountLedgerEventResponse"
+          },
+          "projection": {
+            "$ref": "#/components/schemas/PaperAccountProjectionResponse"
+          },
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "account",
+          "event",
+          "projection"
+        ],
+        "title": "PaperAccountCommandResponse",
+        "type": "object"
+      },
+      "PaperAccountCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "base_currency": {
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Base Currency",
+            "type": "string"
+          },
+          "display_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Display Name",
+            "type": "string"
+          },
+          "initial_cash": {
+            "title": "Initial Cash",
+            "type": "string"
+          }
+        },
+        "required": [
+          "display_name",
+          "base_currency",
+          "initial_cash",
+          "actor"
+        ],
+        "title": "PaperAccountCreateRequest",
+        "type": "object"
+      },
+      "PaperAccountCreatedDetailsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_identity": {
+            "$ref": "#/components/schemas/PaperAccountIdentityResponse"
+          },
+          "details_type": {
+            "const": "account_created",
+            "title": "Details Type",
+            "type": "string"
+          },
+          "initial_cash": {
+            "title": "Initial Cash",
+            "type": "string"
+          },
+          "initial_lifecycle_status": {
+            "const": "active",
+            "title": "Initial Lifecycle Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "details_type",
+          "account_identity",
+          "initial_cash",
+          "initial_lifecycle_status"
+        ],
+        "title": "PaperAccountCreatedDetailsResponse",
+        "type": "object"
+      },
+      "PaperAccountDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/PaperAccountSummaryResponse"
+          },
+          "projection": {
+            "$ref": "#/components/schemas/PaperAccountProjectionResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "account",
+          "projection"
+        ],
+        "title": "PaperAccountDetailResponse",
+        "type": "object"
+      },
+      "PaperAccountEvidenceLinkRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "expected_account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Account Version",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Reason",
+            "type": "string"
+          },
+          "review_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Review Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_account_version",
+          "actor",
+          "reason",
+          "review_id"
+        ],
+        "title": "PaperAccountEvidenceLinkRequest",
+        "type": "object"
+      },
+      "PaperAccountEvidenceOperationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "expected_account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Account Version",
+            "type": "integer"
+          },
+          "expected_head_chain_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Head Chain Digest",
+            "type": "string"
+          },
+          "expected_head_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Head Event Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_account_version",
+          "expected_head_event_id",
+          "expected_head_chain_digest",
+          "actor",
+          "reason"
+        ],
+        "title": "PaperAccountEvidenceOperationRequest",
+        "type": "object"
+      },
+      "PaperAccountIdentityResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "base_currency": {
+            "title": "Base Currency",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "created_timestamp": {
+            "format": "date-time",
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "account_id",
+          "display_name",
+          "base_currency",
+          "created_by",
+          "created_timestamp"
+        ],
+        "title": "PaperAccountIdentityResponse",
+        "type": "object"
+      },
+      "PaperAccountLedgerEventResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Account Version",
+            "type": "integer"
+          },
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "cash_postings": {
+            "items": {
+              "$ref": "#/components/schemas/PaperCashPostingResponse"
+            },
+            "title": "Cash Postings",
+            "type": "array"
+          },
+          "chain_digest": {
+            "title": "Chain Digest",
+            "type": "string"
+          },
+          "command_digest": {
+            "title": "Command Digest",
+            "type": "string"
+          },
+          "details": {
+            "discriminator": {
+              "mapping": {
+                "account_created": "#/components/schemas/PaperAccountCreatedDetailsResponse",
+                "cash_movement_posted": "#/components/schemas/PaperCashMovementPostedDetailsResponse",
+                "lifecycle_changed": "#/components/schemas/PaperAccountLifecycleChangedDetailsResponse",
+                "portfolio_review_evidence_linked": "#/components/schemas/PaperPortfolioReviewLinkedDetailsResponse",
+                "position_adjustment_posted": "#/components/schemas/PaperPositionAdjustmentPostedDetailsResponse"
+              },
+              "propertyName": "details_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PaperAccountCreatedDetailsResponse"
+              },
+              {
+                "$ref": "#/components/schemas/PaperCashMovementPostedDetailsResponse"
+              },
+              {
+                "$ref": "#/components/schemas/PaperPositionAdjustmentPostedDetailsResponse"
+              },
+              {
+                "$ref": "#/components/schemas/PaperPortfolioReviewLinkedDetailsResponse"
+              },
+              {
+                "$ref": "#/components/schemas/PaperAccountLifecycleChangedDetailsResponse"
+              }
+            ],
+            "title": "Details"
+          },
+          "effective_timestamp_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Timestamp Utc"
+          },
+          "event_digest": {
+            "title": "Event Digest",
+            "type": "string"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_type": {
+            "enum": [
+              "account_created",
+              "cash_movement_posted",
+              "position_adjustment_posted",
+              "portfolio_review_evidence_linked",
+              "account_frozen",
+              "account_reactivated",
+              "account_closed"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "expected_account_version": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Account Version"
+          },
+          "position_postings": {
+            "items": {
+              "$ref": "#/components/schemas/PaperPositionPostingResponse"
+            },
+            "title": "Position Postings",
+            "type": "array"
+          },
+          "previous_chain_digest": {
+            "title": "Previous Chain Digest",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "recorded_timestamp_utc": {
+            "format": "date-time",
+            "title": "Recorded Timestamp Utc",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "sequence_number": {
+            "exclusiveMinimum": 0.0,
+            "title": "Sequence Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "event_id",
+          "account_id",
+          "sequence_number",
+          "account_version",
+          "event_type",
+          "command_digest",
+          "expected_account_version",
+          "actor",
+          "reason",
+          "recorded_timestamp_utc",
+          "effective_timestamp_utc",
+          "previous_chain_digest",
+          "details",
+          "event_digest",
+          "chain_digest",
+          "cash_postings",
+          "position_postings"
+        ],
+        "title": "PaperAccountLedgerEventResponse",
+        "type": "object"
+      },
+      "PaperAccountLedgerResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/PaperAccountLedgerEventResponse"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "next_after_sequence_number": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next After Sequence Number"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "events",
+          "next_after_sequence_number"
+        ],
+        "title": "PaperAccountLedgerResponse",
+        "type": "object"
+      },
+      "PaperAccountLifecycleChangedDetailsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "details_type": {
+            "const": "lifecycle_changed",
+            "title": "Details Type",
+            "type": "string"
+          },
+          "source_status": {
+            "enum": [
+              "active",
+              "frozen",
+              "closed"
+            ],
+            "title": "Source Status",
+            "type": "string"
+          },
+          "target_status": {
+            "enum": [
+              "active",
+              "frozen",
+              "closed"
+            ],
+            "title": "Target Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "details_type",
+          "source_status",
+          "target_status"
+        ],
+        "title": "PaperAccountLifecycleChangedDetailsResponse",
+        "type": "object"
+      },
+      "PaperAccountLifecycleRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "freeze",
+              "reactivate",
+              "close"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "expected_account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Account Version",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_account_version",
+          "actor",
+          "reason",
+          "action"
+        ],
+        "title": "PaperAccountLifecycleRequest",
+        "type": "object"
+      },
+      "PaperAccountListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaperAccountSummaryResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PaperAccountListResponse",
+        "type": "object"
+      },
+      "PaperAccountPositionAdjustmentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "adjustment_category": {
+            "enum": [
+              "opening_balance",
+              "manual_correction",
+              "corporate_action",
+              "other"
+            ],
+            "title": "Adjustment Category",
+            "type": "string"
+          },
+          "effective_timestamp_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Timestamp Utc"
+          },
+          "expected_account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Account Version",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Reason",
+            "type": "string"
+          },
+          "signed_cost_basis_delta": {
+            "title": "Signed Cost Basis Delta",
+            "type": "string"
+          },
+          "signed_quantity_delta": {
+            "title": "Signed Quantity Delta",
+            "type": "string"
+          },
+          "symbol": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_account_version",
+          "actor",
+          "reason",
+          "symbol",
+          "adjustment_category",
+          "signed_quantity_delta",
+          "signed_cost_basis_delta"
+        ],
+        "title": "PaperAccountPositionAdjustmentRequest",
+        "type": "object"
+      },
+      "PaperAccountPositionProjectionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "aggregate_cost_basis": {
+            "title": "Aggregate Cost Basis",
+            "type": "string"
+          },
+          "average_unit_cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Unit Cost"
+          },
+          "average_unit_cost_is_rounded": {
+            "title": "Average Unit Cost Is Rounded",
+            "type": "boolean"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "symbol",
+          "quantity",
+          "aggregate_cost_basis",
+          "average_unit_cost",
+          "average_unit_cost_is_rounded"
+        ],
+        "title": "PaperAccountPositionProjectionResponse",
+        "type": "object"
+      },
+      "PaperAccountProjectionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_identity": {
+            "$ref": "#/components/schemas/PaperAccountIdentityResponse"
+          },
+          "approved_portfolio_reviews": {
+            "items": {
+              "$ref": "#/components/schemas/ApprovedPortfolioReviewReferenceResponse"
+            },
+            "title": "Approved Portfolio Reviews",
+            "type": "array"
+          },
+          "available_cash": {
+            "title": "Available Cash",
+            "type": "string"
+          },
+          "cash_balance": {
+            "title": "Cash Balance",
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "enum": [
+              "active",
+              "frozen",
+              "closed"
+            ],
+            "title": "Lifecycle Status",
+            "type": "string"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/PaperAccountPositionProjectionResponse"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "projection_digest": {
+            "title": "Projection Digest",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Source Account Version",
+            "type": "integer"
+          },
+          "source_chain_digest": {
+            "title": "Source Chain Digest",
+            "type": "string"
+          },
+          "source_event_id": {
+            "title": "Source Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "account_identity",
+          "lifecycle_status",
+          "cash_balance",
+          "available_cash",
+          "positions",
+          "approved_portfolio_reviews",
+          "source_account_version",
+          "source_event_id",
+          "source_chain_digest",
+          "projection_digest"
+        ],
+        "title": "PaperAccountProjectionResponse",
+        "type": "object"
+      },
+      "PaperAccountReconciliationCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "reconciliation": {
+            "$ref": "#/components/schemas/PaperAccountReconciliationResponse"
+          },
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "reconciliation"
+        ],
+        "title": "PaperAccountReconciliationCommandResponse",
+        "type": "object"
+      },
+      "PaperAccountReconciliationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "authoritative_account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Authoritative Account Version",
+            "type": "integer"
+          },
+          "authoritative_chain_digest": {
+            "title": "Authoritative Chain Digest",
+            "type": "string"
+          },
+          "authoritative_event_id": {
+            "title": "Authoritative Event Id",
+            "type": "string"
+          },
+          "authoritative_projection_digest": {
+            "title": "Authoritative Projection Digest",
+            "type": "string"
+          },
+          "candidate_account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Candidate Account Version",
+            "type": "integer"
+          },
+          "candidate_chain_digest": {
+            "title": "Candidate Chain Digest",
+            "type": "string"
+          },
+          "candidate_event_id": {
+            "title": "Candidate Event Id",
+            "type": "string"
+          },
+          "candidate_projection_digest": {
+            "title": "Candidate Projection Digest",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "mismatch_codes": {
+            "items": {
+              "enum": [
+                "source_account_version_mismatch",
+                "source_event_id_mismatch",
+                "source_chain_digest_mismatch",
+                "identity_mismatch",
+                "lifecycle_status_mismatch",
+                "cash_balance_mismatch",
+                "available_cash_mismatch",
+                "positions_mismatch",
+                "evidence_references_mismatch"
+              ],
+              "type": "string"
+            },
+            "title": "Mismatch Codes",
+            "type": "array"
+          },
+          "operation_command_digest": {
+            "title": "Operation Command Digest",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "matched",
+              "mismatched"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "reconciliation_digest": {
+            "title": "Reconciliation Digest",
+            "type": "string"
+          },
+          "reconciliation_id": {
+            "title": "Reconciliation Id",
+            "type": "string"
+          },
+          "recorded_timestamp_utc": {
+            "format": "date-time",
+            "title": "Recorded Timestamp Utc",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "reconciliation_id",
+          "account_id",
+          "operation_command_digest",
+          "created_by",
+          "recorded_timestamp_utc",
+          "reason",
+          "outcome",
+          "mismatch_codes",
+          "authoritative_account_version",
+          "authoritative_event_id",
+          "authoritative_chain_digest",
+          "authoritative_projection_digest",
+          "candidate_account_version",
+          "candidate_event_id",
+          "candidate_chain_digest",
+          "candidate_projection_digest",
+          "reconciliation_digest"
+        ],
+        "title": "PaperAccountReconciliationResponse",
+        "type": "object"
+      },
+      "PaperAccountSnapshotCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/PaperAccountSnapshotResponse"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "snapshot"
+        ],
+        "title": "PaperAccountSnapshotCommandResponse",
+        "type": "object"
+      },
+      "PaperAccountSnapshotResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Account Version",
+            "type": "integer"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "head_chain_digest": {
+            "title": "Head Chain Digest",
+            "type": "string"
+          },
+          "head_event_id": {
+            "title": "Head Event Id",
+            "type": "string"
+          },
+          "operation_command_digest": {
+            "title": "Operation Command Digest",
+            "type": "string"
+          },
+          "projection": {
+            "$ref": "#/components/schemas/PaperAccountProjectionResponse"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "recorded_timestamp_utc": {
+            "format": "date-time",
+            "title": "Recorded Timestamp Utc",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "snapshot_digest": {
+            "title": "Snapshot Digest",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "snapshot_id",
+          "account_id",
+          "account_version",
+          "head_event_id",
+          "head_chain_digest",
+          "operation_command_digest",
+          "created_by",
+          "recorded_timestamp_utc",
+          "reason",
+          "projection",
+          "snapshot_digest"
+        ],
+        "title": "PaperAccountSnapshotResponse",
+        "type": "object"
+      },
       "PaperAccountStateCommandRequest": {
         "additionalProperties": false,
         "properties": {
@@ -618,6 +1740,199 @@
           "positions"
         ],
         "title": "PaperAccountStateResponse",
+        "type": "object"
+      },
+      "PaperAccountSummaryResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "base_currency": {
+            "title": "Base Currency",
+            "type": "string"
+          },
+          "closed_timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed Timestamp"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "created_timestamp": {
+            "format": "date-time",
+            "title": "Created Timestamp",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "head_chain_digest": {
+            "title": "Head Chain Digest",
+            "type": "string"
+          },
+          "head_event_id": {
+            "title": "Head Event Id",
+            "type": "string"
+          },
+          "head_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Head Version",
+            "type": "integer"
+          },
+          "lifecycle_status": {
+            "enum": [
+              "active",
+              "frozen",
+              "closed"
+            ],
+            "title": "Lifecycle Status",
+            "type": "string"
+          },
+          "projection_status": {
+            "enum": [
+              "current",
+              "reconciliation_required"
+            ],
+            "title": "Projection Status",
+            "type": "string"
+          },
+          "record_schema_version": {
+            "const": 1,
+            "title": "Record Schema Version",
+            "type": "integer"
+          },
+          "updated_timestamp": {
+            "format": "date-time",
+            "title": "Updated Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "record_schema_version",
+          "account_id",
+          "display_name",
+          "base_currency",
+          "lifecycle_status",
+          "head_version",
+          "head_event_id",
+          "head_chain_digest",
+          "projection_status",
+          "created_by",
+          "created_timestamp",
+          "updated_timestamp",
+          "closed_timestamp"
+        ],
+        "title": "PaperAccountSummaryResponse",
+        "type": "object"
+      },
+      "PaperCashMovementPostedDetailsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "details_type": {
+            "const": "cash_movement_posted",
+            "title": "Details Type",
+            "type": "string"
+          },
+          "movement_type": {
+            "enum": [
+              "deposit",
+              "withdrawal",
+              "manual_adjustment",
+              "fee",
+              "commission",
+              "tax"
+            ],
+            "title": "Movement Type",
+            "type": "string"
+          },
+          "requested_amount": {
+            "title": "Requested Amount",
+            "type": "string"
+          }
+        },
+        "required": [
+          "details_type",
+          "movement_type",
+          "requested_amount"
+        ],
+        "title": "PaperCashMovementPostedDetailsResponse",
+        "type": "object"
+      },
+      "PaperCashPostingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "cash_entry_id": {
+            "title": "Cash Entry Id",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "entry_digest": {
+            "title": "Entry Digest",
+            "type": "string"
+          },
+          "entry_index": {
+            "minimum": 0.0,
+            "title": "Entry Index",
+            "type": "integer"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "movement_type": {
+            "enum": [
+              "initial_cash",
+              "deposit",
+              "withdrawal",
+              "manual_adjustment",
+              "fee",
+              "commission",
+              "tax"
+            ],
+            "title": "Movement Type",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "signed_amount": {
+            "title": "Signed Amount",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "cash_entry_id",
+          "account_id",
+          "event_id",
+          "entry_index",
+          "movement_type",
+          "currency",
+          "signed_amount",
+          "entry_digest"
+        ],
+        "title": "PaperCashPostingResponse",
         "type": "object"
       },
       "PaperFillCommandRequest": {
@@ -1190,6 +2505,66 @@
         "title": "PaperOrderResponse",
         "type": "object"
       },
+      "PaperPortfolioReviewLinkedDetailsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "approved_portfolio_review": {
+            "$ref": "#/components/schemas/ApprovedPortfolioReviewReferenceResponse"
+          },
+          "details_type": {
+            "const": "portfolio_review_evidence_linked",
+            "title": "Details Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "details_type",
+          "approved_portfolio_review"
+        ],
+        "title": "PaperPortfolioReviewLinkedDetailsResponse",
+        "type": "object"
+      },
+      "PaperPositionAdjustmentPostedDetailsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "adjustment_category": {
+            "enum": [
+              "opening_balance",
+              "manual_correction",
+              "corporate_action",
+              "other"
+            ],
+            "title": "Adjustment Category",
+            "type": "string"
+          },
+          "details_type": {
+            "const": "position_adjustment_posted",
+            "title": "Details Type",
+            "type": "string"
+          },
+          "signed_cost_basis_delta": {
+            "title": "Signed Cost Basis Delta",
+            "type": "string"
+          },
+          "signed_quantity_delta": {
+            "title": "Signed Quantity Delta",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "details_type",
+          "symbol",
+          "adjustment_category",
+          "signed_quantity_delta",
+          "signed_cost_basis_delta"
+        ],
+        "title": "PaperPositionAdjustmentPostedDetailsResponse",
+        "type": "object"
+      },
       "PaperPositionChangeResponse": {
         "properties": {
           "ending_quantity": {
@@ -1216,6 +2591,73 @@
           "quantity_change"
         ],
         "title": "PaperPositionChangeResponse",
+        "type": "object"
+      },
+      "PaperPositionPostingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "adjustment_category": {
+            "enum": [
+              "opening_balance",
+              "manual_correction",
+              "corporate_action",
+              "other"
+            ],
+            "title": "Adjustment Category",
+            "type": "string"
+          },
+          "entry_digest": {
+            "title": "Entry Digest",
+            "type": "string"
+          },
+          "entry_index": {
+            "minimum": 0.0,
+            "title": "Entry Index",
+            "type": "integer"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "position_entry_id": {
+            "title": "Position Entry Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "signed_cost_basis_delta": {
+            "title": "Signed Cost Basis Delta",
+            "type": "string"
+          },
+          "signed_quantity_delta": {
+            "title": "Signed Quantity Delta",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "position_entry_id",
+          "account_id",
+          "event_id",
+          "entry_index",
+          "symbol",
+          "signed_quantity_delta",
+          "signed_cost_basis_delta",
+          "adjustment_category",
+          "entry_digest"
+        ],
+        "title": "PaperPositionPostingResponse",
         "type": "object"
       },
       "PaperPositionResponse": {
@@ -5128,6 +6570,701 @@
           }
         },
         "summary": "Post Lifecycle Transition Record"
+      }
+    },
+    "/api/v1/paper-accounts": {
+      "get": {
+        "description": "Return one deterministic bounded keyset page.",
+        "operationId": "get_paper_accounts_api_v1_paper_accounts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lifecycle_status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "active",
+                    "frozen",
+                    "closed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lifecycle Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Paper Accounts"
+      },
+      "post": {
+        "description": "Create or exactly replay one durable Paper Account.",
+        "operationId": "post_paper_account_api_v1_paper_accounts_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAccountCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Account"
+      }
+    },
+    "/api/v1/paper-accounts/{account_id}": {
+      "get": {
+        "description": "Return one account and its validated current projection.",
+        "operationId": "get_paper_account_api_v1_paper_accounts__account_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Paper Account"
+      }
+    },
+    "/api/v1/paper-accounts/{account_id}/cash-movements": {
+      "post": {
+        "operationId": "post_paper_account_cash_movement_api_v1_paper_accounts__account_id__cash_movements_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAccountCashMovementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Account Cash Movement"
+      }
+    },
+    "/api/v1/paper-accounts/{account_id}/evidence-links": {
+      "post": {
+        "operationId": "post_paper_account_evidence_link_api_v1_paper_accounts__account_id__evidence_links_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAccountEvidenceLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Account Evidence Link"
+      }
+    },
+    "/api/v1/paper-accounts/{account_id}/ledger": {
+      "get": {
+        "description": "Return one contiguous validated bounded ledger page.",
+        "operationId": "get_paper_account_ledger_api_v1_paper_accounts__account_id__ledger_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after_sequence_number",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After Sequence Number",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountLedgerResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Paper Account Ledger"
+      }
+    },
+    "/api/v1/paper-accounts/{account_id}/lifecycle": {
+      "post": {
+        "operationId": "post_paper_account_lifecycle_api_v1_paper_accounts__account_id__lifecycle_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAccountLifecycleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Account Lifecycle"
+      }
+    },
+    "/api/v1/paper-accounts/{account_id}/position-adjustments": {
+      "post": {
+        "operationId": "post_paper_account_position_adjustment_api_v1_paper_accounts__account_id__position_adjustments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAccountPositionAdjustmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Account Position Adjustment"
+      }
+    },
+    "/api/v1/paper-accounts/{account_id}/reconciliations": {
+      "post": {
+        "operationId": "post_paper_account_reconciliation_api_v1_paper_accounts__account_id__reconciliations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAccountEvidenceOperationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountReconciliationCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountReconciliationCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Account Reconciliation"
+      }
+    },
+    "/api/v1/paper-accounts/{account_id}/snapshots": {
+      "post": {
+        "operationId": "post_paper_account_snapshot_api_v1_paper_accounts__account_id__snapshots_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAccountEvidenceOperationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountSnapshotCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAccountSnapshotCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Paper Account Snapshot"
       }
     },
     "/api/v1/paper-jobs": {

@@ -154,10 +154,10 @@ docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-Sprints 179–183 are Complete. Sprint 184 is implementation-complete and pending
-Founder review; it adds durable SQLite ledger authority, strict reconstruction,
-idempotency, projection caches, snapshot/reconciliation rows, and one-winner
-application transactions.
+Sprints 179–184 are Complete after PR #365 merged. Sprint 185 is
+implementation-complete and pending Founder review; it exposes durable account
+authority through the exact versioned API, stable sanitized errors, bounded
+request/audit correlation, deterministic pagination, and generated contracts.
 
 M31 must establish independent account and ledger authority for:
 
@@ -189,14 +189,18 @@ S179 planning
   -> S188 closeout
 ```
 
-S179–S183 are Complete. S182 added normalized-symbol position commands, immutable
+S179–S184 are Complete. S182 added normalized-symbol position commands, immutable
 position postings, exact long-only quantity and aggregate-cost-basis state,
 display-only average unit cost, and full mixed-ledger replay without changing
 valid S181 event digests. S183 added canonical complete projection rebuild,
 strict no-repair verification, and immutable snapshot/reconciliation evidence.
 S184 persists those authorities at migration head
 `0007_paper_account_ledger` with append-only protection and guarded
-transactions. S185–S187 retain API, Web, Demo, and acceptance.
+transactions. S185 exposes them through exactly ten versioned operations with
+canonical-string financial transport, bounded list/ledger pages, stable errors,
+request IDs, bounded audit correlation, and generated contracts. API/browser
+payloads are not financial authority. S186–S187 retain Web, Demo, integration,
+and Founder acceptance.
 
 ## Approved Paper Trading Runtime Sequence
 

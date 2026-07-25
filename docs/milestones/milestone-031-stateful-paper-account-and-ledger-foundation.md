@@ -22,8 +22,8 @@ governance, Paper Jobs, and future account/ledger truth as separate authorities.
 | S181 | Immutable Cash Ledger and Account Event Foundation | Complete |
 | S182 | Immutable Position Ledger and Aggregate Cost Basis Foundation | Complete |
 | S183 | Snapshot, Reconciliation, and Projection Rebuild Foundation | Complete |
-| S184 | Persistence, Migration, Concurrency, and Application Services | Implementation complete / pending Founder review |
-| S185 | Versioned API, Errors, and Audit Surface | Planned |
+| S184 | Persistence, Migration, Concurrency, and Application Services | Complete after PR #365 merged |
+| S185 | Versioned API, Errors, and Audit Surface | Implementation complete / pending Founder review |
 | S186 | Bilingual Founder Paper Account Web Workspace | Planned |
 | S187 | Integration, Demo, Upgrade, Recovery, and Acceptance Hardening | Planned |
 | S188 | Milestone 31 Closeout and Next-Milestone Handoff | Planned |
@@ -125,7 +125,28 @@ The fifth implementation slice adds:
 
 It adds no public API, Web, localization, Demo, Docker runtime acceptance,
 filesystem evidence artifacts, market, order/fill, execution, or worker
-behavior. Those boundaries remain S185–S187.
+behavior.
+
+## Sprint 185 result boundary
+
+The sixth implementation slice adds:
+
+- exactly ten versioned `/api/v1/paper-accounts` operations;
+- strict canonical-string financial request/response schemas;
+- request-scoped `PaperAccountApplicationService` dependency wiring;
+- deterministic bounded keyset account pages and sequence-ledger pages;
+- `201` new versus `200` exact replay behavior for every POST route;
+- the closed stable sanitized M31 error inventory;
+- server-owned request IDs and bounded successful command/evidence audit events;
+  and
+- deterministic OpenAPI plus generated TypeScript contracts.
+
+The API exposes S184 authority without becoming authority. It never computes or
+repairs balances, positions, projections, digests, snapshots, or
+reconciliations. It adds no migration, Founder Web, localization catalog, Demo,
+filesystem evidence artifact, Docker runtime acceptance, market, order/fill,
+execution, worker, broker, live, or real-money behavior. Those boundaries
+remain S186–S187.
 
 ## Completion gate
 
@@ -157,4 +178,5 @@ docs/sprints/sprint-181-immutable-cash-ledger-and-account-event-foundation.md
 docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-foundation.md
 docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-foundation.md
 docs/sprints/sprint-184-durable-paper-account-persistence-migration-concurrency-and-application-service-foundation.md
+docs/sprints/sprint-185-versioned-paper-account-api-errors-and-audit-surface-foundation.md
 ```

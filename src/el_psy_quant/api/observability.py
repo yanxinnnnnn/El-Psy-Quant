@@ -91,6 +91,48 @@ API_OPERATIONS: tuple[ApiOperation, ...] = (
         "/api/v1/portfolio-reviews/{review_id}/decision",
         "portfolio_review.decision",
     ),
+    ApiOperation("POST", "/api/v1/paper-accounts", "paper_account.create"),
+    ApiOperation("GET", "/api/v1/paper-accounts", "paper_account.list"),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-accounts/{account_id}",
+        "paper_account.detail",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-accounts/{account_id}/ledger",
+        "paper_account.ledger",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-accounts/{account_id}/cash-movements",
+        "paper_account.cash_movement",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-accounts/{account_id}/position-adjustments",
+        "paper_account.position_adjustment",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-accounts/{account_id}/evidence-links",
+        "paper_account.evidence_link",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-accounts/{account_id}/lifecycle",
+        "paper_account.lifecycle",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-accounts/{account_id}/snapshots",
+        "paper_account.snapshot",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-accounts/{account_id}/reconciliations",
+        "paper_account.reconciliation",
+    ),
     ApiOperation(
         "POST",
         "/api/v1/lifecycle-transition-proposals",
@@ -339,6 +381,133 @@ def log_portfolio_review_command_completed(
     )
 
 
+def log_paper_account_command_completed(
+    *,
+    operation: Literal[
+        "create",
+        "cash_movement",
+        "position_adjustment",
+        "evidence_link",
+        "freeze",
+        "reactivate",
+        "close",
+    ],
+    request_id: str,
+    http_status: int,
+    account_id: str,
+    event_id: str,
+    account_version: int,
+    event_type: str,
+    replayed: bool,
+    projection_status: str,
+) -> None:
+    """Log only bounded accepted Paper Account command identity."""
+    PRODUCT_LOGGER.info(
+        (
+            "paper_account_command_completed operation=%s request_id=%s "
+            "http_status=%s account_id=%s event_id=%s account_version=%s "
+            "event_type=%s replayed=%s projection_status=%s"
+        ),
+        operation,
+        request_id,
+        http_status,
+        account_id,
+        event_id,
+        account_version,
+        event_type,
+        replayed,
+        projection_status,
+        extra={
+            "event": "paper_account_command_completed",
+            "operation": operation,
+            "request_id": request_id,
+            "http_status": http_status,
+            "account_id": account_id,
+            "event_id": event_id,
+            "account_version": account_version,
+            "event_type": event_type,
+            "replayed": replayed,
+            "projection_status": projection_status,
+        },
+    )
+
+
+def log_paper_account_snapshot_completed(
+    *,
+    request_id: str,
+    http_status: int,
+    account_id: str,
+    account_version: int,
+    snapshot_id: str,
+    replayed: bool,
+) -> None:
+    """Log bounded immutable snapshot operation identity."""
+    PRODUCT_LOGGER.info(
+        (
+            "paper_account_snapshot_completed request_id=%s http_status=%s "
+            "account_id=%s account_version=%s snapshot_id=%s replayed=%s"
+        ),
+        request_id,
+        http_status,
+        account_id,
+        account_version,
+        snapshot_id,
+        replayed,
+        extra={
+            "event": "paper_account_snapshot_completed",
+            "operation": "snapshot",
+            "request_id": request_id,
+            "http_status": http_status,
+            "account_id": account_id,
+            "account_version": account_version,
+            "snapshot_id": snapshot_id,
+            "replayed": replayed,
+        },
+    )
+
+
+def log_paper_account_reconciliation_completed(
+    *,
+    request_id: str,
+    http_status: int,
+    account_id: str,
+    account_version: int,
+    reconciliation_id: str,
+    outcome: str,
+    replayed: bool,
+    projection_status: str,
+) -> None:
+    """Log bounded immutable reconciliation operation identity."""
+    PRODUCT_LOGGER.info(
+        (
+            "paper_account_reconciliation_completed request_id=%s "
+            "http_status=%s account_id=%s account_version=%s "
+            "reconciliation_id=%s outcome=%s replayed=%s "
+            "projection_status=%s"
+        ),
+        request_id,
+        http_status,
+        account_id,
+        account_version,
+        reconciliation_id,
+        outcome,
+        replayed,
+        projection_status,
+        extra={
+            "event": "paper_account_reconciliation_completed",
+            "operation": "reconciliation",
+            "request_id": request_id,
+            "http_status": http_status,
+            "account_id": account_id,
+            "account_version": account_version,
+            "reconciliation_id": reconciliation_id,
+            "outcome": outcome,
+            "replayed": replayed,
+            "projection_status": projection_status,
+        },
+    )
+
+
 __all__ = [
     "API_OPERATIONS",
     "MAX_DURATION_MS",
@@ -350,6 +519,9 @@ __all__ = [
     "bounded_duration_ms",
     "build_operation_indexes",
     "log_api_request_completed",
+    "log_paper_account_command_completed",
+    "log_paper_account_reconciliation_completed",
+    "log_paper_account_snapshot_completed",
     "log_paper_job_command_completed",
     "log_paper_job_execution_terminal",
     "log_portfolio_review_command_completed",

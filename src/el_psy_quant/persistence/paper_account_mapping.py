@@ -7,6 +7,7 @@ from typing import cast
 
 from el_psy_quant.paper_account import (
     PAPER_ACCOUNT_EVENT_SCHEMA_VERSION,
+    PAPER_ACCOUNT_GENESIS_CHAIN_DIGEST,
     PAPER_ACCOUNT_POSITION_PROJECTION_SCHEMA_VERSION,
     PAPER_ACCOUNT_PROJECTION_SCHEMA_VERSION,
     PAPER_ACCOUNT_RECONCILIATION_SCHEMA_VERSION,
@@ -36,8 +37,18 @@ from el_psy_quant.paper_account import (
     create_link_approved_portfolio_review_command,
     create_paper_account_event_bundle,
     replay_paper_account_ledger,
+    validate_paper_account_lifecycle_transition,
 )
+from el_psy_quant.paper_account.cash_state import _signed_cash_movement
 from el_psy_quant.paper_account.cash_ledger import _create_cash_ledger_entry
+from el_psy_quant.paper_account.events import (
+    _account_created_details,
+    _cash_movement_details,
+    _create_event,
+    _evidence_linked_details,
+    _lifecycle_changed_details,
+    _position_adjustment_details,
+)
 from el_psy_quant.paper_account.ledger_state import (
     _create_ledger_bundle,
     _create_ledger_state,
@@ -67,6 +78,7 @@ from el_psy_quant.persistence.paper_account_model import (
     PaperPositionLedgerEntryRow,
 )
 from el_psy_quant.persistence.paper_accounts import (
+    PaperAccountLedgerPageItem,
     PaperAccountPersistenceCorruptionError,
     PaperAccountRecord,
     _exact_string,
@@ -326,6 +338,352 @@ def _ledger_bundle_from_cash(bundle, positions):
         position_entries=(),
         resulting_state=state,
     )
+
+
+def reconstruct_history_page_items(
+    *,
+    account: PaperAccountRecord,
+    event_rows: tuple[PaperAccountEventRow, ...],
+    cash_rows: tuple[PaperCashLedgerEntryRow, ...],
+    position_rows: tuple[PaperPositionLedgerEntryRow, ...],
+    expected_first_sequence: int,
+    previous_chain_digest: str,
+) -> tuple[PaperAccountLedgerPageItem, ...]:
+    """Validate one bounded page without replaying an unbounded prefix."""
+    try:
+        if type(expected_first_sequence) is not int or expected_first_sequence <= 0:
+            raise ValueError("expected first sequence must be positive")
+        cash_by_event: dict[str, list[PaperCashLedgerEntryRow]] = {}
+        for row in cash_rows:
+            cash_by_event.setdefault(row.event_id, []).append(row)
+        positions_by_event: dict[str, list[PaperPositionLedgerEntryRow]] = {}
+        for row in position_rows:
+            positions_by_event.setdefault(row.event_id, []).append(row)
+
+        result: list[PaperAccountLedgerPageItem] = []
+        prior_chain = previous_chain_digest
+        for expected_sequence, row in enumerate(
+            event_rows,
+            start=expected_first_sequence,
+        ):
+            if _int(row.record_schema_version, "event record schema") != 1:
+                raise ValueError("unsupported event record schema")
+            if (
+                _int(row.event_schema_version, "event schema")
+                != PAPER_ACCOUNT_EVENT_SCHEMA_VERSION
+            ):
+                raise ValueError("unsupported event schema")
+            if (
+                _int(row.sequence_number, "sequence_number", positive=True)
+                != expected_sequence
+                or _int(row.account_version, "account_version", positive=True)
+                != expected_sequence
+            ):
+                raise ValueError("event page sequence is not contiguous")
+            if row.account_id != account.account_id:
+                raise ValueError("event belongs to a different account")
+            if row.previous_chain_digest != prior_chain:
+                raise ValueError("event page chain anchor is invalid")
+
+            details_value = load_canonical_json(row.details_payload)
+            if type(details_value) is not dict:
+                raise ValueError("event details must be an object")
+            details = cast(dict[str, object], details_value)
+            recorded = _exact_utc(
+                row.recorded_timestamp,
+                "recorded_timestamp",
+            )
+            effective = (
+                None
+                if row.effective_timestamp is None
+                else _exact_utc(
+                    row.effective_timestamp,
+                    "effective_timestamp",
+                )
+            )
+            mapped_cash = tuple(
+                _cash_from_row(item)
+                for item in sorted(
+                    cash_by_event.pop(row.event_id, []),
+                    key=lambda item: item.entry_index,
+                )
+            )
+            mapped_positions = tuple(
+                _position_from_row(item)
+                for item in sorted(
+                    positions_by_event.pop(row.event_id, []),
+                    key=lambda item: item.entry_index,
+                )
+            )
+
+            if row.event_type == "account_created":
+                root = exact_dict(
+                    details,
+                    fields=(
+                        "details_type",
+                        "account_identity",
+                        "initial_cash",
+                        "initial_lifecycle_status",
+                    ),
+                )
+                identity = _identity_from_payload(root["account_identity"])
+                initial_cash = PaperMoney.parse(cast(str, root["initial_cash"]))
+                if (
+                    expected_sequence != 1
+                    or prior_chain != PAPER_ACCOUNT_GENESIS_CHAIN_DIGEST
+                    or root["details_type"] != "account_created"
+                    or root["initial_lifecycle_status"] != "active"
+                    or row.reason is not None
+                    or effective is not None
+                    or row.expected_account_version is not None
+                    or len(mapped_cash) != 1
+                    or mapped_positions
+                    or identity != account.account_identity
+                    or mapped_cash[0].signed_amount != initial_cash
+                ):
+                    raise ValueError("creation event page shape is invalid")
+                command = CreatePaperAccountCommand(
+                    account_identity=identity,
+                    initial_cash=initial_cash,
+                    command_idempotency_key=row.command_idempotency_key,
+                    actor=row.actor,
+                )
+                event_details = _account_created_details(identity, initial_cash)
+            elif row.event_type == "cash_movement_posted":
+                root = exact_dict(
+                    details,
+                    fields=(
+                        "details_type",
+                        "movement_type",
+                        "requested_amount",
+                    ),
+                )
+                requested_amount = PaperMoney.parse(
+                    cast(str, root["requested_amount"])
+                )
+                command = PostPaperCashMovementCommand(
+                    account_id=row.account_id,
+                    expected_account_version=cast(
+                        int,
+                        _optional_int(
+                            row.expected_account_version,
+                            "expected_account_version",
+                        ),
+                    ),
+                    command_idempotency_key=row.command_idempotency_key,
+                    actor=row.actor,
+                    reason=cast(str, row.reason),
+                    movement_type=cast(  # type: ignore[arg-type]
+                        object,
+                        root["movement_type"],
+                    ),
+                    requested_amount=requested_amount,
+                    effective_timestamp_utc=effective,
+                )
+                if (
+                    root["details_type"] != "cash_movement_posted"
+                    or row.reason is None
+                    or len(mapped_cash) != 1
+                    or mapped_positions
+                    or mapped_cash[0].signed_amount
+                    != _signed_cash_movement(command)
+                ):
+                    raise ValueError("cash event page shape is invalid")
+                event_details = _cash_movement_details(
+                    command.movement_type,
+                    command.requested_amount,
+                )
+            elif row.event_type == "position_adjustment_posted":
+                root = exact_dict(
+                    details,
+                    fields=(
+                        "details_type",
+                        "symbol",
+                        "adjustment_category",
+                        "signed_quantity_delta",
+                        "signed_cost_basis_delta",
+                    ),
+                )
+                command = PostPaperPositionAdjustmentCommand(
+                    account_id=row.account_id,
+                    expected_account_version=cast(
+                        int,
+                        _optional_int(
+                            row.expected_account_version,
+                            "expected_account_version",
+                        ),
+                    ),
+                    command_idempotency_key=row.command_idempotency_key,
+                    actor=row.actor,
+                    reason=cast(str, row.reason),
+                    symbol=cast(str, root["symbol"]),
+                    adjustment_category=cast(  # type: ignore[arg-type]
+                        object,
+                        root["adjustment_category"],
+                    ),
+                    signed_quantity_delta=PaperQuantity.parse(
+                        cast(str, root["signed_quantity_delta"])
+                    ),
+                    signed_cost_basis_delta=PaperMoney.parse(
+                        cast(str, root["signed_cost_basis_delta"])
+                    ),
+                    effective_timestamp_utc=effective,
+                )
+                if (
+                    root["details_type"] != "position_adjustment_posted"
+                    or row.reason is None
+                    or mapped_cash
+                    or len(mapped_positions) != 1
+                    or mapped_positions[0].symbol != command.symbol
+                    or mapped_positions[0].adjustment_category
+                    != command.adjustment_category
+                    or mapped_positions[0].signed_quantity_delta
+                    != command.signed_quantity_delta
+                    or mapped_positions[0].signed_cost_basis_delta
+                    != command.signed_cost_basis_delta
+                ):
+                    raise ValueError("position event page shape is invalid")
+                event_details = _position_adjustment_details(
+                    symbol=command.symbol,
+                    adjustment_category=command.adjustment_category,
+                    signed_quantity_delta=command.signed_quantity_delta,
+                    signed_cost_basis_delta=command.signed_cost_basis_delta,
+                )
+            elif row.event_type == "portfolio_review_evidence_linked":
+                root = exact_dict(
+                    details,
+                    fields=(
+                        "details_type",
+                        "approved_portfolio_review",
+                    ),
+                )
+                reference = _reference_from_payload(
+                    root["approved_portfolio_review"]
+                )
+                command = create_link_approved_portfolio_review_command(
+                    account_id=row.account_id,
+                    expected_account_version=cast(
+                        int,
+                        _optional_int(
+                            row.expected_account_version,
+                            "expected_account_version",
+                        ),
+                    ),
+                    command_idempotency_key=row.command_idempotency_key,
+                    actor=row.actor,
+                    reason=cast(str, row.reason),
+                    approved_portfolio_review=reference,
+                )
+                if (
+                    root["details_type"]
+                    != "portfolio_review_evidence_linked"
+                    or row.reason is None
+                    or effective is not None
+                    or mapped_cash
+                    or mapped_positions
+                ):
+                    raise ValueError("evidence event page shape is invalid")
+                event_details = _evidence_linked_details(reference)
+            else:
+                root = exact_dict(
+                    details,
+                    fields=(
+                        "details_type",
+                        "source_status",
+                        "target_status",
+                    ),
+                )
+                source_status = cast(str, root["source_status"])
+                target_status = cast(str, root["target_status"])
+                command_type: type[
+                    FreezePaperAccountCommand
+                    | ReactivatePaperAccountCommand
+                    | ClosePaperAccountCommand
+                ]
+                if row.event_type == "account_frozen":
+                    command_type = FreezePaperAccountCommand
+                    expected_target = "frozen"
+                elif row.event_type == "account_reactivated":
+                    command_type = ReactivatePaperAccountCommand
+                    expected_target = "active"
+                elif row.event_type == "account_closed":
+                    command_type = ClosePaperAccountCommand
+                    expected_target = "closed"
+                else:
+                    raise ValueError("unsupported event type")
+                if (
+                    root["details_type"] != "lifecycle_changed"
+                    or target_status != expected_target
+                    or row.reason is None
+                    or effective is not None
+                    or mapped_cash
+                    or mapped_positions
+                ):
+                    raise ValueError("lifecycle event page shape is invalid")
+                validate_paper_account_lifecycle_transition(
+                    source_status,
+                    target_status,
+                    close_eligibility=(
+                        PaperAccountCloseEligibility(True, True, True)
+                        if target_status == "closed"
+                        else None
+                    ),
+                )
+                command = command_type(
+                    account_id=row.account_id,
+                    expected_account_version=cast(
+                        int,
+                        _optional_int(
+                            row.expected_account_version,
+                            "expected_account_version",
+                        ),
+                    ),
+                    command_idempotency_key=row.command_idempotency_key,
+                    actor=row.actor,
+                    reason=row.reason,
+                )
+                event_details = _lifecycle_changed_details(
+                    cast(object, source_status),  # type: ignore[arg-type]
+                    cast(object, target_status),  # type: ignore[arg-type]
+                )
+
+            if command.command_digest != row.command_digest:
+                raise ValueError("event command digest is invalid")
+            event = _create_event(
+                event_id=row.event_id,
+                account_id=row.account_id,
+                sequence_number=row.sequence_number,
+                event_type=cast(object, row.event_type),  # type: ignore[arg-type]
+                command_idempotency_key=row.command_idempotency_key,
+                command_digest=row.command_digest,
+                expected_account_version=row.expected_account_version,
+                actor=row.actor,
+                reason=row.reason,
+                recorded_timestamp_utc=recorded,
+                effective_timestamp_utc=effective,
+                previous_chain_digest=row.previous_chain_digest,
+                details=event_details,
+                cash_entries=mapped_cash,
+                position_entries=mapped_positions,
+            )
+            if event.to_dict() != _event_export(row, details):
+                raise ValueError("persisted event page does not match domain event")
+            result.append(
+                PaperAccountLedgerPageItem(
+                    event=event,
+                    cash_postings=mapped_cash,
+                    position_postings=mapped_positions,
+                )
+            )
+            prior_chain = event.chain_digest
+
+        if cash_by_event or positions_by_event:
+            raise ValueError("orphan page postings exist")
+        return tuple(result)
+    except PaperAccountPersistenceCorruptionError:
+        raise
+    except (AttributeError, KeyError, TypeError, ValueError) as exc:
+        raise _corruption(exc) from exc
 
 
 def reconstruct_history(
