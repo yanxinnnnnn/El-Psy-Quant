@@ -111,6 +111,12 @@ from el_psy_quant.application.paper_jobs import (
     submit_paper_job_with_outcome,
     validate_paper_artifact_root,
 )
+from el_psy_quant.application.paper_accounts import (
+    ApprovedPortfolioReviewVerifier,
+    PaperAccountApplicationService,
+    PaperAccountClock,
+    PaperAccountIdFactory,
+)
 from el_psy_quant.application.portfolio_reviews import (
     PortfolioReviewArtifactConflictError,
     PortfolioReviewArtifactInvalidError,
@@ -156,6 +162,10 @@ __all__ = [
     "LifecycleTransitionRecordInvalidError",
     "LifecycleTransitionReviewCommand",
     "LifecycleTransitionReviewCommandResult",
+    "ApprovedPortfolioReviewVerifier",
+    "PaperAccountApplicationService",
+    "PaperAccountClock",
+    "PaperAccountIdFactory",
     "PaperAccountStateCommandInput",
     "PaperAccountStateView",
     "PaperFillCommandInput",

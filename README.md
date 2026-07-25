@@ -22,15 +22,15 @@ M31 — Stateful Paper Account and Ledger Foundation
 ```
 
 M31 is **In Progress** through the Founder-approved S179–S188 sequence. Sprints
-179–182 are Complete. Sprint 183 is implementation-complete and pending Founder
-review. It adds deterministic projection rebuild and strict no-repair
-verification plus immutable snapshot and reconciliation evidence. All remain
-pure in-memory derived records; durable persistence begins in S184.
+179–183 are Complete. Sprint 184 is implementation-complete and pending Founder
+review. It persists immutable account events and cash/position postings,
+rebuildable projections, snapshot/reconciliation evidence, durable idempotency,
+and one-winner application transactions without adding a public account API.
 
 Current migration head:
 
 ```text
-0006_portfolio_reviews
+0007_paper_account_ledger
 ```
 
 ## Product Delivered Through M30
@@ -123,7 +123,7 @@ not yet a continuous market-driven Paper Trading runtime.
 
 It does not yet provide:
 
-- a durable Paper Account cash/position ledger across sessions;
+- a public Founder workflow for the durable Paper Account ledger;
 - account-funded interpretation of M30 scenario weights;
 - market-data replay tied to a trading calendar and session clock;
 - automatic strategy-signal-to-order conversion;
@@ -165,12 +165,17 @@ version and digest chains; and fail-closed cash-only replay. Sprint 182 added
 normalized-symbol position commands and postings, long-only quantity and
 aggregate-cost-basis invariants, display-only average cost, and one complete
 mixed-ledger state and replay boundary without changing valid Sprint 181 event
-digests. Sprint 183 adds a canonical complete projection, verification statuses
+digests. Sprint 183 added a canonical complete projection, verification statuses
 `current` and `reconciliation_required`, closed ordered mismatch codes, and
 immutable snapshot/reconciliation evidence anchored to replayed history.
-Verification never silently repairs or replaces a candidate projection. No
-persistence, filesystem artifacts, API, Web, Demo, or usable durable account
-workflow exists yet; those boundaries remain S184–S187. The existing
+Sprint 184 adds migration `0007_paper_account_ledger`, append-only durable
+history, strict row/domain reconstruction, replaceable projection caches,
+immutable snapshot/reconciliation rows, creation and operation idempotency,
+`BEGIN IMMEDIATE` plus guarded head compare-and-swap, and internal application
+services. Verification never silently repairs or replaces a candidate
+projection. No filesystem artifacts, public API, Web, Demo, Docker acceptance,
+order/fill, market, or execution behavior exists yet; those boundaries remain
+S185–S187. The existing
 `el_psy_quant.paper` evidence model is unchanged.
 
 An approved M30 review may be linked as evidence, but it is not ledger truth and
@@ -186,6 +191,7 @@ docs/sprints/sprint-180-paper-account-identity-lifecycle-decimal-and-evidence-re
 docs/sprints/sprint-181-immutable-cash-ledger-and-account-event-foundation.md
 docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-foundation.md
 docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-foundation.md
+docs/sprints/sprint-184-durable-paper-account-persistence-migration-concurrency-and-application-service-foundation.md
 ```
 
 ### M34 — First true Paper Trading

@@ -21,8 +21,8 @@ governance, Paper Jobs, and future account/ledger truth as separate authorities.
 | S180 | Identity, Lifecycle, Decimal, and Evidence Reference Contracts | Complete |
 | S181 | Immutable Cash Ledger and Account Event Foundation | Complete |
 | S182 | Immutable Position Ledger and Aggregate Cost Basis Foundation | Complete |
-| S183 | Snapshot, Reconciliation, and Projection Rebuild Foundation | Implementation complete / pending Founder review |
-| S184 | Persistence, Migration, Concurrency, and Application Services | Planned |
+| S183 | Snapshot, Reconciliation, and Projection Rebuild Foundation | Complete |
+| S184 | Persistence, Migration, Concurrency, and Application Services | Implementation complete / pending Founder review |
 | S185 | Versioned API, Errors, and Audit Surface | Planned |
 | S186 | Bilingual Founder Paper Account Web Workspace | Planned |
 | S187 | Integration, Demo, Upgrade, Recovery, and Acceptance Hardening | Planned |
@@ -105,7 +105,27 @@ The fourth implementation slice reuses full ledger replay and provides:
 These records are derived, non-authoritative, and in-memory only. They create no
 event or posting and increment no account version. No persistence, migration,
 filesystem artifact, API, Web, Demo, Docker, execution, or usable durable
-account workflow is added. Those boundaries remain S184–S187.
+account workflow was added in S183.
+
+## Sprint 184 result boundary
+
+The fifth implementation slice adds:
+
+- the single additive `0007_paper_account_ledger` revision and exact schema
+  verification;
+- durable immutable account events and cash/position postings;
+- database triggers preventing mutation/deletion of immutable authority;
+- strict canonical JSON, decimal, timestamp, boolean, ordering, digest, and
+  history reconstruction;
+- durable creation, command, snapshot, and reconciliation idempotency;
+- `BEGIN IMMEDIATE` plus guarded head compare-and-swap transactions;
+- replaceable verified projection caches, explicit reconciliation, and explicit
+  rebuild; and
+- internal repository and application-service boundaries.
+
+It adds no public API, Web, localization, Demo, Docker runtime acceptance,
+filesystem evidence artifacts, market, order/fill, execution, or worker
+behavior. Those boundaries remain S185–S187.
 
 ## Completion gate
 
@@ -116,7 +136,7 @@ acceptance.
 
 ## Preserved boundaries
 
-- migration head remains `0006_portfolio_reviews` until the S184 migration;
+- migration head is `0007_paper_account_ledger`;
 - Standard and Demo storage remain isolated;
 - M30 approval is governance evidence, not account or capital authority;
 - M30 scenario weights are assumptions, not holdings;
@@ -136,4 +156,5 @@ docs/sprints/sprint-180-paper-account-identity-lifecycle-decimal-and-evidence-re
 docs/sprints/sprint-181-immutable-cash-ledger-and-account-event-foundation.md
 docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-foundation.md
 docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-foundation.md
+docs/sprints/sprint-184-durable-paper-account-persistence-migration-concurrency-and-application-service-foundation.md
 ```

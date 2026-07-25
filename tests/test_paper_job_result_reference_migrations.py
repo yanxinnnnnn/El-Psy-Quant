@@ -19,6 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RECOVERY_REVISION = "0004_paper_job_recovery_audit"
 RESULT_REFERENCE_REVISION = "0005_paper_job_result_references"
 PORTFOLIO_REVIEW_REVISION = "0006_portfolio_reviews"
+PAPER_ACCOUNT_REVISION = "0007_paper_account_ledger"
 
 
 def _config() -> Config:
@@ -43,7 +44,10 @@ def _current(path: Path) -> str | None:
 def test_exact_result_reference_head_chain() -> None:
     scripts = ScriptDirectory.from_config(_config())
 
-    assert scripts.get_heads() == [PORTFOLIO_REVIEW_REVISION]
+    assert scripts.get_heads() == [PAPER_ACCOUNT_REVISION]
+    assert scripts.get_revision(PAPER_ACCOUNT_REVISION).down_revision == (
+        PORTFOLIO_REVIEW_REVISION
+    )
     assert scripts.get_revision(PORTFOLIO_REVIEW_REVISION).down_revision == (
         RESULT_REFERENCE_REVISION
     )

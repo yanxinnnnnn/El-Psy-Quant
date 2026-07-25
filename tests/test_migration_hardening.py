@@ -19,6 +19,7 @@ from el_psy_quant.persistence import (
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 from el_psy_quant.persistence.schema import (
     CURRENT_PRODUCT_SCHEMA_REVISION,
+    REQUIRED_PRODUCT_INDEXES,
     REQUIRED_PRODUCT_TABLE_COLUMNS,
     verify_product_schema,
 )
@@ -31,6 +32,7 @@ MIGRATION_CHAIN = (
     "0003_paper_jobs",
     "0004_paper_job_recovery_audit",
     "0005_paper_job_result_references",
+    "0006_portfolio_reviews",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -210,7 +212,7 @@ def test_populated_head_repeat_upgrade_is_a_no_op_for_rows_and_artifact_files(
     assert artifact.read_bytes() == before_artifact
 
 
-def test_head_has_exact_tables_columns_constraints_foreign_keys_and_no_explicit_indexes(
+def test_head_has_exact_tables_columns_constraints_foreign_keys_and_indexes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -228,7 +230,12 @@ def test_head_has_exact_tables_columns_constraints_foreign_keys_and_no_explicit_
             assert tuple(
                 column["name"] for column in inspector.get_columns(table_name)
             ) == expected_columns
-            assert inspector.get_indexes(table_name) == []
+            actual_indexes = {
+                item["name"] for item in inspector.get_indexes(table_name)
+            }
+            assert actual_indexes == set(
+                REQUIRED_PRODUCT_INDEXES.get(table_name, ())
+            )
         for table_name in (
             "paper_job_submission_keys",
             "paper_job_attempts",
@@ -278,4 +285,5 @@ def test_no_new_or_modified_migration_shape_exists() -> None:
         "0004_paper_job_recovery_audit",
         "0005_paper_job_result_references",
         "0006_portfolio_reviews",
+        "0007_paper_account_ledger",
     )

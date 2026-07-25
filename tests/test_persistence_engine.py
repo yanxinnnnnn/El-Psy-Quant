@@ -32,10 +32,19 @@ def test_engine_targets_configured_file_without_creating_it(tmp_path: Path) -> N
 def test_declarative_metadata_contains_only_approved_product_tables() -> None:
     assert set(ProductPersistenceBase.metadata.tables) == {
         "artifact_index_entries",
+        "paper_account_creation_keys",
+        "paper_account_events",
+        "paper_account_position_projections",
+        "paper_account_projections",
+        "paper_account_reconciliations",
+        "paper_account_snapshots",
+        "paper_accounts",
+        "paper_cash_ledger_entries",
         "paper_job_attempts",
         "paper_job_result_references",
         "paper_job_submission_keys",
         "paper_jobs",
+        "paper_position_ledger_entries",
         "portfolio_reviews",
     }
 
