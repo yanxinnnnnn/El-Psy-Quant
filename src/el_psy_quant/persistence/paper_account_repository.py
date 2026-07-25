@@ -5,10 +5,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Protocol, cast
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import and_, delete, or_, select, update
 from sqlalchemy.orm import Session
 
 from el_psy_quant.paper_account import (
+    PAPER_ACCOUNT_GENESIS_CHAIN_DIGEST,
     PaperAccountLedgerEventBundle,
     PaperAccountProjection,
     PaperAccountReconciliation,
@@ -23,6 +24,7 @@ from el_psy_quant.persistence.paper_account_mapping import (
     projection_from_rows,
     projection_rows,
     reconciliation_from_row,
+    reconstruct_history_page_items,
     reconciliation_row,
     reconstruct_history,
     snapshot_from_row,
@@ -41,6 +43,8 @@ from el_psy_quant.persistence.paper_account_model import (
 )
 from el_psy_quant.persistence.paper_accounts import (
     PaperAccountCreationKeyRecord,
+    PaperAccountLedgerPage,
+    PaperAccountListPage,
     PaperAccountPersistenceCorruptionError,
     PaperAccountProjectionStatus,
     PaperAccountRecord,
@@ -58,9 +62,26 @@ class PaperAccountRepository(Protocol):
         self, *, lifecycle_status: str | None = None
     ) -> tuple[PaperAccountRecord, ...]: ...
 
+    def list_account_page(
+        self,
+        *,
+        lifecycle_status: str | None,
+        limit: int,
+        cursor_created_timestamp: datetime | None,
+        cursor_account_id: str | None,
+    ) -> PaperAccountListPage: ...
+
     def get_history(
         self, *, account: PaperAccountRecord
     ) -> tuple[PaperAccountLedgerEventBundle, ...]: ...
+
+    def get_history_page(
+        self,
+        *,
+        account: PaperAccountRecord,
+        after_sequence_number: int,
+        limit: int,
+    ) -> PaperAccountLedgerPage: ...
 
     def get_creation_key(
         self, *, creation_idempotency_key: str
@@ -125,6 +146,59 @@ class SqlAlchemyPaperAccountRepository:
             for row in self._session.scalars(statement).all()
         )
 
+    def list_account_page(
+        self,
+        *,
+        lifecycle_status: str | None,
+        limit: int,
+        cursor_created_timestamp: datetime | None,
+        cursor_account_id: str | None,
+    ) -> PaperAccountListPage:
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise ValueError("account page limit must be an integer from 1 to 200")
+        if (cursor_created_timestamp is None) is not (
+            cursor_account_id is None
+        ):
+            raise ValueError("account page cursor anchors must be paired")
+        statement = select(PaperAccountRow)
+        if lifecycle_status is not None:
+            if lifecycle_status not in ("active", "frozen", "closed"):
+                raise ValueError("unsupported lifecycle status")
+            statement = statement.where(
+                PaperAccountRow.lifecycle_status == lifecycle_status
+            )
+        if cursor_created_timestamp is not None:
+            cursor_timestamp = _exact_utc(
+                cursor_created_timestamp,
+                "cursor_created_timestamp",
+            )
+            cursor_id = _exact_string(
+                cursor_account_id,
+                "cursor_account_id",
+                512,
+            )
+            statement = statement.where(
+                or_(
+                    PaperAccountRow.created_timestamp < cursor_timestamp,
+                    and_(
+                        PaperAccountRow.created_timestamp == cursor_timestamp,
+                        PaperAccountRow.account_id > cursor_id,
+                    ),
+                )
+            )
+        rows = tuple(
+            self._session.scalars(
+                statement.order_by(
+                    PaperAccountRow.created_timestamp.desc(),
+                    PaperAccountRow.account_id.asc(),
+                ).limit(limit + 1)
+            ).all()
+        )
+        return PaperAccountListPage(
+            items=tuple(account_record_from_row(row) for row in rows[:limit]),
+            has_more=len(rows) > limit,
+        )
+
     def get_history(
         self, *, account: PaperAccountRecord
     ) -> tuple[PaperAccountLedgerEventBundle, ...]:
@@ -167,6 +241,97 @@ class SqlAlchemyPaperAccountRepository:
             event_rows=event_rows,
             cash_rows=cash,
             position_rows=positions,
+        )
+
+    def get_history_page(
+        self,
+        *,
+        account: PaperAccountRecord,
+        after_sequence_number: int,
+        limit: int,
+    ) -> PaperAccountLedgerPage:
+        if type(account) is not PaperAccountRecord:
+            raise ValueError("account must be PaperAccountRecord")
+        if type(after_sequence_number) is not int or after_sequence_number < 0:
+            raise ValueError("after_sequence_number must be a non-negative integer")
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise ValueError("ledger page limit must be an integer from 1 to 200")
+        if after_sequence_number >= account.head_version:
+            return PaperAccountLedgerPage(items=(), has_more=False)
+
+        rows = tuple(
+            self._session.scalars(
+                select(PaperAccountEventRow)
+                .where(
+                    PaperAccountEventRow.account_id == account.account_id,
+                    PaperAccountEventRow.sequence_number
+                    > after_sequence_number,
+                )
+                .order_by(PaperAccountEventRow.sequence_number.asc())
+                .limit(limit + 1)
+            ).all()
+        )
+        if not rows:
+            raise PaperAccountPersistenceCorruptionError()
+        selected = rows[:limit]
+        event_ids = tuple(row.event_id for row in selected)
+        cash = tuple(
+            self._session.scalars(
+                select(PaperCashLedgerEntryRow)
+                .where(
+                    PaperCashLedgerEntryRow.account_id == account.account_id,
+                    PaperCashLedgerEntryRow.event_id.in_(event_ids),
+                )
+                .order_by(
+                    PaperCashLedgerEntryRow.event_id.asc(),
+                    PaperCashLedgerEntryRow.entry_index.asc(),
+                )
+            ).all()
+        )
+        positions = tuple(
+            self._session.scalars(
+                select(PaperPositionLedgerEntryRow)
+                .where(
+                    PaperPositionLedgerEntryRow.account_id == account.account_id,
+                    PaperPositionLedgerEntryRow.event_id.in_(event_ids),
+                )
+                .order_by(
+                    PaperPositionLedgerEntryRow.event_id.asc(),
+                    PaperPositionLedgerEntryRow.entry_index.asc(),
+                )
+            ).all()
+        )
+        previous_chain_digest = PAPER_ACCOUNT_GENESIS_CHAIN_DIGEST
+        if after_sequence_number > 0:
+            previous_chain_digest = cast(
+                str | None,
+                self._session.scalar(
+                    select(PaperAccountEventRow.chain_digest).where(
+                        PaperAccountEventRow.account_id == account.account_id,
+                        PaperAccountEventRow.sequence_number
+                        == after_sequence_number,
+                    )
+                ),
+            )
+            if previous_chain_digest is None:
+                raise PaperAccountPersistenceCorruptionError()
+        items = reconstruct_history_page_items(
+            account=account,
+            event_rows=selected,
+            cash_rows=cash,
+            position_rows=positions,
+            expected_first_sequence=after_sequence_number + 1,
+            previous_chain_digest=previous_chain_digest,
+        )
+        last = items[-1].event
+        if last.sequence_number == account.head_version and (
+            last.event_id != account.head_event_id
+            or last.chain_digest != account.head_chain_digest
+        ):
+            raise PaperAccountPersistenceCorruptionError()
+        return PaperAccountLedgerPage(
+            items=items,
+            has_more=len(rows) > limit,
         )
 
     def get_event_by_command_key(

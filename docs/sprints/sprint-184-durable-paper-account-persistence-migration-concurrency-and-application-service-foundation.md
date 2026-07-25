@@ -11,6 +11,10 @@ Sprint 184 makes the merged Sprint 180–183 Paper Account contracts durable
 without creating a second financial, event, replay, projection, or digest
 authority.
 
+Sprint 184 is Complete after PR #365 merged. Sprint 185 reuses these contracts
+without changing their durable schema, digests, transaction order,
+idempotency, concurrency, replay, or projection authority.
+
 The single additive migration is:
 
 ```text
@@ -127,3 +131,7 @@ Sprint 184 adds no:
   behavior.
 
 Founder review, local runtime acceptance, and manual merge remain Founder-owned.
+
+The Sprint 185 API is a later presentation and correlation surface only. It does
+not retroactively make API payloads, OpenAPI, generated clients, browsers, or
+logs part of Sprint 184 financial authority.

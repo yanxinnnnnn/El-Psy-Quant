@@ -2,13 +2,15 @@
 
 from http import HTTPStatus
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import Request
+from fastapi import Depends, Request
 from sqlalchemy.orm import Session, sessionmaker
 
 from el_psy_quant.api.errors import PublicApiError
 from el_psy_quant.application import (
     PaperArtifactRootUnavailableError,
+    PaperAccountApplicationService,
     PortfolioReviewArtifactRootUnavailableError,
 )
 from el_psy_quant.application.paper_jobs import validate_paper_artifact_root
@@ -21,6 +23,14 @@ def product_database_unavailable() -> PublicApiError:
         status_code=HTTPStatus.SERVICE_UNAVAILABLE,
         code="product_database_unavailable",
         message="Product database is unavailable",
+    )
+
+
+def paper_account_schema_incompatible() -> PublicApiError:
+    return PublicApiError(
+        status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+        code="paper_account_schema_incompatible",
+        message="Paper Account durable authority is unavailable",
     )
 
 
@@ -62,6 +72,47 @@ def get_product_session_factory(request: Request) -> sessionmaker[Session]:
     if not available:
         raise product_database_unavailable()
     return factory
+
+
+def get_paper_account_session_factory(
+    request: Request,
+) -> sessionmaker[Session]:
+    """Resolve Paper Account storage while distinguishing schema failure."""
+    path = getattr(request.app.state, "product_database_path", None)
+    factory = getattr(request.app.state, "product_session_factory", None)
+    if (
+        not isinstance(path, Path)
+        or not path.exists()
+        or not path.is_file()
+        or not isinstance(factory, sessionmaker)
+    ):
+        raise product_database_unavailable()
+    try:
+        if not _product_schema_is_compatible(path):
+            raise paper_account_schema_incompatible()
+    except PublicApiError:
+        raise
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise paper_account_schema_incompatible() from exc
+    return factory
+
+
+def get_paper_account_application_service(
+    request: Request,
+    session_factory: Annotated[
+        sessionmaker[Session],
+        Depends(get_paper_account_session_factory),
+    ],
+) -> PaperAccountApplicationService:
+    """Construct one request-scoped service over explicit durable authority."""
+    evidence_root = getattr(request.app.state, "evidence_artifact_root", None)
+    return PaperAccountApplicationService(
+        session_factory=session_factory,
+        portfolio_review_artifact_root=(
+            evidence_root if isinstance(evidence_root, Path) else None
+        ),
+        portfolio_review_session_factory=session_factory,
+    )
 
 
 def get_paper_artifact_root(request: Request) -> Path:

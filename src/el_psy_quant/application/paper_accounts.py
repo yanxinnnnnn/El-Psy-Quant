@@ -6,6 +6,7 @@ import sqlite3
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -27,7 +28,9 @@ from el_psy_quant.paper_account import (
     PaperAccountSnapshot,
     PaperMoney,
     PaperQuantity,
+    PostPaperCashMovementCommand,
     PostPaperCashMovementType,
+    PostPaperPositionAdjustmentCommand,
     ReactivatePaperAccountCommand,
     apply_approved_portfolio_review_link,
     apply_paper_account_lifecycle_command,
@@ -61,10 +64,13 @@ from el_psy_quant.persistence.paper_account_repository import (
 )
 from el_psy_quant.persistence.paper_accounts import (
     PaperAccountApprovedEvidenceError,
+    PaperAccountClosedError,
     PaperAccountCommandResult,
     PaperAccountConcurrencyConflictError,
     PaperAccountCreationKeyRecord,
     PaperAccountIdempotencyConflictError,
+    PaperAccountLedgerPage,
+    PaperAccountListPage,
     PaperAccountNotFoundError,
     PaperAccountOperationConflictError,
     PaperAccountPersistenceCorruptionError,
@@ -73,6 +79,7 @@ from el_psy_quant.persistence.paper_accounts import (
     PaperAccountRecord,
     PaperAccountSnapshotResult,
     PaperAccountStorageBusyError,
+    PaperAccountFrozenError,
     PaperAccountVersionConflictError,
     _exact_string,
     _exact_utc,
@@ -83,6 +90,14 @@ PaperAccountClock = Callable[[], datetime]
 ApprovedPortfolioReviewVerifier = Callable[
     [str], ApprovedPortfolioReviewReference
 ]
+
+
+@dataclass(frozen=True)
+class PaperAccountDetail:
+    """One account record paired with its verified current projection."""
+
+    account: PaperAccountRecord
+    projection: PaperAccountProjection
 
 
 def _default_clock() -> datetime:
@@ -463,6 +478,33 @@ class PaperAccountApplicationService:
                 session=session
             ).list_accounts(lifecycle_status=lifecycle_status)
 
+    def list_account_page(
+        self,
+        *,
+        lifecycle_status: str | None,
+        limit: int,
+        cursor_created_timestamp: datetime | None = None,
+        cursor_account_id: str | None = None,
+    ) -> PaperAccountListPage:
+        """Return one repository-bounded deterministic account page."""
+        with self._read_session() as session:
+            return SqlAlchemyPaperAccountRepository(
+                session=session
+            ).list_account_page(
+                lifecycle_status=lifecycle_status,
+                limit=limit,
+                cursor_created_timestamp=cursor_created_timestamp,
+                cursor_account_id=cursor_account_id,
+            )
+
+    def get_account_detail(self, *, account_id: str) -> PaperAccountDetail:
+        """Return compact account identity plus one verified current cache."""
+        with self._read_session() as session:
+            repository = SqlAlchemyPaperAccountRepository(session=session)
+            account = self._require_account(repository, account_id)
+            _, _, projection = self._verified_current(repository, account)
+            return PaperAccountDetail(account=account, projection=projection)
+
     def get_account_history(
         self, *, account_id: str
     ) -> tuple[PaperAccountLedgerEventBundle, ...]:
@@ -470,6 +512,23 @@ class PaperAccountApplicationService:
             repository = SqlAlchemyPaperAccountRepository(session=session)
             account = self._require_account(repository, account_id)
             return repository.get_history(account=account)
+
+    def get_account_history_page(
+        self,
+        *,
+        account_id: str,
+        after_sequence_number: int,
+        limit: int,
+    ) -> PaperAccountLedgerPage:
+        """Return one bounded validated immutable-ledger page."""
+        with self._read_session() as session:
+            repository = SqlAlchemyPaperAccountRepository(session=session)
+            account = self._require_account(repository, account_id)
+            return repository.get_history_page(
+                account=account,
+                after_sequence_number=after_sequence_number,
+                limit=limit,
+            )
 
     def get_current_projection(
         self, *, account_id: str
@@ -505,6 +564,14 @@ class PaperAccountApplicationService:
             )
             if command.expected_account_version != account.head_version:
                 raise PaperAccountVersionConflictError()
+            if state.lifecycle_status == "closed":
+                raise PaperAccountClosedError()
+            if state.lifecycle_status == "frozen" and type(command) in (
+                PostPaperCashMovementCommand,
+                PostPaperPositionAdjustmentCommand,
+                FreezePaperAccountCommand,
+            ):
+                raise PaperAccountFrozenError()
             recorded = self._now()
             bundle = apply(
                 state,
@@ -808,6 +875,10 @@ class PaperAccountApplicationService:
             )
             if expected_account_version != account.head_version:
                 raise PaperAccountVersionConflictError()
+            if state.lifecycle_status == "closed":
+                raise PaperAccountClosedError()
+            if state.lifecycle_status == "frozen":
+                raise PaperAccountFrozenError()
             reference = self._approved_reference(review_id)
             command = create_link_approved_portfolio_review_command(
                 account_id=account_id,
@@ -1024,5 +1095,6 @@ __all__ = [
     "ApprovedPortfolioReviewVerifier",
     "PaperAccountApplicationService",
     "PaperAccountClock",
+    "PaperAccountDetail",
     "PaperAccountIdFactory",
 ]

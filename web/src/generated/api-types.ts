@@ -124,6 +124,172 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/paper-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Paper Accounts
+         * @description Return one deterministic bounded keyset page.
+         */
+        get: operations["get_paper_accounts_api_v1_paper_accounts_get"];
+        put?: never;
+        /**
+         * Post Paper Account
+         * @description Create or exactly replay one durable Paper Account.
+         */
+        post: operations["post_paper_account_api_v1_paper_accounts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-accounts/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Paper Account
+         * @description Return one account and its validated current projection.
+         */
+        get: operations["get_paper_account_api_v1_paper_accounts__account_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-accounts/{account_id}/cash-movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Paper Account Cash Movement */
+        post: operations["post_paper_account_cash_movement_api_v1_paper_accounts__account_id__cash_movements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-accounts/{account_id}/evidence-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Paper Account Evidence Link */
+        post: operations["post_paper_account_evidence_link_api_v1_paper_accounts__account_id__evidence_links_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-accounts/{account_id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Paper Account Ledger
+         * @description Return one contiguous validated bounded ledger page.
+         */
+        get: operations["get_paper_account_ledger_api_v1_paper_accounts__account_id__ledger_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-accounts/{account_id}/lifecycle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Paper Account Lifecycle */
+        post: operations["post_paper_account_lifecycle_api_v1_paper_accounts__account_id__lifecycle_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-accounts/{account_id}/position-adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Paper Account Position Adjustment */
+        post: operations["post_paper_account_position_adjustment_api_v1_paper_accounts__account_id__position_adjustments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-accounts/{account_id}/reconciliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Paper Account Reconciliation */
+        post: operations["post_paper_account_reconciliation_api_v1_paper_accounts__account_id__reconciliations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-accounts/{account_id}/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Paper Account Snapshot */
+        post: operations["post_paper_account_snapshot_api_v1_paper_accounts__account_id__snapshots_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/paper-jobs": {
         parameters: {
             query?: never;
@@ -432,6 +598,31 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ApprovedPortfolioReviewReferenceResponse */
+        ApprovedPortfolioReviewReferenceResponse: {
+            /** Analysis Digest */
+            analysis_digest: string;
+            /** Decision Digest */
+            decision_digest: string;
+            /** Decision Id */
+            decision_id: string;
+            /**
+             * Outcome
+             * @constant
+             */
+            outcome: "approved";
+            /** Review Id */
+            review_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Id */
+            source_id: string;
+        };
         /** DemoEvidenceManifestReferenceResponse */
         DemoEvidenceManifestReferenceResponse: {
             /** Artifact Key */
@@ -613,6 +804,401 @@ export interface components {
         LifecycleTransitionReviewCommandResponse: {
             transition_record: components["schemas"]["StrategyLifecycleTransitionRecordResponse"];
         };
+        /** PaperAccountCashMovementRequest */
+        PaperAccountCashMovementRequest: {
+            /** Actor */
+            actor: string;
+            /** Effective Timestamp Utc */
+            effective_timestamp_utc?: string | null;
+            /** Expected Account Version */
+            expected_account_version: number;
+            /**
+             * Movement Type
+             * @enum {string}
+             */
+            movement_type: "deposit" | "withdrawal" | "manual_adjustment" | "fee" | "commission" | "tax";
+            /** Reason */
+            reason: string;
+            /** Requested Amount */
+            requested_amount: string;
+        };
+        /** PaperAccountCommandResponse */
+        PaperAccountCommandResponse: {
+            account: components["schemas"]["PaperAccountSummaryResponse"];
+            event: components["schemas"]["PaperAccountLedgerEventResponse"];
+            projection: components["schemas"]["PaperAccountProjectionResponse"];
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperAccountCreateRequest */
+        PaperAccountCreateRequest: {
+            /** Actor */
+            actor: string;
+            /** Base Currency */
+            base_currency: string;
+            /** Display Name */
+            display_name: string;
+            /** Initial Cash */
+            initial_cash: string;
+        };
+        /** PaperAccountCreatedDetailsResponse */
+        PaperAccountCreatedDetailsResponse: {
+            account_identity: components["schemas"]["PaperAccountIdentityResponse"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            details_type: "account_created";
+            /** Initial Cash */
+            initial_cash: string;
+            /**
+             * Initial Lifecycle Status
+             * @constant
+             */
+            initial_lifecycle_status: "active";
+        };
+        /** PaperAccountDetailResponse */
+        PaperAccountDetailResponse: {
+            account: components["schemas"]["PaperAccountSummaryResponse"];
+            projection: components["schemas"]["PaperAccountProjectionResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperAccountEvidenceLinkRequest */
+        PaperAccountEvidenceLinkRequest: {
+            /** Actor */
+            actor: string;
+            /** Expected Account Version */
+            expected_account_version: number;
+            /** Reason */
+            reason: string;
+            /** Review Id */
+            review_id: string;
+        };
+        /** PaperAccountEvidenceOperationRequest */
+        PaperAccountEvidenceOperationRequest: {
+            /** Actor */
+            actor: string;
+            /** Expected Account Version */
+            expected_account_version: number;
+            /** Expected Head Chain Digest */
+            expected_head_chain_digest: string;
+            /** Expected Head Event Id */
+            expected_head_event_id: string;
+            /** Reason */
+            reason: string;
+        };
+        /** PaperAccountIdentityResponse */
+        PaperAccountIdentityResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Base Currency */
+            base_currency: string;
+            /** Created By */
+            created_by: string;
+            /**
+             * Created Timestamp
+             * Format: date-time
+             */
+            created_timestamp: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperAccountLedgerEventResponse */
+        PaperAccountLedgerEventResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Account Version */
+            account_version: number;
+            /** Actor */
+            actor: string;
+            /** Cash Postings */
+            cash_postings: components["schemas"]["PaperCashPostingResponse"][];
+            /** Chain Digest */
+            chain_digest: string;
+            /** Command Digest */
+            command_digest: string;
+            /** Details */
+            details: components["schemas"]["PaperAccountCreatedDetailsResponse"] | components["schemas"]["PaperCashMovementPostedDetailsResponse"] | components["schemas"]["PaperPositionAdjustmentPostedDetailsResponse"] | components["schemas"]["PaperPortfolioReviewLinkedDetailsResponse"] | components["schemas"]["PaperAccountLifecycleChangedDetailsResponse"];
+            /** Effective Timestamp Utc */
+            effective_timestamp_utc: string | null;
+            /** Event Digest */
+            event_digest: string;
+            /** Event Id */
+            event_id: string;
+            /**
+             * Event Type
+             * @enum {string}
+             */
+            event_type: "account_created" | "cash_movement_posted" | "position_adjustment_posted" | "portfolio_review_evidence_linked" | "account_frozen" | "account_reactivated" | "account_closed";
+            /** Expected Account Version */
+            expected_account_version: number | null;
+            /** Position Postings */
+            position_postings: components["schemas"]["PaperPositionPostingResponse"][];
+            /** Previous Chain Digest */
+            previous_chain_digest: string;
+            /** Reason */
+            reason: string | null;
+            /**
+             * Recorded Timestamp Utc
+             * Format: date-time
+             */
+            recorded_timestamp_utc: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Sequence Number */
+            sequence_number: number;
+        };
+        /** PaperAccountLedgerResponse */
+        PaperAccountLedgerResponse: {
+            /** Events */
+            events: components["schemas"]["PaperAccountLedgerEventResponse"][];
+            /** Next After Sequence Number */
+            next_after_sequence_number: number | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperAccountLifecycleChangedDetailsResponse */
+        PaperAccountLifecycleChangedDetailsResponse: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            details_type: "lifecycle_changed";
+            /**
+             * Source Status
+             * @enum {string}
+             */
+            source_status: "active" | "frozen" | "closed";
+            /**
+             * Target Status
+             * @enum {string}
+             */
+            target_status: "active" | "frozen" | "closed";
+        };
+        /** PaperAccountLifecycleRequest */
+        PaperAccountLifecycleRequest: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "freeze" | "reactivate" | "close";
+            /** Actor */
+            actor: string;
+            /** Expected Account Version */
+            expected_account_version: number;
+            /** Reason */
+            reason: string;
+        };
+        /** PaperAccountListResponse */
+        PaperAccountListResponse: {
+            /** Items */
+            items: components["schemas"]["PaperAccountSummaryResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperAccountPositionAdjustmentRequest */
+        PaperAccountPositionAdjustmentRequest: {
+            /** Actor */
+            actor: string;
+            /**
+             * Adjustment Category
+             * @enum {string}
+             */
+            adjustment_category: "opening_balance" | "manual_correction" | "corporate_action" | "other";
+            /** Effective Timestamp Utc */
+            effective_timestamp_utc?: string | null;
+            /** Expected Account Version */
+            expected_account_version: number;
+            /** Reason */
+            reason: string;
+            /** Signed Cost Basis Delta */
+            signed_cost_basis_delta: string;
+            /** Signed Quantity Delta */
+            signed_quantity_delta: string;
+            /** Symbol */
+            symbol: string;
+        };
+        /** PaperAccountPositionProjectionResponse */
+        PaperAccountPositionProjectionResponse: {
+            /** Aggregate Cost Basis */
+            aggregate_cost_basis: string;
+            /** Average Unit Cost */
+            average_unit_cost: string | null;
+            /** Average Unit Cost Is Rounded */
+            average_unit_cost_is_rounded: boolean;
+            /** Quantity */
+            quantity: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Symbol */
+            symbol: string;
+        };
+        /** PaperAccountProjectionResponse */
+        PaperAccountProjectionResponse: {
+            account_identity: components["schemas"]["PaperAccountIdentityResponse"];
+            /** Approved Portfolio Reviews */
+            approved_portfolio_reviews: components["schemas"]["ApprovedPortfolioReviewReferenceResponse"][];
+            /** Available Cash */
+            available_cash: string;
+            /** Cash Balance */
+            cash_balance: string;
+            /**
+             * Lifecycle Status
+             * @enum {string}
+             */
+            lifecycle_status: "active" | "frozen" | "closed";
+            /** Positions */
+            positions: components["schemas"]["PaperAccountPositionProjectionResponse"][];
+            /** Projection Digest */
+            projection_digest: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source Account Version */
+            source_account_version: number;
+            /** Source Chain Digest */
+            source_chain_digest: string;
+            /** Source Event Id */
+            source_event_id: string;
+        };
+        /** PaperAccountReconciliationCommandResponse */
+        PaperAccountReconciliationCommandResponse: {
+            reconciliation: components["schemas"]["PaperAccountReconciliationResponse"];
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperAccountReconciliationResponse */
+        PaperAccountReconciliationResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Authoritative Account Version */
+            authoritative_account_version: number;
+            /** Authoritative Chain Digest */
+            authoritative_chain_digest: string;
+            /** Authoritative Event Id */
+            authoritative_event_id: string;
+            /** Authoritative Projection Digest */
+            authoritative_projection_digest: string;
+            /** Candidate Account Version */
+            candidate_account_version: number;
+            /** Candidate Chain Digest */
+            candidate_chain_digest: string;
+            /** Candidate Event Id */
+            candidate_event_id: string;
+            /** Candidate Projection Digest */
+            candidate_projection_digest: string;
+            /** Created By */
+            created_by: string;
+            /** Mismatch Codes */
+            mismatch_codes: ("source_account_version_mismatch" | "source_event_id_mismatch" | "source_chain_digest_mismatch" | "identity_mismatch" | "lifecycle_status_mismatch" | "cash_balance_mismatch" | "available_cash_mismatch" | "positions_mismatch" | "evidence_references_mismatch")[];
+            /** Operation Command Digest */
+            operation_command_digest: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "matched" | "mismatched";
+            /** Reason */
+            reason: string;
+            /** Reconciliation Digest */
+            reconciliation_digest: string;
+            /** Reconciliation Id */
+            reconciliation_id: string;
+            /**
+             * Recorded Timestamp Utc
+             * Format: date-time
+             */
+            recorded_timestamp_utc: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperAccountSnapshotCommandResponse */
+        PaperAccountSnapshotCommandResponse: {
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            snapshot: components["schemas"]["PaperAccountSnapshotResponse"];
+        };
+        /** PaperAccountSnapshotResponse */
+        PaperAccountSnapshotResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Account Version */
+            account_version: number;
+            /** Created By */
+            created_by: string;
+            /** Head Chain Digest */
+            head_chain_digest: string;
+            /** Head Event Id */
+            head_event_id: string;
+            /** Operation Command Digest */
+            operation_command_digest: string;
+            projection: components["schemas"]["PaperAccountProjectionResponse"];
+            /** Reason */
+            reason: string;
+            /**
+             * Recorded Timestamp Utc
+             * Format: date-time
+             */
+            recorded_timestamp_utc: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Snapshot Digest */
+            snapshot_digest: string;
+            /** Snapshot Id */
+            snapshot_id: string;
+        };
         /** PaperAccountStateCommandRequest */
         PaperAccountStateCommandRequest: {
             /** Current Cash */
@@ -636,6 +1222,92 @@ export interface components {
             starting_cash: number;
             /** Timestamp */
             timestamp: string;
+        };
+        /** PaperAccountSummaryResponse */
+        PaperAccountSummaryResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Base Currency */
+            base_currency: string;
+            /** Closed Timestamp */
+            closed_timestamp: string | null;
+            /** Created By */
+            created_by: string;
+            /**
+             * Created Timestamp
+             * Format: date-time
+             */
+            created_timestamp: string;
+            /** Display Name */
+            display_name: string;
+            /** Head Chain Digest */
+            head_chain_digest: string;
+            /** Head Event Id */
+            head_event_id: string;
+            /** Head Version */
+            head_version: number;
+            /**
+             * Lifecycle Status
+             * @enum {string}
+             */
+            lifecycle_status: "active" | "frozen" | "closed";
+            /**
+             * Projection Status
+             * @enum {string}
+             */
+            projection_status: "current" | "reconciliation_required";
+            /**
+             * Record Schema Version
+             * @constant
+             */
+            record_schema_version: 1;
+            /**
+             * Updated Timestamp
+             * Format: date-time
+             */
+            updated_timestamp: string;
+        };
+        /** PaperCashMovementPostedDetailsResponse */
+        PaperCashMovementPostedDetailsResponse: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            details_type: "cash_movement_posted";
+            /**
+             * Movement Type
+             * @enum {string}
+             */
+            movement_type: "deposit" | "withdrawal" | "manual_adjustment" | "fee" | "commission" | "tax";
+            /** Requested Amount */
+            requested_amount: string;
+        };
+        /** PaperCashPostingResponse */
+        PaperCashPostingResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Cash Entry Id */
+            cash_entry_id: string;
+            /** Currency */
+            currency: string;
+            /** Entry Digest */
+            entry_digest: string;
+            /** Entry Index */
+            entry_index: number;
+            /** Event Id */
+            event_id: string;
+            /**
+             * Movement Type
+             * @enum {string}
+             */
+            movement_type: "initial_cash" | "deposit" | "withdrawal" | "manual_adjustment" | "fee" | "commission" | "tax";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Signed Amount */
+            signed_amount: string;
         };
         /** PaperFillCommandRequest */
         PaperFillCommandRequest: {
@@ -863,6 +1535,34 @@ export interface components {
             /** Timestamp */
             timestamp: string;
         };
+        /** PaperPortfolioReviewLinkedDetailsResponse */
+        PaperPortfolioReviewLinkedDetailsResponse: {
+            approved_portfolio_review: components["schemas"]["ApprovedPortfolioReviewReferenceResponse"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            details_type: "portfolio_review_evidence_linked";
+        };
+        /** PaperPositionAdjustmentPostedDetailsResponse */
+        PaperPositionAdjustmentPostedDetailsResponse: {
+            /**
+             * Adjustment Category
+             * @enum {string}
+             */
+            adjustment_category: "opening_balance" | "manual_correction" | "corporate_action" | "other";
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            details_type: "position_adjustment_posted";
+            /** Signed Cost Basis Delta */
+            signed_cost_basis_delta: string;
+            /** Signed Quantity Delta */
+            signed_quantity_delta: string;
+            /** Symbol */
+            symbol: string;
+        };
         /** PaperPositionChangeResponse */
         PaperPositionChangeResponse: {
             /** Ending Quantity */
@@ -871,6 +1571,35 @@ export interface components {
             quantity_change: number;
             /** Starting Quantity */
             starting_quantity: number;
+            /** Symbol */
+            symbol: string;
+        };
+        /** PaperPositionPostingResponse */
+        PaperPositionPostingResponse: {
+            /** Account Id */
+            account_id: string;
+            /**
+             * Adjustment Category
+             * @enum {string}
+             */
+            adjustment_category: "opening_balance" | "manual_correction" | "corporate_action" | "other";
+            /** Entry Digest */
+            entry_digest: string;
+            /** Entry Index */
+            entry_index: number;
+            /** Event Id */
+            event_id: string;
+            /** Position Entry Id */
+            position_entry_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Signed Cost Basis Delta */
+            signed_cost_basis_delta: string;
+            /** Signed Quantity Delta */
+            signed_quantity_delta: string;
             /** Symbol */
             symbol: string;
         };
@@ -2355,6 +3084,424 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LifecycleTransitionReviewCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_paper_accounts_api_v1_paper_accounts_get: {
+        parameters: {
+            query?: {
+                lifecycle_status?: ("active" | "frozen" | "closed") | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_paper_account_api_v1_paper_accounts_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAccountCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_paper_account_api_v1_paper_accounts__account_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_paper_account_cash_movement_api_v1_paper_accounts__account_id__cash_movements_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAccountCashMovementRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_paper_account_evidence_link_api_v1_paper_accounts__account_id__evidence_links_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAccountEvidenceLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_paper_account_ledger_api_v1_paper_accounts__account_id__ledger_get: {
+        parameters: {
+            query?: {
+                after_sequence_number?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountLedgerResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_paper_account_lifecycle_api_v1_paper_accounts__account_id__lifecycle_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAccountLifecycleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_paper_account_position_adjustment_api_v1_paper_accounts__account_id__position_adjustments_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAccountPositionAdjustmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_paper_account_reconciliation_api_v1_paper_accounts__account_id__reconciliations_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAccountEvidenceOperationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountReconciliationCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountReconciliationCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_paper_account_snapshot_api_v1_paper_accounts__account_id__snapshots_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAccountEvidenceOperationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountSnapshotCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAccountSnapshotCommandResponse"];
                 };
             };
             /** @description Validation Error */

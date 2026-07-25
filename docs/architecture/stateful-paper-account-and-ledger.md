@@ -6,10 +6,10 @@ GitHub Issue #355 is the authoritative Milestone 31 architecture specification.
 This document records the approved repository-level architecture. If this
 summary and Issue #355 differ, Issue #355 controls.
 
-Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–183 are
-Complete. Sprint 184 is implementation-complete and pending Founder review; it
-makes the merged account, ledger, projection, snapshot, and reconciliation
-contracts durable without adding public API or Founder Web behavior.
+Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–184 are
+Complete after PR #365 merged. Sprint 185 is implementation-complete and
+pending Founder review; it exposes the durable authority through the exact
+versioned API without adding Founder Web behavior.
 
 ## Product goal
 
@@ -136,11 +136,18 @@ materialization remains deferred to S187.
 
 ## API, Web, Demo, and acceptance direction
 
-S185–S187 will add the separately approved API, bilingual Founder workspace,
-isolated Demo seed, upgrade/recovery hardening, and Founder acceptance support.
-The browser will display canonical backend values and will not calculate
-financial truth. Standard will remain unseeded; Demo storage will remain
-isolated.
+S185 adds exactly ten `/api/v1/paper-accounts` operations over the S184
+application service. Financial transport is canonical fixed-point strings;
+account-list cursors and ledger sequence pages are bounded and deterministic;
+errors are stable and sanitized; every handled response has a server-owned
+request ID; and successful commands/evidence operations emit bounded
+non-authoritative correlation events. OpenAPI and generated TypeScript mirror
+that boundary. No projection-rebuild route is public.
+
+S186–S187 retain the separately approved bilingual Founder workspace, isolated
+Demo seed, upgrade/recovery hardening, and Founder acceptance support. The
+browser will display canonical backend values and will not calculate financial
+truth. Standard will remain unseeded; Demo storage will remain isolated.
 
 Founder acceptance, Docker startup, backup, reset, restart, browser inspection,
 and merge remain Founder-owned operations.
@@ -248,6 +255,25 @@ It adds no FastAPI route, OpenAPI/generated TypeScript, Founder Web,
 localization, Demo seed, Docker runtime acceptance, filesystem evidence
 artifact, order/fill persistence, reservation, market data, PnL, execution,
 worker, scheduler, broker, private-edge, live, or real-money behavior.
+
+## Sprint 185 boundary
+
+Sprint 185 adds only the exact versioned Paper Account API, request/response
+schemas, bounded persistence/application read pages, centralized stable error
+translation, server-owned request correlation, bounded successful-operation
+audit events, deterministic OpenAPI, and generated TypeScript contracts.
+
+Route handlers never query ORM rows or calculate account state. Detail reads
+require a verified current projection, ledger pages validate immutable event,
+posting, command, digest, and chain facts without replaying unbounded history,
+and reconciliation-required accounts remain fail-closed. API dictionaries,
+OpenAPI, generated clients, browsers, and logs are not account, ledger,
+projection, digest, snapshot, reconciliation, or financial authority.
+
+It adds no migration, Founder Web, localization catalog, Demo data, filesystem
+evidence artifact, Docker runtime acceptance, market data, order/fill,
+execution, worker, scheduler, broker, private-edge, live, or real-money
+behavior. Migration head remains `0007_paper_account_ledger`.
 
 ## Explicit deferrals
 

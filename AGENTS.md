@@ -157,11 +157,11 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–183
-are Complete. Sprint 184 is implementation-complete and pending Founder review;
-it adds durable SQLite account/event/posting authority, rebuildable projection
-caches, immutable snapshot/reconciliation evidence, strict mapping, durable
-idempotency, one-winner concurrency, and internal application services.
+M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–184
+are Complete after PR #365 merged. Sprint 185 is implementation-complete and
+pending Founder review; it exposes the durable application authority through
+the exact versioned Paper Account API, stable sanitized errors, bounded
+request/audit correlation, deterministic pagination, and generated contracts.
 
 M31 must establish independent durable account and ledger truth. It may reference
 approved M30 review evidence, but that evidence cannot create, fund, or mutate an
@@ -250,12 +250,16 @@ reinterpret:
 - lifecycle state as cash or position authority; or
 - user-entered balances as a substitute for immutable ledger entries.
 
-Sprint 184 account events and cash/position entries are durable mutation
+Sprint 184 account events and cash/position entries remain durable mutation
 authority. `replay_paper_account_ledger(...)` remains state authority;
 projection rows are replaceable caches; snapshot and reconciliation rows are
 immutable derived evidence. Ordinary reads never repair a stale projection.
-No public API, Founder Web, Demo, filesystem evidence artifact, Docker runtime,
-order/fill, market, execution, or Sprint 185+ behavior exists yet.
+Sprint 185 exposes that authority through exactly ten `/api/v1/paper-accounts`
+operations. API/OpenAPI/generated TypeScript payloads and bounded product logs
+are presentation and correlation surfaces only; they are not financial,
+ledger, projection, digest, snapshot, reconciliation, or governance authority.
+No Founder Web, Demo, filesystem evidence artifact, Docker runtime, order/fill,
+market, execution, or Sprint 186+ behavior exists yet.
 
 M31 does not pre-authorize:
 

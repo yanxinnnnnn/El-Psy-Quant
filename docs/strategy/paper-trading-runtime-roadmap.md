@@ -13,7 +13,7 @@ Issues, Founder acceptance, and manual merge.
 
 ```text
 M30 — Complete
-M31 — In Progress (S179–S183 Complete; S184 durable persistence foundation)
+M31 — In Progress (S179–S184 Complete; S185 API foundation pending review)
 M32–M36 — Planned
 ```
 
@@ -98,7 +98,7 @@ execution, or runtime truth.
 
 ### Status
 
-**In Progress — S179–S183 Complete; S184 implementation-complete/pending Founder review.**
+**In Progress — S179–S184 Complete; S185 implementation-complete/pending Founder review.**
 
 ### User-visible outcome
 
@@ -156,9 +156,12 @@ deterministic complete projections rebuilt from that history, strict candidate
 verification without silent repair, and immutable snapshot/reconciliation
 evidence. Sprint 184 makes ledger authority, projection caches, and derived
 snapshot/reconciliation evidence durable with strict reconstruction,
-idempotency, append-only triggers, and one-winner transactions. S185–S187 retain
-API, Web, Demo, and acceptance; migration head is
-`0007_paper_account_ledger`.
+idempotency, append-only triggers, and one-winner transactions. Sprint 185
+exposes that authority through exactly ten versioned operations, canonical
+financial strings, bounded pagination, stable errors, request IDs, bounded
+audit correlation, and generated contracts. API/browser payloads and logs are
+not financial authority. S186–S187 retain Web, Demo, integration, and
+acceptance; migration head remains `0007_paper_account_ledger`.
 
 ### M30 relationship
 

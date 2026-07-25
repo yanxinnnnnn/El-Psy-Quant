@@ -16,6 +16,8 @@ from el_psy_quant.paper_account import (
     PaperAccountProjection,
     PaperAccountReconciliation,
     PaperAccountSnapshot,
+    PaperCashLedgerEntry,
+    PaperPositionLedgerEntry,
 )
 from el_psy_quant.paper_account._shared import (
     normalize_bounded_string,
@@ -81,6 +83,16 @@ class PaperAccountApprovedEvidenceError(Exception):
 class PaperAccountStorageBusyError(Exception):
     def __init__(self) -> None:
         super().__init__("paper account storage is busy")
+
+
+class PaperAccountFrozenError(ValueError):
+    def __init__(self) -> None:
+        super().__init__("paper account is frozen")
+
+
+class PaperAccountClosedError(ValueError):
+    def __init__(self) -> None:
+        super().__init__("paper account is closed")
 
 
 @dataclass(frozen=True)
@@ -194,6 +206,31 @@ class PaperAccountReconciliationResult:
     replayed: bool
 
 
+@dataclass(frozen=True)
+class PaperAccountListPage:
+    """One bounded keyset-ordered page of compact account records."""
+
+    items: tuple[PaperAccountRecord, ...]
+    has_more: bool
+
+
+@dataclass(frozen=True)
+class PaperAccountLedgerPageItem:
+    """One independently validated immutable event and its ordered postings."""
+
+    event: PaperAccountEvent
+    cash_postings: tuple[PaperCashLedgerEntry, ...]
+    position_postings: tuple[PaperPositionLedgerEntry, ...]
+
+
+@dataclass(frozen=True)
+class PaperAccountLedgerPage:
+    """One bounded contiguous page from immutable account history."""
+
+    items: tuple[PaperAccountLedgerPageItem, ...]
+    has_more: bool
+
+
 def _exact_string(value: object, field_name: str, maximum_length: int) -> str:
     if type(value) is not str:
         raise ValueError(f"{field_name} must be an exact string")
@@ -292,7 +329,12 @@ __all__ = [
     "PaperAccountCommandResult",
     "PaperAccountConcurrencyConflictError",
     "PaperAccountCreationKeyRecord",
+    "PaperAccountClosedError",
+    "PaperAccountFrozenError",
     "PaperAccountIdempotencyConflictError",
+    "PaperAccountLedgerPage",
+    "PaperAccountLedgerPageItem",
+    "PaperAccountListPage",
     "PaperAccountNotFoundError",
     "PaperAccountOperationConflictError",
     "PaperAccountPersistenceCorruptionError",
