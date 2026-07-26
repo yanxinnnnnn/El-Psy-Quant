@@ -84,6 +84,11 @@ function GuidedDemoJourney({ descriptor }: { descriptor: DemoWorkspaceDescriptor
         <li><Link href={`/portfolio-records/${encodeURIComponent(descriptor.paper_jobs[0].job_id)}`}>{t("portfolioStep", { step: paperStep + 1 })}</Link></li>
         <li><Link href={comparisonHref(descriptor.comparison_candidate_job_ids)}>{t("comparisonStep", { step: paperStep + 2 })}</Link></li>
         <li><Link href="/lifecycle-review">{t("lifecycleStep", { step: paperStep + 3 })}</Link></li>
+        <li>
+          <Link href={`/paper-accounts/${encodeURIComponent(descriptor.paper_account.account_id)}`}>
+            {t("paperAccountStep", { step: paperStep + 4 })}
+          </Link>
+        </li>
       </ol>
       <p className="neutral-note">{t("demoBoundary")}</p>
     </section>

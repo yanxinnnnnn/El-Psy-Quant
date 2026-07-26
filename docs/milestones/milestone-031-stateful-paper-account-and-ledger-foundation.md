@@ -25,7 +25,7 @@ governance, Paper Jobs, and future account/ledger truth as separate authorities.
 | S184 | Persistence, Migration, Concurrency, and Application Services | Complete after PR #365 merged |
 | S185 | Versioned API, Errors, and Audit Surface | Complete after PR #367 merged |
 | S186 | Bilingual Founder Paper Account Web Workspace | Implementation complete / pending Founder review |
-| S187 | Integration, Demo, Upgrade, Recovery, and Acceptance Hardening | Planned |
+| S187 | Integration, Demo, Upgrade, Recovery, and Acceptance Hardening | Implementation complete / pending Founder review and runtime acceptance |
 | S188 | Milestone 31 Closeout and Next-Milestone Handoff | Planned |
 
 Dependencies are strict. Later sprint behavior must not be pulled into an
@@ -167,6 +167,32 @@ reconciliation, or financial authority. It adds no Demo/runtime behavior,
 Docker acceptance, migration, API/OpenAPI change, order/fill, market data,
 strategy runtime, PnL/equity, execution, worker, broker, live, or real-money
 behavior. Those integration and acceptance boundaries remain Sprint 187.
+
+## Sprint 187 result boundary
+
+The eighth implementation slice adds:
+
+- Demo source, dataset, and descriptor v3 with one isolated deterministic Paper
+  Account journey;
+- application-service-only seeding and exact idempotent restart replay for five
+  immutable events, one snapshot, and one matched reconciliation;
+- strict ledger replay, persisted projection, snapshot, and reconciliation
+  verification that fails closed without repair;
+- read-only bilingual smoke coverage for the descriptor-provided account detail
+  and bounded ledger;
+- explicit Standard/Demo storage-isolation regression coverage;
+- installed-wheel migration-resource verification for fresh, 0005, and
+  populated 0006 forward upgrades to the unchanged 0007 head; and
+- Founder-owned cold-backup, restart, recovery, Demo reset, return-to-Standard,
+  and browser acceptance guidance.
+
+Events and postings remain financial authority, replay remains state authority,
+and projections remain replaceable caches. Snapshot and reconciliation rows
+remain immutable derived evidence. API, Web, descriptor, and Demo source
+payloads remain presentation and verification surfaces only. Sprint 187 adds
+no migration, new financial authority, market data, session clock, strategy
+runtime, order/fill, execution, PnL/equity, worker, broker, QMT, live, or
+real-money behavior. Docker runtime and browser acceptance remain Founder-owned.
 
 ## Completion gate
 

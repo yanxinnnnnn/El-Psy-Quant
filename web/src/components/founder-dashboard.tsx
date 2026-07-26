@@ -1303,6 +1303,12 @@ function DemoWorkflow({
             <code>{descriptor.lifecycle_proposal_example.proposal_id}</code>
           </Link>
         </li>
+        <li>
+          <Link href={`/paper-accounts/${encodeURIComponent(descriptor.paper_account.account_id)}`}>
+            <span>{t("demo.paperAccount", { step: comparisonStep + 3 })}</span>
+            <code>{descriptor.paper_account.account_id}</code>
+          </Link>
+        </li>
       </ol>
       <details className="audit-disclosure">
         <summary>{t("demo.audit")}</summary>
@@ -1310,6 +1316,8 @@ function DemoWorkflow({
           <div><dt>{t("demo.proposal")}</dt><dd><code>{descriptor.lifecycle_proposal_example.proposal_id}</code></dd></div>
           <div><dt>{t("demo.humanDecision")}</dt><dd><code>{descriptor.lifecycle_review_example.transition_record_id}</code></dd></div>
           <div><dt>{t("demo.submission")}</dt><dd><code>{descriptor.paper_job_submission_example.idempotency_key}</code></dd></div>
+          <div><dt>{t("demo.snapshot")}</dt><dd><code>{descriptor.paper_account.snapshot_id}</code></dd></div>
+          <div><dt>{t("demo.reconciliation")}</dt><dd><code>{descriptor.paper_account.reconciliation_id}</code></dd></div>
         </dl>
       </details>
     </>

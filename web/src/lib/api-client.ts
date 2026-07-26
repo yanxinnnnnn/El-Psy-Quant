@@ -601,6 +601,7 @@ function isDemoWorkspaceDescriptor(
     "lifecycle_review_example",
     "paper_job_submission_example",
     "portfolio_review_example",
+    "paper_account",
   ])) {
     return false;
   }
@@ -611,9 +612,9 @@ function isDemoWorkspaceDescriptor(
         .filter(isString)
     : [];
   return (
-    value.schema_version === 2 &&
+    value.schema_version === 3 &&
     isString(value.dataset_id) &&
-    value.dataset_version === 2 &&
+    value.dataset_version === 3 &&
     isString(value.display_name) &&
     isString(value.warning) &&
     isString(value.canonical_strategy_name) &&
@@ -649,7 +650,27 @@ function isDemoWorkspaceDescriptor(
     isNormalizedNonblankString(
       value.portfolio_review_example.create_idempotency_key,
     ) &&
-    isPortfolioReviewCreateRequest(value.portfolio_review_example.request)
+    isPortfolioReviewCreateRequest(value.portfolio_review_example.request) &&
+    isObject(value.paper_account) &&
+    hasOnlyKeys(value.paper_account, [
+      "account_id",
+      "head_version",
+      "event_types",
+      "snapshot_id",
+      "reconciliation_id",
+    ]) &&
+    isNormalizedNonblankString(value.paper_account.account_id) &&
+    value.paper_account.head_version === 5 &&
+    Array.isArray(value.paper_account.event_types) &&
+    value.paper_account.event_types.join(",") === [
+      "account_created",
+      "cash_movement_posted",
+      "position_adjustment_posted",
+      "account_frozen",
+      "account_reactivated",
+    ].join(",") &&
+    isNormalizedNonblankString(value.paper_account.snapshot_id) &&
+    isNormalizedNonblankString(value.paper_account.reconciliation_id)
   );
 }
 

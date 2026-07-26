@@ -131,13 +131,14 @@ allocate cash, create holdings, authorize an order, or execute.
 
 ## Standard and Demo
 
-Standard is unseeded and has no Demo loader. Demo dataset/descriptor v2 seeds
+Standard is unseeded and has no Demo loader. Demo dataset/descriptor v3 seeds
 one exact isolated review, `demo-portfolio-review-001`, initially
 `awaiting_decision`. Its visibly Demo-only create-example action requires
 replace confirmation and only prefills the normal builder; it never auto-loads,
 submits, or decides. Normal submission may return exact `replayed` authority.
 
 A later valid `approved`, `rejected`, or `deferred` Demo decision persists across
-exact Demo replay. It remains governance evidence only and has no M31 account or
-execution effect. Existing Demo v1 storage conflicts with v2 and requires the
-documented Founder-owned Demo-only reset; Standard storage must remain untouched.
+exact Demo replay. It remains governance evidence only and does not create,
+fund, or mutate the separately seeded Demo Paper Account. Earlier Demo storage
+conflicts with v3 and requires the documented Founder-owned Demo-only reset;
+Standard storage must remain untouched.

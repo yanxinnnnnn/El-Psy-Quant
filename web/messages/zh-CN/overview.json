@@ -71,6 +71,7 @@
     "portfolioStep": "{step}. 检查其权威组合结果",
     "comparisonStep": "{step}. 对比两个有序演示结果",
     "lifecycleStep": "{step}. 准备提案并记录显式人工决策证据",
+    "paperAccountStep": "{step}. 检查持久化账本重放、快照与对账证据",
     "demoBoundary": "每个链接都来自经过验证的后端描述符。浏览器中没有硬编码演示身份或证据载荷。"
   },
   "dashboard": {
@@ -279,10 +280,13 @@
         "comparison": "{step}. 打开描述符有序对比",
         "portfolioReview": "{step}. 检查确定性的演示投资组合评审",
         "lifecycle": "{step}. 使用描述符示例打开生命周期审查",
+        "paperAccount": "{step}. 检查持久化演示模拟账户账本",
         "audit": "描述符提供的工作流身份",
         "proposal": "提案示例",
         "humanDecision": "人工决策证据",
-        "submission": "提交示例幂等键"
+        "submission": "提交示例幂等键",
+        "snapshot": "模拟账户快照证据",
+        "reconciliation": "模拟账户对账证据"
       }
     },
     "technical": {

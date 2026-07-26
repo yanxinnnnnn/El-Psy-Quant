@@ -94,6 +94,12 @@ function standardFetchRecorder(demoDescriptor = null) {
     ) {
       return response([]);
     }
+    if (
+      url.pathname === "/api/backend/api/v1/paper-accounts" &&
+      url.search === "?limit=50"
+    ) {
+      return response({ schema_version: 1, items: [], next_cursor: null });
+    }
     if (url.pathname === "/api/backend/api/v1/demo-workspace") {
       if (demoDescriptor !== null) {
         return response(demoDescriptor);
@@ -124,6 +130,38 @@ function standardFetchRecorder(demoDescriptor = null) {
           source: { source_id: "demo-source" },
           analysis: { proposed_component_id: "demo-component-b" },
           decision: null,
+        });
+      }
+      if (
+        url.pathname ===
+        "/api/backend/api/v1/paper-accounts/demo-paper-account/ledger"
+      ) {
+        return response({
+          schema_version: 1,
+          events: demoDescriptor.paper_account.event_types.map(
+            (event_type) => ({
+              account_id: "demo-paper-account",
+              event_type,
+            }),
+          ),
+          next_after_sequence_number: null,
+        });
+      }
+      if (
+        url.pathname ===
+        "/api/backend/api/v1/paper-accounts/demo-paper-account"
+      ) {
+        return response({
+          schema_version: 1,
+          account: {
+            account_id: "demo-paper-account",
+            head_version: 5,
+            projection_status: "current",
+          },
+          projection: {
+            source_account_version: 5,
+            account_identity: { account_id: "demo-paper-account" },
+          },
         });
       }
     }
@@ -193,11 +231,11 @@ describe("non-mutating bilingual MVP verifier", () => {
     ).rejects.not.toThrow(secretBody);
   });
 
-  it("verifies Demo descriptor v2 and exact seeded review without product mutation", async () => {
+  it("verifies Demo descriptor v3, seeded review, and Paper Account without product mutation", async () => {
     const descriptor = {
-      schema_version: 2,
+      schema_version: 3,
       dataset_id: "demo-dataset",
-      dataset_version: 2,
+      dataset_version: 3,
       canonical_strategy_name: "moving_average_crossover",
       research_run: { experiment_slug: "demo-experiment", run_id: "demo-run" },
       evidence_manifests: [{
@@ -217,6 +255,19 @@ describe("non-mutating bilingual MVP verifier", () => {
           proposed_scenario: { proposed_component_id: "demo-component-b" },
         },
       },
+      paper_account: {
+        account_id: "demo-paper-account",
+        head_version: 5,
+        event_types: [
+          "account_created",
+          "cash_movement_posted",
+          "position_adjustment_posted",
+          "account_frozen",
+          "account_reactivated",
+        ],
+        snapshot_id: "demo-snapshot",
+        reconciliation_id: "demo-reconciliation",
+      },
     };
     const { calls, fetcher } = standardFetchRecorder(descriptor);
 
@@ -227,6 +278,13 @@ describe("non-mutating bilingual MVP verifier", () => {
 
     expect(calls.some(({ path }) =>
       path === "/api/backend/api/v1/portfolio-reviews/demo-review"
+    )).toBe(true);
+    expect(calls.some(({ path }) =>
+      path === "/api/backend/api/v1/paper-accounts/demo-paper-account"
+    )).toBe(true);
+    expect(calls.some(({ path }) =>
+      path ===
+      "/api/backend/api/v1/paper-accounts/demo-paper-account/ledger?after_sequence_number=0&limit=200"
     )).toBe(true);
     expect(calls.filter(({ options }) => options.method === "POST").map(({ path }) =>
       path

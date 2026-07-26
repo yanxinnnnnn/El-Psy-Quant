@@ -54,7 +54,7 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 2,
+  schema_version: 3,
   dataset_id: "dataset-from-descriptor",
   dataset_version: 7,
   display_name: "Descriptor Demo Name",
@@ -151,6 +151,19 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
         missing_evidence: [],
       },
     },
+  },
+  paper_account: {
+    account_id: "paper-account-from-descriptor",
+    head_version: 5,
+    event_types: [
+      "account_created",
+      "cash_movement_posted",
+      "position_adjustment_posted",
+      "account_frozen",
+      "account_reactivated",
+    ],
+    snapshot_id: "paper-account-snapshot-from-descriptor",
+    reconciliation_id: "paper-account-reconciliation-from-descriptor",
   },
 };
 

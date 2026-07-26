@@ -16,9 +16,10 @@ The current product migration chain is exactly:
   -> 0004_paper_job_recovery_audit
   -> 0005_paper_job_result_references
   -> 0006_portfolio_reviews
+  -> 0007_paper_account_ledger
 ```
 
-`0006_portfolio_reviews` is the single current head. Supported Founder
+`0007_paper_account_ledger` is the single current head. Supported Founder
 upgrades move forward to that head. Alembic downgrade is developer/test
 behavior, not a supported Founder recovery path.
 
@@ -87,7 +88,7 @@ Before Uvicorn starts, the backend:
 
 ```text
 creates only absent /data/research, /data/evidence, and /data/paper directories
-  -> if product.sqlite3 exists, reads exactly one approved 0001-0006 revision
+  -> if product.sqlite3 exists, reads exactly one approved 0001-0007 revision
      without writes; a missing file follows the fresh-install path
   -> runs the forward Alembic upgrade
   -> verifies /data read-only in Standard mode
@@ -116,8 +117,8 @@ and copy, locale switch/restoration, top-level and representative detail
 routes, valid empty reads, stable raw values, request IDs on authenticated
 backend responses and backend failures, and sanitized errors. The Web
 proxy-owned unauthenticated Basic challenge is checked without claiming a
-backend request ID. Verification sends no Paper Job, portfolio-review
-create/decision, or lifecycle command.
+backend request ID. Verification sends no Paper Job, portfolio-review,
+lifecycle, or Paper Account mutation command.
 
 ## Cold Backup Before a Standard Upgrade
 
@@ -200,8 +201,9 @@ After the Sprint 177 fix is reviewed and merged:
    `0005_paper_job_result_references -> 0006_portfolio_reviews` upgrade and only
    serves after read-only workspace verification succeeds.
 5. Run the read-only Standard verification and bilingual MVP smoke shown above.
-6. Continue Demo v2 reset/install, exact replay, decision-persistence, return to
-   Standard, volume-isolation, and bilingual browser acceptance.
+6. Continue Demo v3 reset/install, exact Paper Account and portfolio-review
+   replay, persistence, return to Standard, volume-isolation, and bilingual
+   browser acceptance.
 
 The Founder owns every Docker and browser step in this recovery. Sprint 177
 repository checks do not claim runtime acceptance, and Sprint 178 closeout
@@ -231,12 +233,21 @@ An invalid source, conflicting marker/digest, unrelated target, Standard target,
 failed migration, invalid descriptor/reference, or partial installation fails
 closed without hidden reinstall or reset.
 
-Bundled Demo source and descriptor are version 2. An installed v1 marker/source
+Bundled Demo source and descriptor are version 3. Any earlier installed dataset
 conflicts deliberately: startup does not rewrite, reseed, or replace it. The
-Founder must use the exact Demo-only reset below. Demo v2 seeds one isolated
+Founder must use the exact Demo-only reset below. Demo v3 seeds one isolated
 portfolio review as `awaiting_decision`; exact replay preserves a later valid
 human decision and never touches Standard. The Demo create loader is browser
 prefill only and never auto-submits or records a decision.
+
+Demo v3 also creates one synthetic Paper Account only through the existing
+application service. Its immutable ledger contains account creation, one cash
+deposit, one explicit opening-position adjustment, freeze, and reactivation.
+The installer records one immutable snapshot and one matched reconciliation,
+then independently replays the ledger and verifies the persisted projection and
+both evidence rows. Restart repeats the idempotent commands and evidence
+operations and requires exact replay. It does not create orders, fills,
+execution, PnL, equity, market data, or a second financial authority.
 
 Reset only disposable Demo storage:
 
@@ -254,6 +265,44 @@ docker compose exec backend el-psy-quant verify-local-workspace --mode standard 
 ```
 
 The original Standard database and artifacts must remain unchanged.
+
+## Sprint 187 Existing-Volume Recovery and Acceptance
+
+Before moving a reviewed Standard volume from `0006_portfolio_reviews` to
+`0007_paper_account_ledger`, retain a cold copy of the complete stopped `/data`
+tree and its recorded source commit/revision. Startup must add only the approved
+Paper Account tables, indexes, constraints, and triggers. Existing research,
+evidence, Paper Job, result-reference, and portfolio-review rows and files must
+remain unchanged. The upgrade seeds no Standard Paper Account.
+
+After the reviewed image starts, use only the read-only verifier and browser
+reads to confirm the existing workspace. Create or mutate a Standard Paper
+Account only through an explicit Founder Web/API action. Restart without
+deleting the Standard volume and confirm account identity, immutable ledger
+events/postings, ledger-derived detail, snapshot, and reconciliation evidence
+persist exactly.
+
+For Demo acceptance, reset only the disposable earlier-version Demo volume,
+start Demo v3, and confirm:
+
+```text
+descriptor v3 and the synthetic account identity are visible
+  -> list/detail show the seeded account at exact version 5
+  -> ledger shows the five ordered immutable event types
+  -> cash and position values match ledger replay
+  -> projection status is current
+  -> installer verification found the immutable snapshot
+  -> reconciliation is matched and anchored to the same projection digest
+  -> restart preserves and exactly replays all account/evidence identities
+  -> an explicit Founder mutation persists across another restart
+  -> return to Standard shows the preserved Standard workspace unchanged
+```
+
+If any replay, projection, snapshot, reconciliation, schema, or descriptor check
+fails, startup refuses service. Do not rebuild a projection, edit ledger rows,
+stamp Alembic, selectively restore files, or reinstall over the failed
+workspace. Preserve the volume and bounded logs for diagnosis. Recovery
+validation is intentionally non-repairing.
 
 ## Restore Limitations
 

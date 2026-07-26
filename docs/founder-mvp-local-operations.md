@@ -84,8 +84,8 @@ workspace read-only, and only then serves traffic:
 An empty research or evidence root produces explicit first-run guidance rather
 than demo records. Standard startup never runs the demo installer and never
 seeds product state.
-Paper-job list and submission routes are available after the migration reaches
-the existing `0006_portfolio_reviews` head. Migrations never run from
+Paper Job, portfolio-review, and Paper Account routes are available after the
+migration reaches the exact `0007_paper_account_ledger` head. Migrations never run from
 the browser or Next.js process.
 
 The runtime-only backend resolves the complete migration tree from the installed
@@ -142,7 +142,7 @@ backend-provided journey:
 ```text
 Strategy -> Research Evidence -> Governance Evidence -> Paper Run
   -> Portfolio Result -> Comparison -> Portfolio Review -> Lifecycle Review
-  -> Human Decision Evidence
+  -> Human Decision Evidence -> Durable Paper Account and Ledger Evidence
 ```
 
 The lifecycle example remains non-executing. Its deferred human-review input is
@@ -150,10 +150,15 @@ governance evidence and does not create mutable current state. The optional
 Paper Job example only fills the form after an explicit user action; it never
 submits automatically.
 
-Demo dataset/descriptor v2 also exposes one deterministic seeded portfolio
+Demo dataset/descriptor v3 also exposes one deterministic seeded portfolio
 review and one exact create-example prefill. Loading requires explicit
 replace-draft confirmation and never submits or chooses a decision. An installed
-Demo v1 source conflicts with v2; use only the Demo reset below. Standard and
+earlier Demo source conflicts with v3; use only the Demo reset below. Demo v3
+also seeds one synthetic Paper Account through the existing application
+service. Its five immutable events, ledger-derived projection, immutable
+snapshot, and matched reconciliation are verified on install and exact restart
+replay. The opening position is an explicit adjustment, not an order, fill,
+execution, PnL, or equity calculation. Standard and
 Demo keep separate project names, databases, artifact roots, and volumes.
 
 Stop while preserving the installed Demo Workspace:
@@ -173,15 +178,15 @@ This reset does not address the Standard `mvp-data` volume. To return to the
 Standard workspace, stop Demo and run `docker compose up --detach`. Never run a
 volume-removing command against the Standard project.
 
-## Sprint 176 Founder Acceptance
+## Sprint 187 Founder Acceptance
 
 Standard acceptance:
 
 ```text
 build/start Standard with existing local procedure
-  -> migration reaches 0006_portfolio_reviews
+  -> migration reaches 0007_paper_account_ledger
   -> Demo descriptor remains not configured
-  -> no bundled portfolio review is seeded
+  -> no bundled portfolio review or Paper Account is seeded
   -> research/evidence integration is explicit
   -> manual builder remains usable when configured sources are empty/unavailable
   -> stop Standard without deleting its volume
@@ -190,27 +195,29 @@ build/start Standard with existing local procedure
 Demo acceptance:
 
 ```text
-explicitly reset disposable Demo v1 volume when required
+explicitly reset the disposable earlier-version Demo volume when required
   -> build/start Demo using isolated Demo project/volume
-  -> descriptor v2 is visible and clearly labeled
+  -> descriptor v3 is visible and clearly labeled
   -> seeded review appears in list/detail as exact synthetic evidence
+  -> seeded Paper Account appears at exact version 5
+  -> ledger, replayed projection, snapshot, and reconciliation agree
   -> load Demo create example explicitly; confirm no auto-submit
   -> submit and observe exact replay/authoritative detail
   -> record one explicit approved/rejected/deferred decision
-  -> restart Demo and confirm the valid decision persists
+  -> restart Demo and confirm the valid decision and account evidence persist
   -> return to Standard and confirm Standard data is unchanged
 ```
 
 Founder owns these Docker/container/browser steps and the merge decision. Codex
 owns deterministic checks and static Compose rendering only.
 
-Sprint 177 recovery must use the same preserved Standard volume and retained
-cold backup. Do not reset, replace, stamp, downgrade, or hand-edit the Standard
-database. After rebuilding the reviewed fixed image, confirm the supported
-0005-to-0006 upgrade, run read-only Standard verification and MVP smoke, then
-complete Demo v2, decision persistence, return-to-Standard, isolation, and
-bilingual acceptance. Sprint 178 closeout remains blocked until that Founder
-acceptance succeeds.
+Existing-volume recovery must use the same preserved Standard volume and
+retained cold backup. Do not reset, replace, stamp, downgrade, rebuild a
+projection, or hand-edit the Standard database. After rebuilding the reviewed
+image, confirm the supported forward upgrade to `0007_paper_account_ledger`,
+run read-only Standard verification and MVP smoke, then complete Demo v3 exact
+replay, restart persistence, return-to-Standard isolation, and bilingual
+acceptance.
 
 ## End-to-End Smoke Verification
 

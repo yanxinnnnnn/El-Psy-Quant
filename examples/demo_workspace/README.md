@@ -7,11 +7,18 @@ installer into isolated demo storage.
 The dataset uses the registered `moving_average_crossover` strategy and links
 one review journey across saved research evidence, governance/report manifests,
 two completed paper-result chains, comparison candidates, and stateless
-lifecycle review examples. Dataset/descriptor v2 also supplies one exact
+lifecycle review examples. Dataset/descriptor v3 also supplies one exact
 portfolio-review create request. Installation uses existing domain/application
 authority to seed one isolated `awaiting_decision` review; it does not seed a
-decision, and exact replay preserves a later valid Founder decision. It contains
-no credentials, network dependency,
+decision, and exact replay preserves a later valid Founder decision.
+
+Demo v3 also uses the existing Paper Account application service to seed one
+deterministic account journey with immutable cash and position postings,
+freeze/reactivate events, one immutable snapshot, and one matched
+reconciliation. Ledger replay remains state authority; the descriptor and Demo
+source are presentation and verification inputs only. The position adjustment
+is an explicit synthetic opening balance, not an order, fill, execution, PnL,
+equity, or capital recommendation. It contains no credentials, network dependency,
 profitability claim, suitability claim, live-readiness claim, or automatic
 approval.
 

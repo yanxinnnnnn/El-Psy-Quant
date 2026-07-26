@@ -23,6 +23,8 @@ export const TOP_LEVEL_ROUTES = Object.freeze([
   "/comparisons",
   "/portfolio-reviews",
   "/portfolio-reviews/new",
+  "/paper-accounts",
+  "/paper-accounts/new",
   "/lifecycle-review",
 ]);
 
@@ -31,6 +33,7 @@ export const FORBIDDEN_MUTATION_FRAGMENTS = Object.freeze([
   "/api/backend/api/v1/lifecycle-transition-proposals",
   "/api/backend/api/v1/lifecycle-transition-records",
   "/api/backend/api/v1/portfolio-reviews",
+  "/api/backend/api/v1/paper-accounts",
   "/decision",
 ]);
 
@@ -279,6 +282,7 @@ async function verifyReadWorkflows(fetchImpl, origin, authorization) {
     ["/api/backend/api/v1/evidence-manifests", "manifests"],
     ["/api/backend/api/v1/paper-jobs?limit=20", null],
     ["/api/backend/api/v1/portfolio-reviews?limit=50", null],
+    ["/api/backend/api/v1/paper-accounts?limit=50", "items"],
   ];
   for (const [path, collectionKey] of reads) {
     const response = await request(fetchImpl, origin, path, { authorization });
@@ -312,6 +316,7 @@ function stableDescriptorIdentity(descriptor) {
         descriptor.portfolio_review_example?.request?.proposed_scenario
           ?.proposed_component_id,
     },
+    paper_account: descriptor.paper_account,
   };
 }
 
@@ -350,8 +355,8 @@ async function verifyDemoJourney(
     cookies.chineseCookie,
   );
   if (
-    descriptor.schema_version !== 2 ||
-    descriptor.dataset_version !== 2 ||
+    descriptor.schema_version !== 3 ||
+    descriptor.dataset_version !== 3 ||
     typeof descriptor.canonical_strategy_name !== "string" ||
     !Array.isArray(descriptor.evidence_manifests) ||
     !Array.isArray(descriptor.paper_jobs) ||
@@ -364,7 +369,13 @@ async function verifyDemoJourney(
     typeof descriptor.portfolio_review_example?.request?.review_id !== "string" ||
     typeof descriptor.portfolio_review_example?.request?.source?.source_id !== "string" ||
     typeof descriptor.portfolio_review_example?.request?.proposed_scenario
-      ?.proposed_component_id !== "string"
+      ?.proposed_component_id !== "string" ||
+    typeof descriptor.paper_account?.account_id !== "string" ||
+    descriptor.paper_account?.head_version !== 5 ||
+    !Array.isArray(descriptor.paper_account?.event_types) ||
+    descriptor.paper_account.event_types.length !== 5 ||
+    typeof descriptor.paper_account?.snapshot_id !== "string" ||
+    typeof descriptor.paper_account?.reconciliation_id !== "string"
   ) {
     throw new Error("Demo workspace descriptor returned an unexpected contract");
   }
@@ -435,6 +446,43 @@ async function verifyDemoJourney(
     )
   ) {
     throw new Error("Demo portfolio review returned an unexpected contract");
+  }
+  const paperAccount = descriptor.paper_account;
+  const accountResponse = await request(
+    fetchImpl,
+    origin,
+    `/api/backend/api/v1/paper-accounts/${encoded(paperAccount.account_id)}`,
+    { authorization },
+  );
+  await expectStatus(accountResponse, 200, "Demo Paper Account");
+  const account = await expectJson(accountResponse, "Demo Paper Account");
+  if (
+    account.account?.account_id !== paperAccount.account_id ||
+    account.account?.head_version !== paperAccount.head_version ||
+    account.account?.projection_status !== "current" ||
+    account.projection?.source_account_version !== paperAccount.head_version ||
+    account.projection?.account_identity?.account_id !== paperAccount.account_id
+  ) {
+    throw new Error("Demo Paper Account returned an unexpected contract");
+  }
+  const ledgerResponse = await request(
+    fetchImpl,
+    origin,
+    `/api/backend/api/v1/paper-accounts/${encoded(paperAccount.account_id)}/ledger?after_sequence_number=0&limit=200`,
+    { authorization },
+  );
+  await expectStatus(ledgerResponse, 200, "Demo Paper Account ledger");
+  const ledger = await expectJson(
+    ledgerResponse,
+    "Demo Paper Account ledger",
+  );
+  if (
+    !Array.isArray(ledger.events) ||
+    ledger.events.map((event) => event.event_type).join(",") !==
+      paperAccount.event_types.join(",") ||
+    ledger.events.some((event) => event.account_id !== paperAccount.account_id)
+  ) {
+    throw new Error("Demo Paper Account ledger returned an unexpected contract");
   }
   const comparisonQuery = new URLSearchParams();
   for (const jobId of descriptor.comparison_candidate_job_ids) {

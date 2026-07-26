@@ -52,8 +52,8 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
 
     assert response.status_code == 200
     descriptor = DemoWorkspaceDescriptorResponse.model_validate(response.json())
-    assert descriptor.schema_version == 2
-    assert descriptor.dataset_version == 2
+    assert descriptor.schema_version == 3
+    assert descriptor.dataset_version == 3
     assert descriptor.dataset_id == "founder-demo-workspace"
     assert descriptor.comparison_candidate_job_ids == [
         "16000000-0000-4000-8000-000000000001",
@@ -74,6 +74,23 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
     )
     assert descriptor.portfolio_review_example.request.source.source_id == (
         "demo-portfolio-review-source-001"
+    )
+    assert descriptor.paper_account.account_id == "demo-paper-account-001"
+    assert descriptor.paper_account.head_version == 5
+    assert descriptor.paper_account.event_types == [
+        "account_created",
+        "cash_movement_posted",
+        "position_adjustment_posted",
+        "account_frozen",
+        "account_reactivated",
+    ]
+    assert (
+        descriptor.paper_account.snapshot_id
+        == "demo-paper-account-snapshot-001"
+    )
+    assert (
+        descriptor.paper_account.reconciliation_id
+        == "demo-paper-account-reconciliation-001"
     )
     assert str(installed_demo) not in response.text
     assert "paper_run_artifact.json" not in response.text

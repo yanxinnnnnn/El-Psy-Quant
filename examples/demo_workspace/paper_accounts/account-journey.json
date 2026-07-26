@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "account_id": "demo-paper-account-001",
+  "creation": {
+    "idempotency_key": "demo-paper-account-create-v1",
+    "display_name": "Demo Paper Account",
+    "base_currency": "USD",
+    "initial_cash": "100000",
+    "actor": "demo-founder"
+  },
+  "cash_movement": {
+    "idempotency_key": "demo-paper-account-deposit-v1",
+    "expected_account_version": 1,
+    "actor": "demo-founder",
+    "reason": "Synthetic Demo funding entry; not real capital.",
+    "movement_type": "deposit",
+    "requested_amount": "25000",
+    "effective_timestamp_utc": "2026-01-19T09:05:00Z"
+  },
+  "position_adjustment": {
+    "idempotency_key": "demo-paper-account-opening-position-v1",
+    "expected_account_version": 2,
+    "actor": "demo-founder",
+    "reason": "Synthetic Demo opening position; not an order or fill.",
+    "symbol": "AAPL",
+    "adjustment_category": "opening_balance",
+    "signed_quantity_delta": "10",
+    "signed_cost_basis_delta": "1800",
+    "effective_timestamp_utc": "2026-01-19T09:10:00Z"
+  },
+  "lifecycle_commands": [
+    {
+      "idempotency_key": "demo-paper-account-freeze-v1",
+      "expected_account_version": 3,
+      "actor": "demo-founder",
+      "reason": "Synthetic Demo governance pause.",
+      "action": "freeze"
+    },
+    {
+      "idempotency_key": "demo-paper-account-reactivate-v1",
+      "expected_account_version": 4,
+      "actor": "demo-founder",
+      "reason": "Synthetic Demo governance reactivation.",
+      "action": "reactivate"
+    }
+  ],
+  "snapshot": {
+    "idempotency_key": "demo-paper-account-snapshot-v1",
+    "actor": "demo-founder",
+    "reason": "Capture exact Demo replay evidence."
+  },
+  "reconciliation": {
+    "idempotency_key": "demo-paper-account-reconciliation-v1",
+    "actor": "demo-founder",
+    "reason": "Compare the Demo projection with immutable ledger replay."
+  },
+  "authority_ids": [
+    {
+      "kind": "paper_account",
+      "value": "demo-paper-account-001"
+    },
+    {
+      "kind": "paper_account_event",
+      "value": "demo-paper-account-event-001"
+    },
+    {
+      "kind": "paper_cash_entry",
+      "value": "demo-paper-cash-entry-001"
+    },
+    {
+      "kind": "paper_account_event",
+      "value": "demo-paper-account-event-002"
+    },
+    {
+      "kind": "paper_cash_entry",
+      "value": "demo-paper-cash-entry-002"
+    },
+    {
+      "kind": "paper_account_event",
+      "value": "demo-paper-account-event-003"
+    },
+    {
+      "kind": "paper_position_entry",
+      "value": "demo-paper-position-entry-001"
+    },
+    {
+      "kind": "paper_account_event",
+      "value": "demo-paper-account-event-004"
+    },
+    {
+      "kind": "paper_account_event",
+      "value": "demo-paper-account-event-005"
+    },
+    {
+      "kind": "paper_account_snapshot",
+      "value": "demo-paper-account-snapshot-001"
+    },
+    {
+      "kind": "paper_account_reconciliation",
+      "value": "demo-paper-account-reconciliation-001"
+    }
+  ],
+  "recorded_timestamps": [
+    "2026-01-19T09:00:00Z",
+    "2026-01-19T09:05:00Z",
+    "2026-01-19T09:10:00Z",
+    "2026-01-19T09:15:00Z",
+    "2026-01-19T09:20:00Z",
+    "2026-01-19T09:25:00Z",
+    "2026-01-19T09:30:00Z"
+  ],
+  "expected": {
+    "head_version": 5,
+    "lifecycle_status": "active",
+    "cash_balance": "125000",
+    "event_types": [
+      "account_created",
+      "cash_movement_posted",
+      "position_adjustment_posted",
+      "account_frozen",
+      "account_reactivated"
+    ],
+    "positions": [
+      {
+        "symbol": "AAPL",
+        "quantity": "10",
+        "aggregate_cost_basis": "1800"
+      }
+    ],
+    "snapshot_id": "demo-paper-account-snapshot-001",
+    "reconciliation_id": "demo-paper-account-reconciliation-001"
+  }
+}
