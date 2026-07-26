@@ -154,10 +154,9 @@ docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-Sprints 179–184 are Complete after PR #365 merged. Sprint 185 is
-implementation-complete and pending Founder review; it exposes durable account
-authority through the exact versioned API, stable sanitized errors, bounded
-request/audit correlation, deterministic pagination, and generated contracts.
+Sprints 179–185 are Complete after PR #367 merged. Sprint 186 is
+implementation-complete and pending Founder review; it presents durable account
+authority through the bilingual generated-contract-only Founder Web.
 
 M31 must establish independent account and ledger authority for:
 
@@ -199,8 +198,10 @@ S184 persists those authorities at migration head
 transactions. S185 exposes them through exactly ten versioned operations with
 canonical-string financial transport, bounded list/ledger pages, stable errors,
 request IDs, bounded audit correlation, and generated contracts. API/browser
-payloads are not financial authority. S186–S187 retain Web, Demo, integration,
-and Founder acceptance.
+payloads are not financial authority. S186 adds the bilingual account
+list/create/detail, ledger, mutation, snapshot, and reconciliation workspace
+without browser calculation. S187 retains Demo, integration, and Founder
+acceptance.
 
 ## Approved Paper Trading Runtime Sequence
 

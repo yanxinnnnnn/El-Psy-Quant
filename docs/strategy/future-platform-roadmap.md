@@ -47,11 +47,10 @@ The next milestone is:
 M31 — Stateful Paper Account and Ledger Foundation
 ```
 
-M31 is In Progress through the approved S179–S188 sequence. Sprints 179–184 are
-Complete after PR #365 merged. Sprint 185 is implementation-complete and
-pending Founder review; it exposes durable account authority through the exact
-versioned API, stable errors, bounded correlation, deterministic pagination,
-and generated contracts.
+M31 is In Progress through the approved S179–S188 sequence. Sprints 179–185 are
+Complete after PR #367 merged. Sprint 186 is implementation-complete and
+pending Founder review; it presents durable account authority through the
+bilingual generated-contract-only Founder Web.
 
 ## Completed M29 Productization and Hardening
 
@@ -160,7 +159,9 @@ heads. Sprint 184 persists immutable ledger authority, replaceable projections,
 and immutable snapshot/reconciliation evidence at migration head
 `0007_paper_account_ledger`. Sprint 185 exposes that authority through exactly
 ten versioned operations while API/browser payloads and logs remain
-non-authoritative. Web, Demo, integration, and acceptance remain S186–S187.
+non-authoritative. Sprint 186 adds the bilingual Founder account workspace
+without browser financial calculation. Demo, integration, and acceptance remain
+Sprint 187.
 
 ### Explicit M31 non-goals
 

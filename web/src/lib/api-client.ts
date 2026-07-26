@@ -12,6 +12,15 @@ import {
   portfolioReviewResearchReferenceTypes,
   type PortfolioReviewEvidenceReferenceType,
 } from "@/lib/portfolio-reviews";
+import {
+  isPaperAccountCommandResponse,
+  isPaperAccountDetailResponse,
+  isPaperAccountLedgerResponse,
+  isPaperAccountLifecycleStatus,
+  isPaperAccountListResponse,
+  isPaperAccountReconciliationCommandResponse,
+  isPaperAccountSnapshotCommandResponse,
+} from "@/lib/paper-account-validators";
 
 const API_BASE_PATH = "/api/backend";
 const HEALTH_PATH = "/api/v1/health";
@@ -40,6 +49,22 @@ const PORTFOLIO_REVIEWS_PATH = "/api/v1/portfolio-reviews";
 const PORTFOLIO_REVIEW_DETAIL_PATH = "/api/v1/portfolio-reviews/{review_id}";
 const PORTFOLIO_REVIEW_DECISION_PATH =
   "/api/v1/portfolio-reviews/{review_id}/decision";
+const PAPER_ACCOUNTS_PATH = "/api/v1/paper-accounts";
+const PAPER_ACCOUNT_DETAIL_PATH = "/api/v1/paper-accounts/{account_id}";
+const PAPER_ACCOUNT_LEDGER_PATH =
+  "/api/v1/paper-accounts/{account_id}/ledger";
+const PAPER_ACCOUNT_CASH_MOVEMENTS_PATH =
+  "/api/v1/paper-accounts/{account_id}/cash-movements";
+const PAPER_ACCOUNT_POSITION_ADJUSTMENTS_PATH =
+  "/api/v1/paper-accounts/{account_id}/position-adjustments";
+const PAPER_ACCOUNT_EVIDENCE_LINKS_PATH =
+  "/api/v1/paper-accounts/{account_id}/evidence-links";
+const PAPER_ACCOUNT_LIFECYCLE_PATH =
+  "/api/v1/paper-accounts/{account_id}/lifecycle";
+const PAPER_ACCOUNT_SNAPSHOTS_PATH =
+  "/api/v1/paper-accounts/{account_id}/snapshots";
+const PAPER_ACCOUNT_RECONCILIATIONS_PATH =
+  "/api/v1/paper-accounts/{account_id}/reconciliations";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -139,6 +164,48 @@ export type PortfolioReviewDecisionRequest = PostRequestBody<
 >;
 export type PortfolioReviewCommandResponse = PostSuccessResponse<
   typeof PORTFOLIO_REVIEWS_PATH,
+  201
+>;
+export type PaperAccountListResponse = SuccessResponse<
+  typeof PAPER_ACCOUNTS_PATH
+>;
+export type PaperAccountSummary = PaperAccountListResponse["items"][number];
+export type PaperAccountLifecycleStatus =
+  PaperAccountSummary["lifecycle_status"];
+export type PaperAccountDetailResponse = SuccessResponse<
+  typeof PAPER_ACCOUNT_DETAIL_PATH
+>;
+export type PaperAccountLedgerResponse = SuccessResponse<
+  typeof PAPER_ACCOUNT_LEDGER_PATH
+>;
+export type PaperAccountCreateRequest = PostRequestBody<
+  typeof PAPER_ACCOUNTS_PATH
+>;
+export type PaperAccountCashMovementRequest = PostRequestBody<
+  typeof PAPER_ACCOUNT_CASH_MOVEMENTS_PATH
+>;
+export type PaperAccountPositionAdjustmentRequest = PostRequestBody<
+  typeof PAPER_ACCOUNT_POSITION_ADJUSTMENTS_PATH
+>;
+export type PaperAccountEvidenceLinkRequest = PostRequestBody<
+  typeof PAPER_ACCOUNT_EVIDENCE_LINKS_PATH
+>;
+export type PaperAccountLifecycleRequest = PostRequestBody<
+  typeof PAPER_ACCOUNT_LIFECYCLE_PATH
+>;
+export type PaperAccountEvidenceOperationRequest = PostRequestBody<
+  typeof PAPER_ACCOUNT_SNAPSHOTS_PATH
+>;
+export type PaperAccountCommandResponse = PostSuccessResponse<
+  typeof PAPER_ACCOUNTS_PATH,
+  201
+>;
+export type PaperAccountSnapshotCommandResponse = PostSuccessResponse<
+  typeof PAPER_ACCOUNT_SNAPSHOTS_PATH,
+  201
+>;
+export type PaperAccountReconciliationCommandResponse = PostSuccessResponse<
+  typeof PAPER_ACCOUNT_RECONCILIATIONS_PATH,
   201
 >;
 
@@ -1552,6 +1619,217 @@ export function submitPortfolioReviewDecision(
     requestBody: request,
     headers: requireIdempotencyKey(idempotencyKey),
     validate: isPortfolioReviewCommandResponse,
+    fetchImplementation,
+  });
+}
+
+function paperAccountPath(template: string, accountId: string): string {
+  return template.replace("{account_id}", encodeURIComponent(accountId));
+}
+
+export function fetchPaperAccounts(
+  filters: {
+    lifecycleStatus: PaperAccountLifecycleStatus | null;
+    limit: number;
+    cursor?: string | null;
+  },
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountListResponse>> {
+  if (
+    !Number.isInteger(filters.limit) ||
+    filters.limit < 1 ||
+    filters.limit > 200
+  ) {
+    throw new TypeError(
+      "Paper Account limit must be an integer between 1 and 200.",
+    );
+  }
+  if (
+    filters.lifecycleStatus !== null &&
+    !isPaperAccountLifecycleStatus(filters.lifecycleStatus)
+  ) {
+    throw new TypeError("Paper Account lifecycle status is not supported.");
+  }
+  const query = new URLSearchParams();
+  if (filters.lifecycleStatus !== null) {
+    query.set("lifecycle_status", filters.lifecycleStatus);
+  }
+  query.set("limit", String(filters.limit));
+  if (filters.cursor) {
+    query.set("cursor", filters.cursor);
+  }
+  return requestJson({
+    path: `${PAPER_ACCOUNTS_PATH}?${query.toString()}`,
+    validate: isPaperAccountListResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperAccountDetail(
+  accountId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountDetailResponse>> {
+  return requestJson({
+    path: paperAccountPath(PAPER_ACCOUNT_DETAIL_PATH, accountId),
+    validate: isPaperAccountDetailResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperAccountLedger(
+  accountId: string,
+  options: { afterSequenceNumber?: number; limit?: number } = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountLedgerResponse>> {
+  const afterSequenceNumber = options.afterSequenceNumber ?? 0;
+  const limit = options.limit ?? 50;
+  if (
+    !Number.isInteger(afterSequenceNumber) ||
+    afterSequenceNumber < 0 ||
+    !Number.isInteger(limit) ||
+    limit < 1 ||
+    limit > 200
+  ) {
+    throw new TypeError("Paper Account ledger pagination is invalid.");
+  }
+  const query = new URLSearchParams({
+    after_sequence_number: String(afterSequenceNumber),
+    limit: String(limit),
+  });
+  return requestJson({
+    path: `${paperAccountPath(PAPER_ACCOUNT_LEDGER_PATH, accountId)}?${query.toString()}`,
+    validate: isPaperAccountLedgerResponse,
+    fetchImplementation,
+  });
+}
+
+function mutatePaperAccount<Request, Response>({
+  path,
+  request,
+  idempotencyKey,
+  validate,
+  fetchImplementation,
+}: {
+  path: string;
+  request: Request;
+  idempotencyKey: string;
+  validate: RuntimeValidator<Response>;
+  fetchImplementation: typeof fetch;
+}): Promise<ApiResult<Response>> {
+  return requestJson({
+    path,
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate,
+    fetchImplementation,
+  });
+}
+
+export function createPaperAccount(
+  request: PaperAccountCreateRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountCommandResponse>> {
+  return mutatePaperAccount({
+    path: PAPER_ACCOUNTS_PATH,
+    request,
+    idempotencyKey,
+    validate: isPaperAccountCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function postPaperAccountCashMovement(
+  accountId: string,
+  request: PaperAccountCashMovementRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountCommandResponse>> {
+  return mutatePaperAccount({
+    path: paperAccountPath(PAPER_ACCOUNT_CASH_MOVEMENTS_PATH, accountId),
+    request,
+    idempotencyKey,
+    validate: isPaperAccountCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function postPaperAccountPositionAdjustment(
+  accountId: string,
+  request: PaperAccountPositionAdjustmentRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountCommandResponse>> {
+  return mutatePaperAccount({
+    path: paperAccountPath(
+      PAPER_ACCOUNT_POSITION_ADJUSTMENTS_PATH,
+      accountId,
+    ),
+    request,
+    idempotencyKey,
+    validate: isPaperAccountCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function linkPaperAccountEvidence(
+  accountId: string,
+  request: PaperAccountEvidenceLinkRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountCommandResponse>> {
+  return mutatePaperAccount({
+    path: paperAccountPath(PAPER_ACCOUNT_EVIDENCE_LINKS_PATH, accountId),
+    request,
+    idempotencyKey,
+    validate: isPaperAccountCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function changePaperAccountLifecycle(
+  accountId: string,
+  request: PaperAccountLifecycleRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountCommandResponse>> {
+  return mutatePaperAccount({
+    path: paperAccountPath(PAPER_ACCOUNT_LIFECYCLE_PATH, accountId),
+    request,
+    idempotencyKey,
+    validate: isPaperAccountCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function createPaperAccountSnapshot(
+  accountId: string,
+  request: PaperAccountEvidenceOperationRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountSnapshotCommandResponse>> {
+  return mutatePaperAccount({
+    path: paperAccountPath(PAPER_ACCOUNT_SNAPSHOTS_PATH, accountId),
+    request,
+    idempotencyKey,
+    validate: isPaperAccountSnapshotCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function reconcilePaperAccount(
+  accountId: string,
+  request: PaperAccountEvidenceOperationRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperAccountReconciliationCommandResponse>> {
+  return mutatePaperAccount({
+    path: paperAccountPath(PAPER_ACCOUNT_RECONCILIATIONS_PATH, accountId),
+    request,
+    idempotencyKey,
+    validate: isPaperAccountReconciliationCommandResponse,
     fetchImplementation,
   });
 }

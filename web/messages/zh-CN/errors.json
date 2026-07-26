@@ -208,6 +208,91 @@
     "explanation": "当前无法安全检查配置的权威证据根目录。",
     "recovery": "请验证配置的证据存储并重试，不要暴露路径或删除数据。"
   },
+  "paper_account_not_found": {
+    "title": "未找到模拟账户",
+    "explanation": "持久状态中不存在所请求的精确账户 ID。",
+    "recovery": "请返回模拟账户列表并选择可用的持久账户。"
+  },
+  "paper_account_version_conflict": {
+    "title": "模拟账户版本已变化",
+    "explanation": "提交的预期版本不再匹配持久后端权威。",
+    "recovery": "请保留草稿、刷新账户权威数据，然后显式决定是否提交新命令。"
+  },
+  "paper_account_idempotency_conflict": {
+    "title": "模拟账户幂等冲突",
+    "explanation": "同一幂等键已经绑定到不同的规范命令。",
+    "recovery": "仅精确重放原命令，或有意使用不同的键；页面不会自动重试。"
+  },
+  "paper_account_frozen": {
+    "title": "模拟账户已冻结",
+    "explanation": "后端因持久账户已冻结而拒绝此变更。",
+    "recovery": "请刷新账户，并显式决定生命周期操作是否合适。"
+  },
+  "paper_account_closed": {
+    "title": "模拟账户已关闭",
+    "explanation": "后端因持久账户已终态关闭而拒绝此变更。",
+    "recovery": "请保留不可变账户证据；已关闭账户无法变更。"
+  },
+  "paper_account_close_not_empty": {
+    "title": "模拟账户并非空账户",
+    "explanation": "后端关闭资格检查发现权威现金或持仓不为零。",
+    "recovery": "请检查后端余额和持仓。浏览器不会推断或制造关闭调整。"
+  },
+  "paper_account_insufficient_available_cash": {
+    "title": "可用现金不足",
+    "explanation": "后端根据权威可用现金拒绝了请求的现金变动。",
+    "recovery": "请输入另一个显式金额前，先刷新并检查后端投影。"
+  },
+  "paper_account_negative_position": {
+    "title": "持仓调整会产生负数量",
+    "explanation": "后端持仓不变量拒绝了提交的有符号数量变化。",
+    "recovery": "请刷新权威持仓并修正显式调整，不要在浏览器中重建。"
+  },
+  "paper_account_negative_cost_basis": {
+    "title": "持仓调整会产生负成本基础",
+    "explanation": "后端成本基础不变量拒绝了提交的有符号变化。",
+    "recovery": "请刷新权威持仓并修正显式调整，不要在浏览器中重建。"
+  },
+  "paper_account_zero_quantity_nonzero_cost_basis": {
+    "title": "零数量与非零成本基础冲突",
+    "explanation": "后端拒绝了精确数量和汇总成本基础不一致的持仓状态。",
+    "recovery": "请检查后端持仓权威，只提交有意修正后的调整。"
+  },
+  "paper_account_invalid_decimal": {
+    "title": "模拟账户十进制值无效",
+    "explanation": "提交的金额或数量字符串不是后端规范十进制值。",
+    "recovery": "请修正精确定点字符串，不要舍入、使用指数写法或由浏览器规范化。"
+  },
+  "paper_account_invalid_m30_reference": {
+    "title": "已批准 M30 引用无效",
+    "explanation": "后端无法将请求的评审验证为精确的已批准治理证据。",
+    "recovery": "请检查投资组合评审，并仅提交其精确的已批准评审 ID。"
+  },
+  "paper_account_projection_stale": {
+    "title": "模拟账户投影需要对账",
+    "explanation": "后端检测到可替换投影与不可变账本重放权威不匹配。",
+    "recovery": "请保留证据并使用显式对账检查；普通读取不会修复投影。"
+  },
+  "paper_account_reconciliation_failed": {
+    "title": "模拟账户对账失败",
+    "explanation": "后端无法针对请求的锚点创建有效的不可变对账记录。",
+    "recovery": "请刷新精确账户锚点并检查持久权威，再显式重试。"
+  },
+  "paper_account_snapshot_conflict": {
+    "title": "模拟账户快照冲突",
+    "explanation": "请求的快照键或锚点与现有不可变证据冲突。",
+    "recovery": "请保留现有证据并刷新精确账户锚点；系统不提供覆盖。"
+  },
+  "paper_account_storage_busy": {
+    "title": "模拟账户存储繁忙",
+    "explanation": "后端无法安全保留本地持久写事务。",
+    "recovery": "请保留草稿，并在竞争的本地写入完成后手动重试。"
+  },
+  "paper_account_schema_incompatible": {
+    "title": "模拟账户存储架构不兼容",
+    "explanation": "配置的产品数据库无法安全提供所需的模拟账户权威。",
+    "recovery": "请验证受支持的迁移状态和本地配置后再重试。"
+  },
   "request_validation_error": {
     "title": "命令结构无效",
     "explanation": "提交的请求与生成的 API 契约不一致。",

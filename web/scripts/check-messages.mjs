@@ -15,6 +15,7 @@ export const REQUIRED_NAMESPACES = Object.freeze([
   "portfolio-records",
   "comparisons",
   "portfolio-reviews",
+  "paper-accounts",
   "lifecycle",
   "errors",
 ]);
@@ -58,6 +59,23 @@ export const REQUIRED_ERROR_CODES = Object.freeze([
   "portfolio_review_artifact_invalid",
   "portfolio_review_artifact_unavailable",
   "portfolio_review_artifact_root_unavailable",
+  "paper_account_not_found",
+  "paper_account_version_conflict",
+  "paper_account_idempotency_conflict",
+  "paper_account_frozen",
+  "paper_account_closed",
+  "paper_account_close_not_empty",
+  "paper_account_insufficient_available_cash",
+  "paper_account_negative_position",
+  "paper_account_negative_cost_basis",
+  "paper_account_zero_quantity_nonzero_cost_basis",
+  "paper_account_invalid_decimal",
+  "paper_account_invalid_m30_reference",
+  "paper_account_projection_stale",
+  "paper_account_reconciliation_failed",
+  "paper_account_snapshot_conflict",
+  "paper_account_storage_busy",
+  "paper_account_schema_incompatible",
   "demo_workspace_not_configured",
   "demo_workspace_unavailable",
 ]);
@@ -287,6 +305,7 @@ export async function validateMessageCatalogs(messagesRoot) {
       messages[namespace === "paper-jobs" ? "paperJobs"
         : namespace === "portfolio-records" ? "portfolioRecords"
           : namespace === "portfolio-reviews" ? "portfolioReviews"
+            : namespace === "paper-accounts" ? "paperAccounts"
           : namespace] = parsed;
     }
     const translator = createTranslator({ locale, messages });

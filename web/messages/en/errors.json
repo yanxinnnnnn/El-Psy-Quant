@@ -208,6 +208,91 @@
     "explanation": "The configured authoritative evidence root cannot currently be inspected safely.",
     "recovery": "Verify the configured evidence storage and retry without exposing paths or deleting data."
   },
+  "paper_account_not_found": {
+    "title": "Paper Account not found",
+    "explanation": "No durable Paper Account exists for the exact requested account ID.",
+    "recovery": "Return to the Paper Account list and select an available durable account."
+  },
+  "paper_account_version_conflict": {
+    "title": "Paper Account version changed",
+    "explanation": "The submitted expected version no longer matches durable backend authority.",
+    "recovery": "Preserve the draft, refresh account authority, and explicitly decide whether to submit a new command."
+  },
+  "paper_account_idempotency_conflict": {
+    "title": "Paper Account idempotency conflict",
+    "explanation": "The same idempotency key is already bound to a different canonical command.",
+    "recovery": "Replay only the original exact command or intentionally use a different key; the page will not retry automatically."
+  },
+  "paper_account_frozen": {
+    "title": "Paper Account is frozen",
+    "explanation": "The backend rejected this mutation because the durable account is frozen.",
+    "recovery": "Refresh the account and explicitly decide whether a lifecycle action is appropriate."
+  },
+  "paper_account_closed": {
+    "title": "Paper Account is closed",
+    "explanation": "The backend rejected this mutation because the durable account is terminally closed.",
+    "recovery": "Preserve the immutable account evidence; closed accounts cannot be mutated."
+  },
+  "paper_account_close_not_empty": {
+    "title": "Paper Account is not empty",
+    "explanation": "Backend close eligibility found non-zero authoritative cash or positions.",
+    "recovery": "Inspect backend balances and positions. The browser will not infer or manufacture a close adjustment."
+  },
+  "paper_account_insufficient_available_cash": {
+    "title": "Available cash is insufficient",
+    "explanation": "The backend rejected the requested cash movement against authoritative available cash.",
+    "recovery": "Refresh and inspect the backend projection before entering another explicit amount."
+  },
+  "paper_account_negative_position": {
+    "title": "Position adjustment would create a negative quantity",
+    "explanation": "The backend position invariant rejected the submitted signed quantity delta.",
+    "recovery": "Refresh authoritative positions and correct the explicit adjustment without browser-side reconstruction."
+  },
+  "paper_account_negative_cost_basis": {
+    "title": "Position adjustment would create negative cost basis",
+    "explanation": "The backend cost-basis invariant rejected the submitted signed delta.",
+    "recovery": "Refresh authoritative positions and correct the explicit adjustment without browser-side reconstruction."
+  },
+  "paper_account_zero_quantity_nonzero_cost_basis": {
+    "title": "Zero quantity conflicts with non-zero cost basis",
+    "explanation": "The backend rejected a position state whose exact quantity and aggregate cost basis are inconsistent.",
+    "recovery": "Inspect backend position authority and submit only an intentional corrected adjustment."
+  },
+  "paper_account_invalid_decimal": {
+    "title": "Paper Account decimal is invalid",
+    "explanation": "A submitted money or quantity string is not a canonical backend decimal.",
+    "recovery": "Correct the exact fixed-point string without rounding, exponent notation, or browser normalization."
+  },
+  "paper_account_invalid_m30_reference": {
+    "title": "Approved M30 reference is invalid",
+    "explanation": "The backend could not validate the requested review as exact approved governance evidence.",
+    "recovery": "Inspect the portfolio review and submit only its exact approved review ID."
+  },
+  "paper_account_projection_stale": {
+    "title": "Paper Account projection requires reconciliation",
+    "explanation": "The backend detected that the replaceable projection does not match immutable ledger replay authority.",
+    "recovery": "Preserve the evidence and use explicit reconciliation inspection; ordinary reads do not repair projections."
+  },
+  "paper_account_reconciliation_failed": {
+    "title": "Paper Account reconciliation failed",
+    "explanation": "The backend could not create a valid immutable reconciliation record for the requested anchors.",
+    "recovery": "Refresh the exact account anchors and inspect durable authority before retrying explicitly."
+  },
+  "paper_account_snapshot_conflict": {
+    "title": "Paper Account snapshot conflict",
+    "explanation": "The requested snapshot key or anchors conflict with existing immutable evidence.",
+    "recovery": "Preserve the existing evidence and refresh exact account anchors; no overwrite is available."
+  },
+  "paper_account_storage_busy": {
+    "title": "Paper Account storage is busy",
+    "explanation": "The backend could not safely reserve the local durable write transaction.",
+    "recovery": "Keep the draft and retry manually after the competing local write completes."
+  },
+  "paper_account_schema_incompatible": {
+    "title": "Paper Account storage schema is incompatible",
+    "explanation": "The configured product database cannot safely expose the required Paper Account authority.",
+    "recovery": "Verify the supported migration state and local configuration before retrying."
+  },
   "request_validation_error": {
     "title": "Command structure is invalid",
     "explanation": "The submitted request does not match the generated API contract.",
