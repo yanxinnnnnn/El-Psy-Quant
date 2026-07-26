@@ -23,8 +23,8 @@ governance, Paper Jobs, and future account/ledger truth as separate authorities.
 | S182 | Immutable Position Ledger and Aggregate Cost Basis Foundation | Complete |
 | S183 | Snapshot, Reconciliation, and Projection Rebuild Foundation | Complete |
 | S184 | Persistence, Migration, Concurrency, and Application Services | Complete after PR #365 merged |
-| S185 | Versioned API, Errors, and Audit Surface | Implementation complete / pending Founder review |
-| S186 | Bilingual Founder Paper Account Web Workspace | Planned |
+| S185 | Versioned API, Errors, and Audit Surface | Complete after PR #367 merged |
+| S186 | Bilingual Founder Paper Account Web Workspace | Implementation complete / pending Founder review |
 | S187 | Integration, Demo, Upgrade, Recovery, and Acceptance Hardening | Planned |
 | S188 | Milestone 31 Closeout and Next-Milestone Handoff | Planned |
 
@@ -148,6 +148,26 @@ filesystem evidence artifact, Docker runtime acceptance, market, order/fill,
 execution, worker, broker, live, or real-money behavior. Those boundaries
 remain S186–S187.
 
+## Sprint 186 result boundary
+
+The seventh implementation slice adds:
+
+- three bilingual `/paper-accounts` Founder routes;
+- generated-contract-only client coverage for all ten S185 operations;
+- deterministic account and ledger pagination without browser reconstruction;
+- explicit create, cash, position, M30 evidence-link, and lifecycle inputs;
+- immutable snapshot and reconciliation result inspection;
+- deep runtime response validation and all stable Paper Account error copy; and
+- deterministic Web tests for exact transport, conflicts, bilingual raw values,
+  and backend-authority preservation.
+
+The Web is presentation and explicit input only. It does not calculate, repair,
+rank, recommend, poll, execute, or become ledger, projection, snapshot,
+reconciliation, or financial authority. It adds no Demo/runtime behavior,
+Docker acceptance, migration, API/OpenAPI change, order/fill, market data,
+strategy runtime, PnL/equity, execution, worker, broker, live, or real-money
+behavior. Those integration and acceptance boundaries remain Sprint 187.
+
 ## Completion gate
 
 M31 completes only when one account can be rebuilt and reconciled from verified
@@ -179,4 +199,5 @@ docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-found
 docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-foundation.md
 docs/sprints/sprint-184-durable-paper-account-persistence-migration-concurrency-and-application-service-foundation.md
 docs/sprints/sprint-185-versioned-paper-account-api-errors-and-audit-surface-foundation.md
+docs/sprints/sprint-186-bilingual-founder-paper-account-web-workspace.md
 ```

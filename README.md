@@ -22,11 +22,10 @@ M31 — Stateful Paper Account and Ledger Foundation
 ```
 
 M31 is **In Progress** through the Founder-approved S179–S188 sequence. Sprints
-179–184 are Complete after PR #365 merged. Sprint 185 is
-implementation-complete and pending Founder review. It exposes the durable
-Paper Account application authority through the exact versioned API, stable
-sanitized errors, bounded request/audit correlation, deterministic pagination,
-and generated OpenAPI/TypeScript contracts.
+179–185 are Complete after PR #367 merged. Sprint 186 is
+implementation-complete and pending Founder review. It exposes durable Paper
+Account list, create, detail, ledger, mutation, snapshot, and reconciliation
+workflows through the bilingual generated-contract-only Founder Web.
 
 Current migration head:
 
@@ -108,6 +107,7 @@ Strategy
   -> Portfolio Result
   -> Comparison
   -> Portfolio Review
+  -> Paper Account
   -> Lifecycle Review
   -> Human Decision Evidence
 ```
@@ -124,7 +124,6 @@ not yet a continuous market-driven Paper Trading runtime.
 
 It does not yet provide:
 
-- a bilingual Founder Web workflow for the durable Paper Account ledger;
 - account-funded interpretation of M30 scenario weights;
 - market-data replay tied to a trading calendar and session clock;
 - automatic strategy-signal-to-order conversion;
@@ -176,12 +175,14 @@ immutable snapshot/reconciliation rows, creation and operation idempotency,
 services. Sprint 185 adds exactly ten versioned Paper Account operations, strict
 canonical-string financial transport, bounded list and ledger pagination,
 stable sanitized Paper Account errors, server-owned request IDs, bounded
-success audit events, and generated OpenAPI/TypeScript contracts. Verification
+success audit events, and generated OpenAPI/TypeScript contracts. Sprint 186
+adds the bilingual generated-contract-only Founder Paper Account list, create,
+detail, ledger, mutation, snapshot, and reconciliation workspace. Verification
 never silently repairs or replaces a candidate projection. API and browser
-payloads are not financial authority. No filesystem artifacts, Founder Web,
-Demo, Docker acceptance, order/fill, market, execution, worker, broker, live,
-or real-money behavior exists yet; those boundaries remain S186–S187. The existing
-`el_psy_quant.paper` evidence model is unchanged.
+payloads are not financial authority. No filesystem artifacts, Demo, Docker
+acceptance, order/fill, market, execution, worker, broker, live, or real-money
+behavior exists yet; those integration and acceptance boundaries remain S187.
+The existing `el_psy_quant.paper` evidence model is unchanged.
 
 An approved M30 review may be linked as evidence, but it is not ledger truth and
 cannot itself create or fund an account.
@@ -198,6 +199,7 @@ docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-found
 docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-foundation.md
 docs/sprints/sprint-184-durable-paper-account-persistence-migration-concurrency-and-application-service-foundation.md
 docs/sprints/sprint-185-versioned-paper-account-api-errors-and-audit-surface-foundation.md
+docs/sprints/sprint-186-bilingual-founder-paper-account-web-workspace.md
 ```
 
 ### M34 — First true Paper Trading

@@ -1,0 +1,211 @@
+import type {
+  PaperAccountCommandResponse,
+  PaperAccountDetailResponse,
+  PaperAccountLedgerResponse,
+  PaperAccountListResponse,
+  PaperAccountReconciliationCommandResponse,
+  PaperAccountSnapshotCommandResponse,
+} from "@/lib/api-client";
+
+const digest = (character: string) => character.repeat(64);
+
+export const paperAccountDetail: PaperAccountDetailResponse = {
+  schema_version: 1,
+  account: {
+    record_schema_version: 1,
+    account_id: "paper-account-186",
+    display_name: "Founder Paper Account",
+    base_currency: "USD",
+    lifecycle_status: "active",
+    head_version: 2,
+    head_event_id: "event-cash-186",
+    head_chain_digest: digest("b"),
+    projection_status: "current",
+    created_by: "founder",
+    created_timestamp: "2026-07-26T08:00:00Z",
+    updated_timestamp: "2026-07-26T09:00:00Z",
+    closed_timestamp: null,
+  },
+  projection: {
+    schema_version: 1,
+    account_identity: {
+      schema_version: 1,
+      account_id: "paper-account-186",
+      display_name: "Founder Paper Account",
+      base_currency: "USD",
+      created_by: "founder",
+      created_timestamp: "2026-07-26T08:00:00Z",
+    },
+    lifecycle_status: "active",
+    cash_balance: "1234.56789",
+    available_cash: "1234.56789",
+    positions: [
+      {
+        schema_version: 1,
+        symbol: "AAPL",
+        quantity: "3.25",
+        aggregate_cost_basis: "456.789",
+        average_unit_cost: "140.55046154",
+        average_unit_cost_is_rounded: true,
+      },
+    ],
+    approved_portfolio_reviews: [
+      {
+        schema_version: 1,
+        review_id: "review-approved-186",
+        source_id: "source-186",
+        source_digest: digest("c"),
+        analysis_digest: digest("d"),
+        decision_id: "decision-186",
+        decision_digest: digest("e"),
+        outcome: "approved",
+      },
+    ],
+    source_account_version: 2,
+    source_event_id: "event-cash-186",
+    source_chain_digest: digest("b"),
+    projection_digest: digest("f"),
+  },
+};
+
+export const paperAccountList: PaperAccountListResponse = {
+  schema_version: 1,
+  items: [paperAccountDetail.account],
+  next_cursor: "opaque-next-cursor",
+};
+
+export const paperAccountLedger: PaperAccountLedgerResponse = {
+  schema_version: 1,
+  events: [
+    {
+      schema_version: 1,
+      event_id: "event-created-186",
+      account_id: "paper-account-186",
+      sequence_number: 1,
+      account_version: 1,
+      event_type: "account_created",
+      command_digest: digest("1"),
+      expected_account_version: null,
+      actor: "founder",
+      reason: null,
+      recorded_timestamp_utc: "2026-07-26T08:00:00Z",
+      effective_timestamp_utc: null,
+      previous_chain_digest: digest("0"),
+      details: {
+        details_type: "account_created",
+        account_identity: paperAccountDetail.projection.account_identity,
+        initial_cash: "1000",
+        initial_lifecycle_status: "active",
+      },
+      event_digest: digest("2"),
+      chain_digest: digest("a"),
+      cash_postings: [
+        {
+          schema_version: 1,
+          cash_entry_id: "cash-created-186",
+          account_id: "paper-account-186",
+          event_id: "event-created-186",
+          entry_index: 0,
+          movement_type: "initial_cash",
+          currency: "USD",
+          signed_amount: "1000",
+          entry_digest: digest("3"),
+        },
+      ],
+      position_postings: [],
+    },
+    {
+      schema_version: 1,
+      event_id: "event-cash-186",
+      account_id: "paper-account-186",
+      sequence_number: 2,
+      account_version: 2,
+      event_type: "cash_movement_posted",
+      command_digest: digest("4"),
+      expected_account_version: 1,
+      actor: "founder",
+      reason: "Founder deposit",
+      recorded_timestamp_utc: "2026-07-26T09:00:00Z",
+      effective_timestamp_utc: "2026-07-26T08:30:00Z",
+      previous_chain_digest: digest("a"),
+      details: {
+        details_type: "cash_movement_posted",
+        movement_type: "deposit",
+        requested_amount: "234.56789",
+      },
+      event_digest: digest("5"),
+      chain_digest: digest("b"),
+      cash_postings: [
+        {
+          schema_version: 1,
+          cash_entry_id: "cash-deposit-186",
+          account_id: "paper-account-186",
+          event_id: "event-cash-186",
+          entry_index: 0,
+          movement_type: "deposit",
+          currency: "USD",
+          signed_amount: "234.56789",
+          entry_digest: digest("6"),
+        },
+      ],
+      position_postings: [],
+    },
+  ],
+  next_after_sequence_number: null,
+};
+
+export const paperAccountCommand: PaperAccountCommandResponse = {
+  schema_version: 1,
+  replayed: false,
+  request_id: "paper-command-request",
+  account: paperAccountDetail.account,
+  event: paperAccountLedger.events[1],
+  projection: paperAccountDetail.projection,
+};
+
+export const paperAccountSnapshot: PaperAccountSnapshotCommandResponse = {
+  schema_version: 1,
+  replayed: false,
+  request_id: "paper-snapshot-request",
+  snapshot: {
+    schema_version: 1,
+    snapshot_id: "snapshot-186",
+    account_id: "paper-account-186",
+    account_version: 2,
+    head_event_id: "event-cash-186",
+    head_chain_digest: digest("b"),
+    operation_command_digest: digest("7"),
+    created_by: "founder",
+    recorded_timestamp_utc: "2026-07-26T10:00:00Z",
+    reason: "Founder snapshot",
+    projection: paperAccountDetail.projection,
+    snapshot_digest: digest("8"),
+  },
+};
+
+export const paperAccountReconciliation:
+PaperAccountReconciliationCommandResponse = {
+  schema_version: 1,
+  replayed: false,
+  request_id: "paper-reconciliation-request",
+  reconciliation: {
+    schema_version: 1,
+    reconciliation_id: "reconciliation-186",
+    account_id: "paper-account-186",
+    operation_command_digest: digest("9"),
+    created_by: "founder",
+    recorded_timestamp_utc: "2026-07-26T10:30:00Z",
+    reason: "Founder reconciliation",
+    outcome: "matched",
+    mismatch_codes: [],
+    authoritative_account_version: 2,
+    authoritative_event_id: "event-cash-186",
+    authoritative_chain_digest: digest("b"),
+    authoritative_projection_digest: digest("f"),
+    candidate_account_version: 2,
+    candidate_event_id: "event-cash-186",
+    candidate_chain_digest: digest("b"),
+    candidate_projection_digest: digest("f"),
+    reconciliation_digest: digest("a"),
+  },
+};

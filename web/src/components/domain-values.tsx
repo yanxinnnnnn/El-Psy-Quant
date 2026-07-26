@@ -169,3 +169,66 @@ export function PortfolioReviewAvailabilityValue({
     />
   );
 }
+
+export function PaperAccountLifecycleValue({ value }: { value: string }) {
+  const t = useTranslations("paperAccounts.statuses");
+  const label =
+    value === "active"
+      ? t("active")
+      : value === "frozen"
+        ? t("frozen")
+        : value === "closed"
+          ? t("closed")
+          : value;
+  const tone: StatusTone =
+    value === "active"
+      ? "success"
+      : value === "frozen"
+        ? "warning"
+        : value === "closed"
+          ? "unavailable"
+          : "neutral";
+  return <StatusBadge label={label} rawValue={value} tone={tone} />;
+}
+
+export function PaperAccountProjectionStatusValue({
+  value,
+}: {
+  value: string;
+}) {
+  const t = useTranslations("paperAccounts.projectionStatuses");
+  const label =
+    value === "current"
+      ? t("current")
+      : value === "reconciliation_required"
+        ? t("reconciliation_required")
+        : value;
+  return (
+    <StatusBadge
+      label={label}
+      rawValue={value}
+      tone={value === "reconciliation_required" ? "warning" : "neutral"}
+    />
+  );
+}
+
+export function PaperAccountReconciliationOutcomeValue({
+  value,
+}: {
+  value: string;
+}) {
+  const t = useTranslations("paperAccounts.reconciliationOutcomes");
+  const label =
+    value === "matched"
+      ? t("matched")
+      : value === "mismatched"
+        ? t("mismatched")
+        : value;
+  return (
+    <StatusBadge
+      label={label}
+      rawValue={value}
+      tone={value === "mismatched" ? "warning" : "success"}
+    />
+  );
+}

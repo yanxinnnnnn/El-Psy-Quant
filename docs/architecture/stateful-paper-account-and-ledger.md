@@ -6,10 +6,10 @@ GitHub Issue #355 is the authoritative Milestone 31 architecture specification.
 This document records the approved repository-level architecture. If this
 summary and Issue #355 differ, Issue #355 controls.
 
-Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–184 are
-Complete after PR #365 merged. Sprint 185 is implementation-complete and
-pending Founder review; it exposes the durable authority through the exact
-versioned API without adding Founder Web behavior.
+Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–185 are
+Complete after PR #367 merged. Sprint 186 is implementation-complete and
+pending Founder review; it presents the durable authority through a bilingual
+generated-contract-only Founder Web without changing financial authority.
 
 ## Product goal
 
@@ -274,6 +274,27 @@ It adds no migration, Founder Web, localization catalog, Demo data, filesystem
 evidence artifact, Docker runtime acceptance, market data, order/fill,
 execution, worker, scheduler, broker, private-edge, live, or real-money
 behavior. Migration head remains `0007_paper_account_ledger`.
+
+## Sprint 186 boundary
+
+Sprint 186 adds only the bilingual Founder Web presentation and explicit-input
+workflow over the ten merged Sprint 185 operations. It owns account list,
+creation, detail, ledger timeline, cash movement, position adjustment,
+approved-M30 evidence-link, lifecycle, snapshot, and reconciliation
+presentation through three `/paper-accounts` routes.
+
+All TypeScript request and response types derive from the generated contracts.
+Runtime guards validate complete nested success payloads and durable
+identity/head bindings. The Web preserves backend order, raw financial strings,
+statuses, versions, IDs, timestamps, and digests. It never calculates balances,
+positions, cost basis, average cost, eligibility, digests, snapshot content, or
+reconciliation outcomes and never repairs a projection.
+
+Sprint 186 adds no Python, API/OpenAPI, migration, persistence, Demo/runtime,
+Docker acceptance, filesystem evidence artifact, market data, order/fill,
+strategy runtime, PnL/equity, execution, worker, scheduler, broker,
+private-edge, live, or real-money behavior. Migration head remains
+`0007_paper_account_ledger`.
 
 ## Explicit deferrals
 

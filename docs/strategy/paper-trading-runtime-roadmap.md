@@ -98,7 +98,7 @@ execution, or runtime truth.
 
 ### Status
 
-**In Progress — S179–S184 Complete; S185 implementation-complete/pending Founder review.**
+**In Progress — S179–S185 Complete; S186 implementation-complete/pending Founder review.**
 
 ### User-visible outcome
 
@@ -160,8 +160,10 @@ idempotency, append-only triggers, and one-winner transactions. Sprint 185
 exposes that authority through exactly ten versioned operations, canonical
 financial strings, bounded pagination, stable errors, request IDs, bounded
 audit correlation, and generated contracts. API/browser payloads and logs are
-not financial authority. S186–S187 retain Web, Demo, integration, and
-acceptance; migration head remains `0007_paper_account_ledger`.
+not financial authority. Sprint 186 adds the bilingual generated-contract-only
+Founder account workspace without browser financial calculation. Sprint 187
+retains Demo, integration, and acceptance; migration head remains
+`0007_paper_account_ledger`.
 
 ### M30 relationship
 
