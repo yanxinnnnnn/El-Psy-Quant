@@ -46,9 +46,9 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 2,
+  schema_version: 3,
   dataset_id: "dataset-from-api",
-  dataset_version: 2,
+  dataset_version: 3,
   display_name: "Founder Demo Workspace",
   warning: "Disposable example evidence, not real user data.",
   canonical_strategy_name: "strategy-from-api",
@@ -112,6 +112,19 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
       ),
     ) as DemoWorkspaceDescriptorResponse["portfolio_review_example"]["request"],
   },
+  paper_account: {
+    account_id: "paper-account-from-api",
+    head_version: 5,
+    event_types: [
+      "account_created",
+      "cash_movement_posted",
+      "position_adjustment_posted",
+      "account_frozen",
+      "account_reactivated",
+    ],
+    snapshot_id: "snapshot-from-api",
+    reconciliation_id: "reconciliation-from-api",
+  },
 };
 
 function notConfigured() {
@@ -165,6 +178,10 @@ describe("FounderFirstRunPanel", () => {
     expect(screen.getByRole("link", { name: /Compare the two ordered demo results/ })).toHaveAttribute(
       "href",
       "/comparisons?job_id=job-from-api-a&job_id=job-from-api-b",
+    );
+    expect(screen.getByRole("link", { name: /Inspect durable ledger replay/ })).toHaveAttribute(
+      "href",
+      "/paper-accounts/paper-account-from-api",
     );
     expect(apiMocks.fetchResearchRuns).not.toHaveBeenCalled();
   });

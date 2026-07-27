@@ -41,8 +41,24 @@ class DemoPortfolioReviewExampleResponse(BaseModel):
     request: PortfolioReviewCreateRequest
 
 
+class DemoPaperAccountReferenceResponse(BaseModel):
+    account_id: str
+    head_version: int
+    event_types: list[
+        Literal[
+            "account_created",
+            "cash_movement_posted",
+            "position_adjustment_posted",
+            "account_frozen",
+            "account_reactivated",
+        ]
+    ]
+    snapshot_id: str
+    reconciliation_id: str
+
+
 class DemoWorkspaceDescriptorResponse(BaseModel):
-    schema_version: Literal[2]
+    schema_version: Literal[3]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -56,3 +72,4 @@ class DemoWorkspaceDescriptorResponse(BaseModel):
     lifecycle_review_example: LifecycleTransitionReviewCommandRequest
     paper_job_submission_example: DemoPaperJobSubmissionExampleResponse
     portfolio_review_example: DemoPortfolioReviewExampleResponse
+    paper_account: DemoPaperAccountReferenceResponse

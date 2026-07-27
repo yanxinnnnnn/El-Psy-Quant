@@ -2,9 +2,13 @@
 
 import json
 import shutil
+import sqlite3
 from pathlib import Path
 
 import pytest
+from el_psy_quant.application.paper_accounts import (
+    PaperAccountApplicationService,
+)
 from el_psy_quant.application.paper_jobs import read_paper_job_result
 from el_psy_quant.application.portfolio_reviews import (
     get_portfolio_review_detail,
@@ -54,8 +58,8 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
     )
     assert len(set(source.manifest.comparison_candidate_job_ids)) == 2
     descriptor = source.descriptor.to_dict()
-    assert descriptor["schema_version"] == 2
-    assert descriptor["dataset_version"] == 2
+    assert descriptor["schema_version"] == 3
+    assert descriptor["dataset_version"] == 3
     assert descriptor["portfolio_review_example"]["create_idempotency_key"] == (
         "demo-portfolio-review-create-v1"
     )
@@ -64,6 +68,19 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
     )
     assert descriptor["lifecycle_review_example"]["review_outcome"] == "deferred"
     assert descriptor["lifecycle_review_example"]["resulting_snapshot"] is None
+    assert descriptor["paper_account"] == {
+        "account_id": "demo-paper-account-001",
+        "head_version": 5,
+        "event_types": [
+            "account_created",
+            "cash_movement_posted",
+            "position_adjustment_posted",
+            "account_frozen",
+            "account_reactivated",
+        ],
+        "snapshot_id": "demo-paper-account-snapshot-001",
+        "reconciliation_id": "demo-paper-account-reconciliation-001",
+    }
     assert "DEMO" in descriptor["warning"]
 
 
@@ -121,6 +138,32 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         assert review.source.source_id == "demo-portfolio-review-source-001"
         assert review.analysis.proposed_component_id == "demo-msft-sleeve"
         assert review.decision is None
+        service = PaperAccountApplicationService(session_factory=factory)
+        detail = service.get_account_detail(
+            account_id="demo-paper-account-001"
+        )
+        history = service.get_account_history(
+            account_id="demo-paper-account-001"
+        )
+        snapshot = service.get_snapshot(
+            snapshot_id="demo-paper-account-snapshot-001"
+        )
+        reconciliation = service.get_reconciliation(
+            reconciliation_id="demo-paper-account-reconciliation-001"
+        )
+        assert detail.account.head_version == 5
+        assert detail.account.lifecycle_status == "active"
+        assert detail.projection.cash_balance.canonical == "125000"
+        assert [bundle.event.event_type for bundle in history] == [
+            "account_created",
+            "cash_movement_posted",
+            "position_adjustment_posted",
+            "account_frozen",
+            "account_reactivated",
+        ]
+        assert snapshot.projection.to_dict() == detail.projection.to_dict()
+        assert reconciliation.outcome == "matched"
+        assert reconciliation.mismatch_codes == ()
     finally:
         engine.dispose()
 
@@ -133,7 +176,7 @@ def test_prior_dataset_marker_is_refused_without_reinstall_or_mutation(
     paths = DemoWorkspacePaths.from_root(target)
     marker_path = target / ".demo-workspace-install.json"
     marker = json.loads(marker_path.read_text(encoding="utf-8"))
-    marker["dataset_version"] = 1
+    marker["dataset_version"] = 2
     marker_path.write_text(json.dumps(marker), encoding="utf-8")
     artifacts_before = {
         path.relative_to(target).as_posix(): path.read_bytes()
@@ -268,6 +311,55 @@ def test_portfolio_review_source_mutations_fail_before_target_creation(
     assert not target.exists()
 
 
+@pytest.mark.parametrize(
+    "case",
+    (
+        "invalid_path",
+        "extra_key",
+        "noncanonical_cash",
+        "wrong_version",
+        "duplicate_authority_id",
+        "wrong_event_order",
+    ),
+)
+def test_paper_account_source_mutations_fail_before_target_creation(
+    tmp_path: Path,
+    case: str,
+) -> None:
+    source = tmp_path / f"source-paper-account-{case}"
+    shutil.copytree(DEMO_SOURCE, source)
+    manifest_path = source / "workspace-manifest.json"
+    journey_path = source / "paper_accounts" / "account-journey.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    journey = json.loads(journey_path.read_text(encoding="utf-8"))
+    if case == "invalid_path":
+        manifest["paper_account_example"]["request_relative_path"] = (
+            "../account-journey.json"
+        )
+    elif case == "extra_key":
+        journey["unexpected"] = True
+    elif case == "noncanonical_cash":
+        journey["creation"]["initial_cash"] = "100000.0"
+    elif case == "wrong_version":
+        journey["position_adjustment"]["expected_account_version"] = 3
+    elif case == "duplicate_authority_id":
+        journey["authority_ids"][1]["value"] = journey["authority_ids"][0][
+            "value"
+        ]
+    elif case == "wrong_event_order":
+        journey["expected"]["event_types"].reverse()
+    else:  # pragma: no cover - the parameter list is exhaustive
+        raise AssertionError(case)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    journey_path.write_text(json.dumps(journey), encoding="utf-8")
+    target = tmp_path / f"target-paper-account-{case}"
+
+    with pytest.raises(DemoWorkspaceSourceInvalidError):
+        _install(source, target)
+
+    assert not target.exists()
+
+
 def test_conflicting_dataset_replay_is_refused_without_changes(
     tmp_path: Path,
 ) -> None:
@@ -282,15 +374,15 @@ def test_conflicting_dataset_replay_is_refused_without_changes(
         _install(source, target)
 
     assert (target / ".demo-workspace-install.json").read_bytes() == marker_before
-    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 2
+    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 3
 
 
-def test_descriptor_requires_exact_dataset_version_two(tmp_path: Path) -> None:
+def test_descriptor_requires_exact_dataset_version_three(tmp_path: Path) -> None:
     target = tmp_path / "demo-workspace"
     _install(DEMO_SOURCE, target)
     descriptor_path = target / "workspace-descriptor.json"
     descriptor = json.loads(descriptor_path.read_text(encoding="utf-8"))
-    descriptor["dataset_version"] = 1
+    descriptor["dataset_version"] = 2
     descriptor_path.write_text(json.dumps(descriptor), encoding="utf-8")
 
     with pytest.raises(DemoWorkspaceUnavailableError):
@@ -312,6 +404,52 @@ def test_seeded_portfolio_review_corruption_fails_closed(tmp_path: Path) -> None
 
     with pytest.raises(DemoWorkspaceUnavailableError):
         _install(DEMO_SOURCE, target)
+
+
+def test_projection_corruption_fails_closed_without_repair(tmp_path: Path) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    database = target / "product.sqlite3"
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            "UPDATE paper_account_projections "
+            "SET cash_balance = '999', available_cash = '999' "
+            "WHERE account_id = 'demo-paper-account-001'"
+        )
+        connection.commit()
+
+    with pytest.raises(DemoWorkspaceUnavailableError):
+        _install(DEMO_SOURCE, target)
+
+    with sqlite3.connect(database) as connection:
+        row = connection.execute(
+            "SELECT cash_balance, available_cash "
+            "FROM paper_account_projections "
+            "WHERE account_id = 'demo-paper-account-001'"
+        ).fetchone()
+    assert row == ("999", "999")
+
+
+def test_demo_install_never_changes_separate_standard_storage(
+    tmp_path: Path,
+) -> None:
+    standard = tmp_path / "standard"
+    standard.mkdir()
+    standard_database = standard / "product.sqlite3"
+    standard_artifact = standard / "founder-evidence.json"
+    standard_database.write_bytes(b"standard-database-sentinel")
+    standard_artifact.write_bytes(b'{"standard":true}\n')
+    before = {
+        path.name: path.read_bytes()
+        for path in standard.iterdir()
+    }
+
+    _install(DEMO_SOURCE, tmp_path / "demo-workspace")
+
+    assert {
+        path.name: path.read_bytes()
+        for path in standard.iterdir()
+    } == before
 
 
 def test_non_demo_and_nonempty_targets_are_refused(tmp_path: Path) -> None:

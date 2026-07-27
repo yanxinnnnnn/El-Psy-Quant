@@ -162,8 +162,9 @@ financial strings, bounded pagination, stable errors, request IDs, bounded
 audit correlation, and generated contracts. API/browser payloads and logs are
 not financial authority. Sprint 186 adds the bilingual generated-contract-only
 Founder account workspace without browser financial calculation. Sprint 187
-retains Demo, integration, and acceptance; migration head remains
-`0007_paper_account_ledger`.
+adds isolated Demo v3 exact replay, non-repairing integrated verification,
+packaged upgrade preservation, and Founder-owned recovery/acceptance support;
+migration head remains `0007_paper_account_ledger`.
 
 ### M30 relationship
 

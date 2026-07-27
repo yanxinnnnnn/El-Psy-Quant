@@ -178,10 +178,14 @@ stable sanitized Paper Account errors, server-owned request IDs, bounded
 success audit events, and generated OpenAPI/TypeScript contracts. Sprint 186
 adds the bilingual generated-contract-only Founder Paper Account list, create,
 detail, ledger, mutation, snapshot, and reconciliation workspace. Verification
-never silently repairs or replaces a candidate projection. API and browser
-payloads are not financial authority. No filesystem artifacts, Demo, Docker
-acceptance, order/fill, market, execution, worker, broker, live, or real-money
-behavior exists yet; those integration and acceptance boundaries remain S187.
+never silently repairs or replaces a candidate projection. Sprint 187 adds
+Demo dataset/descriptor v3, deterministic service-owned account seeding, exact
+restart replay, projection/snapshot/reconciliation verification, isolated
+Standard/Demo safeguards, packaged `0006 -> 0007` upgrade preservation, and
+Founder-owned recovery/acceptance guidance. API, Web, and Demo payloads remain
+presentation and verification surfaces only. No filesystem evidence artifact,
+Docker runtime acceptance, order/fill, market, execution, PnL/equity, worker,
+broker, live, or real-money behavior is added.
 The existing `el_psy_quant.paper` evidence model is unchanged.
 
 An approved M30 review may be linked as evidence, but it is not ledger truth and
@@ -200,6 +204,7 @@ docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-f
 docs/sprints/sprint-184-durable-paper-account-persistence-migration-concurrency-and-application-service-foundation.md
 docs/sprints/sprint-185-versioned-paper-account-api-errors-and-audit-surface-foundation.md
 docs/sprints/sprint-186-bilingual-founder-paper-account-web-workspace.md
+docs/sprints/sprint-187-integration-demo-upgrade-recovery-and-acceptance-hardening.md
 ```
 
 ### M34 — First true Paper Trading

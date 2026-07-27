@@ -160,8 +160,9 @@ and immutable snapshot/reconciliation evidence at migration head
 `0007_paper_account_ledger`. Sprint 185 exposes that authority through exactly
 ten versioned operations while API/browser payloads and logs remain
 non-authoritative. Sprint 186 adds the bilingual Founder account workspace
-without browser financial calculation. Demo, integration, and acceptance remain
-Sprint 187.
+without browser financial calculation. Sprint 187 adds isolated Demo v3 exact
+replay, integrated projection/snapshot/reconciliation verification, packaged
+upgrade preservation, and Founder-owned recovery/acceptance support.
 
 ### Explicit M31 non-goals
 

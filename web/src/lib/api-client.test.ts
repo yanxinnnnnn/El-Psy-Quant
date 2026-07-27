@@ -33,6 +33,8 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
   const paperJobs = manifest.paper_jobs as Array<Record<string, unknown>>;
   const submission = manifest.paper_submission_example as Record<string, unknown>;
   const portfolioReview = manifest.portfolio_review_example as Record<string, unknown>;
+  const paperAccount = demoSourceJson("paper_accounts/account-journey.json");
+  const paperAccountExpected = paperAccount.expected as Record<string, unknown>;
   return {
     schema_version: manifest.schema_version,
     dataset_id: manifest.dataset_id,
@@ -53,6 +55,13 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
     portfolio_review_example: {
       create_idempotency_key: portfolioReview.create_idempotency_key,
       request: demoSourceJson("portfolio_reviews/create-request.json"),
+    },
+    paper_account: {
+      account_id: paperAccount.account_id,
+      head_version: paperAccountExpected.head_version,
+      event_types: paperAccountExpected.event_types,
+      snapshot_id: paperAccountExpected.snapshot_id,
+      reconciliation_id: paperAccountExpected.reconciliation_id,
     },
   };
 }
@@ -237,12 +246,18 @@ describe("fetchDemoWorkspace", () => {
     const result = await fetchDemoWorkspace(fetcher);
 
     expect(result.data.dataset_id).toBe(descriptor.dataset_id);
-    expect(result.data.schema_version).toBe(2);
-    expect(result.data.dataset_version).toBe(2);
+    expect(result.data.schema_version).toBe(3);
+    expect(result.data.dataset_version).toBe(3);
     expect(result.data.comparison_candidate_job_ids).toHaveLength(2);
     expect(result.data.portfolio_review_example.request.review_id).toBe(
       "demo-portfolio-review-001",
     );
+    expect(result.data.paper_account).toMatchObject({
+      account_id: "demo-paper-account-001",
+      head_version: 5,
+      snapshot_id: "demo-paper-account-snapshot-001",
+      reconciliation_id: "demo-paper-account-reconciliation-001",
+    });
     expect(fetcher).toHaveBeenCalledWith("/api/backend/api/v1/demo-workspace", {
       method: "GET",
       cache: "no-store",
@@ -262,6 +277,27 @@ describe("fetchDemoWorkspace", () => {
     await expect(fetchDemoWorkspace(fetcher)).rejects.toMatchObject({
       code: "api_response_invalid",
       publicMessage: "The local API returned an invalid response.",
+    });
+  });
+
+  it.each([
+    ["wrong head", (descriptor: DemoWorkspaceDescriptorResponse) => {
+      descriptor.paper_account.head_version = 4;
+    }],
+    ["wrong event order", (descriptor: DemoWorkspaceDescriptorResponse) => {
+      descriptor.paper_account.event_types.reverse();
+    }],
+    ["blank snapshot identity", (descriptor: DemoWorkspaceDescriptorResponse) => {
+      descriptor.paper_account.snapshot_id = "   ";
+    }],
+  ])("rejects malformed Demo Paper Account identity: %s", async (_name, mutate) => {
+    const descriptor = mutableDemoDescriptor();
+    mutate(descriptor);
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(descriptor));
+
+    await expect(fetchDemoWorkspace(fetcher)).rejects.toMatchObject({
+      status: 200,
+      code: "api_response_invalid",
     });
   });
 

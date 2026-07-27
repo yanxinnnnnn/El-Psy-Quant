@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import sqlite3
+from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -34,6 +35,9 @@ from el_psy_quant.application.lifecycle_commands import (
     record_lifecycle_transition_review,
 )
 from el_psy_quant.application.paper_jobs import read_paper_job_result
+from el_psy_quant.application.paper_accounts import (
+    PaperAccountApplicationService,
+)
 from el_psy_quant.application.paper_runs import (
     PaperAccountStateCommandInput,
     PaperFillCommandInput,
@@ -57,6 +61,12 @@ from el_psy_quant.paper import (
     read_paper_trading_artifact_file,
     run_paper_trading_request,
     validate_paper_run_recovery_consistency,
+)
+from el_psy_quant.paper_account import (
+    PaperMoney,
+    PaperQuantity,
+    rebuild_paper_account_projection,
+    replay_paper_account_ledger,
 )
 from el_psy_quant.persistence import (
     SqlAlchemyPaperJobAttemptRepository,
@@ -91,8 +101,8 @@ from el_psy_quant.portfolio_review import (
 if TYPE_CHECKING:
     from el_psy_quant.api.portfolio_review_schemas import PortfolioReviewCreateRequest
 
-DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 2
-DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 2
+DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 3
+DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 3
 DEMO_WORKSPACE_INSTALL_SCHEMA_VERSION = 1
 DEMO_WORKSPACE_MODE = "demo"
 STANDARD_WORKSPACE_MODE = "standard"
@@ -112,6 +122,7 @@ _SOURCE_ROOT_DIRECTORIES = (
     "paper_artifacts",
     "lifecycle_records",
     "portfolio_reviews",
+    "paper_accounts",
 )
 _SOURCE_ROOT_FILES = ("README.md", WORKSPACE_MANIFEST_FILE_NAME)
 _INSTALLED_CHILDREN = (
@@ -178,8 +189,91 @@ class _PortfolioReviewExampleSource(_StrictSourceModel):
     request_relative_path: str
 
 
+class _PaperAccountExampleSource(_StrictSourceModel):
+    request_relative_path: str
+
+
+class _DemoPaperAccountCreation(_StrictSourceModel):
+    idempotency_key: str
+    display_name: str
+    base_currency: str
+    initial_cash: str
+    actor: str
+
+
+class _DemoPaperAccountCashMovement(_StrictSourceModel):
+    idempotency_key: str
+    expected_account_version: int
+    actor: str
+    reason: str
+    movement_type: str
+    requested_amount: str
+    effective_timestamp_utc: str
+
+
+class _DemoPaperAccountPositionAdjustment(_StrictSourceModel):
+    idempotency_key: str
+    expected_account_version: int
+    actor: str
+    reason: str
+    symbol: str
+    adjustment_category: str
+    signed_quantity_delta: str
+    signed_cost_basis_delta: str
+    effective_timestamp_utc: str
+
+
+class _DemoPaperAccountLifecycleCommand(_StrictSourceModel):
+    idempotency_key: str
+    expected_account_version: int
+    actor: str
+    reason: str
+    action: Literal["freeze", "reactivate"]
+
+
+class _DemoPaperAccountEvidenceOperation(_StrictSourceModel):
+    idempotency_key: str
+    actor: str
+    reason: str
+
+
+class _DemoPaperAccountAuthorityId(_StrictSourceModel):
+    kind: str
+    value: str
+
+
+class _DemoPaperAccountExpectedPosition(_StrictSourceModel):
+    symbol: str
+    quantity: str
+    aggregate_cost_basis: str
+
+
+class _DemoPaperAccountExpected(_StrictSourceModel):
+    head_version: int
+    lifecycle_status: Literal["active"]
+    cash_balance: str
+    event_types: tuple[str, ...]
+    positions: tuple[_DemoPaperAccountExpectedPosition, ...]
+    snapshot_id: str
+    reconciliation_id: str
+
+
+class _DemoPaperAccountJourney(_StrictSourceModel):
+    schema_version: Literal[1]
+    account_id: str
+    creation: _DemoPaperAccountCreation
+    cash_movement: _DemoPaperAccountCashMovement
+    position_adjustment: _DemoPaperAccountPositionAdjustment
+    lifecycle_commands: tuple[_DemoPaperAccountLifecycleCommand, ...]
+    snapshot: _DemoPaperAccountEvidenceOperation
+    reconciliation: _DemoPaperAccountEvidenceOperation
+    authority_ids: tuple[_DemoPaperAccountAuthorityId, ...]
+    recorded_timestamps: tuple[str, ...]
+    expected: _DemoPaperAccountExpected
+
+
 class _DemoWorkspaceSourceManifest(_StrictSourceModel):
-    schema_version: Literal[2]
+    schema_version: Literal[3]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -193,6 +287,7 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     lifecycle_review_relative_path: str
     paper_submission_example: _PaperSubmissionSource
     portfolio_review_example: _PortfolioReviewExampleSource
+    paper_account_example: _PaperAccountExampleSource
 
     @field_validator(
         "dataset_id",
@@ -219,8 +314,8 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     def require_coherent_journey(self) -> _DemoWorkspaceSourceManifest:
         if "DEMO" not in self.warning.upper():
             raise ValueError("demo warning must identify demo data")
-        if self.dataset_version != 2:
-            raise ValueError("demo dataset version must be 2")
+        if self.dataset_version != 3:
+            raise ValueError("demo dataset version must be 3")
         if len(self.paper_jobs) < 2:
             raise ValueError("at least two paper jobs are required")
         job_ids = tuple(job.job_id for job in self.paper_jobs)
@@ -289,6 +384,7 @@ class _ValidatedDemoSource:
     portfolio_review_request: PortfolioReviewCreateRequest
     portfolio_review_source: PortfolioReviewSource
     portfolio_review_scenario_pair: PortfolioReviewScenarioPair
+    paper_account_journey: _DemoPaperAccountJourney
     descriptor: DemoWorkspaceDescriptor
 
 
@@ -740,6 +836,111 @@ def _validate_portfolio_review_example(
     return command, source, pair
 
 
+def _validate_paper_account_journey(
+    payload: dict[str, Any],
+) -> _DemoPaperAccountJourney:
+    try:
+        journey = _DemoPaperAccountJourney.model_validate(payload)
+        creation_cash = PaperMoney.parse(journey.creation.initial_cash)
+        movement_amount = PaperMoney.parse(
+            journey.cash_movement.requested_amount
+        )
+        quantity = PaperQuantity.parse(
+            journey.position_adjustment.signed_quantity_delta
+        )
+        cost_basis = PaperMoney.parse(
+            journey.position_adjustment.signed_cost_basis_delta
+        )
+        expected_cash = PaperMoney.parse(journey.expected.cash_balance)
+        expected_positions = tuple(
+            (
+                item.symbol,
+                PaperQuantity.parse(item.quantity).canonical,
+                PaperMoney.parse(item.aggregate_cost_basis).canonical,
+            )
+            for item in journey.expected.positions
+        )
+        timestamps = tuple(
+            _utc_timestamp(value) for value in journey.recorded_timestamps
+        )
+        _utc_timestamp(journey.cash_movement.effective_timestamp_utc)
+        _utc_timestamp(
+            journey.position_adjustment.effective_timestamp_utc
+        )
+    except (TypeError, ValueError) as exc:
+        raise DemoWorkspaceSourceInvalidError(
+            "demo paper account journey is invalid"
+        ) from exc
+    expected_kinds = (
+        "paper_account",
+        "paper_account_event",
+        "paper_cash_entry",
+        "paper_account_event",
+        "paper_cash_entry",
+        "paper_account_event",
+        "paper_position_entry",
+        "paper_account_event",
+        "paper_account_event",
+        "paper_account_snapshot",
+        "paper_account_reconciliation",
+    )
+    ids = tuple((item.kind, item.value) for item in journey.authority_ids)
+    expected_events = (
+        "account_created",
+        "cash_movement_posted",
+        "position_adjustment_posted",
+        "account_frozen",
+        "account_reactivated",
+    )
+    lifecycle = journey.lifecycle_commands
+    if (
+        creation_cash.decimal_value < 0
+        or movement_amount.decimal_value <= 0
+        or quantity.decimal_value <= 0
+        or cost_basis.decimal_value <= 0
+        or journey.creation.base_currency.upper()
+        != journey.creation.base_currency
+        or journey.cash_movement.movement_type != "deposit"
+        or journey.position_adjustment.adjustment_category
+        != "opening_balance"
+        or journey.cash_movement.expected_account_version != 1
+        or journey.position_adjustment.expected_account_version != 2
+        or len(lifecycle) != 2
+        or (lifecycle[0].action, lifecycle[0].expected_account_version)
+        != ("freeze", 3)
+        or (lifecycle[1].action, lifecycle[1].expected_account_version)
+        != ("reactivate", 4)
+        or journey.expected.head_version != 5
+        or journey.expected.event_types != expected_events
+        or len(expected_positions) != 1
+        or expected_cash.decimal_value
+        != creation_cash.decimal_value + movement_amount.decimal_value
+        or tuple(item[0] for item in ids) != expected_kinds
+        or ids[0][1] != journey.account_id
+        or len({item[1] for item in ids}) != len(ids)
+        or ids[-2][1] != journey.expected.snapshot_id
+        or ids[-1][1] != journey.expected.reconciliation_id
+        or len(timestamps) != 7
+        or tuple(sorted(timestamps)) != timestamps
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo paper account journey is inconsistent"
+        )
+    for value in (
+        journey.account_id,
+        journey.creation.idempotency_key,
+        journey.creation.display_name,
+        journey.creation.actor,
+        journey.cash_movement.idempotency_key,
+        journey.position_adjustment.idempotency_key,
+        journey.snapshot.idempotency_key,
+        journey.reconciliation.idempotency_key,
+        *(item.value for item in journey.authority_ids),
+    ):
+        _normalized_text(value)
+    return journey
+
+
 def _descriptor_payload(
     *,
     manifest: _DemoWorkspaceSourceManifest,
@@ -747,6 +948,7 @@ def _descriptor_payload(
     review_payload: dict[str, Any],
     submission_payload: dict[str, Any],
     portfolio_review_payload: dict[str, Any],
+    paper_account_journey: _DemoPaperAccountJourney,
 ) -> dict[str, Any]:
     return {
         "schema_version": DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION,
@@ -775,6 +977,17 @@ def _descriptor_payload(
                 manifest.portfolio_review_example.create_idempotency_key
             ),
             "request": portfolio_review_payload,
+        },
+        "paper_account": {
+            "account_id": paper_account_journey.account_id,
+            "head_version": paper_account_journey.expected.head_version,
+            "event_types": list(
+                paper_account_journey.expected.event_types
+            ),
+            "snapshot_id": paper_account_journey.expected.snapshot_id,
+            "reconciliation_id": (
+                paper_account_journey.expected.reconciliation_id
+            ),
         },
     }
 
@@ -929,6 +1142,14 @@ def validate_demo_workspace_source(
             manifest=manifest,
             evidence_reference_identities=evidence_reference_identities,
         )
+        paper_account_journey = _validate_paper_account_journey(
+            _read_json_object(
+                _relative_source_path(
+                    root,
+                    manifest.paper_account_example.request_relative_path,
+                )
+            )
+        )
         descriptor = DemoWorkspaceDescriptor(
             payload=_descriptor_payload(
                 manifest=manifest,
@@ -936,6 +1157,7 @@ def validate_demo_workspace_source(
                 review_payload=review_payload,
                 submission_payload=submission_payload,
                 portfolio_review_payload=portfolio_review_payload,
+                paper_account_journey=paper_account_journey,
             )
         )
         _validate_descriptor_payload(descriptor.to_dict())
@@ -951,6 +1173,7 @@ def validate_demo_workspace_source(
             portfolio_review_request=portfolio_review_request,
             portfolio_review_source=portfolio_review_source,
             portfolio_review_scenario_pair=portfolio_review_scenario_pair,
+            paper_account_journey=paper_account_journey,
             descriptor=descriptor,
         )
     except DemoWorkspaceSourceInvalidError:
@@ -977,12 +1200,13 @@ def _validate_descriptor_payload(payload: object) -> None:
             "lifecycle_review_example",
             "paper_job_submission_example",
             "portfolio_review_example",
+            "paper_account",
         },
     )
     if root["schema_version"] != DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["dataset_id"])
-    if type(root["dataset_version"]) is not int or root["dataset_version"] != 2:
+    if type(root["dataset_version"]) is not int or root["dataset_version"] != 3:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["display_name"])
     if "DEMO" not in _normalized_text(root["warning"]).upper():
@@ -1067,6 +1291,34 @@ def _validate_descriptor_payload(payload: object) -> None:
         raise DemoWorkspaceSourceInvalidError(
             "demo descriptor portfolio review is invalid"
         ) from exc
+    paper_account = _exact_object(
+        root["paper_account"],
+        {
+            "account_id",
+            "head_version",
+            "event_types",
+            "snapshot_id",
+            "reconciliation_id",
+        },
+    )
+    _normalized_text(paper_account["account_id"])
+    _normalized_text(paper_account["snapshot_id"])
+    _normalized_text(paper_account["reconciliation_id"])
+    if (
+        type(paper_account["head_version"]) is not int
+        or paper_account["head_version"] != 5
+        or paper_account["event_types"]
+        != [
+            "account_created",
+            "cash_movement_posted",
+            "position_adjustment_posted",
+            "account_frozen",
+            "account_reactivated",
+        ]
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo descriptor paper account is invalid"
+        )
 
 
 @contextmanager
@@ -1192,6 +1444,268 @@ def _seed_portfolio_review(
         ):
             raise DemoWorkspaceUnavailableError(
                 "demo portfolio review seed is inconsistent"
+            )
+    finally:
+        engine.dispose()
+
+
+class _DemoPaperAccountAuthority:
+    def __init__(self, journey: _DemoPaperAccountJourney) -> None:
+        self._ids = deque(
+            (item.kind, item.value) for item in journey.authority_ids
+        )
+        self._timestamps = deque(
+            _utc_timestamp(value) for value in journey.recorded_timestamps
+        )
+
+    def id(self, kind: str) -> str:
+        if not self._ids:
+            raise DemoWorkspaceUnavailableError(
+                "demo paper account identity authority is exhausted"
+            )
+        expected_kind, value = self._ids.popleft()
+        if kind != expected_kind:
+            raise DemoWorkspaceUnavailableError(
+                "demo paper account identity authority is inconsistent"
+            )
+        return value
+
+    def clock(self) -> datetime:
+        if not self._timestamps:
+            raise DemoWorkspaceUnavailableError(
+                "demo paper account clock authority is exhausted"
+            )
+        return self._timestamps.popleft()
+
+    def require_exhausted(self) -> None:
+        if self._ids or self._timestamps:
+            raise DemoWorkspaceUnavailableError(
+                "demo paper account authority was not fully consumed"
+            )
+
+
+def _apply_demo_paper_account_journey(
+    *,
+    service: PaperAccountApplicationService,
+    journey: _DemoPaperAccountJourney,
+    expect_replayed: bool,
+) -> None:
+    creation = journey.creation
+    result = service.create_account(
+        display_name=creation.display_name,
+        base_currency=creation.base_currency,
+        initial_cash=PaperMoney.parse(creation.initial_cash),
+        creation_idempotency_key=creation.idempotency_key,
+        actor=creation.actor,
+    )
+    if (
+        result.replayed is not expect_replayed
+        or result.account.account_identity.account_id != journey.account_id
+    ):
+        raise DemoWorkspaceUnavailableError(
+            "demo paper account creation is inconsistent"
+        )
+
+    cash = journey.cash_movement
+    result = service.post_cash_movement(
+        account_id=journey.account_id,
+        expected_account_version=cash.expected_account_version,
+        command_idempotency_key=cash.idempotency_key,
+        actor=cash.actor,
+        reason=cash.reason,
+        movement_type=cast(Any, cash.movement_type),
+        requested_amount=PaperMoney.parse(cash.requested_amount),
+        effective_timestamp_utc=_utc_timestamp(
+            cash.effective_timestamp_utc
+        ),
+    )
+    if result.replayed is not expect_replayed:
+        raise DemoWorkspaceUnavailableError(
+            "demo paper account cash movement is inconsistent"
+        )
+
+    position = journey.position_adjustment
+    result = service.post_position_adjustment(
+        account_id=journey.account_id,
+        expected_account_version=position.expected_account_version,
+        command_idempotency_key=position.idempotency_key,
+        actor=position.actor,
+        reason=position.reason,
+        symbol=position.symbol,
+        adjustment_category=position.adjustment_category,
+        signed_quantity_delta=PaperQuantity.parse(
+            position.signed_quantity_delta
+        ),
+        signed_cost_basis_delta=PaperMoney.parse(
+            position.signed_cost_basis_delta
+        ),
+        effective_timestamp_utc=_utc_timestamp(
+            position.effective_timestamp_utc
+        ),
+    )
+    if result.replayed is not expect_replayed:
+        raise DemoWorkspaceUnavailableError(
+            "demo paper account position adjustment is inconsistent"
+        )
+
+    for command in journey.lifecycle_commands:
+        operation = (
+            service.freeze_account
+            if command.action == "freeze"
+            else service.reactivate_account
+        )
+        result = operation(
+            account_id=journey.account_id,
+            expected_account_version=command.expected_account_version,
+            command_idempotency_key=command.idempotency_key,
+            actor=command.actor,
+            reason=command.reason,
+        )
+        if result.replayed is not expect_replayed:
+            raise DemoWorkspaceUnavailableError(
+                "demo paper account lifecycle is inconsistent"
+            )
+
+    detail = service.get_account_detail(account_id=journey.account_id)
+    history = service.get_account_history(account_id=journey.account_id)
+    replayed_state = replay_paper_account_ledger(history)
+    rebuilt_projection = rebuild_paper_account_projection(history)
+    expected = journey.expected
+    actual_positions = tuple(
+        (
+            item.symbol,
+            item.quantity.canonical,
+            item.aggregate_cost_basis.canonical,
+        )
+        for item in rebuilt_projection.positions
+    )
+    expected_positions = tuple(
+        (item.symbol, item.quantity, item.aggregate_cost_basis)
+        for item in expected.positions
+    )
+    if (
+        tuple(bundle.event.event_type for bundle in history)
+        != expected.event_types
+        or replayed_state.head_version != expected.head_version
+        or replayed_state.lifecycle_status != expected.lifecycle_status
+        or replayed_state.cash_balance.canonical != expected.cash_balance
+        or actual_positions != expected_positions
+        or detail.account.head_version != expected.head_version
+        or detail.account.projection_status != "current"
+        or detail.projection.to_dict() != rebuilt_projection.to_dict()
+    ):
+        raise DemoWorkspaceUnavailableError(
+            "demo paper account replay or projection is inconsistent"
+        )
+
+    snapshot = service.create_snapshot(
+        account_id=journey.account_id,
+        expected_account_version=expected.head_version,
+        expected_head_event_id=replayed_state.head_event_id,
+        expected_head_chain_digest=replayed_state.head_chain_digest,
+        operation_idempotency_key=journey.snapshot.idempotency_key,
+        actor=journey.snapshot.actor,
+        reason=journey.snapshot.reason,
+    )
+    if (
+        snapshot.replayed is not expect_replayed
+        or snapshot.snapshot.snapshot_id != expected.snapshot_id
+        or snapshot.snapshot.projection.to_dict()
+        != rebuilt_projection.to_dict()
+    ):
+        raise DemoWorkspaceUnavailableError(
+            "demo paper account snapshot is inconsistent"
+        )
+
+    reconciliation = service.reconcile_projection(
+        account_id=journey.account_id,
+        expected_account_version=expected.head_version,
+        expected_head_event_id=replayed_state.head_event_id,
+        expected_head_chain_digest=replayed_state.head_chain_digest,
+        operation_idempotency_key=journey.reconciliation.idempotency_key,
+        actor=journey.reconciliation.actor,
+        reason=journey.reconciliation.reason,
+    )
+    evidence = reconciliation.reconciliation
+    if (
+        reconciliation.replayed is not expect_replayed
+        or evidence.reconciliation_id != expected.reconciliation_id
+        or evidence.outcome != "matched"
+        or evidence.mismatch_codes
+        or evidence.authoritative_projection_digest
+        != rebuilt_projection.projection_digest
+        or evidence.candidate_projection_digest
+        != rebuilt_projection.projection_digest
+    ):
+        raise DemoWorkspaceUnavailableError(
+            "demo paper account reconciliation is inconsistent"
+        )
+
+
+def _seed_demo_paper_account(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(
+            database_path=paths.database_path
+        )
+    )
+    authority = _DemoPaperAccountAuthority(source.paper_account_journey)
+    service = PaperAccountApplicationService(
+        session_factory=create_product_session_factory(engine=engine),
+        id_factory=authority.id,
+        clock=authority.clock,
+    )
+    try:
+        _apply_demo_paper_account_journey(
+            service=service,
+            journey=source.paper_account_journey,
+            expect_replayed=False,
+        )
+        authority.require_exhausted()
+    finally:
+        engine.dispose()
+
+
+def _validate_seeded_demo_paper_account(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(
+            database_path=paths.database_path
+        )
+    )
+    authority = _DemoPaperAccountAuthority(source.paper_account_journey)
+    service = PaperAccountApplicationService(
+        session_factory=create_product_session_factory(engine=engine),
+        id_factory=authority.id,
+        clock=authority.clock,
+    )
+    try:
+        _apply_demo_paper_account_journey(
+            service=service,
+            journey=source.paper_account_journey,
+            expect_replayed=True,
+        )
+        snapshot = service.get_snapshot(
+            snapshot_id=source.paper_account_journey.expected.snapshot_id
+        )
+        reconciliation = service.get_reconciliation(
+            reconciliation_id=(
+                source.paper_account_journey.expected.reconciliation_id
+            )
+        )
+        if (
+            snapshot.account_id != source.paper_account_journey.account_id
+            or reconciliation.account_id
+            != source.paper_account_journey.account_id
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "demo paper account evidence is inconsistent"
             )
     finally:
         engine.dispose()
@@ -1438,6 +1952,14 @@ def _validate_installed_workspace(
         raise DemoWorkspaceUnavailableError(
             "demo portfolio review is unavailable"
         ) from exc
+    try:
+        _validate_seeded_demo_paper_account(paths=paths, source=source)
+    except DemoWorkspaceUnavailableError:
+        raise
+    except Exception as exc:
+        raise DemoWorkspaceUnavailableError(
+            "demo paper account is unavailable"
+        ) from exc
     installed_descriptor = _read_json_object(paths.descriptor_path)
     if _canonical_json(installed_descriptor) != _canonical_json(
         source.descriptor.to_dict()
@@ -1569,6 +2091,7 @@ def install_demo_workspace(
         _upgrade_database(staging.database_path, config_path)
         _populate_database(paths=staging, source=source)
         _seed_portfolio_review(paths=staging, source=source)
+        _seed_demo_paper_account(paths=staging, source=source)
         _write_json(staging.descriptor_path, source.descriptor.to_dict())
         _write_json(staging.marker_path, _install_marker(source))
         _validate_installed_workspace(paths=staging, source=source)
@@ -1703,6 +2226,47 @@ def validate_installed_demo_workspace(
             ):
                 raise DemoWorkspaceUnavailableError(
                     "demo portfolio review is inconsistent"
+                )
+            paper_account = payload["paper_account"]
+            service = PaperAccountApplicationService(
+                session_factory=factory
+            )
+            detail = service.get_account_detail(
+                account_id=paper_account["account_id"]
+            )
+            history = service.get_account_history(
+                account_id=paper_account["account_id"]
+            )
+            replayed_state = replay_paper_account_ledger(history)
+            rebuilt = rebuild_paper_account_projection(history)
+            snapshot = service.get_snapshot(
+                snapshot_id=paper_account["snapshot_id"]
+            )
+            reconciliation = service.get_reconciliation(
+                reconciliation_id=paper_account["reconciliation_id"]
+            )
+            if (
+                detail.account.head_version
+                != paper_account["head_version"]
+                or tuple(
+                    bundle.event.event_type for bundle in history
+                )
+                != tuple(paper_account["event_types"])
+                or replayed_state.head_version
+                != paper_account["head_version"]
+                or detail.projection.to_dict() != rebuilt.to_dict()
+                or snapshot.account_id != paper_account["account_id"]
+                or snapshot.projection.to_dict() != rebuilt.to_dict()
+                or reconciliation.account_id
+                != paper_account["account_id"]
+                or reconciliation.outcome != "matched"
+                or reconciliation.authoritative_projection_digest
+                != rebuilt.projection_digest
+                or reconciliation.candidate_projection_digest
+                != rebuilt.projection_digest
+            ):
+                raise DemoWorkspaceUnavailableError(
+                    "demo paper account is inconsistent"
                 )
         finally:
             engine.dispose()

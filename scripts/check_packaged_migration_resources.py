@@ -52,6 +52,9 @@ EXPECTED_0007_TABLES = EXPECTED_PRODUCT_TABLES - {
     "paper_job_attempts",
     "paper_job_result_references",
 }
+EXPECTED_PAPER_ACCOUNT_TABLES = EXPECTED_0007_TABLES - {
+    "portfolio_reviews",
+}
 EXPECTED_PORTFOLIO_REVIEW_COLUMNS = (
     "record_schema_version",
     "review_id",
@@ -298,6 +301,98 @@ def _verify_0005_upgrade(
             raise GateError("installed-wheel 0006 table does not match the schema")
 
 
+def _verify_0006_upgrade(
+    target: Path, config: Path, working: Path, database: Path
+) -> None:
+    _alembic(
+        target,
+        config,
+        working,
+        "upgrade",
+        "0006_portfolio_reviews",
+        database_path=database,
+    )
+    source_digest = "a" * 64
+    analysis_digest = "b" * 64
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute(
+            """
+            INSERT INTO portfolio_reviews (
+                record_schema_version, review_id, status,
+                source_schema_version, source_id, source_digest,
+                source_relative_path, baseline_scenario_id,
+                baseline_scenario_digest, proposed_scenario_id,
+                proposed_scenario_digest, proposed_component_id,
+                analysis_schema_version, analysis_digest,
+                analysis_relative_path, create_idempotency_key,
+                create_command_digest, created_by, created_timestamp,
+                decision_schema_version, decision_id, decision_digest,
+                decision_relative_path, decision_idempotency_key,
+                decision_command_digest, outcome, reviewed_by,
+                reviewed_timestamp, version, updated_timestamp
+            ) VALUES (
+                1, 'packaged-upgrade-review', 'awaiting_decision',
+                1, 'packaged-upgrade-source', ?, ?,
+                'packaged-baseline', ?, 'packaged-proposed', ?,
+                'packaged-component', 1, ?, ?,
+                'packaged-upgrade-create', ?, 'packaged-gate',
+                '2026-07-26 00:00:00',
+                NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                1, '2026-07-26 00:00:00'
+            )
+            """,
+            (
+                source_digest,
+                (
+                    "portfolio-reviews/sources/"
+                    f"{source_digest}/source.json"
+                ),
+                "c" * 64,
+                "d" * 64,
+                analysis_digest,
+                (
+                    "portfolio-reviews/reviews/"
+                    f"{analysis_digest}/analysis.json"
+                ),
+                "e" * 64,
+            ),
+        )
+        connection.execute(
+            "CREATE TABLE preserved_0006_gate_data "
+            "(identity TEXT PRIMARY KEY, value TEXT)"
+        )
+        connection.execute(
+            "INSERT INTO preserved_0006_gate_data "
+            "VALUES ('existing', 'preserve-me')"
+        )
+        connection.commit()
+        before_tables = _tables(connection)
+        before_rows = _rows(connection, before_tables)
+
+    _alembic(
+        target,
+        config,
+        working,
+        "upgrade",
+        "head",
+        database_path=database,
+    )
+
+    with closing(sqlite3.connect(database)) as connection:
+        if connection.execute(
+            "SELECT version_num FROM alembic_version"
+        ).fetchall() != [("0007_paper_account_ledger",)]:
+            raise GateError("installed-wheel 0006 upgrade did not reach 0007")
+        if _tables(connection) != before_tables | EXPECTED_PAPER_ACCOUNT_TABLES:
+            raise GateError("installed-wheel 0006 upgrade changed unrelated tables")
+        if _rows(connection, before_tables) != before_rows:
+            raise GateError("installed-wheel 0006 upgrade changed existing data")
+        if connection.execute(
+            "SELECT COUNT(*) FROM paper_accounts"
+        ).fetchone() != (0,):
+            raise GateError("installed-wheel 0006 upgrade seeded Paper Accounts")
+
+
 def _verify_fail_closed(
     target: Path, config: Path, working: Path, database: Path
 ) -> None:
@@ -387,6 +482,12 @@ def main() -> int:
                 working,
                 root / "upgrade.sqlite3",
             )
+            _verify_0006_upgrade(
+                installed,
+                config,
+                working,
+                root / "upgrade-0006.sqlite3",
+            )
 
             missing = root / "missing-resource"
             shutil.copytree(installed, missing)
@@ -427,7 +528,8 @@ def main() -> int:
 
     print(
         "installed-wheel migration-resource gate passed: complete resources; "
-        "0007_paper_account_ledger head; fresh and 0005 upgrades; "
+        "0007_paper_account_ledger head; fresh, 0005, and populated 0006 "
+        "upgrades; "
         "fail-closed probes"
     )
     return 0

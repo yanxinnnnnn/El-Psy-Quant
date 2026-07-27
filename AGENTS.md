@@ -158,10 +158,13 @@ M31 — Stateful Paper Account and Ledger Foundation
 ```
 
 M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–185
-are Complete after PR #367 merged. Sprint 186 is implementation-complete and
-pending Founder review; it exposes the durable application authority through
-the bilingual generated-contract-only Paper Account list, create, detail,
-ledger, mutation, snapshot, and reconciliation Founder Web workflows.
+are Complete after PR #367 merged. Sprints 186–187 are
+implementation-complete and pending Founder review/runtime acceptance. Sprint
+186 exposes the durable application authority through the bilingual
+generated-contract-only Paper Account list, create, detail, ledger, mutation,
+snapshot, and reconciliation Founder Web workflows. Sprint 187 adds isolated
+Demo v3 exact replay, non-repairing integration verification, packaged upgrade
+preservation, and Founder-owned recovery/acceptance support.
 
 M31 must establish independent durable account and ledger truth. It may reference
 approved M30 review evidence, but that evidence cannot create, fund, or mutate an
@@ -259,8 +262,10 @@ operations. API/OpenAPI/generated TypeScript payloads and bounded product logs
 are presentation and correlation surfaces only; they are not financial,
 ledger, projection, digest, snapshot, reconciliation, or governance authority.
 Sprint 186 presents that boundary through three bilingual Founder routes and
-never calculates financial truth. No Demo, filesystem evidence artifact, Docker
-runtime, order/fill, market, execution, or Sprint 187+ behavior exists yet.
+never calculates financial truth. Sprint 187 Demo, Web, API, and descriptor
+surfaces remain presentation and verification layers over the same authority.
+No filesystem evidence artifact, Docker runtime acceptance, order/fill, market,
+execution, or Sprint 188+ behavior exists yet.
 
 M31 does not pre-authorize:
 

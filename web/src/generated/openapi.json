@@ -75,6 +75,49 @@
         "title": "DemoEvidenceManifestReferenceResponse",
         "type": "object"
       },
+      "DemoPaperAccountReferenceResponse": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "event_types": {
+            "items": {
+              "enum": [
+                "account_created",
+                "cash_movement_posted",
+                "position_adjustment_posted",
+                "account_frozen",
+                "account_reactivated"
+              ],
+              "type": "string"
+            },
+            "title": "Event Types",
+            "type": "array"
+          },
+          "head_version": {
+            "title": "Head Version",
+            "type": "integer"
+          },
+          "reconciliation_id": {
+            "title": "Reconciliation Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "head_version",
+          "event_types",
+          "snapshot_id",
+          "reconciliation_id"
+        ],
+        "title": "DemoPaperAccountReferenceResponse",
+        "type": "object"
+      },
       "DemoPaperJobReferenceResponse": {
         "properties": {
           "job_id": {
@@ -183,6 +226,9 @@
           "lifecycle_review_example": {
             "$ref": "#/components/schemas/LifecycleTransitionReviewCommandRequest"
           },
+          "paper_account": {
+            "$ref": "#/components/schemas/DemoPaperAccountReferenceResponse"
+          },
           "paper_job_submission_example": {
             "$ref": "#/components/schemas/DemoPaperJobSubmissionExampleResponse"
           },
@@ -200,7 +246,7 @@
             "$ref": "#/components/schemas/DemoResearchRunReferenceResponse"
           },
           "schema_version": {
-            "const": 2,
+            "const": 3,
             "title": "Schema Version",
             "type": "integer"
           },
@@ -223,7 +269,8 @@
           "lifecycle_proposal_example",
           "lifecycle_review_example",
           "paper_job_submission_example",
-          "portfolio_review_example"
+          "portfolio_review_example",
+          "paper_account"
         ],
         "title": "DemoWorkspaceDescriptorResponse",
         "type": "object"

@@ -132,7 +132,7 @@ commits all-or-nothing. Ordinary reads never silently repair a stale projection.
 Snapshots and reconciliations are separate durable idempotent evidence
 operations and do not change account version. Explicit rebuild is the only
 non-mutation operation that replaces projection rows. Filesystem evidence
-materialization remains deferred to S187.
+materialization remains deferred beyond M31.
 
 ## API, Web, Demo, and acceptance direction
 
@@ -144,10 +144,12 @@ request ID; and successful commands/evidence operations emit bounded
 non-authoritative correlation events. OpenAPI and generated TypeScript mirror
 that boundary. No projection-rebuild route is public.
 
-S186–S187 retain the separately approved bilingual Founder workspace, isolated
-Demo seed, upgrade/recovery hardening, and Founder acceptance support. The
-browser will display canonical backend values and will not calculate financial
-truth. Standard will remain unseeded; Demo storage will remain isolated.
+S186 adds the separately approved bilingual Founder workspace. S187 adds
+isolated Demo dataset/descriptor v3, deterministic application-service seeding,
+exact restart replay, non-repairing projection/snapshot/reconciliation
+verification, packaged upgrade preservation, and Founder acceptance support.
+The browser displays canonical backend values and does not calculate financial
+truth. Standard remains unseeded and Demo storage remains isolated.
 
 Founder acceptance, Docker startup, backup, reset, restart, browser inspection,
 and merge remain Founder-owned operations.

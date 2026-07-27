@@ -633,6 +633,19 @@ export interface components {
              */
             manifest_type: "strategy_decision_manifest" | "report_artifact_manifest" | "strategy_review_workflow_manifest";
         };
+        /** DemoPaperAccountReferenceResponse */
+        DemoPaperAccountReferenceResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Event Types */
+            event_types: ("account_created" | "cash_movement_posted" | "position_adjustment_posted" | "account_frozen" | "account_reactivated")[];
+            /** Head Version */
+            head_version: number;
+            /** Reconciliation Id */
+            reconciliation_id: string;
+            /** Snapshot Id */
+            snapshot_id: string;
+        };
         /** DemoPaperJobReferenceResponse */
         DemoPaperJobReferenceResponse: {
             /** Job Id */
@@ -675,6 +688,7 @@ export interface components {
             evidence_manifests: components["schemas"]["DemoEvidenceManifestReferenceResponse"][];
             lifecycle_proposal_example: components["schemas"]["LifecycleTransitionProposalCommandRequest"];
             lifecycle_review_example: components["schemas"]["LifecycleTransitionReviewCommandRequest"];
+            paper_account: components["schemas"]["DemoPaperAccountReferenceResponse"];
             paper_job_submission_example: components["schemas"]["DemoPaperJobSubmissionExampleResponse"];
             /** Paper Jobs */
             paper_jobs: components["schemas"]["DemoPaperJobReferenceResponse"][];
@@ -684,7 +698,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: 2;
+            schema_version: 3;
             /** Warning */
             warning: string;
         };

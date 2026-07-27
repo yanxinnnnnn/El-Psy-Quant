@@ -25,8 +25,10 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
   const portfolioReview = manifest.portfolio_review_example as {
     create_idempotency_key: string;
   };
+  const paperAccount = demoSourceJson("paper_accounts/account-journey.json");
+  const paperAccountExpected = paperAccount.expected as Record<string, unknown>;
   return {
-    schema_version: manifest.schema_version as 2,
+    schema_version: manifest.schema_version as 3,
     dataset_id: manifest.dataset_id as string,
     dataset_version: manifest.dataset_version as number,
     display_name: manifest.display_name as string,
@@ -45,6 +47,13 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
     portfolio_review_example: {
       create_idempotency_key: portfolioReview.create_idempotency_key,
       request: demoSourceJson("portfolio_reviews/create-request.json") as DemoWorkspaceDescriptorResponse["portfolio_review_example"]["request"],
+    },
+    paper_account: {
+      account_id: paperAccount.account_id as string,
+      head_version: paperAccountExpected.head_version as number,
+      event_types: paperAccountExpected.event_types as DemoWorkspaceDescriptorResponse["paper_account"]["event_types"],
+      snapshot_id: paperAccountExpected.snapshot_id as string,
+      reconciliation_id: paperAccountExpected.reconciliation_id as string,
     },
   };
 }

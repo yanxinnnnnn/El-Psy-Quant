@@ -188,7 +188,8 @@ S179 planning
   -> S188 closeout
 ```
 
-S179–S184 are Complete. S182 added normalized-symbol position commands, immutable
+S179–S185 are Complete. S186–S187 are implementation-complete and pending
+Founder review/acceptance. S182 added normalized-symbol position commands, immutable
 position postings, exact long-only quantity and aggregate-cost-basis state,
 display-only average unit cost, and full mixed-ledger replay without changing
 valid S181 event digests. S183 added canonical complete projection rebuild,
@@ -200,8 +201,9 @@ canonical-string financial transport, bounded list/ledger pages, stable errors,
 request IDs, bounded audit correlation, and generated contracts. API/browser
 payloads are not financial authority. S186 adds the bilingual account
 list/create/detail, ledger, mutation, snapshot, and reconciliation workspace
-without browser calculation. S187 retains Demo, integration, and Founder
-acceptance.
+without browser calculation. S187 adds isolated Demo v3 exact replay,
+non-repairing ledger/projection/snapshot/reconciliation verification, packaged
+upgrade preservation, and Founder-owned recovery/acceptance support.
 
 ## Approved Paper Trading Runtime Sequence
 
