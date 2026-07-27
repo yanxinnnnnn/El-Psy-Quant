@@ -14,6 +14,10 @@ from el_psy_quant.persistence.config import (
     resolve_product_database_config,
 )
 from el_psy_quant.persistence.engine import create_product_database_engine
+from el_psy_quant.persistence.market_time_repository import (
+    MarketTimeRepository,
+    SqlAlchemyMarketTimeRepository,
+)
 from el_psy_quant.persistence.paper_job_repository import (
     PaperJobRepository,
     SqlAlchemyPaperJobRepository,
@@ -97,6 +101,7 @@ from el_psy_quant.persistence.session import create_product_session_factory
 __all__ = [
     "ArtifactIndexEntry",
     "ArtifactIndexRepository",
+    "MarketTimeRepository",
     "PAPER_ACCOUNT_PERSISTENCE_RECORD_SCHEMA_VERSION",
     "PAPER_ACCOUNT_RECORD_SCHEMA_VERSION",
     "PaperAccountApprovedEvidenceError",
@@ -134,6 +139,7 @@ __all__ = [
     "ProductDatabaseConfig",
     "ProductPersistenceBase",
     "SqlAlchemyArtifactIndexRepository",
+    "SqlAlchemyMarketTimeRepository",
     "SqlAlchemyPaperAccountRepository",
     "SqlAlchemyPaperJobAttemptRepository",
     "SqlAlchemyPaperJobRepository",
