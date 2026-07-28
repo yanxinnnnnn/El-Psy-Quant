@@ -54,7 +54,7 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 3,
+  schema_version: 4,
   dataset_id: "dataset-from-descriptor",
   dataset_version: 7,
   display_name: "Descriptor Demo Name",
@@ -164,6 +164,29 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
     ],
     snapshot_id: "paper-account-snapshot-from-descriptor",
     reconciliation_id: "paper-account-reconciliation-from-descriptor",
+  },
+  market_time: {
+    calendar_id: "calendar-from-descriptor",
+    session_ids: ["session-from-descriptor-a", "session-from-descriptor-b"],
+    replay_id: "replay-from-descriptor",
+    event_count: 4,
+    event_stream_digest: "c".repeat(64),
+    checkpoint: {
+      status: "paused",
+      position: 2,
+      last_event_id: "event-from-descriptor-b",
+      current_time: "2026-07-28T13:30:30+00:00",
+    },
+    recovery: {
+      remaining_event_ids: [
+        "event-from-descriptor-c",
+        "event-from-descriptor-d",
+      ],
+      final_status: "completed",
+      final_position: 4,
+      last_event_id: "event-from-descriptor-d",
+      current_time: "2026-07-28T13:31:30+00:00",
+    },
   },
 };
 
@@ -1078,6 +1101,13 @@ describe("FounderDashboard", () => {
       "href",
       "/portfolio-reviews/review-from-descriptor",
     );
+    expect(
+      screen.getByRole("link", { name: /检查确定性的演示市场时间重放/ }),
+    ).toHaveAttribute(
+      "href",
+      "/market-time/replays/replay-from-descriptor",
+    );
+    expect(screen.getByText("completed")).toBeInTheDocument();
     expect(apiMocks.fetchDemoWorkspace).toHaveBeenCalledTimes(1);
   });
 

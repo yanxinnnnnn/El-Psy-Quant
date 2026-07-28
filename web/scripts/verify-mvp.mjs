@@ -317,6 +317,7 @@ function stableDescriptorIdentity(descriptor) {
           ?.proposed_component_id,
     },
     paper_account: descriptor.paper_account,
+    market_time: descriptor.market_time,
   };
 }
 
@@ -355,8 +356,8 @@ async function verifyDemoJourney(
     cookies.chineseCookie,
   );
   if (
-    descriptor.schema_version !== 3 ||
-    descriptor.dataset_version !== 3 ||
+    descriptor.schema_version !== 4 ||
+    descriptor.dataset_version !== 4 ||
     typeof descriptor.canonical_strategy_name !== "string" ||
     !Array.isArray(descriptor.evidence_manifests) ||
     !Array.isArray(descriptor.paper_jobs) ||
@@ -375,7 +376,20 @@ async function verifyDemoJourney(
     !Array.isArray(descriptor.paper_account?.event_types) ||
     descriptor.paper_account.event_types.length !== 5 ||
     typeof descriptor.paper_account?.snapshot_id !== "string" ||
-    typeof descriptor.paper_account?.reconciliation_id !== "string"
+    typeof descriptor.paper_account?.reconciliation_id !== "string" ||
+    typeof descriptor.market_time?.calendar_id !== "string" ||
+    !Array.isArray(descriptor.market_time?.session_ids) ||
+    descriptor.market_time.session_ids.length < 2 ||
+    typeof descriptor.market_time?.replay_id !== "string" ||
+    !Number.isInteger(descriptor.market_time?.event_count) ||
+    descriptor.market_time.event_count < 3 ||
+    !/^[0-9a-f]{64}$/.test(descriptor.market_time?.event_stream_digest ?? "") ||
+    descriptor.market_time?.checkpoint?.status !== "paused" ||
+    !Number.isInteger(descriptor.market_time?.checkpoint?.position) ||
+    !Array.isArray(descriptor.market_time?.recovery?.remaining_event_ids) ||
+    descriptor.market_time?.recovery?.final_status !== "completed" ||
+    descriptor.market_time?.recovery?.final_position !==
+      descriptor.market_time?.event_count
   ) {
     throw new Error("Demo workspace descriptor returned an unexpected contract");
   }
@@ -483,6 +497,51 @@ async function verifyDemoJourney(
     ledger.events.some((event) => event.account_id !== paperAccount.account_id)
   ) {
     throw new Error("Demo Paper Account ledger returned an unexpected contract");
+  }
+  const marketTime = descriptor.market_time;
+  const calendarResponse = await request(
+    fetchImpl,
+    origin,
+    `/api/backend/api/v1/market-time/calendars/${encoded(marketTime.calendar_id)}`,
+    { authorization },
+  );
+  await expectStatus(calendarResponse, 200, "Demo trading calendar");
+  const calendar = await expectJson(calendarResponse, "Demo trading calendar");
+  if (
+    calendar.calendar?.id !== marketTime.calendar_id ||
+    !Array.isArray(calendar.sessions) ||
+    calendar.sessions.map((session) => session.id).join(",") !==
+      marketTime.session_ids.join(",")
+  ) {
+    throw new Error("Demo trading calendar returned an unexpected contract");
+  }
+  const replayResponse = await request(
+    fetchImpl,
+    origin,
+    `/api/backend/api/v1/market-time/replays/${encoded(marketTime.replay_id)}`,
+    { authorization },
+  );
+  await expectStatus(replayResponse, 200, "Demo market-data replay");
+  const replay = await expectJson(replayResponse, "Demo market-data replay");
+  const replayEventIds = Array.isArray(replay.events)
+    ? replay.events.map((event) => event.event_id)
+    : [];
+  if (
+    replay.session?.replay_id !== marketTime.replay_id ||
+    replay.event_count !== marketTime.event_count ||
+    replayEventIds.length !== marketTime.event_count ||
+    replay.session?.cursor?.event_stream_digest !==
+      marketTime.event_stream_digest ||
+    replay.session?.cursor?.status !== marketTime.checkpoint.status ||
+    replay.session?.cursor?.position !== marketTime.checkpoint.position ||
+    replay.session?.cursor?.last_event_id !==
+      marketTime.checkpoint.last_event_id ||
+    replay.session?.cursor?.current_event_time !==
+      marketTime.checkpoint.current_time ||
+    replayEventIds.slice(marketTime.checkpoint.position).join(",") !==
+      marketTime.recovery.remaining_event_ids.join(",")
+  ) {
+    throw new Error("Demo market-data replay returned an unexpected contract");
   }
   const comparisonQuery = new URLSearchParams();
   for (const jobId of descriptor.comparison_candidate_job_ids) {

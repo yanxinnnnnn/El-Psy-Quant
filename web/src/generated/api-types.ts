@@ -880,6 +880,51 @@ export interface components {
              */
             manifest_type: "strategy_decision_manifest" | "report_artifact_manifest" | "strategy_review_workflow_manifest";
         };
+        /** DemoMarketTimeCheckpointResponse */
+        DemoMarketTimeCheckpointResponse: {
+            /** Current Time */
+            current_time: string;
+            /** Last Event Id */
+            last_event_id: string;
+            /** Position */
+            position: number;
+            /**
+             * Status
+             * @constant
+             */
+            status: "paused";
+        };
+        /** DemoMarketTimeRecoveryResponse */
+        DemoMarketTimeRecoveryResponse: {
+            /** Current Time */
+            current_time: string;
+            /** Final Position */
+            final_position: number;
+            /**
+             * Final Status
+             * @constant
+             */
+            final_status: "completed";
+            /** Last Event Id */
+            last_event_id: string;
+            /** Remaining Event Ids */
+            remaining_event_ids: string[];
+        };
+        /** DemoMarketTimeReferenceResponse */
+        DemoMarketTimeReferenceResponse: {
+            /** Calendar Id */
+            calendar_id: string;
+            checkpoint: components["schemas"]["DemoMarketTimeCheckpointResponse"];
+            /** Event Count */
+            event_count: number;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            recovery: components["schemas"]["DemoMarketTimeRecoveryResponse"];
+            /** Replay Id */
+            replay_id: string;
+            /** Session Ids */
+            session_ids: string[];
+        };
         /** DemoPaperAccountReferenceResponse */
         DemoPaperAccountReferenceResponse: {
             /** Account Id */
@@ -935,6 +980,7 @@ export interface components {
             evidence_manifests: components["schemas"]["DemoEvidenceManifestReferenceResponse"][];
             lifecycle_proposal_example: components["schemas"]["LifecycleTransitionProposalCommandRequest"];
             lifecycle_review_example: components["schemas"]["LifecycleTransitionReviewCommandRequest"];
+            market_time: components["schemas"]["DemoMarketTimeReferenceResponse"];
             paper_account: components["schemas"]["DemoPaperAccountReferenceResponse"];
             paper_job_submission_example: components["schemas"]["DemoPaperJobSubmissionExampleResponse"];
             /** Paper Jobs */
@@ -945,7 +991,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: 3;
+            schema_version: 4;
             /** Warning */
             warning: string;
         };

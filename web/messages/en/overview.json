@@ -72,6 +72,7 @@
     "comparisonStep": "{step}. Compare the two ordered demo results",
     "lifecycleStep": "{step}. Prepare a proposal and record explicit human decision evidence",
     "paperAccountStep": "{step}. Inspect durable ledger replay, snapshot, and reconciliation evidence",
+    "marketTimeStep": "{step}. Inspect the deterministic paused replay and recovery evidence",
     "demoBoundary": "Each link comes from the validated backend descriptor. No fixture identity or evidence payload is defined in the browser."
   },
   "dashboard": {
@@ -281,12 +282,15 @@
         "portfolioReview": "{step}. Inspect the deterministic Demo Portfolio Review",
         "lifecycle": "{step}. Open Lifecycle Review with descriptor examples",
         "paperAccount": "{step}. Inspect the durable Demo Paper Account ledger",
+        "marketTime": "{step}. Inspect the deterministic Demo market-time replay",
         "audit": "Descriptor-provided workflow identities",
         "proposal": "Proposal example",
         "humanDecision": "Human-decision evidence",
         "submission": "Submission example idempotency key",
         "snapshot": "Paper Account snapshot evidence",
-        "reconciliation": "Paper Account reconciliation evidence"
+        "reconciliation": "Paper Account reconciliation evidence",
+        "replayCheckpoint": "Paused replay cursor position",
+        "recoveryStatus": "In-memory recovery result"
       }
     },
     "technical": {

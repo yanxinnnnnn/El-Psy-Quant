@@ -693,6 +693,7 @@ function isDemoWorkspaceDescriptor(
     "paper_job_submission_example",
     "portfolio_review_example",
     "paper_account",
+    "market_time",
   ])) {
     return false;
   }
@@ -703,9 +704,9 @@ function isDemoWorkspaceDescriptor(
         .filter(isString)
     : [];
   return (
-    value.schema_version === 3 &&
+    value.schema_version === 4 &&
     isString(value.dataset_id) &&
-    value.dataset_version === 3 &&
+    value.dataset_version === 4 &&
     isString(value.display_name) &&
     isString(value.warning) &&
     isString(value.canonical_strategy_name) &&
@@ -761,7 +762,64 @@ function isDemoWorkspaceDescriptor(
       "account_reactivated",
     ].join(",") &&
     isNormalizedNonblankString(value.paper_account.snapshot_id) &&
-    isNormalizedNonblankString(value.paper_account.reconciliation_id)
+    isNormalizedNonblankString(value.paper_account.reconciliation_id) &&
+    isObject(value.market_time) &&
+    hasOnlyKeys(value.market_time, [
+      "calendar_id",
+      "session_ids",
+      "replay_id",
+      "event_count",
+      "event_stream_digest",
+      "checkpoint",
+      "recovery",
+    ]) &&
+    isNormalizedNonblankString(value.market_time.calendar_id) &&
+    Array.isArray(value.market_time.session_ids) &&
+    value.market_time.session_ids.length >= 2 &&
+    value.market_time.session_ids.every(isNormalizedNonblankString) &&
+    new Set(value.market_time.session_ids).size ===
+      value.market_time.session_ids.length &&
+    isNormalizedNonblankString(value.market_time.replay_id) &&
+    Number.isInteger(value.market_time.event_count) &&
+    (value.market_time.event_count as number) >= 3 &&
+    typeof value.market_time.event_stream_digest === "string" &&
+    /^[0-9a-f]{64}$/.test(value.market_time.event_stream_digest) &&
+    isObject(value.market_time.checkpoint) &&
+    hasOnlyKeys(value.market_time.checkpoint, [
+      "status",
+      "position",
+      "last_event_id",
+      "current_time",
+    ]) &&
+    value.market_time.checkpoint.status === "paused" &&
+    Number.isInteger(value.market_time.checkpoint.position) &&
+    (value.market_time.checkpoint.position as number) >= 1 &&
+    (value.market_time.checkpoint.position as number) <
+      (value.market_time.event_count as number) &&
+    isNormalizedNonblankString(value.market_time.checkpoint.last_event_id) &&
+    isNormalizedNonblankString(value.market_time.checkpoint.current_time) &&
+    isObject(value.market_time.recovery) &&
+    hasOnlyKeys(value.market_time.recovery, [
+      "remaining_event_ids",
+      "final_status",
+      "final_position",
+      "last_event_id",
+      "current_time",
+    ]) &&
+    Array.isArray(value.market_time.recovery.remaining_event_ids) &&
+    value.market_time.recovery.remaining_event_ids.every(
+      isNormalizedNonblankString,
+    ) &&
+    value.market_time.recovery.remaining_event_ids.length ===
+      (value.market_time.event_count as number) -
+        (value.market_time.checkpoint.position as number) &&
+    value.market_time.recovery.final_status === "completed" &&
+    value.market_time.recovery.final_position ===
+      value.market_time.event_count &&
+    isNormalizedNonblankString(value.market_time.recovery.last_event_id) &&
+    value.market_time.recovery.last_event_id ===
+      value.market_time.recovery.remaining_event_ids.at(-1) &&
+    isNormalizedNonblankString(value.market_time.recovery.current_time)
   );
 }
 

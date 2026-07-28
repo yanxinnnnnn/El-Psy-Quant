@@ -112,6 +112,116 @@
         "title": "DemoEvidenceManifestReferenceResponse",
         "type": "object"
       },
+      "DemoMarketTimeCheckpointResponse": {
+        "properties": {
+          "current_time": {
+            "title": "Current Time",
+            "type": "string"
+          },
+          "last_event_id": {
+            "title": "Last Event Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "status": {
+            "const": "paused",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "position",
+          "last_event_id",
+          "current_time"
+        ],
+        "title": "DemoMarketTimeCheckpointResponse",
+        "type": "object"
+      },
+      "DemoMarketTimeRecoveryResponse": {
+        "properties": {
+          "current_time": {
+            "title": "Current Time",
+            "type": "string"
+          },
+          "final_position": {
+            "title": "Final Position",
+            "type": "integer"
+          },
+          "final_status": {
+            "const": "completed",
+            "title": "Final Status",
+            "type": "string"
+          },
+          "last_event_id": {
+            "title": "Last Event Id",
+            "type": "string"
+          },
+          "remaining_event_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Remaining Event Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "remaining_event_ids",
+          "final_status",
+          "final_position",
+          "last_event_id",
+          "current_time"
+        ],
+        "title": "DemoMarketTimeRecoveryResponse",
+        "type": "object"
+      },
+      "DemoMarketTimeReferenceResponse": {
+        "properties": {
+          "calendar_id": {
+            "title": "Calendar Id",
+            "type": "string"
+          },
+          "checkpoint": {
+            "$ref": "#/components/schemas/DemoMarketTimeCheckpointResponse"
+          },
+          "event_count": {
+            "title": "Event Count",
+            "type": "integer"
+          },
+          "event_stream_digest": {
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "recovery": {
+            "$ref": "#/components/schemas/DemoMarketTimeRecoveryResponse"
+          },
+          "replay_id": {
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "session_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Session Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "calendar_id",
+          "session_ids",
+          "replay_id",
+          "event_count",
+          "event_stream_digest",
+          "checkpoint",
+          "recovery"
+        ],
+        "title": "DemoMarketTimeReferenceResponse",
+        "type": "object"
+      },
       "DemoPaperAccountReferenceResponse": {
         "properties": {
           "account_id": {
@@ -263,6 +373,9 @@
           "lifecycle_review_example": {
             "$ref": "#/components/schemas/LifecycleTransitionReviewCommandRequest"
           },
+          "market_time": {
+            "$ref": "#/components/schemas/DemoMarketTimeReferenceResponse"
+          },
           "paper_account": {
             "$ref": "#/components/schemas/DemoPaperAccountReferenceResponse"
           },
@@ -283,7 +396,7 @@
             "$ref": "#/components/schemas/DemoResearchRunReferenceResponse"
           },
           "schema_version": {
-            "const": 3,
+            "const": 4,
             "title": "Schema Version",
             "type": "integer"
           },
@@ -307,7 +420,8 @@
           "lifecycle_review_example",
           "paper_job_submission_example",
           "portfolio_review_example",
-          "paper_account"
+          "paper_account",
+          "market_time"
         ],
         "title": "DemoWorkspaceDescriptorResponse",
         "type": "object"
