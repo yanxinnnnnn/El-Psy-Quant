@@ -16,6 +16,7 @@ export const REQUIRED_NAMESPACES = Object.freeze([
   "comparisons",
   "portfolio-reviews",
   "paper-accounts",
+  "market-time",
   "lifecycle",
   "errors",
 ]);
@@ -76,6 +77,8 @@ export const REQUIRED_ERROR_CODES = Object.freeze([
   "paper_account_snapshot_conflict",
   "paper_account_storage_busy",
   "paper_account_schema_incompatible",
+  "market_time_not_found",
+  "market_time_invalid",
   "demo_workspace_not_configured",
   "demo_workspace_unavailable",
 ]);
@@ -306,6 +309,7 @@ export async function validateMessageCatalogs(messagesRoot) {
         : namespace === "portfolio-records" ? "portfolioRecords"
           : namespace === "portfolio-reviews" ? "portfolioReviews"
             : namespace === "paper-accounts" ? "paperAccounts"
+              : namespace === "market-time" ? "marketTime"
           : namespace] = parsed;
     }
     const translator = createTranslator({ locale, messages });

@@ -66,6 +66,8 @@ export const ERROR_PRESENTATION_INVENTORY = {
   paper_account_snapshot_conflict: "conflict",
   paper_account_storage_busy: "unavailable",
   paper_account_schema_incompatible: "unavailable",
+  market_time_not_found: "not_found",
+  market_time_invalid: "invalid",
   demo_workspace_not_configured: "not_found",
   demo_workspace_unavailable: "unavailable",
 } as const satisfies Readonly<Record<string, Exclude<ErrorCategory, "unknown">>>;

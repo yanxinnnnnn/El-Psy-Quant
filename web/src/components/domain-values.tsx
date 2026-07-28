@@ -232,3 +232,28 @@ export function PaperAccountReconciliationOutcomeValue({
     />
   );
 }
+
+export function ReplayStatusValue({ value }: { value: string }) {
+  const t = useTranslations("marketTime.statuses");
+  const label =
+    value === "ready"
+      ? t("ready")
+      : value === "running"
+        ? t("running")
+        : value === "paused"
+          ? t("paused")
+          : value === "completed"
+            ? t("completed")
+            : value;
+  const tone: StatusTone =
+    value === "ready"
+      ? "neutral"
+      : value === "running"
+        ? "info"
+        : value === "paused"
+          ? "warning"
+          : value === "completed"
+            ? "success"
+            : "neutral";
+  return <StatusBadge label={label} rawValue={value} tone={tone} />;
+}
