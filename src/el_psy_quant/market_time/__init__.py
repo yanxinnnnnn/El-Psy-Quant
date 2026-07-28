@@ -19,12 +19,26 @@ from el_psy_quant.market_time.events import (
     normalize_market_instrument_id,
     sort_and_validate_market_data_events,
 )
+from el_psy_quant.market_time.replay import (
+    MARKET_DATA_REPLAY_STATE_SCHEMA_VERSION,
+    SUPPORTED_MARKET_DATA_REPLAY_STATUSES,
+    MarketDataReplayEngine,
+    MarketDataReplayStatus,
+    ReplayCursor,
+    ReplaySession,
+)
 
 __all__ = [
     "MARKET_DATA_EVENT_SCHEMA_VERSION",
+    "MARKET_DATA_REPLAY_STATE_SCHEMA_VERSION",
     "MARKET_TIME_RECORD_SCHEMA_VERSION",
+    "SUPPORTED_MARKET_DATA_REPLAY_STATUSES",
     "SUPPORTED_MARKET_DATA_EVENT_SCHEMA_VERSIONS",
     "MarketDataEvent",
+    "MarketDataReplayEngine",
+    "MarketDataReplayStatus",
+    "ReplayCursor",
+    "ReplaySession",
     "TradingCalendar",
     "TradingSession",
     "create_market_data_event",
