@@ -134,6 +134,8 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
     assert set(persistence.__all__) == {
         "ArtifactIndexEntry",
         "ArtifactIndexRepository",
+        "MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION",
+        "MarketDataReplayRecord",
         "MarketTimeRepository",
         "PAPER_ACCOUNT_PERSISTENCE_RECORD_SCHEMA_VERSION",
         "PAPER_ACCOUNT_RECORD_SCHEMA_VERSION",
@@ -181,6 +183,7 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "SqlAlchemyPortfolioReviewRepository",
         "complete_paper_job_attempt",
         "create_artifact_index_entry",
+        "create_market_data_replay_record",
         "create_product_database_engine",
         "create_product_session_factory",
         "create_awaiting_portfolio_review_record",

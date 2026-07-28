@@ -8,8 +8,10 @@ from sqlalchemy import (
     DateTime,
     ForeignKeyConstraint,
     Index,
+    Integer,
     PrimaryKeyConstraint,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -133,3 +135,189 @@ class TradingSessionRow(ProductPersistenceBase):
         nullable=False,
     )
     session_type: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class MarketDataEventRow(ProductPersistenceBase):
+    """Internal persisted representation of one canonical market-data event."""
+
+    __tablename__ = "market_data_events"
+    __table_args__ = (
+        PrimaryKeyConstraint("event_id", name="pk_market_data_events"),
+        CheckConstraint(
+            "record_schema_version = 1",
+            name="ck_market_data_events_record_schema_version",
+        ),
+        CheckConstraint(
+            "event_schema_version = 1",
+            name="ck_market_data_events_event_schema_version",
+        ),
+        CheckConstraint(
+            "length(event_id) BETWEEN 1 AND 512 "
+            "AND event_id = trim(event_id)",
+            name="ck_market_data_events_identity",
+        ),
+        CheckConstraint(
+            "length(instrument_id) BETWEEN 1 AND 512 "
+            "AND instrument_id = trim(instrument_id)",
+            name="ck_market_data_events_instrument_identity",
+        ),
+        CheckConstraint(
+            "length(event_json) >= 2",
+            name="ck_market_data_events_canonical_json",
+        ),
+        Index(
+            "ix_market_data_events_time_id",
+            "event_time",
+            "event_id",
+        ),
+    )
+
+    record_schema_version: Mapped[int] = mapped_column(nullable=False)
+    event_schema_version: Mapped[int] = mapped_column(nullable=False)
+    event_id: Mapped[str] = mapped_column(String(512), nullable=False)
+    instrument_id: Mapped[str] = mapped_column(String(512), nullable=False)
+    event_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+    event_json: Mapped[str] = mapped_column(Text(), nullable=False)
+
+
+class MarketDataReplayRow(ProductPersistenceBase):
+    """Internal persisted representation of one replay recovery checkpoint."""
+
+    __tablename__ = "market_data_replays"
+    __table_args__ = (
+        PrimaryKeyConstraint("replay_id", name="pk_market_data_replays"),
+        CheckConstraint(
+            "record_schema_version = 1",
+            name="ck_market_data_replays_record_schema_version",
+        ),
+        CheckConstraint(
+            "replay_state_schema_version = 1",
+            name="ck_market_data_replays_state_schema_version",
+        ),
+        CheckConstraint(
+            "length(replay_id) BETWEEN 1 AND 512 "
+            "AND replay_id = trim(replay_id)",
+            name="ck_market_data_replays_identity",
+        ),
+        CheckConstraint(
+            "length(event_stream_digest) = 64 "
+            "AND event_stream_digest NOT GLOB '*[^0-9a-f]*'",
+            name="ck_market_data_replays_stream_digest",
+        ),
+        CheckConstraint(
+            "event_count >= 0 AND position >= 0 AND position <= event_count",
+            name="ck_market_data_replays_positions",
+        ),
+        CheckConstraint(
+            "(event_count = 0 AND start_time IS NULL) "
+            "OR (event_count > 0 AND start_time IS NOT NULL)",
+            name="ck_market_data_replays_start_time",
+        ),
+        CheckConstraint(
+            "(last_event_id IS NULL AND current_event_time IS NULL) "
+            "OR (last_event_id IS NOT NULL AND current_event_time IS NOT NULL)",
+            name="ck_market_data_replays_cursor_pair",
+        ),
+        CheckConstraint(
+            "(position = 0 AND last_event_id IS NULL) "
+            "OR (position > 0 AND last_event_id IS NOT NULL)",
+            name="ck_market_data_replays_consumed_event",
+        ),
+        CheckConstraint(
+            "status IN ('ready', 'running', 'paused', 'completed')",
+            name="ck_market_data_replays_status",
+        ),
+        CheckConstraint(
+            "status != 'ready' OR position = 0",
+            name="ck_market_data_replays_ready_position",
+        ),
+        CheckConstraint(
+            "status != 'completed' OR position = event_count",
+            name="ck_market_data_replays_completed_position",
+        ),
+        Index(
+            "ix_market_data_replays_status_id",
+            "status",
+            "replay_id",
+        ),
+    )
+
+    record_schema_version: Mapped[int] = mapped_column(nullable=False)
+    replay_state_schema_version: Mapped[int] = mapped_column(nullable=False)
+    replay_id: Mapped[str] = mapped_column(String(512), nullable=False)
+    event_stream_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    event_count: Mapped[int] = mapped_column(Integer(), nullable=False)
+    start_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    position: Mapped[int] = mapped_column(Integer(), nullable=False)
+    last_event_id: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+    )
+    current_event_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+
+
+class MarketDataReplayEventRow(ProductPersistenceBase):
+    """Immutable membership and canonical order for one replay event stream."""
+
+    __tablename__ = "market_data_replay_events"
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            "replay_id",
+            "event_position",
+            name="pk_market_data_replay_events",
+        ),
+        ForeignKeyConstraint(
+            ("replay_id",),
+            ("market_data_replays.replay_id",),
+            name="fk_market_data_replay_events_replay_id",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ("event_id",),
+            ("market_data_events.event_id",),
+            name="fk_market_data_replay_events_event_id",
+            ondelete="RESTRICT",
+        ),
+        UniqueConstraint(
+            "replay_id",
+            "event_id",
+            name="uq_market_data_replay_events_identity",
+        ),
+        CheckConstraint(
+            "record_schema_version = 1",
+            name="ck_market_data_replay_events_record_schema_version",
+        ),
+        CheckConstraint(
+            "length(replay_id) BETWEEN 1 AND 512 "
+            "AND replay_id = trim(replay_id)",
+            name="ck_market_data_replay_events_replay_identity",
+        ),
+        CheckConstraint(
+            "event_position >= 0",
+            name="ck_market_data_replay_events_position",
+        ),
+        CheckConstraint(
+            "length(event_id) BETWEEN 1 AND 512 "
+            "AND event_id = trim(event_id)",
+            name="ck_market_data_replay_events_event_identity",
+        ),
+        Index(
+            "ix_market_data_replay_events_event_id",
+            "event_id",
+        ),
+    )
+
+    record_schema_version: Mapped[int] = mapped_column(nullable=False)
+    replay_id: Mapped[str] = mapped_column(String(512), nullable=False)
+    event_position: Mapped[int] = mapped_column(Integer(), nullable=False)
+    event_id: Mapped[str] = mapped_column(String(512), nullable=False)

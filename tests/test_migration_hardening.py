@@ -34,6 +34,7 @@ MIGRATION_CHAIN = (
     "0005_paper_job_result_references",
     "0006_portfolio_reviews",
     "0007_paper_account_ledger",
+    "0008_market_time_foundation",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -269,7 +270,7 @@ def test_offline_head_sql_is_cwd_independent_and_creates_no_database(
     assert not path.exists()
 
 
-def test_no_new_or_modified_migration_shape_exists() -> None:
+def test_migration_shape_matches_the_approved_linear_chain() -> None:
     version_root = (
         PROJECT_ROOT
         / "src"
@@ -288,4 +289,5 @@ def test_no_new_or_modified_migration_shape_exists() -> None:
         "0006_portfolio_reviews",
         "0007_paper_account_ledger",
         "0008_market_time_foundation",
+        "0009_market_time_runtime",
     )

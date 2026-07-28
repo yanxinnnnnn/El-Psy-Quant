@@ -25,11 +25,15 @@ EXPECTED_MIGRATION_RESOURCES = (
     f"{WHEEL_MIGRATION_ROOT}/versions/0006_portfolio_reviews.py",
     f"{WHEEL_MIGRATION_ROOT}/versions/0007_paper_account_ledger.py",
     f"{WHEEL_MIGRATION_ROOT}/versions/0008_market_time_foundation.py",
+    f"{WHEEL_MIGRATION_ROOT}/versions/0009_market_time_runtime.py",
 )
-EXPECTED_HEAD_OUTPUT = "0008_market_time_foundation (head)"
+EXPECTED_HEAD_OUTPUT = "0009_market_time_runtime (head)"
 EXPECTED_PRODUCT_TABLES = {
     "alembic_version",
     "artifact_index_entries",
+    "market_data_events",
+    "market_data_replay_events",
+    "market_data_replays",
     "paper_account_creation_keys",
     "paper_account_events",
     "paper_account_position_projections",
@@ -51,6 +55,11 @@ EXPECTED_MARKET_TIME_TABLES = {
     "trading_calendars",
     "trading_sessions",
 }
+EXPECTED_MARKET_TIME_RUNTIME_TABLES = {
+    "market_data_events",
+    "market_data_replay_events",
+    "market_data_replays",
+}
 EXPECTED_0007_TABLES = EXPECTED_PRODUCT_TABLES - {
     "alembic_version",
     "artifact_index_entries",
@@ -59,6 +68,7 @@ EXPECTED_0007_TABLES = EXPECTED_PRODUCT_TABLES - {
     "paper_job_attempts",
     "paper_job_result_references",
     *EXPECTED_MARKET_TIME_TABLES,
+    *EXPECTED_MARKET_TIME_RUNTIME_TABLES,
 }
 EXPECTED_PAPER_ACCOUNT_TABLES = EXPECTED_0007_TABLES - {
     "portfolio_reviews",
@@ -244,7 +254,7 @@ def _verify_fresh_upgrade(
         revision_rows = connection.execute(
             "SELECT version_num FROM alembic_version"
         ).fetchall()
-        if revision_rows != [("0008_market_time_foundation",)]:
+        if revision_rows != [("0009_market_time_runtime",)]:
             raise GateError("fresh installed-wheel upgrade did not reach head")
         if _tables(connection) != EXPECTED_PRODUCT_TABLES:
             raise GateError("fresh installed-wheel upgrade created an invalid schema")
@@ -293,10 +303,13 @@ def _verify_0005_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0008_market_time_foundation",)]:
-            raise GateError("installed-wheel 0005 upgrade did not reach 0008")
+        ).fetchall() != [("0009_market_time_runtime",)]:
+            raise GateError("installed-wheel 0005 upgrade did not reach 0009")
         if _tables(connection) != (
-            before_tables | EXPECTED_0007_TABLES | EXPECTED_MARKET_TIME_TABLES
+            before_tables
+            | EXPECTED_0007_TABLES
+            | EXPECTED_MARKET_TIME_TABLES
+            | EXPECTED_MARKET_TIME_RUNTIME_TABLES
         ):
             raise GateError("installed-wheel 0005 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
@@ -391,12 +404,13 @@ def _verify_0006_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0008_market_time_foundation",)]:
-            raise GateError("installed-wheel 0006 upgrade did not reach 0008")
+        ).fetchall() != [("0009_market_time_runtime",)]:
+            raise GateError("installed-wheel 0006 upgrade did not reach 0009")
         if _tables(connection) != (
             before_tables
             | EXPECTED_PAPER_ACCOUNT_TABLES
             | EXPECTED_MARKET_TIME_TABLES
+            | EXPECTED_MARKET_TIME_RUNTIME_TABLES
         ):
             raise GateError("installed-wheel 0006 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
@@ -443,9 +457,13 @@ def _verify_0007_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0008_market_time_foundation",)]:
-            raise GateError("installed-wheel 0007 upgrade did not reach 0008")
-        if _tables(connection) != before_tables | EXPECTED_MARKET_TIME_TABLES:
+        ).fetchall() != [("0009_market_time_runtime",)]:
+            raise GateError("installed-wheel 0007 upgrade did not reach 0009")
+        if _tables(connection) != (
+            before_tables
+            | EXPECTED_MARKET_TIME_TABLES
+            | EXPECTED_MARKET_TIME_RUNTIME_TABLES
+        ):
             raise GateError("installed-wheel 0007 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
             raise GateError("installed-wheel 0007 upgrade changed existing data")
@@ -454,9 +472,77 @@ def _verify_0007_upgrade(
                 f'SELECT COUNT(*) FROM "{table_name}"'
             ).fetchone()
             != (0,)
-            for table_name in EXPECTED_MARKET_TIME_TABLES
+            for table_name in (
+                EXPECTED_MARKET_TIME_TABLES
+                | EXPECTED_MARKET_TIME_RUNTIME_TABLES
+            )
         ):
             raise GateError("installed-wheel 0007 upgrade seeded market time")
+
+
+def _verify_0008_upgrade(
+    target: Path, config: Path, working: Path, database: Path
+) -> None:
+    _alembic(
+        target,
+        config,
+        working,
+        "upgrade",
+        "0008_market_time_foundation",
+        database_path=database,
+    )
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute(
+            """
+            INSERT INTO trading_calendars (
+                record_schema_version, calendar_id, market, timezone,
+                calendar_version, created_at
+            ) VALUES (
+                1, 'packaged-xnys-v1', 'XNYS', 'America/New_York',
+                1, '2026-07-28 00:00:00'
+            )
+            """
+        )
+        connection.execute(
+            "CREATE TABLE preserved_0008_gate_data "
+            "(identity TEXT PRIMARY KEY, value TEXT)"
+        )
+        connection.execute(
+            "INSERT INTO preserved_0008_gate_data "
+            "VALUES ('existing', 'preserve-me')"
+        )
+        connection.commit()
+        before_tables = _tables(connection)
+        before_rows = _rows(connection, before_tables)
+
+    _alembic(
+        target,
+        config,
+        working,
+        "upgrade",
+        "head",
+        database_path=database,
+    )
+
+    with closing(sqlite3.connect(database)) as connection:
+        if connection.execute(
+            "SELECT version_num FROM alembic_version"
+        ).fetchall() != [("0009_market_time_runtime",)]:
+            raise GateError("installed-wheel 0008 upgrade did not reach 0009")
+        if _tables(connection) != (
+            before_tables | EXPECTED_MARKET_TIME_RUNTIME_TABLES
+        ):
+            raise GateError("installed-wheel 0008 upgrade changed unrelated tables")
+        if _rows(connection, before_tables) != before_rows:
+            raise GateError("installed-wheel 0008 upgrade changed existing data")
+        if any(
+            connection.execute(
+                f'SELECT COUNT(*) FROM "{table_name}"'
+            ).fetchone()
+            != (0,)
+            for table_name in EXPECTED_MARKET_TIME_RUNTIME_TABLES
+        ):
+            raise GateError("installed-wheel 0008 upgrade seeded replay state")
 
 
 def _verify_fail_closed(
@@ -560,6 +646,12 @@ def main() -> int:
                 working,
                 root / "upgrade-0007.sqlite3",
             )
+            _verify_0008_upgrade(
+                installed,
+                config,
+                working,
+                root / "upgrade-0008.sqlite3",
+            )
 
             missing = root / "missing-resource"
             shutil.copytree(installed, missing)
@@ -577,13 +669,13 @@ def main() -> int:
                 mismatched
                 / Path(WHEEL_MIGRATION_ROOT)
                 / "versions"
-                / "0008_market_time_foundation.py"
+                / "0009_market_time_runtime.py"
             )
             revision_text = revision_path.read_text(encoding="utf-8")
             revision_path.write_text(
                 revision_text.replace(
-                    'revision: str = "0008_market_time_foundation"',
-                    'revision: str = "0009_unexpected_head"',
+                    'revision: str = "0009_market_time_runtime"',
+                    'revision: str = "0010_unexpected_head"',
                     1,
                 ),
                 encoding="utf-8",
@@ -600,8 +692,8 @@ def main() -> int:
 
     print(
         "installed-wheel migration-resource gate passed: complete resources; "
-        "0008_market_time_foundation head; fresh, 0005, populated 0006, "
-        "and preserved 0007 upgrades; "
+        "0009_market_time_runtime head; fresh, 0005, populated 0006, "
+        "preserved 0007, and populated 0008 upgrades; "
         "fail-closed probes"
     )
     return 0

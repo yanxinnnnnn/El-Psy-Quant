@@ -124,6 +124,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/market-time/calendars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Trading Calendars
+         * @description List immutable calendar versions without inferring availability.
+         */
+        get: operations["get_trading_calendars_api_v1_market_time_calendars_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market-time/calendars/{calendar_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Trading Calendar
+         * @description Inspect one calendar and a bounded deterministic session list.
+         */
+        get: operations["get_trading_calendar_api_v1_market_time_calendars__calendar_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market-time/replays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Market Data Replays
+         * @description List persisted replay status without advancing any cursor.
+         */
+        get: operations["get_market_data_replays_api_v1_market_time_replays_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market-time/replays/{replay_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Market Data Replay
+         * @description Inspect one validated checkpoint and exact canonical event stream.
+         */
+        get: operations["get_market_data_replay_api_v1_market_time_replays__replay_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/paper-accounts": {
         parameters: {
             query?: never;
@@ -817,6 +897,41 @@ export interface components {
         /** LifecycleTransitionReviewCommandResponse */
         LifecycleTransitionReviewCommandResponse: {
             transition_record: components["schemas"]["StrategyLifecycleTransitionRecordResponse"];
+        };
+        /** MarketDataEventResponse */
+        MarketDataEventResponse: {
+            /** Event Id */
+            event_id: string;
+            /** Event Time */
+            event_time: string;
+            /** Event Type */
+            event_type: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Source */
+            source: string;
+        };
+        /** MarketDataReplayDetailResponse */
+        MarketDataReplayDetailResponse: {
+            /** Event Count */
+            event_count: number;
+            /** Events */
+            events: components["schemas"]["MarketDataEventResponse"][];
+            /**
+             * Record Schema Version
+             * @constant
+             */
+            record_schema_version: 1;
+            session: components["schemas"]["ReplaySessionResponse"];
         };
         /** PaperAccountCashMovementRequest */
         PaperAccountCashMovementRequest: {
@@ -2562,6 +2677,49 @@ export interface components {
             /** Trough Date */
             trough_date: string;
         };
+        /** ReplayCursorResponse */
+        ReplayCursorResponse: {
+            /** Current Event Time */
+            current_event_time: string | null;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            /** Last Event Id */
+            last_event_id: string | null;
+            /** Position */
+            position: number;
+            /** Replay Id */
+            replay_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "running" | "paused" | "completed";
+        };
+        /** ReplaySessionResponse */
+        ReplaySessionResponse: {
+            /** Current Time */
+            current_time: string | null;
+            cursor: components["schemas"]["ReplayCursorResponse"];
+            /** Replay Id */
+            replay_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Start Time */
+            start_time: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "running" | "paused" | "completed";
+        };
         /** ReportArtifactManifestDetailResponse */
         ReportArtifactManifestDetailResponse: {
             /** Artifact Key */
@@ -2931,6 +3089,50 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** TradingCalendarDetailResponse */
+        TradingCalendarDetailResponse: {
+            calendar: components["schemas"]["TradingCalendarResponse"];
+            /** Sessions */
+            sessions: components["schemas"]["TradingSessionResponse"][];
+        };
+        /** TradingCalendarResponse */
+        TradingCalendarResponse: {
+            /** Calendar Version */
+            calendar_version: number;
+            /** Created At */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Market */
+            market: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Timezone */
+            timezone: string;
+        };
+        /** TradingSessionResponse */
+        TradingSessionResponse: {
+            /** Calendar Id */
+            calendar_id: string;
+            /** Close Time */
+            close_time: string;
+            /** Id */
+            id: string;
+            /** Open Time */
+            open_time: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Session Type */
+            session_type: string;
+            /** Trading Date */
+            trading_date: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -3098,6 +3300,134 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LifecycleTransitionReviewCommandResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_trading_calendars_api_v1_market_time_calendars_get: {
+        parameters: {
+            query?: {
+                market?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradingCalendarResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_trading_calendar_api_v1_market_time_calendars__calendar_id__get: {
+        parameters: {
+            query?: {
+                start_date?: string | null;
+                end_date?: string | null;
+                session_type?: string | null;
+            };
+            header?: never;
+            path: {
+                calendar_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradingCalendarDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_market_data_replays_api_v1_market_time_replays_get: {
+        parameters: {
+            query?: {
+                status?: ("ready" | "running" | "paused" | "completed") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplaySessionResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_market_data_replay_api_v1_market_time_replays__replay_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                replay_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketDataReplayDetailResponse"];
                 };
             };
             /** @description Validation Error */

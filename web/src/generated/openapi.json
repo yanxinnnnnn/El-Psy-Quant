@@ -634,6 +634,84 @@
         "title": "LifecycleTransitionReviewCommandResponse",
         "type": "object"
       },
+      "MarketDataEventResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_time": {
+            "title": "Event Time",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "event_id",
+          "instrument_id",
+          "event_time",
+          "event_type",
+          "payload",
+          "source"
+        ],
+        "title": "MarketDataEventResponse",
+        "type": "object"
+      },
+      "MarketDataReplayDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "event_count": {
+            "title": "Event Count",
+            "type": "integer"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/MarketDataEventResponse"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "record_schema_version": {
+            "const": 1,
+            "title": "Record Schema Version",
+            "type": "integer"
+          },
+          "session": {
+            "$ref": "#/components/schemas/ReplaySessionResponse"
+          }
+        },
+        "required": [
+          "record_schema_version",
+          "session",
+          "event_count",
+          "events"
+        ],
+        "title": "MarketDataReplayDetailResponse",
+        "type": "object"
+      },
       "PaperAccountCashMovementRequest": {
         "additionalProperties": false,
         "properties": {
@@ -5272,6 +5350,130 @@
         "title": "PortfolioReviewWorstDrawdownResponse",
         "type": "object"
       },
+      "ReplayCursorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "current_event_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Event Time"
+          },
+          "event_stream_digest": {
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "last_event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Event Id"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "replay_id": {
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "running",
+              "paused",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replay_id",
+          "event_stream_digest",
+          "position",
+          "last_event_id",
+          "current_event_time",
+          "status"
+        ],
+        "title": "ReplayCursorResponse",
+        "type": "object"
+      },
+      "ReplaySessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "current_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Time"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/ReplayCursorResponse"
+          },
+          "replay_id": {
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "running",
+              "paused",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replay_id",
+          "status",
+          "start_time",
+          "current_time",
+          "cursor"
+        ],
+        "title": "ReplaySessionResponse",
+        "type": "object"
+      },
       "ReportArtifactManifestDetailResponse": {
         "properties": {
           "artifact_key": {
@@ -6368,6 +6570,112 @@
         "title": "StrategySummaryResponse",
         "type": "object"
       },
+      "TradingCalendarDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar": {
+            "$ref": "#/components/schemas/TradingCalendarResponse"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/TradingSessionResponse"
+            },
+            "title": "Sessions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "calendar",
+          "sessions"
+        ],
+        "title": "TradingCalendarDetailResponse",
+        "type": "object"
+      },
+      "TradingCalendarResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar_version": {
+            "title": "Calendar Version",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "market": {
+            "title": "Market",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id",
+          "market",
+          "timezone",
+          "calendar_version",
+          "created_at"
+        ],
+        "title": "TradingCalendarResponse",
+        "type": "object"
+      },
+      "TradingSessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar_id": {
+            "title": "Calendar Id",
+            "type": "string"
+          },
+          "close_time": {
+            "title": "Close Time",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "open_time": {
+            "title": "Open Time",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_type": {
+            "title": "Session Type",
+            "type": "string"
+          },
+          "trading_date": {
+            "title": "Trading Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id",
+          "calendar_id",
+          "trading_date",
+          "open_time",
+          "close_time",
+          "session_type"
+        ],
+        "title": "TradingSessionResponse",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -6617,6 +6925,244 @@
           }
         },
         "summary": "Post Lifecycle Transition Record"
+      }
+    },
+    "/api/v1/market-time/calendars": {
+      "get": {
+        "description": "List immutable calendar versions without inferring availability.",
+        "operationId": "get_trading_calendars_api_v1_market_time_calendars_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "market",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Market"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TradingCalendarResponse"
+                  },
+                  "title": "Response Get Trading Calendars Api V1 Market Time Calendars Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Trading Calendars"
+      }
+    },
+    "/api/v1/market-time/calendars/{calendar_id}": {
+      "get": {
+        "description": "Inspect one calendar and a bounded deterministic session list.",
+        "operationId": "get_trading_calendar_api_v1_market_time_calendars__calendar_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calendar_id",
+            "required": true,
+            "schema": {
+              "title": "Calendar Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start Date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End Date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "session_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradingCalendarDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Trading Calendar"
+      }
+    },
+    "/api/v1/market-time/replays": {
+      "get": {
+        "description": "List persisted replay status without advancing any cursor.",
+        "operationId": "get_market_data_replays_api_v1_market_time_replays_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "ready",
+                    "running",
+                    "paused",
+                    "completed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReplaySessionResponse"
+                  },
+                  "title": "Response Get Market Data Replays Api V1 Market Time Replays Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Market Data Replays"
+      }
+    },
+    "/api/v1/market-time/replays/{replay_id}": {
+      "get": {
+        "description": "Inspect one validated checkpoint and exact canonical event stream.",
+        "operationId": "get_market_data_replay_api_v1_market_time_replays__replay_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "replay_id",
+            "required": true,
+            "schema": {
+              "title": "Replay Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketDataReplayDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Market Data Replay"
       }
     },
     "/api/v1/paper-accounts": {

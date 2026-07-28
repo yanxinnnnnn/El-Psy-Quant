@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-CURRENT_PRODUCT_SCHEMA_REVISION = "0008_market_time_foundation"
+CURRENT_PRODUCT_SCHEMA_REVISION = "0009_market_time_runtime"
 APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0001_product_baseline",
     "0002_artifact_index",
@@ -14,6 +14,7 @@ APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0005_paper_job_result_references",
     "0006_portfolio_reviews",
     "0007_paper_account_ledger",
+    "0008_market_time_foundation",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -244,6 +245,32 @@ REQUIRED_PRODUCT_TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
         "close_time",
         "session_type",
     ),
+    "market_data_events": (
+        "record_schema_version",
+        "event_schema_version",
+        "event_id",
+        "instrument_id",
+        "event_time",
+        "event_json",
+    ),
+    "market_data_replays": (
+        "record_schema_version",
+        "replay_state_schema_version",
+        "replay_id",
+        "event_stream_digest",
+        "event_count",
+        "start_time",
+        "position",
+        "last_event_id",
+        "current_event_time",
+        "status",
+    ),
+    "market_data_replay_events": (
+        "record_schema_version",
+        "replay_id",
+        "event_position",
+        "event_id",
+    ),
 }
 
 REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
@@ -269,6 +296,15 @@ REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
     "trading_sessions": (
         "ix_trading_sessions_calendar_date_open",
     ),
+    "market_data_events": (
+        "ix_market_data_events_time_id",
+    ),
+    "market_data_replays": (
+        "ix_market_data_replays_status_id",
+    ),
+    "market_data_replay_events": (
+        "ix_market_data_replay_events_event_id",
+    ),
 }
 
 REQUIRED_PRODUCT_TRIGGERS = (
@@ -290,6 +326,12 @@ REQUIRED_PRODUCT_TRIGGERS = (
     "trg_trading_calendars_no_delete",
     "trg_trading_sessions_no_update",
     "trg_trading_sessions_no_delete",
+    "trg_market_data_events_no_update",
+    "trg_market_data_events_no_delete",
+    "trg_market_data_replay_events_no_update",
+    "trg_market_data_replay_events_no_delete",
+    "trg_market_data_replays_immutable_stream",
+    "trg_market_data_replays_no_delete",
 )
 
 

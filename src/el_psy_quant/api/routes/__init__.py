@@ -11,6 +11,7 @@ from el_psy_quant.api.routes.health import router as health_router
 from el_psy_quant.api.routes.lifecycle_commands import (
     router as lifecycle_commands_router,
 )
+from el_psy_quant.api.routes.market_time import router as market_time_router
 from el_psy_quant.api.routes.paper_runs import router as paper_runs_router
 from el_psy_quant.api.routes.paper_accounts import (
     router as paper_accounts_router,
@@ -32,6 +33,7 @@ api_v1_router.include_router(demo_workspace_router)
 api_v1_router.include_router(evidence_manifests_router)
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(lifecycle_commands_router)
+api_v1_router.include_router(market_time_router)
 api_v1_router.include_router(paper_runs_router)
 api_v1_router.include_router(paper_accounts_router)
 api_v1_router.include_router(paper_jobs_router)

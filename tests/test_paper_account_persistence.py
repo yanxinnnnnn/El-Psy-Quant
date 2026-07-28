@@ -192,7 +192,7 @@ def test_migration_adds_exact_tables_indexes_triggers_and_downgrades(
         assert {
             name
             for name in REQUIRED_PRODUCT_TRIGGERS
-            if not name.startswith("trg_trading_")
+            if not name.startswith(("trg_trading_", "trg_market_data_"))
         }.issubset(triggers)
         assert read_product_schema_revision(path) == REVISION
     finally:
