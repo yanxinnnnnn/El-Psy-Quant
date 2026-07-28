@@ -5,26 +5,42 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 from typing import Protocol
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from el_psy_quant.market_time import (
+    MARKET_DATA_EVENT_SCHEMA_VERSION,
+    MARKET_DATA_REPLAY_STATE_SCHEMA_VERSION,
     MARKET_TIME_RECORD_SCHEMA_VERSION,
+    SUPPORTED_MARKET_DATA_REPLAY_STATUSES,
+    MarketDataEvent,
+    MarketDataReplayStatus,
+    ReplayCursor,
+    ReplaySession,
     TradingCalendar,
     TradingSession,
     create_trading_calendar,
     create_trading_session,
+    market_data_event_from_json,
     sort_and_validate_trading_sessions,
     validate_trading_session_for_calendar,
 )
 from el_psy_quant.persistence.market_time_model import (
+    MarketDataEventRow,
+    MarketDataReplayEventRow,
+    MarketDataReplayRow,
     TradingCalendarRow,
     TradingSessionRow,
+)
+from el_psy_quant.persistence.market_time_replays import (
+    MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION,
+    MarketDataReplayRecord,
+    create_market_data_replay_record,
 )
 
 
 class MarketTimeRepository(Protocol):
-    """Caller-owned persistence operations for calendars and sessions."""
+    """Caller-owned persistence operations for market-time authority."""
 
     def add_calendar(self, *, calendar: TradingCalendar) -> TradingCalendar: ...
 
@@ -61,6 +77,27 @@ class MarketTimeRepository(Protocol):
 
     def is_trading_day(self, *, calendar_id: str, trading_date: date) -> bool: ...
 
+    def add_replay(
+        self, *, replay: MarketDataReplayRecord
+    ) -> MarketDataReplayRecord: ...
+
+    def get_replay(
+        self, *, replay_id: str
+    ) -> MarketDataReplayRecord | None: ...
+
+    def list_replay_sessions(
+        self,
+        *,
+        status: MarketDataReplayStatus | None = None,
+    ) -> tuple[ReplaySession, ...]: ...
+
+    def replace_replay_checkpoint(
+        self,
+        *,
+        expected_cursor: ReplayCursor,
+        session: ReplaySession,
+    ) -> bool: ...
+
 
 def _utc_from_sqlite(value: datetime) -> datetime:
     if value.tzinfo is None:
@@ -90,6 +127,62 @@ def _session_from_row(row: TradingSessionRow) -> TradingSession:
         open_time=_utc_from_sqlite(row.open_time),
         close_time=_utc_from_sqlite(row.close_time),
         session_type=row.session_type,
+    )
+
+
+def _market_data_event_from_row(row: MarketDataEventRow) -> MarketDataEvent:
+    if (
+        row.record_schema_version
+        != MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION
+    ):
+        raise ValueError("persisted market-data event record is unsupported")
+    if row.event_schema_version != MARKET_DATA_EVENT_SCHEMA_VERSION:
+        raise ValueError("persisted market-data event schema is unsupported")
+    event = market_data_event_from_json(row.event_json)
+    if (
+        event.schema_version != row.event_schema_version
+        or event.event_id != row.event_id
+        or event.instrument_id != row.instrument_id
+        or event.event_time != _utc_from_sqlite(row.event_time)
+        or event.to_json() != row.event_json
+    ):
+        raise ValueError("persisted market-data event is inconsistent")
+    return event
+
+
+def _replay_session_from_row(row: MarketDataReplayRow) -> ReplaySession:
+    if (
+        row.record_schema_version
+        != MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION
+    ):
+        raise ValueError("persisted replay record schema is unsupported")
+    if (
+        row.replay_state_schema_version
+        != MARKET_DATA_REPLAY_STATE_SCHEMA_VERSION
+    ):
+        raise ValueError("persisted replay state schema is unsupported")
+    cursor = ReplayCursor(
+        replay_id=row.replay_id,
+        event_stream_digest=row.event_stream_digest,
+        position=row.position,
+        last_event_id=row.last_event_id,
+        current_event_time=(
+            None
+            if row.current_event_time is None
+            else _utc_from_sqlite(row.current_event_time)
+        ),
+        status=row.status,  # type: ignore[arg-type]
+    )
+    return ReplaySession(
+        replay_id=row.replay_id,
+        status=row.status,  # type: ignore[arg-type]
+        start_time=(
+            None
+            if row.start_time is None
+            else _utc_from_sqlite(row.start_time)
+        ),
+        current_time=cursor.current_event_time,
+        cursor=cursor,
     )
 
 
@@ -141,6 +234,28 @@ def _session_type_filter(value: object) -> str:
         session_type=value,  # type: ignore[arg-type]
     )
     return probe.session_type
+
+
+def _replay_id(value: object) -> str:
+    probe = ReplayCursor(
+        replay_id=value,  # type: ignore[arg-type]
+        event_stream_digest="0" * 64,
+        position=0,
+        last_event_id=None,
+        current_event_time=None,
+        status="ready",
+    )
+    return probe.replay_id
+
+
+def _replay_status(value: object) -> MarketDataReplayStatus:
+    if (
+        not isinstance(value, str)
+        or value not in SUPPORTED_MARKET_DATA_REPLAY_STATUSES
+    ):
+        supported = ", ".join(SUPPORTED_MARKET_DATA_REPLAY_STATUSES)
+        raise ValueError(f"status must be one of: {supported}")
+    return value  # type: ignore[return-value]
 
 
 class SqlAlchemyMarketTimeRepository:
@@ -369,6 +484,178 @@ class SqlAlchemyMarketTimeRepository:
         )
         if overlapping is not None:
             raise ValueError("trading sessions must not overlap")
+
+    def add_replay(
+        self,
+        *,
+        replay: MarketDataReplayRecord,
+    ) -> MarketDataReplayRecord:
+        """Persist one exact event stream and its engine-owned checkpoint."""
+        if type(replay) is not MarketDataReplayRecord:
+            raise ValueError("replay must be a MarketDataReplayRecord")
+
+        for event in replay.events:
+            row = self._session.get(MarketDataEventRow, event.event_id)
+            if row is None:
+                self._session.add(
+                    MarketDataEventRow(
+                        record_schema_version=(
+                            MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION
+                        ),
+                        event_schema_version=event.schema_version,
+                        event_id=event.event_id,
+                        instrument_id=event.instrument_id,
+                        event_time=event.event_time,
+                        event_json=event.to_json(),
+                    )
+                )
+            elif _market_data_event_from_row(row) != event:
+                raise ValueError(
+                    "market-data event identity conflicts with durable authority"
+                )
+        self._session.flush()
+
+        cursor = replay.session.cursor
+        self._session.add(
+            MarketDataReplayRow(
+                record_schema_version=(
+                    MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION
+                ),
+                replay_state_schema_version=(
+                    MARKET_DATA_REPLAY_STATE_SCHEMA_VERSION
+                ),
+                replay_id=replay.session.replay_id,
+                event_stream_digest=cursor.event_stream_digest,
+                event_count=len(replay.events),
+                start_time=replay.session.start_time,
+                position=cursor.position,
+                last_event_id=cursor.last_event_id,
+                current_event_time=cursor.current_event_time,
+                status=cursor.status,
+            )
+        )
+        self._session.flush()
+        self._session.add_all(
+            [
+                MarketDataReplayEventRow(
+                    record_schema_version=(
+                        MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION
+                    ),
+                    replay_id=replay.session.replay_id,
+                    event_position=position,
+                    event_id=event.event_id,
+                )
+                for position, event in enumerate(replay.events)
+            ]
+        )
+        self._session.flush()
+        return replay
+
+    def get_replay(
+        self,
+        *,
+        replay_id: str,
+    ) -> MarketDataReplayRecord | None:
+        """Restore one exact event stream and validated engine checkpoint."""
+        normalized_replay_id = _replay_id(replay_id)
+        replay_row = self._session.get(
+            MarketDataReplayRow,
+            normalized_replay_id,
+        )
+        if replay_row is None:
+            return None
+        joined_rows = self._session.execute(
+            select(MarketDataReplayEventRow, MarketDataEventRow)
+            .join(
+                MarketDataEventRow,
+                MarketDataEventRow.event_id
+                == MarketDataReplayEventRow.event_id,
+            )
+            .where(
+                MarketDataReplayEventRow.replay_id == normalized_replay_id
+            )
+            .order_by(MarketDataReplayEventRow.event_position)
+        ).all()
+        if len(joined_rows) != replay_row.event_count:
+            raise ValueError("persisted replay event stream is incomplete")
+
+        events: list[MarketDataEvent] = []
+        for expected_position, (mapping, event_row) in enumerate(joined_rows):
+            if (
+                mapping.record_schema_version
+                != MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION
+                or mapping.event_position != expected_position
+            ):
+                raise ValueError("persisted replay event order is invalid")
+            events.append(_market_data_event_from_row(event_row))
+        return create_market_data_replay_record(
+            session=_replay_session_from_row(replay_row),
+            events=events,
+        )
+
+    def list_replay_sessions(
+        self,
+        *,
+        status: MarketDataReplayStatus | None = None,
+    ) -> tuple[ReplaySession, ...]:
+        """List exact-stream-validated checkpoints in identity order."""
+        statement = select(MarketDataReplayRow.replay_id)
+        if status is not None:
+            statement = statement.where(
+                MarketDataReplayRow.status == _replay_status(status)
+            )
+        statement = statement.order_by(MarketDataReplayRow.replay_id)
+        sessions: list[ReplaySession] = []
+        for replay_id in self._session.scalars(statement).all():
+            replay = self.get_replay(replay_id=replay_id)
+            if replay is None:
+                raise ValueError("persisted replay disappeared during inspection")
+            sessions.append(replay.session)
+        return tuple(sessions)
+
+    def replace_replay_checkpoint(
+        self,
+        *,
+        expected_cursor: ReplayCursor,
+        session: ReplaySession,
+    ) -> bool:
+        """Store one validated checkpoint with exact optimistic comparison."""
+        if type(expected_cursor) is not ReplayCursor:
+            raise ValueError("expected_cursor must be a ReplayCursor")
+        if type(session) is not ReplaySession:
+            raise ValueError("session must be a ReplaySession")
+        if expected_cursor.replay_id != session.replay_id:
+            raise ValueError("checkpoint replay identities must match")
+
+        persisted = self.get_replay(replay_id=session.replay_id)
+        if persisted is None:
+            return False
+        create_market_data_replay_record(
+            session=session,
+            events=persisted.events,
+        )
+        result = self._session.execute(
+            update(MarketDataReplayRow)
+            .where(
+                MarketDataReplayRow.replay_id == session.replay_id,
+                MarketDataReplayRow.event_stream_digest
+                == expected_cursor.event_stream_digest,
+                MarketDataReplayRow.position == expected_cursor.position,
+                MarketDataReplayRow.last_event_id
+                == expected_cursor.last_event_id,
+                MarketDataReplayRow.current_event_time
+                == expected_cursor.current_event_time,
+                MarketDataReplayRow.status == expected_cursor.status,
+            )
+            .values(
+                position=session.cursor.position,
+                last_event_id=session.cursor.last_event_id,
+                current_event_time=session.cursor.current_event_time,
+                status=session.cursor.status,
+            )
+        )
+        self._session.flush()
+        return result.rowcount == 1
 
 
 __all__ = [

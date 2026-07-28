@@ -18,6 +18,11 @@ from el_psy_quant.persistence.market_time_repository import (
     MarketTimeRepository,
     SqlAlchemyMarketTimeRepository,
 )
+from el_psy_quant.persistence.market_time_replays import (
+    MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION,
+    MarketDataReplayRecord,
+    create_market_data_replay_record,
+)
 from el_psy_quant.persistence.paper_job_repository import (
     PaperJobRepository,
     SqlAlchemyPaperJobRepository,
@@ -101,6 +106,8 @@ from el_psy_quant.persistence.session import create_product_session_factory
 __all__ = [
     "ArtifactIndexEntry",
     "ArtifactIndexRepository",
+    "MARKET_TIME_PERSISTENCE_RECORD_SCHEMA_VERSION",
+    "MarketDataReplayRecord",
     "MarketTimeRepository",
     "PAPER_ACCOUNT_PERSISTENCE_RECORD_SCHEMA_VERSION",
     "PAPER_ACCOUNT_RECORD_SCHEMA_VERSION",
@@ -148,6 +155,7 @@ __all__ = [
     "SqlAlchemyPortfolioReviewRepository",
     "complete_paper_job_attempt",
     "create_artifact_index_entry",
+    "create_market_data_replay_record",
     "create_product_database_engine",
     "create_product_session_factory",
     "create_awaiting_portfolio_review_record",

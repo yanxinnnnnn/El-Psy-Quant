@@ -32,12 +32,13 @@ from el_psy_quant.persistence.schema import (
     REQUIRED_PRODUCT_INDEXES,
     REQUIRED_PRODUCT_TABLE_COLUMNS,
     REQUIRED_PRODUCT_TRIGGERS,
-    verify_product_schema,
+    read_product_schema_revision,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PREVIOUS_REVISION = "0007_paper_account_ledger"
 REVISION = "0008_market_time_foundation"
+CURRENT_REVISION = "0009_market_time_runtime"
 NEW_TABLES = {"trading_calendars", "trading_sessions"}
 
 
@@ -116,9 +117,10 @@ def test_migration_is_one_additive_linear_head_without_seed_data(
     path = tmp_path / "product.sqlite3"
     monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(path))
     scripts = ScriptDirectory.from_config(_config())
-    assert scripts.get_heads() == [REVISION]
+    assert scripts.get_heads() == [CURRENT_REVISION]
+    assert scripts.get_revision(CURRENT_REVISION).down_revision == REVISION
     assert scripts.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert CURRENT_PRODUCT_SCHEMA_REVISION == REVISION
+    assert CURRENT_PRODUCT_SCHEMA_REVISION == CURRENT_REVISION
 
     command.upgrade(_config(), PREVIOUS_REVISION)
     engine = _engine(path)
@@ -192,7 +194,7 @@ def test_migration_is_one_additive_linear_head_without_seed_data(
             for name in REQUIRED_PRODUCT_TRIGGERS
             if name.startswith("trg_trading_")
         }.issubset(triggers)
-        assert verify_product_schema(path) == REVISION
+        assert read_product_schema_revision(path) == REVISION
     finally:
         engine.dispose()
 
