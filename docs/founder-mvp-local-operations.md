@@ -152,16 +152,23 @@ governance evidence and does not create mutable current state. The optional
 Paper Job example only fills the form after an explicit user action; it never
 submits automatically.
 
-Demo dataset/descriptor v3 also exposes one deterministic seeded portfolio
+Demo dataset/descriptor v4 also exposes one deterministic seeded portfolio
 review and one exact create-example prefill. Loading requires explicit
 replace-draft confirmation and never submits or chooses a decision. An installed
-earlier Demo source conflicts with v3; use only the Demo reset below. Demo v3
+earlier Demo source conflicts with v4; use only the Demo reset below. Demo v4
 also seeds one synthetic Paper Account through the existing application
 service. Its five immutable events, ledger-derived projection, immutable
 snapshot, and matched reconciliation are verified on install and exact restart
 replay. The opening position is an explicit adjustment, not an order, fill,
 execution, PnL, or equity calculation. Standard and
 Demo keep separate project names, databases, artifact roots, and volumes.
+
+Demo v4 additionally seeds one immutable market-time calendar, two ordered
+sessions, four canonical events, and one replay paused at position 2. Startup
+and explicit verification restore the exact stream/cursor, prove the remaining
+events complete on an in-memory copy, and confirm the durable paused checkpoint
+is unchanged. This verification does not create orders, execution, or account
+state.
 
 Stop while preserving the installed Demo Workspace:
 
@@ -199,10 +206,12 @@ Demo acceptance:
 ```text
 explicitly reset the disposable earlier-version Demo volume when required
   -> build/start Demo using isolated Demo project/volume
-  -> descriptor v3 is visible and clearly labeled
+  -> descriptor v4 is visible and clearly labeled
   -> seeded review appears in list/detail as exact synthetic evidence
   -> seeded Paper Account appears at exact version 5
   -> ledger, replayed projection, snapshot, and reconciliation agree
+  -> Market Time shows the exact paused replay and four ordered events
+  -> restart preserves the replay stream digest and cursor at position 2
   -> load Demo create example explicitly; confirm no auto-submit
   -> submit and observe exact replay/authoritative detail
   -> record one explicit approved/rejected/deferred decision

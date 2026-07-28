@@ -10,7 +10,7 @@ import sqlite3
 from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any, Literal, cast
 from uuid import UUID
@@ -68,12 +68,25 @@ from el_psy_quant.paper_account import (
     rebuild_paper_account_projection,
     replay_paper_account_ledger,
 )
+from el_psy_quant.market_time import (
+    MarketDataReplayEngine,
+    ReplaySession,
+    TradingCalendar,
+    TradingSession,
+    create_market_data_event,
+    create_trading_calendar,
+    create_trading_session,
+    sort_and_validate_trading_sessions,
+)
 from el_psy_quant.persistence import (
+    MarketDataReplayRecord,
+    SqlAlchemyMarketTimeRepository,
     SqlAlchemyPaperJobAttemptRepository,
     SqlAlchemyPaperJobRepository,
     SqlAlchemyPaperJobResultReferenceRepository,
     create_product_database_engine,
     create_product_session_factory,
+    create_market_data_replay_record,
     create_queued_paper_job_record,
     create_running_paper_job_attempt,
     create_paper_job_result_reference,
@@ -101,8 +114,8 @@ from el_psy_quant.portfolio_review import (
 if TYPE_CHECKING:
     from el_psy_quant.api.portfolio_review_schemas import PortfolioReviewCreateRequest
 
-DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 3
-DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 3
+DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 4
+DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 4
 DEMO_WORKSPACE_INSTALL_SCHEMA_VERSION = 1
 DEMO_WORKSPACE_MODE = "demo"
 STANDARD_WORKSPACE_MODE = "standard"
@@ -123,6 +136,7 @@ _SOURCE_ROOT_DIRECTORIES = (
     "lifecycle_records",
     "portfolio_reviews",
     "paper_accounts",
+    "market_time",
 )
 _SOURCE_ROOT_FILES = ("README.md", WORKSPACE_MANIFEST_FILE_NAME)
 _INSTALLED_CHILDREN = (
@@ -191,6 +205,62 @@ class _PortfolioReviewExampleSource(_StrictSourceModel):
 
 class _PaperAccountExampleSource(_StrictSourceModel):
     request_relative_path: str
+
+
+class _MarketTimeExampleSource(_StrictSourceModel):
+    request_relative_path: str
+
+
+class _DemoTradingCalendar(_StrictSourceModel):
+    schema_version: Literal[1]
+    id: str
+    market: str
+    timezone: str
+    calendar_version: int
+    created_at: str
+
+
+class _DemoTradingSession(_StrictSourceModel):
+    schema_version: Literal[1]
+    id: str
+    calendar_id: str
+    trading_date: str
+    open_time: str
+    close_time: str
+    session_type: str
+
+
+class _DemoMarketDataEvent(_StrictSourceModel):
+    schema_version: Literal[1]
+    event_id: str
+    instrument_id: str
+    event_time: str
+    event_type: str
+    payload: dict[str, Any]
+    source: str
+
+
+class _DemoMarketTimeExpected(_StrictSourceModel):
+    event_stream_digest: str
+    checkpoint_status: Literal["paused"]
+    checkpoint_position: int
+    checkpoint_last_event_id: str
+    checkpoint_current_time: str
+    recovery_remaining_event_ids: tuple[str, ...]
+    recovery_final_status: Literal["completed"]
+    recovery_final_position: int
+    recovery_last_event_id: str
+    recovery_current_time: str
+
+
+class _DemoMarketTimeJourney(_StrictSourceModel):
+    schema_version: Literal[1]
+    calendar: _DemoTradingCalendar
+    sessions: tuple[_DemoTradingSession, ...]
+    replay_id: str
+    events: tuple[_DemoMarketDataEvent, ...]
+    checkpoint_after_event_count: int
+    expected: _DemoMarketTimeExpected
 
 
 class _DemoPaperAccountCreation(_StrictSourceModel):
@@ -273,7 +343,7 @@ class _DemoPaperAccountJourney(_StrictSourceModel):
 
 
 class _DemoWorkspaceSourceManifest(_StrictSourceModel):
-    schema_version: Literal[3]
+    schema_version: Literal[4]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -288,6 +358,7 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     paper_submission_example: _PaperSubmissionSource
     portfolio_review_example: _PortfolioReviewExampleSource
     paper_account_example: _PaperAccountExampleSource
+    market_time_example: _MarketTimeExampleSource
 
     @field_validator(
         "dataset_id",
@@ -314,8 +385,8 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     def require_coherent_journey(self) -> _DemoWorkspaceSourceManifest:
         if "DEMO" not in self.warning.upper():
             raise ValueError("demo warning must identify demo data")
-        if self.dataset_version != 3:
-            raise ValueError("demo dataset version must be 3")
+        if self.dataset_version != 4:
+            raise ValueError("demo dataset version must be 4")
         if len(self.paper_jobs) < 2:
             raise ValueError("at least two paper jobs are required")
         job_ids = tuple(job.job_id for job in self.paper_jobs)
@@ -372,6 +443,15 @@ class DemoWorkspaceDescriptor:
 
 
 @dataclass(frozen=True)
+class _ValidatedDemoMarketTime:
+    journey: _DemoMarketTimeJourney
+    calendar: TradingCalendar
+    sessions: tuple[TradingSession, ...]
+    replay: MarketDataReplayRecord
+    recovered_session: ReplaySession
+
+
+@dataclass(frozen=True)
 class _ValidatedDemoSource:
     root: Path
     digest: str
@@ -385,6 +465,7 @@ class _ValidatedDemoSource:
     portfolio_review_source: PortfolioReviewSource
     portfolio_review_scenario_pair: PortfolioReviewScenarioPair
     paper_account_journey: _DemoPaperAccountJourney
+    market_time: _ValidatedDemoMarketTime
     descriptor: DemoWorkspaceDescriptor
 
 
@@ -941,6 +1022,116 @@ def _validate_paper_account_journey(
     return journey
 
 
+def _validate_market_time_journey(
+    payload: dict[str, Any],
+) -> _ValidatedDemoMarketTime:
+    try:
+        journey = _DemoMarketTimeJourney.model_validate(payload)
+        calendar_source = journey.calendar
+        calendar = create_trading_calendar(
+            id=calendar_source.id,
+            market=calendar_source.market,
+            timezone=calendar_source.timezone,
+            calendar_version=calendar_source.calendar_version,
+            created_at=_utc_timestamp(calendar_source.created_at),
+        )
+        sessions = sort_and_validate_trading_sessions(
+            calendar=calendar,
+            sessions=[
+                create_trading_session(
+                    id=item.id,
+                    calendar_id=item.calendar_id,
+                    trading_date=date.fromisoformat(item.trading_date),
+                    open_time=_utc_timestamp(item.open_time),
+                    close_time=_utc_timestamp(item.close_time),
+                    session_type=item.session_type,
+                )
+                for item in journey.sessions
+            ],
+        )
+        events = tuple(
+            create_market_data_event(
+                event_id=item.event_id,
+                instrument_id=item.instrument_id,
+                event_time=_utc_timestamp(item.event_time),
+                event_type=item.event_type,
+                payload=item.payload,
+                schema_version=item.schema_version,
+                source=item.source,
+            )
+            for item in journey.events
+        )
+        replay_engine = MarketDataReplayEngine(
+            replay_id=journey.replay_id,
+            events=events,
+        )
+        if tuple(event.event_id for event in replay_engine.events) != tuple(
+            event.event_id for event in events
+        ):
+            raise ValueError("demo market-data events must use canonical order")
+        if not 1 <= journey.checkpoint_after_event_count < len(events):
+            raise ValueError("demo replay checkpoint must be an intermediate state")
+        replay_engine.start()
+        for _ in range(journey.checkpoint_after_event_count):
+            replay_engine.next_event()
+        replay_engine.pause()
+        replay = create_market_data_replay_record(
+            session=replay_engine.session,
+            events=replay_engine.events,
+        )
+        recovery_engine = MarketDataReplayEngine(
+            replay_id=replay.session.replay_id,
+            events=replay.events,
+            cursor=replay.session.cursor,
+        )
+        recovery_engine.resume()
+        remaining_event_ids = tuple(
+            event.event_id for event in recovery_engine.iter_remaining()
+        )
+    except (TypeError, ValueError) as exc:
+        raise DemoWorkspaceSourceInvalidError(
+            "demo market-time journey is invalid"
+        ) from exc
+
+    expected = journey.expected
+    checkpoint = replay.session.cursor
+    recovered = recovery_engine.session
+    session_ids = tuple(item.id for item in sessions)
+    if (
+        len(sessions) < 2
+        or len(events) < 3
+        or tuple(item.id for item in journey.sessions) != session_ids
+        or any(
+            not any(
+                session.open_time <= event.event_time < session.close_time
+                for session in sessions
+            )
+            for event in events
+        )
+        or checkpoint.event_stream_digest != expected.event_stream_digest
+        or checkpoint.status != expected.checkpoint_status
+        or checkpoint.position != expected.checkpoint_position
+        or checkpoint.last_event_id != expected.checkpoint_last_event_id
+        or checkpoint.current_event_time
+        != _utc_timestamp(expected.checkpoint_current_time)
+        or remaining_event_ids != expected.recovery_remaining_event_ids
+        or recovered.status != expected.recovery_final_status
+        or recovered.cursor.position != expected.recovery_final_position
+        or recovered.cursor.last_event_id != expected.recovery_last_event_id
+        or recovered.current_time != _utc_timestamp(expected.recovery_current_time)
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo market-time journey is inconsistent"
+        )
+    return _ValidatedDemoMarketTime(
+        journey=journey,
+        calendar=calendar,
+        sessions=sessions,
+        replay=replay,
+        recovered_session=recovered,
+    )
+
+
 def _descriptor_payload(
     *,
     manifest: _DemoWorkspaceSourceManifest,
@@ -949,7 +1140,10 @@ def _descriptor_payload(
     submission_payload: dict[str, Any],
     portfolio_review_payload: dict[str, Any],
     paper_account_journey: _DemoPaperAccountJourney,
+    market_time: _ValidatedDemoMarketTime,
 ) -> dict[str, Any]:
+    checkpoint = market_time.replay.session.cursor
+    recovered = market_time.recovered_session.cursor
     return {
         "schema_version": DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION,
         "dataset_id": manifest.dataset_id,
@@ -988,6 +1182,32 @@ def _descriptor_payload(
             "reconciliation_id": (
                 paper_account_journey.expected.reconciliation_id
             ),
+        },
+        "market_time": {
+            "calendar_id": market_time.calendar.id,
+            "session_ids": [item.id for item in market_time.sessions],
+            "replay_id": market_time.replay.session.replay_id,
+            "event_count": len(market_time.replay.events),
+            "event_stream_digest": checkpoint.event_stream_digest,
+            "checkpoint": {
+                "status": checkpoint.status,
+                "position": checkpoint.position,
+                "last_event_id": checkpoint.last_event_id,
+                "current_time": checkpoint.current_event_time.isoformat()
+                if checkpoint.current_event_time is not None
+                else None,
+            },
+            "recovery": {
+                "remaining_event_ids": list(
+                    market_time.journey.expected.recovery_remaining_event_ids
+                ),
+                "final_status": recovered.status,
+                "final_position": recovered.position,
+                "last_event_id": recovered.last_event_id,
+                "current_time": recovered.current_event_time.isoformat()
+                if recovered.current_event_time is not None
+                else None,
+            },
         },
     }
 
@@ -1150,6 +1370,14 @@ def validate_demo_workspace_source(
                 )
             )
         )
+        market_time = _validate_market_time_journey(
+            _read_json_object(
+                _relative_source_path(
+                    root,
+                    manifest.market_time_example.request_relative_path,
+                )
+            )
+        )
         descriptor = DemoWorkspaceDescriptor(
             payload=_descriptor_payload(
                 manifest=manifest,
@@ -1158,6 +1386,7 @@ def validate_demo_workspace_source(
                 submission_payload=submission_payload,
                 portfolio_review_payload=portfolio_review_payload,
                 paper_account_journey=paper_account_journey,
+                market_time=market_time,
             )
         )
         _validate_descriptor_payload(descriptor.to_dict())
@@ -1174,6 +1403,7 @@ def validate_demo_workspace_source(
             portfolio_review_source=portfolio_review_source,
             portfolio_review_scenario_pair=portfolio_review_scenario_pair,
             paper_account_journey=paper_account_journey,
+            market_time=market_time,
             descriptor=descriptor,
         )
     except DemoWorkspaceSourceInvalidError:
@@ -1201,12 +1431,13 @@ def _validate_descriptor_payload(payload: object) -> None:
             "paper_job_submission_example",
             "portfolio_review_example",
             "paper_account",
+            "market_time",
         },
     )
     if root["schema_version"] != DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["dataset_id"])
-    if type(root["dataset_version"]) is not int or root["dataset_version"] != 3:
+    if type(root["dataset_version"]) is not int or root["dataset_version"] != 4:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["display_name"])
     if "DEMO" not in _normalized_text(root["warning"]).upper():
@@ -1319,6 +1550,66 @@ def _validate_descriptor_payload(payload: object) -> None:
         raise DemoWorkspaceSourceInvalidError(
             "demo descriptor paper account is invalid"
         )
+    market_time = _exact_object(
+        root["market_time"],
+        {
+            "calendar_id",
+            "session_ids",
+            "replay_id",
+            "event_count",
+            "event_stream_digest",
+            "checkpoint",
+            "recovery",
+        },
+    )
+    _normalized_text(market_time["calendar_id"])
+    _normalized_text(market_time["replay_id"])
+    session_ids = market_time["session_ids"]
+    digest = market_time["event_stream_digest"]
+    checkpoint = _exact_object(
+        market_time["checkpoint"],
+        {"status", "position", "last_event_id", "current_time"},
+    )
+    recovery = _exact_object(
+        market_time["recovery"],
+        {
+            "remaining_event_ids",
+            "final_status",
+            "final_position",
+            "last_event_id",
+            "current_time",
+        },
+    )
+    if (
+        type(session_ids) is not list
+        or len(session_ids) < 2
+        or len(set(session_ids)) != len(session_ids)
+        or any(_normalized_text(item) != item for item in session_ids)
+        or type(market_time["event_count"]) is not int
+        or market_time["event_count"] < 3
+        or not isinstance(digest, str)
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+        or checkpoint["status"] != "paused"
+        or type(checkpoint["position"]) is not int
+        or not 1 <= checkpoint["position"] < market_time["event_count"]
+        or recovery["final_status"] != "completed"
+        or recovery["final_position"] != market_time["event_count"]
+        or type(recovery["remaining_event_ids"]) is not list
+        or len(recovery["remaining_event_ids"])
+        != market_time["event_count"] - checkpoint["position"]
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo descriptor market time is invalid"
+        )
+    for value in (
+        checkpoint["last_event_id"],
+        recovery["last_event_id"],
+        *recovery["remaining_event_ids"],
+    ):
+        _normalized_text(value)
+    _utc_timestamp(checkpoint["current_time"])
+    _utc_timestamp(recovery["current_time"])
 
 
 @contextmanager
@@ -1711,6 +2002,89 @@ def _validate_seeded_demo_paper_account(
         engine.dispose()
 
 
+def _seed_demo_market_time(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    factory = create_product_session_factory(engine=engine)
+    fixture = source.market_time
+    try:
+        with factory.begin() as session:
+            repository = SqlAlchemyMarketTimeRepository(session=session)
+            repository.add_calendar(calendar=fixture.calendar)
+            repository.add_sessions(sessions=fixture.sessions)
+            repository.add_replay(replay=fixture.replay)
+    finally:
+        engine.dispose()
+
+
+def _validate_seeded_demo_market_time(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    factory = create_product_session_factory(engine=engine)
+    fixture = source.market_time
+    try:
+        with factory() as session:
+            repository = SqlAlchemyMarketTimeRepository(session=session)
+            calendar = repository.get_calendar(
+                calendar_id=fixture.calendar.id
+            )
+            sessions = repository.list_sessions(
+                calendar_id=fixture.calendar.id
+            )
+            replay = repository.get_replay(
+                replay_id=fixture.replay.session.replay_id
+            )
+        if replay is None:
+            raise DemoWorkspaceUnavailableError(
+                "demo market-time authority is unavailable"
+            )
+        if (
+            calendar != fixture.calendar
+            or sessions != fixture.sessions
+            or replay != fixture.replay
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "demo market-time authority is inconsistent"
+            )
+        recovery_engine = MarketDataReplayEngine(
+            replay_id=replay.session.replay_id,
+            events=replay.events,
+            cursor=replay.session.cursor,
+        )
+        recovery_engine.resume()
+        remaining = tuple(
+            event.event_id for event in recovery_engine.iter_remaining()
+        )
+        if (
+            remaining
+            != fixture.journey.expected.recovery_remaining_event_ids
+            or recovery_engine.session != fixture.recovered_session
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "demo market-time recovery is inconsistent"
+            )
+        with factory() as session:
+            persisted = SqlAlchemyMarketTimeRepository(
+                session=session
+            ).get_replay(replay_id=fixture.replay.session.replay_id)
+        if persisted != fixture.replay:
+            raise DemoWorkspaceUnavailableError(
+                "demo market-time verification changed the checkpoint"
+            )
+    finally:
+        engine.dispose()
+
+
 def _validate_seeded_portfolio_review(
     *,
     paths: DemoWorkspacePaths,
@@ -1960,6 +2334,14 @@ def _validate_installed_workspace(
         raise DemoWorkspaceUnavailableError(
             "demo paper account is unavailable"
         ) from exc
+    try:
+        _validate_seeded_demo_market_time(paths=paths, source=source)
+    except DemoWorkspaceUnavailableError:
+        raise
+    except Exception as exc:
+        raise DemoWorkspaceUnavailableError(
+            "demo market time is unavailable"
+        ) from exc
     installed_descriptor = _read_json_object(paths.descriptor_path)
     if _canonical_json(installed_descriptor) != _canonical_json(
         source.descriptor.to_dict()
@@ -2092,6 +2474,7 @@ def install_demo_workspace(
         _populate_database(paths=staging, source=source)
         _seed_portfolio_review(paths=staging, source=source)
         _seed_demo_paper_account(paths=staging, source=source)
+        _seed_demo_market_time(paths=staging, source=source)
         _write_json(staging.descriptor_path, source.descriptor.to_dict())
         _write_json(staging.marker_path, _install_marker(source))
         _validate_installed_workspace(paths=staging, source=source)
@@ -2267,6 +2650,64 @@ def validate_installed_demo_workspace(
             ):
                 raise DemoWorkspaceUnavailableError(
                     "demo paper account is inconsistent"
+                )
+            market_time = payload["market_time"]
+            with factory() as market_session:
+                market_repository = SqlAlchemyMarketTimeRepository(
+                    session=market_session
+                )
+                calendar = market_repository.get_calendar(
+                    calendar_id=market_time["calendar_id"]
+                )
+                sessions = market_repository.list_sessions(
+                    calendar_id=market_time["calendar_id"]
+                )
+                replay = market_repository.get_replay(
+                    replay_id=market_time["replay_id"]
+                )
+            if calendar is None or replay is None:
+                raise DemoWorkspaceUnavailableError(
+                    "demo market time is inconsistent"
+                )
+            checkpoint = market_time["checkpoint"]
+            cursor = replay.session.cursor
+            if (
+                tuple(item.id for item in sessions)
+                != tuple(market_time["session_ids"])
+                or len(replay.events) != market_time["event_count"]
+                or cursor.event_stream_digest
+                != market_time["event_stream_digest"]
+                or cursor.status != checkpoint["status"]
+                or cursor.position != checkpoint["position"]
+                or cursor.last_event_id != checkpoint["last_event_id"]
+                or cursor.current_event_time
+                != _utc_timestamp(checkpoint["current_time"])
+            ):
+                raise DemoWorkspaceUnavailableError(
+                    "demo market time is inconsistent"
+                )
+            recovered = MarketDataReplayEngine(
+                replay_id=replay.session.replay_id,
+                events=replay.events,
+                cursor=replay.session.cursor,
+            )
+            recovered.resume()
+            remaining = tuple(
+                event.event_id for event in recovered.iter_remaining()
+            )
+            recovery = market_time["recovery"]
+            if (
+                remaining != tuple(recovery["remaining_event_ids"])
+                or recovered.session.status != recovery["final_status"]
+                or recovered.session.cursor.position
+                != recovery["final_position"]
+                or recovered.session.cursor.last_event_id
+                != recovery["last_event_id"]
+                or recovered.session.current_time
+                != _utc_timestamp(recovery["current_time"])
+            ):
+                raise DemoWorkspaceUnavailableError(
+                    "demo market time recovery is inconsistent"
                 )
         finally:
             engine.dispose()

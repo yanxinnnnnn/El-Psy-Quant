@@ -24,7 +24,9 @@ from el_psy_quant.demo_workspace import (
     load_demo_workspace_descriptor,
     validate_demo_workspace_source,
 )
+from el_psy_quant.market_time import MarketDataReplayEngine
 from el_psy_quant.persistence import (
+    SqlAlchemyMarketTimeRepository,
     SqlAlchemyPaperJobAttemptRepository,
     SqlAlchemyPaperJobRepository,
     create_product_database_engine,
@@ -58,8 +60,8 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
     )
     assert len(set(source.manifest.comparison_candidate_job_ids)) == 2
     descriptor = source.descriptor.to_dict()
-    assert descriptor["schema_version"] == 3
-    assert descriptor["dataset_version"] == 3
+    assert descriptor["schema_version"] == 4
+    assert descriptor["dataset_version"] == 4
     assert descriptor["portfolio_review_example"]["create_idempotency_key"] == (
         "demo-portfolio-review-create-v1"
     )
@@ -80,6 +82,34 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
         ],
         "snapshot_id": "demo-paper-account-snapshot-001",
         "reconciliation_id": "demo-paper-account-reconciliation-001",
+    }
+    assert descriptor["market_time"] == {
+        "calendar_id": "demo-xnys-2026-v1",
+        "session_ids": [
+            "demo-xnys-2026-07-28-regular",
+            "demo-xnys-2026-07-29-regular",
+        ],
+        "replay_id": "demo-market-replay-001",
+        "event_count": 4,
+        "event_stream_digest": (
+            "b9ae184fb1eb574dcd0282e892105773e462a212b3dc203b98f4ed5bc277a9e2"
+        ),
+        "checkpoint": {
+            "status": "paused",
+            "position": 2,
+            "last_event_id": "demo-market-event-002",
+            "current_time": "2026-07-28T13:30:30+00:00",
+        },
+        "recovery": {
+            "remaining_event_ids": [
+                "demo-market-event-003",
+                "demo-market-event-004",
+            ],
+            "final_status": "completed",
+            "final_position": 4,
+            "last_event_id": "demo-market-event-004",
+            "current_time": "2026-07-28T13:31:30+00:00",
+        },
     }
     assert "DEMO" in descriptor["warning"]
 
@@ -164,6 +194,41 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         assert snapshot.projection.to_dict() == detail.projection.to_dict()
         assert reconciliation.outcome == "matched"
         assert reconciliation.mismatch_codes == ()
+        with factory() as session:
+            market_time = SqlAlchemyMarketTimeRepository(session=session)
+            calendar = market_time.get_calendar(
+                calendar_id="demo-xnys-2026-v1"
+            )
+            sessions = market_time.list_sessions(
+                calendar_id="demo-xnys-2026-v1"
+            )
+            durable_replay = market_time.get_replay(
+                replay_id="demo-market-replay-001"
+            )
+        assert calendar is not None
+        assert [item.id for item in sessions] == [
+            "demo-xnys-2026-07-28-regular",
+            "demo-xnys-2026-07-29-regular",
+        ]
+        assert durable_replay is not None
+        assert durable_replay.session.status == "paused"
+        assert durable_replay.session.cursor.position == 2
+        recovered = MarketDataReplayEngine(
+            replay_id=durable_replay.session.replay_id,
+            events=durable_replay.events,
+            cursor=durable_replay.session.cursor,
+        )
+        recovered.resume()
+        assert [event.event_id for event in recovered.iter_remaining()] == [
+            "demo-market-event-003",
+            "demo-market-event-004",
+        ]
+        assert recovered.session.status == "completed"
+        with factory() as session:
+            unchanged = SqlAlchemyMarketTimeRepository(
+                session=session
+            ).get_replay(replay_id="demo-market-replay-001")
+        assert unchanged == durable_replay
     finally:
         engine.dispose()
 
@@ -360,6 +425,47 @@ def test_paper_account_source_mutations_fail_before_target_creation(
     assert not target.exists()
 
 
+@pytest.mark.parametrize(
+    "case",
+    (
+        "invalid_path",
+        "wrong_digest",
+        "event_outside_session",
+        "completed_checkpoint",
+    ),
+)
+def test_market_time_source_mutations_fail_before_target_creation(
+    tmp_path: Path,
+    case: str,
+) -> None:
+    source = tmp_path / f"source-market-time-{case}"
+    shutil.copytree(DEMO_SOURCE, source)
+    manifest_path = source / "workspace-manifest.json"
+    journey_path = source / "market_time" / "replay-journey.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    journey = json.loads(journey_path.read_text(encoding="utf-8"))
+    if case == "invalid_path":
+        manifest["market_time_example"]["request_relative_path"] = (
+            "../replay-journey.json"
+        )
+    elif case == "wrong_digest":
+        journey["expected"]["event_stream_digest"] = "0" * 64
+    elif case == "event_outside_session":
+        journey["events"][0]["event_time"] = "2026-07-28T21:00:00Z"
+    elif case == "completed_checkpoint":
+        journey["checkpoint_after_event_count"] = len(journey["events"])
+    else:  # pragma: no cover - the parameter list is exhaustive
+        raise AssertionError(case)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    journey_path.write_text(json.dumps(journey), encoding="utf-8")
+    target = tmp_path / f"target-market-time-{case}"
+
+    with pytest.raises(DemoWorkspaceSourceInvalidError):
+        _install(source, target)
+
+    assert not target.exists()
+
+
 def test_conflicting_dataset_replay_is_refused_without_changes(
     tmp_path: Path,
 ) -> None:
@@ -374,10 +480,10 @@ def test_conflicting_dataset_replay_is_refused_without_changes(
         _install(source, target)
 
     assert (target / ".demo-workspace-install.json").read_bytes() == marker_before
-    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 3
+    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 4
 
 
-def test_descriptor_requires_exact_dataset_version_three(tmp_path: Path) -> None:
+def test_descriptor_requires_exact_dataset_version_four(tmp_path: Path) -> None:
     target = tmp_path / "demo-workspace"
     _install(DEMO_SOURCE, target)
     descriptor_path = target / "workspace-descriptor.json"
@@ -428,6 +534,43 @@ def test_projection_corruption_fails_closed_without_repair(tmp_path: Path) -> No
             "WHERE account_id = 'demo-paper-account-001'"
         ).fetchone()
     assert row == ("999", "999")
+
+
+def test_market_time_checkpoint_corruption_fails_closed_without_repair_or_account_change(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    database = target / "product.sqlite3"
+    with sqlite3.connect(database) as connection:
+        account_before = connection.execute(
+            "SELECT account_id, head_version, head_event_id, "
+            "head_chain_digest FROM paper_accounts ORDER BY account_id"
+        ).fetchall()
+        connection.execute(
+            "UPDATE market_data_replays "
+            "SET position = 1, last_event_id = 'demo-market-event-001', "
+            "current_event_time = '2026-07-28 13:30:00.000000', "
+            "status = 'paused' "
+            "WHERE replay_id = 'demo-market-replay-001'"
+        )
+        connection.commit()
+
+    with pytest.raises(DemoWorkspaceUnavailableError):
+        _install(DEMO_SOURCE, target)
+
+    with sqlite3.connect(database) as connection:
+        checkpoint = connection.execute(
+            "SELECT position, last_event_id, status "
+            "FROM market_data_replays "
+            "WHERE replay_id = 'demo-market-replay-001'"
+        ).fetchone()
+        account_after = connection.execute(
+            "SELECT account_id, head_version, head_event_id, "
+            "head_chain_digest FROM paper_accounts ORDER BY account_id"
+        ).fetchall()
+    assert checkpoint == (1, "demo-market-event-001", "paused")
+    assert account_after == account_before
 
 
 def test_demo_install_never_changes_separate_standard_storage(

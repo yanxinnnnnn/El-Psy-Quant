@@ -27,8 +27,12 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
   };
   const paperAccount = demoSourceJson("paper_accounts/account-journey.json");
   const paperAccountExpected = paperAccount.expected as Record<string, unknown>;
+  const marketTime = demoSourceJson("market_time/replay-journey.json");
+  const marketTimeCalendar = marketTime.calendar as Record<string, unknown>;
+  const marketTimeSessions = marketTime.sessions as Array<Record<string, unknown>>;
+  const marketTimeExpected = marketTime.expected as Record<string, unknown>;
   return {
-    schema_version: manifest.schema_version as 3,
+    schema_version: manifest.schema_version as 4,
     dataset_id: manifest.dataset_id as string,
     dataset_version: manifest.dataset_version as number,
     display_name: manifest.display_name as string,
@@ -54,6 +58,26 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
       event_types: paperAccountExpected.event_types as DemoWorkspaceDescriptorResponse["paper_account"]["event_types"],
       snapshot_id: paperAccountExpected.snapshot_id as string,
       reconciliation_id: paperAccountExpected.reconciliation_id as string,
+    },
+    market_time: {
+      calendar_id: marketTimeCalendar.id as string,
+      session_ids: marketTimeSessions.map(({ id }) => id as string),
+      replay_id: marketTime.replay_id as string,
+      event_count: (marketTime.events as unknown[]).length,
+      event_stream_digest: marketTimeExpected.event_stream_digest as string,
+      checkpoint: {
+        status: marketTimeExpected.checkpoint_status as "paused",
+        position: marketTimeExpected.checkpoint_position as number,
+        last_event_id: marketTimeExpected.checkpoint_last_event_id as string,
+        current_time: marketTimeExpected.checkpoint_current_time as string,
+      },
+      recovery: {
+        remaining_event_ids: marketTimeExpected.recovery_remaining_event_ids as string[],
+        final_status: marketTimeExpected.recovery_final_status as "completed",
+        final_position: marketTimeExpected.recovery_final_position as number,
+        last_event_id: marketTimeExpected.recovery_last_event_id as string,
+        current_time: marketTimeExpected.recovery_current_time as string,
+      },
     },
   };
 }

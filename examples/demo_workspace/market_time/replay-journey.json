@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "calendar": {
+    "schema_version": 1,
+    "id": "demo-xnys-2026-v1",
+    "market": "XNYS",
+    "timezone": "America/New_York",
+    "calendar_version": 1,
+    "created_at": "2026-07-28T08:00:00Z"
+  },
+  "sessions": [
+    {
+      "schema_version": 1,
+      "id": "demo-xnys-2026-07-28-regular",
+      "calendar_id": "demo-xnys-2026-v1",
+      "trading_date": "2026-07-28",
+      "open_time": "2026-07-28T13:30:00Z",
+      "close_time": "2026-07-28T20:00:00Z",
+      "session_type": "regular"
+    },
+    {
+      "schema_version": 1,
+      "id": "demo-xnys-2026-07-29-regular",
+      "calendar_id": "demo-xnys-2026-v1",
+      "trading_date": "2026-07-29",
+      "open_time": "2026-07-29T13:30:00Z",
+      "close_time": "2026-07-29T20:00:00Z",
+      "session_type": "regular"
+    }
+  ],
+  "replay_id": "demo-market-replay-001",
+  "events": [
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-001",
+      "instrument_id": "XNYS:AAPL",
+      "event_time": "2026-07-28T13:30:00Z",
+      "event_type": "quote",
+      "payload": {
+        "ask": 201.25,
+        "bid": 201.2
+      },
+      "source": "fixture:demo"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-002",
+      "instrument_id": "XNYS:AAPL",
+      "event_time": "2026-07-28T13:30:30Z",
+      "event_type": "trade",
+      "payload": {
+        "price": 201.22,
+        "size": 100
+      },
+      "source": "fixture:demo"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-003",
+      "instrument_id": "XNYS:MSFT",
+      "event_time": "2026-07-28T13:31:00Z",
+      "event_type": "quote",
+      "payload": {
+        "ask": 488.15,
+        "bid": 488.05
+      },
+      "source": "fixture:demo"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-004",
+      "instrument_id": "XNYS:MSFT",
+      "event_time": "2026-07-28T13:31:30Z",
+      "event_type": "trade",
+      "payload": {
+        "price": 488.1,
+        "size": 50
+      },
+      "source": "fixture:demo"
+    }
+  ],
+  "checkpoint_after_event_count": 2,
+  "expected": {
+    "event_stream_digest": "b9ae184fb1eb574dcd0282e892105773e462a212b3dc203b98f4ed5bc277a9e2",
+    "checkpoint_status": "paused",
+    "checkpoint_position": 2,
+    "checkpoint_last_event_id": "demo-market-event-002",
+    "checkpoint_current_time": "2026-07-28T13:30:30Z",
+    "recovery_remaining_event_ids": [
+      "demo-market-event-003",
+      "demo-market-event-004"
+    ],
+    "recovery_final_status": "completed",
+    "recovery_final_position": 4,
+    "recovery_last_event_id": "demo-market-event-004",
+    "recovery_current_time": "2026-07-28T13:31:30Z"
+  }
+}
