@@ -39,12 +39,10 @@ from el_psy_quant.persistence.paper_account_repository import (
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 from el_psy_quant.persistence.schema import (
-    CURRENT_PRODUCT_SCHEMA_REVISION,
     REQUIRED_PRODUCT_INDEXES,
     REQUIRED_PRODUCT_TABLE_COLUMNS,
     REQUIRED_PRODUCT_TRIGGERS,
     read_product_schema_revision,
-    verify_product_schema,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -154,11 +152,10 @@ def test_migration_adds_exact_tables_indexes_triggers_and_downgrades(
     before = set(inspect(engine).get_table_names())
     engine.dispose()
 
-    _migrate(path, "head")
+    _migrate(path, REVISION)
     engine = _engine(path)
     try:
         inspector = inspect(engine)
-        assert CURRENT_PRODUCT_SCHEMA_REVISION == REVISION
         assert set(inspector.get_table_names()) == before | NEW_TABLES
         for table in NEW_TABLES:
             assert tuple(
@@ -178,6 +175,8 @@ def test_migration_adds_exact_tables_indexes_triggers_and_downgrades(
                 for item in inspector.get_foreign_keys(table)
             )
         for table, names in REQUIRED_PRODUCT_INDEXES.items():
+            if table not in NEW_TABLES:
+                continue
             actual = {item["name"] for item in inspector.get_indexes(table)}
             assert set(names).issubset(actual)
         with engine.connect() as connection:
@@ -190,8 +189,12 @@ def test_migration_adds_exact_tables_indexes_triggers_and_downgrades(
                     )
                 )
             }
-        assert set(REQUIRED_PRODUCT_TRIGGERS).issubset(triggers)
-        assert verify_product_schema(path) == REVISION
+        assert {
+            name
+            for name in REQUIRED_PRODUCT_TRIGGERS
+            if not name.startswith("trg_trading_")
+        }.issubset(triggers)
+        assert read_product_schema_revision(path) == REVISION
     finally:
         engine.dispose()
 
@@ -201,8 +204,8 @@ def test_migration_adds_exact_tables_indexes_triggers_and_downgrades(
         assert set(inspect(engine).get_table_names()) == before
     finally:
         engine.dispose()
-    _migrate(path, "head")
-    assert verify_product_schema(path) == REVISION
+    _migrate(path, REVISION)
+    assert read_product_schema_revision(path) == REVISION
 
 
 def test_populated_downgrade_removes_only_s184_graph_and_reupgrades(
@@ -225,7 +228,7 @@ def test_populated_downgrade_removes_only_s184_graph_and_reupgrades(
         )
     engine.dispose()
 
-    _migrate(path, "head")
+    _migrate(path, REVISION)
     engine = _engine(path)
     session_factory = create_product_session_factory(engine=engine)
     service = _service(session_factory)
@@ -332,7 +335,7 @@ def test_populated_downgrade_removes_only_s184_graph_and_reupgrades(
     finally:
         engine.dispose()
 
-    _migrate(path, "head")
+    _migrate(path, REVISION)
     engine = _engine(path)
     try:
         inspector = inspect(engine)
@@ -347,7 +350,7 @@ def test_populated_downgrade_removes_only_s184_graph_and_reupgrades(
                 == 0
                 for table_name in NEW_TABLES
             )
-        assert verify_product_schema(path) == REVISION
+        assert read_product_schema_revision(path) == REVISION
     finally:
         engine.dispose()
 

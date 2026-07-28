@@ -20,6 +20,7 @@ MIGRATION_CHAIN = (
     "0004_paper_job_recovery_audit",
     "0005_paper_job_result_references",
     "0006_portfolio_reviews",
+    "0007_paper_account_ledger",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 REQUIRED_MIGRATION_RESOURCE_PATHS = (
@@ -32,6 +33,7 @@ REQUIRED_MIGRATION_RESOURCE_PATHS = (
     "versions/0005_paper_job_result_references.py",
     "versions/0006_portfolio_reviews.py",
     "versions/0007_paper_account_ledger.py",
+    "versions/0008_market_time_foundation.py",
 )
 _REQUIRED_VERSION_FILES = tuple(
     PurePosixPath(path).name

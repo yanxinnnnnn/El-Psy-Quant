@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-CURRENT_PRODUCT_SCHEMA_REVISION = "0007_paper_account_ledger"
+CURRENT_PRODUCT_SCHEMA_REVISION = "0008_market_time_foundation"
 APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0001_product_baseline",
     "0002_artifact_index",
@@ -13,6 +13,7 @@ APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0004_paper_job_recovery_audit",
     "0005_paper_job_result_references",
     "0006_portfolio_reviews",
+    "0007_paper_account_ledger",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -226,6 +227,23 @@ REQUIRED_PRODUCT_TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
         "candidate_projection_digest",
         "reconciliation_digest",
     ),
+    "trading_calendars": (
+        "record_schema_version",
+        "calendar_id",
+        "market",
+        "timezone",
+        "calendar_version",
+        "created_at",
+    ),
+    "trading_sessions": (
+        "record_schema_version",
+        "session_id",
+        "calendar_id",
+        "trading_date",
+        "open_time",
+        "close_time",
+        "session_type",
+    ),
 }
 
 REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
@@ -248,6 +266,9 @@ REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
     "paper_account_reconciliations": (
         "ix_paper_account_reconciliations_account_recorded",
     ),
+    "trading_sessions": (
+        "ix_trading_sessions_calendar_date_open",
+    ),
 }
 
 REQUIRED_PRODUCT_TRIGGERS = (
@@ -265,6 +286,10 @@ REQUIRED_PRODUCT_TRIGGERS = (
     "trg_paper_account_snapshots_no_delete",
     "trg_paper_account_reconciliations_no_update",
     "trg_paper_account_reconciliations_no_delete",
+    "trg_trading_calendars_no_update",
+    "trg_trading_calendars_no_delete",
+    "trg_trading_sessions_no_update",
+    "trg_trading_sessions_no_delete",
 )
 
 

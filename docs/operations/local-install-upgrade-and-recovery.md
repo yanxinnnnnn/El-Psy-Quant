@@ -17,9 +17,10 @@ The current product migration chain is exactly:
   -> 0005_paper_job_result_references
   -> 0006_portfolio_reviews
   -> 0007_paper_account_ledger
+  -> 0008_market_time_foundation
 ```
 
-`0007_paper_account_ledger` is the single current head. Supported Founder
+`0008_market_time_foundation` is the single current head. Supported Founder
 upgrades move forward to that head. Alembic downgrade is developer/test
 behavior, not a supported Founder recovery path.
 

@@ -33,6 +33,7 @@ MIGRATION_CHAIN = (
     "0004_paper_job_recovery_audit",
     "0005_paper_job_result_references",
     "0006_portfolio_reviews",
+    "0007_paper_account_ledger",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -286,4 +287,5 @@ def test_no_new_or_modified_migration_shape_exists() -> None:
         "0005_paper_job_result_references",
         "0006_portfolio_reviews",
         "0007_paper_account_ledger",
+        "0008_market_time_foundation",
     )

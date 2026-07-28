@@ -17,6 +17,7 @@ from el_psy_quant.persistence.schema import CURRENT_PRODUCT_SCHEMA_REVISION
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PREVIOUS_REVISION = "0005_paper_job_result_references"
 PORTFOLIO_REVIEW_REVISION = "0006_portfolio_reviews"
+PAPER_ACCOUNT_REVISION = "0007_paper_account_ledger"
 
 
 def _config() -> Config:
@@ -43,7 +44,10 @@ def test_portfolio_review_is_one_exact_linear_head() -> None:
     assert scripts.get_heads() == [CURRENT_PRODUCT_SCHEMA_REVISION]
     assert (
         scripts.get_revision(CURRENT_PRODUCT_SCHEMA_REVISION).down_revision
-        == PORTFOLIO_REVIEW_REVISION
+        == PAPER_ACCOUNT_REVISION
+    )
+    assert scripts.get_revision(PAPER_ACCOUNT_REVISION).down_revision == (
+        PORTFOLIO_REVIEW_REVISION
     )
     assert scripts.get_revision(PORTFOLIO_REVIEW_REVISION).down_revision == (
         PREVIOUS_REVISION

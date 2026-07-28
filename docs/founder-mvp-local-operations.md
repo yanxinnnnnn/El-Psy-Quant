@@ -85,8 +85,10 @@ An empty research or evidence root produces explicit first-run guidance rather
 than demo records. Standard startup never runs the demo installer and never
 seeds product state.
 Paper Job, portfolio-review, and Paper Account routes are available after the
-migration reaches the exact `0007_paper_account_ledger` head. Migrations never run from
-the browser or Next.js process.
+migration reaches the exact `0008_market_time_foundation` head. The additive
+market-time revision creates only empty trading-calendar and trading-session
+authority tables; it does not seed market data or alter Paper Account ledger
+semantics. Migrations never run from the browser or Next.js process.
 
 The runtime-only backend resolves the complete migration tree from the installed
 project wheel. It does not depend on a repository checkout or `/app/src`.
@@ -214,10 +216,10 @@ owns deterministic checks and static Compose rendering only.
 Existing-volume recovery must use the same preserved Standard volume and
 retained cold backup. Do not reset, replace, stamp, downgrade, rebuild a
 projection, or hand-edit the Standard database. After rebuilding the reviewed
-image, confirm the supported forward upgrade to `0007_paper_account_ledger`,
-run read-only Standard verification and MVP smoke, then complete Demo v3 exact
-replay, restart persistence, return-to-Standard isolation, and bilingual
-acceptance.
+image, confirm the supported forward upgrade through
+`0008_market_time_foundation`, run read-only Standard verification and MVP
+smoke, then complete Demo v3 exact replay, restart persistence,
+return-to-Standard isolation, and bilingual acceptance.
 
 ## End-to-End Smoke Verification
 

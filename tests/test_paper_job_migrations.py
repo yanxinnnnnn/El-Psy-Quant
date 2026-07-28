@@ -14,6 +14,7 @@ from el_psy_quant.persistence import (
     resolve_product_database_config,
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
+from el_psy_quant.persistence.schema import CURRENT_PRODUCT_SCHEMA_REVISION
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 BASELINE_REVISION = "0001_product_baseline"
@@ -47,7 +48,10 @@ def _current(database_path: Path) -> str | None:
 def test_exact_migration_chain() -> None:
     scripts = ScriptDirectory.from_config(_config())
 
-    assert scripts.get_heads() == [PAPER_ACCOUNT_REVISION]
+    assert scripts.get_heads() == [CURRENT_PRODUCT_SCHEMA_REVISION]
+    assert scripts.get_revision(CURRENT_PRODUCT_SCHEMA_REVISION).down_revision == (
+        PAPER_ACCOUNT_REVISION
+    )
     assert scripts.get_revision(PAPER_ACCOUNT_REVISION).down_revision == (
         PORTFOLIO_REVIEW_REVISION
     )
