@@ -21,6 +21,13 @@ import {
   isPaperAccountReconciliationCommandResponse,
   isPaperAccountSnapshotCommandResponse,
 } from "@/lib/paper-account-validators";
+import {
+  isMarketDataReplayDetailResponse,
+  isReplaySessionListResponse,
+  isReplayStatus,
+  isTradingCalendarDetailResponse,
+  isTradingCalendarListResponse,
+} from "@/lib/market-time-validators";
 
 const API_BASE_PATH = "/api/backend";
 const HEALTH_PATH = "/api/v1/health";
@@ -45,6 +52,12 @@ const LIFECYCLE_TRANSITION_PROPOSALS_PATH =
   "/api/v1/lifecycle-transition-proposals";
 const LIFECYCLE_TRANSITION_RECORDS_PATH =
   "/api/v1/lifecycle-transition-records";
+const TRADING_CALENDARS_PATH = "/api/v1/market-time/calendars";
+const TRADING_CALENDAR_DETAIL_PATH =
+  "/api/v1/market-time/calendars/{calendar_id}";
+const MARKET_DATA_REPLAYS_PATH = "/api/v1/market-time/replays";
+const MARKET_DATA_REPLAY_DETAIL_PATH =
+  "/api/v1/market-time/replays/{replay_id}";
 const PORTFOLIO_REVIEWS_PATH = "/api/v1/portfolio-reviews";
 const PORTFOLIO_REVIEW_DETAIL_PATH = "/api/v1/portfolio-reviews/{review_id}";
 const PORTFOLIO_REVIEW_DECISION_PATH =
@@ -148,6 +161,19 @@ export type LifecycleTransitionReviewRequest = PostRequestBody<
 export type LifecycleTransitionReviewResponse = PostSuccessResponse<
   typeof LIFECYCLE_TRANSITION_RECORDS_PATH,
   200
+>;
+export type TradingCalendarListResponse = SuccessResponse<
+  typeof TRADING_CALENDARS_PATH
+>;
+export type TradingCalendarDetailResponse = SuccessResponse<
+  typeof TRADING_CALENDAR_DETAIL_PATH
+>;
+export type ReplaySessionListResponse = SuccessResponse<
+  typeof MARKET_DATA_REPLAYS_PATH
+>;
+export type ReplayStatus = ReplaySessionListResponse[number]["status"];
+export type MarketDataReplayDetailResponse = SuccessResponse<
+  typeof MARKET_DATA_REPLAY_DETAIL_PATH
 >;
 export type PortfolioReviewListResponse = SuccessResponse<
   typeof PORTFOLIO_REVIEWS_PATH
@@ -1557,6 +1583,88 @@ export function submitLifecycleTransitionReview(
     method: "POST",
     requestBody: request,
     validate: isLifecycleTransitionReviewResponse,
+    fetchImplementation,
+  });
+}
+
+function marketTimePath(template: string, idKey: string, id: string): string {
+  return template.replace(`{${idKey}}`, encodeURIComponent(id));
+}
+
+export function fetchTradingCalendars(
+  filters: { market?: string | null } = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<TradingCalendarListResponse>> {
+  const query = new URLSearchParams();
+  if (filters.market !== undefined && filters.market !== null) {
+    if (filters.market.length === 0 || filters.market !== filters.market.trim()) {
+      throw new TypeError("Market must be a nonblank normalized string.");
+    }
+    query.set("market", filters.market);
+  }
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${TRADING_CALENDARS_PATH}${suffix}`,
+    validate: isTradingCalendarListResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchTradingCalendarDetail(
+  calendarId: string,
+  filters: {
+    startDate?: string | null;
+    endDate?: string | null;
+    sessionType?: string | null;
+  } = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<TradingCalendarDetailResponse>> {
+  const query = new URLSearchParams();
+  if (filters.startDate) query.set("start_date", filters.startDate);
+  if (filters.endDate) query.set("end_date", filters.endDate);
+  if (filters.sessionType) query.set("session_type", filters.sessionType);
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${marketTimePath(
+      TRADING_CALENDAR_DETAIL_PATH,
+      "calendar_id",
+      calendarId,
+    )}${suffix}`,
+    validate: isTradingCalendarDetailResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchMarketDataReplays(
+  filters: { status?: ReplayStatus | null } = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<ReplaySessionListResponse>> {
+  const query = new URLSearchParams();
+  if (filters.status !== undefined && filters.status !== null) {
+    if (!isReplayStatus(filters.status)) {
+      throw new TypeError("Replay status is not supported.");
+    }
+    query.set("status", filters.status);
+  }
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${MARKET_DATA_REPLAYS_PATH}${suffix}`,
+    validate: isReplaySessionListResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchMarketDataReplayDetail(
+  replayId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<MarketDataReplayDetailResponse>> {
+  return requestJson({
+    path: marketTimePath(
+      MARKET_DATA_REPLAY_DETAIL_PATH,
+      "replay_id",
+      replayId,
+    ),
+    validate: isMarketDataReplayDetailResponse,
     fetchImplementation,
   });
 }

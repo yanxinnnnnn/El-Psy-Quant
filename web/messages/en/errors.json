@@ -293,6 +293,16 @@
     "explanation": "The configured product database cannot safely expose the required Paper Account authority.",
     "recovery": "Verify the supported migration state and local configuration before retrying."
   },
+  "market_time_not_found": {
+    "title": "Market-time state was not found",
+    "explanation": "The backend could not find the requested persisted calendar or replay authority.",
+    "recovery": "Return to the replay workspace and inspect the current read-only collections."
+  },
+  "market_time_invalid": {
+    "title": "Market-time inspection is invalid",
+    "explanation": "The backend rejected one or more read-only market-time inspection filters.",
+    "recovery": "Correct the inspection filters and retry; no replay or calendar state was changed."
+  },
   "request_validation_error": {
     "title": "Command structure is invalid",
     "explanation": "The submitted request does not match the generated API contract.",

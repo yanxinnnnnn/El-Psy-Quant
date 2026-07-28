@@ -293,6 +293,16 @@
     "explanation": "配置的产品数据库无法安全提供所需的模拟账户权威。",
     "recovery": "请验证受支持的迁移状态和本地配置后再重试。"
   },
+  "market_time_not_found": {
+    "title": "未找到市场时间状态",
+    "explanation": "后端未找到请求的持久化日历或重放权威。",
+    "recovery": "返回重放工作台并检查当前只读集合。"
+  },
+  "market_time_invalid": {
+    "title": "市场时间检查无效",
+    "explanation": "后端拒绝了一个或多个只读市场时间检查筛选器。",
+    "recovery": "请修正检查筛选器后重试；重放或日历状态未发生更改。"
+  },
   "request_validation_error": {
     "title": "命令结构无效",
     "explanation": "提交的请求与生成的 API 契约不一致。",
