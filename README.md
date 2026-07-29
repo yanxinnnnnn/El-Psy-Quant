@@ -13,27 +13,25 @@ operate, and improve trading ideas before real capital is deployed.
 
 ## Current Status
 
-Milestones 1–30 are **Complete** after Sprint 178 merges.
+Milestones 1–32 are **Complete** after the Milestone 32 closeout merges.
 
 The next milestone is:
 
 ```text
-M31 — Stateful Paper Account and Ledger Foundation
+M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-M31 is **In Progress** through the Founder-approved S179–S188 sequence. Sprints
-179–185 are Complete after PR #367 merged. Sprint 186 is
-implementation-complete and pending Founder review. It exposes durable Paper
-Account list, create, detail, ledger, mutation, snapshot, and reconciliation
-workflows through the bilingual generated-contract-only Founder Web.
+M33 starts with CTO-owned architecture and planning. It must consume the M32
+market-time authority and the M31 account/ledger authority without redefining
+either domain.
 
 Current migration head:
 
 ```text
-0007_paper_account_ledger
+0009_market_time_runtime
 ```
 
-## Product Delivered Through M30
+## Product Delivered Through M32
 
 The current product provides:
 
@@ -44,58 +42,71 @@ The current product provides:
 - a modern responsive AI Quant Decision Workspace visual system;
 - a bounded Founder Dashboard for workflow navigation and operational attention;
 - authoritative strategy, research, governance, report, Paper Job, result,
-  comparison, portfolio-review, and lifecycle-review inspection;
+  comparison, portfolio-review, lifecycle-review, Paper Account, and market-time
+  inspection;
 - explicit Paper Job submit, replay, Run, Cancel, Retry, Recover, attempt, and
   result workflows;
 - stable localized error meaning with raw codes, request IDs, and technical audit
   details;
 - sanitized local request and command correlation events;
-- SQLite/Alembic persistence through one exact migration chain;
+- SQLite/Alembic persistence through one exact additive migration chain;
 - fail-closed Standard and Demo startup with read-only verification;
 - locked Python build/runtime inputs and `npm ci` for the Web image;
 - isolated persistent Standard and disposable Demo storage;
 - non-mutating bilingual runtime smoke verification; and
-- cold-backup, upgrade, Demo-only reset, and return-to-Standard guidance.
+- cold-backup, upgrade, Demo-only reset, restart, and return-to-Standard guidance.
 
-M30 adds a complete portfolio-level decision-review workflow:
+### M30 — Portfolio-level decision review
 
-```text
-explicit immutable review source
-  -> explicit baseline and proposed scenarios
-  -> concentration and review exposure
-  -> symbol overlap and historical return interaction
-  -> baseline/proposed historical behavior and impact
-  -> immutable analysis evidence
-  -> explicit approve / reject / defer decision
-  -> bilingual Founder inspection and audit
-```
+M30 established explicit portfolio review evidence and one explicit human
+decision. Its approval remains governance evidence only. It does not allocate
+capital, create or fund an account, generate an order, or authorize execution.
 
-M30 includes:
+### M31 — Stateful Paper Account and Ledger Foundation
 
-- 2–12 ordered review components;
-- typed evidence references and per-component research origin;
-- exact ordered aligned historical returns;
-- strict non-negative static weights with no automatic normalization;
-- domain-calculated concentration, exposure, overlap, correlation, behavior,
-  contribution, drawdown, and proposed impact;
-- immutable source, analysis, and human-decision artifacts;
-- compact SQLite metadata and idempotency state;
-- exactly four versioned portfolio-review API routes;
-- three bilingual Founder portfolio-review routes;
-- explicit research-run and compatible evidence-manifest composition;
-- deterministic isolated Demo Workspace v2 review and create prefill;
-- exact replay and persisted human-decision evidence;
-- installed-wheel Alembic resources for the runtime-only backend; and
-- successful Founder Standard/Demo, persistence, isolation, and bilingual browser
-  acceptance.
+M31 established:
 
-Formal M30 records:
+- independent Paper Account identity and lifecycle state;
+- immutable cash and position ledgers;
+- aggregate cost basis and deterministic replay;
+- projection rebuild, snapshot, and reconciliation evidence;
+- durable SQLite persistence, append-only protection, idempotency, and optimistic
+  concurrency;
+- versioned API and bilingual Founder Web workflows; and
+- isolated Demo v3 upgrade, restart, recovery, and acceptance evidence.
+
+Final M31 authority remains:
 
 ```text
-docs/architecture/portfolio-level-decision-review.md
-docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
-docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
+ledger events/postings = financial authority
+ledger replay = account-state authority
+projection/snapshot/reconciliation = derived evidence/cache
+API/Web/Demo = presentation and verification only
 ```
+
+### M32 — Market Data Replay, Trading Calendar, and Session Clock
+
+M32 established:
+
+- immutable Trading Calendar and Trading Session authority;
+- the canonical versioned `MarketDataEvent` contract;
+- deterministic replay ordering, lifecycle, cursor, and stream binding;
+- durable market-event and replay persistence with restart-safe recovery;
+- read-only market-time inspection APIs;
+- a bilingual Founder Replay Workspace; and
+- isolated Demo v4 market-time replay and recovery evidence.
+
+Final M32 authority remains:
+
+```text
+TradingCalendar / TradingSession = calendar and session authority
+MarketDataEvent = market-state event authority
+MarketDataReplayEngine = deterministic progression authority
+persistence = store and restore existing authorities only
+Web / Demo = presentation and verification only
+```
+
+M32 does not create, mutate, or authorize Paper Account financial state.
 
 ## Current Founder Journey
 
@@ -108,118 +119,46 @@ Strategy
   -> Comparison
   -> Portfolio Review
   -> Paper Account
+  -> Market Time Replay Inspection
   -> Lifecycle Review
   -> Human Decision Evidence
 ```
 
-Portfolio-review creation keeps aligned returns, scenario weights, audit input,
-and proposed-component selection under explicit Founder control. The browser does
-not calculate portfolio evidence, normalize weights, select a candidate, or
-record a decision automatically.
+The browser remains a presentation and command surface. It does not duplicate
+financial calculations, infer market-time truth, silently repair state, select a
+strategy, create an order, or execute a trade.
 
 ## What the Current Product Is Not Yet
 
-The current Paper workflow is auditable and operationally controlled, but it is
-not yet a continuous market-driven Paper Trading runtime.
+The current Paper workflow is auditable, durable, and market-time aware, but it
+is not yet genuine strategy-driven Paper Trading.
 
 It does not yet provide:
 
-- account-funded interpretation of M30 scenario weights;
-- market-data replay tied to a trading calendar and session clock;
 - automatic strategy-signal-to-order conversion;
-- pre-trade risk checks for automatically generated orders;
+- account-aware pre-trade risk checks for generated orders;
 - a runtime order lifecycle and execution simulator;
-- a durable worker/checkpoint/recovery loop;
+- market-driven fills and resulting ledger mutations;
+- a durable worker/claim/checkpoint/recovery loop for session execution;
 - continuous multi-day Paper Trading;
 - broker, QMT, MiniQMT, private-edge, live, or real-money behavior; or
 - automatic strategy ranking, approval, optimization, or capital allocation.
-
-M30 approval is governance evidence only. It does not create, fund, or mutate an
-account and does not authorize execution.
 
 ## Approved Route to Genuine Paper Trading
 
 ```text
 M30 Portfolio-Level Decision Review Foundation — Complete
-  -> M31 Stateful Paper Account and Ledger Foundation — In Progress
-  -> M32 Market Data Replay, Trading Calendar, and Session Clock
-  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
+  -> M31 Stateful Paper Account and Ledger Foundation — Complete
+  -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
+  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Next
   -> M34 Paper Execution Simulator and First True Paper Trading
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-M31 has the approved S179–S188 sequence. M32–M36 retain no sprint ranges and each
-receives its own architecture-and-planning Issue before implementation.
-
-### M31 — Account and ledger truth
-
-M31 must establish an independent durable source of truth for account identity,
-cash, positions, adjustments, fees, order/fill references, snapshots,
-reconciliation, idempotency, and concurrency.
-
-Sprint 180 established the separate `el_psy_quant.paper_account` contract
-boundary. Sprint 181 added pure immutable creation, cash-movement,
-approved-evidence-link, and lifecycle events; exact cash postings; contiguous
-version and digest chains; and fail-closed cash-only replay. Sprint 182 added
-normalized-symbol position commands and postings, long-only quantity and
-aggregate-cost-basis invariants, display-only average cost, and one complete
-mixed-ledger state and replay boundary without changing valid Sprint 181 event
-digests. Sprint 183 added a canonical complete projection, verification statuses
-`current` and `reconciliation_required`, closed ordered mismatch codes, and
-immutable snapshot/reconciliation evidence anchored to replayed history.
-Sprint 184 adds migration `0007_paper_account_ledger`, append-only durable
-history, strict row/domain reconstruction, replaceable projection caches,
-immutable snapshot/reconciliation rows, creation and operation idempotency,
-`BEGIN IMMEDIATE` plus guarded head compare-and-swap, and internal application
-services. Sprint 185 adds exactly ten versioned Paper Account operations, strict
-canonical-string financial transport, bounded list and ledger pagination,
-stable sanitized Paper Account errors, server-owned request IDs, bounded
-success audit events, and generated OpenAPI/TypeScript contracts. Sprint 186
-adds the bilingual generated-contract-only Founder Paper Account list, create,
-detail, ledger, mutation, snapshot, and reconciliation workspace. Verification
-never silently repairs or replaces a candidate projection. Sprint 187 adds
-Demo dataset/descriptor v3, deterministic service-owned account seeding, exact
-restart replay, projection/snapshot/reconciliation verification, isolated
-Standard/Demo safeguards, packaged `0006 -> 0007` upgrade preservation, and
-Founder-owned recovery/acceptance guidance. API, Web, and Demo payloads remain
-presentation and verification surfaces only. No filesystem evidence artifact,
-Docker runtime acceptance, order/fill, market, execution, PnL/equity, worker,
-broker, live, or real-money behavior is added.
-The existing `el_psy_quant.paper` evidence model is unchanged.
-
-An approved M30 review may be linked as evidence, but it is not ledger truth and
-cannot itself create or fund an account.
-
-Canonical M31 records:
-
-```text
-docs/architecture/stateful-paper-account-and-ledger.md
-docs/milestones/milestone-031-stateful-paper-account-and-ledger-foundation.md
-docs/sprints/sprint-179-milestone-31-architecture-and-planning.md
-docs/sprints/sprint-180-paper-account-identity-lifecycle-decimal-and-evidence-reference-contract-foundation.md
-docs/sprints/sprint-181-immutable-cash-ledger-and-account-event-foundation.md
-docs/sprints/sprint-182-immutable-position-ledger-and-aggregate-cost-basis-foundation.md
-docs/sprints/sprint-183-account-snapshot-reconciliation-and-projection-rebuild-foundation.md
-docs/sprints/sprint-184-durable-paper-account-persistence-migration-concurrency-and-application-service-foundation.md
-docs/sprints/sprint-185-versioned-paper-account-api-errors-and-audit-surface-foundation.md
-docs/sprints/sprint-186-bilingual-founder-paper-account-web-workspace.md
-docs/sprints/sprint-187-integration-demo-upgrade-recovery-and-acceptance-hardening.md
-```
-
-### M34 — First true Paper Trading
-
-The Founder selects an approved strategy, account, symbols, and historical market
-session. The platform itself reads market data, evaluates the strategy, derives
-orders, applies risk checks, simulates fills, updates the durable account, and
-records complete evidence. Orders and fills are no longer pre-supplied as the
-transaction script.
-
-### M36 — Continuous Paper Trading
-
-The same account advances across multiple sessions and trading days with durable
-checkpoints, reconciliation, explicit controls, duplicate prevention, and
-interruption recovery.
+M33 owns strategy signals, order intent, and pre-trade risk. It consumes M31
+account authority and M32 market-time authority, but it must not redefine ledger,
+calendar, event, cursor, or replay truth.
 
 Authoritative runtime roadmap:
 
@@ -241,16 +180,13 @@ Browser
 
 Authority rules:
 
-- domain modules own quantitative, Paper Trading, comparison, governance,
-  lifecycle, and portfolio-review calculations;
-- API handlers and the Web layer do not duplicate financial calculations;
-- completed artifact files remain full payload authority;
-- SQLite stores compact indexes, references, idempotency records, attempts, jobs,
-  reviews, and operational state rather than complete artifact payloads;
-- Paper Job, lifecycle, portfolio review, and future Paper Account state remain
-  separate authorities;
-- lifecycle proposals remain non-executing;
-- human review remains explicit governance evidence;
+- domain modules own quantitative and workflow calculations;
+- ledger events/postings own financial truth;
+- ledger replay owns Paper Account state truth;
+- calendar/session definitions and canonical market events own market-time truth;
+- replay engine state owns deterministic market progression;
+- persistence stores and restores authority but does not replace it;
+- API, Web, and Demo payloads remain presentation and verification surfaces;
 - raw IDs, states, versions, timestamps, codes, digests, values, and artifact
   content remain authoritative and untranslated;
 - the browser never directly accesses SQLite, artifact directories, Python, QMT,
@@ -346,12 +282,14 @@ AGENTS.md
 docs/roadmap.md
 docs/strategy/future-platform-roadmap.md
 docs/strategy/paper-trading-runtime-roadmap.md
-docs/milestones/milestone-029-product-feedback-and-hardening.md
-docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
 docs/architecture/portfolio-level-decision-review.md
 docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
 docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
-docs/sprints/sprint-178-milestone-030-closeout-and-m31-handoff.md
+docs/architecture/stateful-paper-account-and-ledger.md
+docs/milestones/milestone-031-stateful-paper-account-and-ledger-foundation.md
+docs/milestones/milestone-032-market-data-replay-trading-calendar-and-session-clock.md
+docs/closeouts/milestone-032-market-data-replay-trading-calendar-and-session-clock-closeout.md
+docs/milestones/m32-closeout.md
 ```
 
 ## Explicitly Deferred
