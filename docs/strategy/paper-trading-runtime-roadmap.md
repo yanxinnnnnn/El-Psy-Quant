@@ -13,11 +13,14 @@ Issues, Founder acceptance, and manual merge.
 
 ```text
 M30 — Complete
-M31 — In Progress (S179–S184 Complete; S185 API foundation pending review)
-M32–M36 — Planned
+M31 — Complete
+M32 — Complete
+M33 — In Progress through the approved S197–S206 sequence
+M34–M36 — Planned
 ```
 
-M31 uses the approved S179–S188 sequence. M32–M36 remain unassigned until each
+M31 used S179–S188 and M32 used S189–S196. Issue #389 is the authoritative M33
+architecture source and assigns S197–S206. M34–M36 remain unassigned until each
 milestone is planned.
 
 ## Starting Product After M30
@@ -55,9 +58,9 @@ Neither creates or funds an account or becomes ledger truth.
 
 ```text
 M30 Portfolio-Level Decision Review Foundation — Complete
-  -> M31 Stateful Paper Account and Ledger Foundation — In Progress
-  -> M32 Market Data Replay, Trading Calendar, and Session Clock
-  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
+  -> M31 Stateful Paper Account and Ledger Foundation — Complete
+  -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
+  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — In Progress
   -> M34 Paper Execution Simulator and First True Paper Trading
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
@@ -98,7 +101,7 @@ execution, or runtime truth.
 
 ### Status
 
-**In Progress — S179–S185 Complete; S186 implementation-complete/pending Founder review.**
+**Complete.**
 
 ### User-visible outcome
 
@@ -200,6 +203,10 @@ M31 does not introduce:
 
 ## M32 — Market Data Replay, Trading Calendar, and Session Clock
 
+### Status
+
+**Complete.**
+
 ### User-visible outcome
 
 The Founder can select and inspect one validated historical market session with
@@ -233,6 +240,13 @@ continuous scheduling.
 
 ## M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 
+### Status
+
+**In Progress through S197–S206.** Issue #389 is the authoritative M33
+architecture source. Sprint 197 planning is Complete. Sprint 198 establishes
+only the pure runtime-reference, exact M32 market-reference, signal-command,
+immutable Strategy Signal, and compact signal-reference contracts.
+
 ### User-visible outcome
 
 The Founder can select an approved strategy, M31 account, and M32 session and
@@ -264,6 +278,9 @@ intent without Founder-authored orders.
 ### Non-goals
 
 No fills, execution simulation, account posting, worker, broker, or live behavior.
+Sprint 198 additionally adds no strategy evaluation, Order Intent, pre-trade
+risk, persistence, migration, API, Web, Demo, account mutation, or replay
+progression. The migration head remains `0009_market_time_runtime`.
 
 ## M34 — Paper Execution Simulator and First True Paper Trading
 
@@ -430,10 +447,11 @@ No browser-to-QMT direct connection is allowed.
 
 Only one milestone is planned and implemented at a time.
 
-The next action after M30 closeout is:
+The current action after M32 closeout and completed S197 planning is:
 
 ```text
-create and review an M31 architecture-and-planning Issue
+implement the approved M33 S197–S206 sequence one authoritative Issue at a time
 ```
 
-Do not jump directly to M31 implementation or pre-implement M32–M36 behavior.
+Do not pre-implement later M33 sprints or M34–M36 behavior. M34 remains the
+first execution, fill, and account-mutation milestone.

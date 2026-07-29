@@ -96,7 +96,7 @@ A task is complete only when:
 
 ## Completed Foundations
 
-Milestones 1–30 are Complete after Sprint 178 merges.
+Milestones 1–32 are Complete after Sprint 196.
 
 The recent productization, hardening, and decision-governance chain is:
 
@@ -107,6 +107,8 @@ M27 — S145-S151 Persistence and Paper Job Control Foundation
 M28 — S152-S160 Founder Paper Trading Web Workspace
 M29 — S161-S168 Product Feedback and Hardening
 M30 — S169-S178 Portfolio-Level Decision Review Foundation
+M31 — S179-S188 Stateful Paper Account and Ledger Foundation
+M32 — S189-S196 Market Data Replay, Trading Calendar, and Session Clock
 ```
 
 ### M29 delivered
@@ -151,51 +153,40 @@ docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout
 
 ## Current Focus
 
-The next milestone is:
+The current milestone is:
 
 ```text
-M31 — Stateful Paper Account and Ledger Foundation
+M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-M31 is **In Progress** through the approved S179–S188 sequence. Sprints 179–185
-are Complete after PR #367 merged. Sprints 186–187 are
-implementation-complete and pending Founder review/runtime acceptance. Sprint
-186 exposes the durable application authority through the bilingual
-generated-contract-only Paper Account list, create, detail, ledger, mutation,
-snapshot, and reconciliation Founder Web workflows. Sprint 187 adds isolated
-Demo v3 exact replay, non-repairing integration verification, packaged upgrade
-preservation, and Founder-owned recovery/acceptance support.
+M33 is **In Progress** through the approved S197–S206 sequence. Issue #389 is
+the authoritative architecture source. Sprint 197 planning is Complete. Sprint
+198 establishes only the pure runtime-reference, exact M32 market-reference,
+signal-command, immutable Strategy Signal, and compact Signal-reference
+contracts in `el_psy_quant.strategy_order`.
 
-M31 must establish independent durable account and ledger truth. It may reference
-approved M30 review evidence, but that evidence cannot create, fund, or mutate an
-account and is not a ledger entry.
+Sprint 198 does not evaluate a strategy, interpret market-event payloads, create
+an Order Intent, perform pre-trade risk, persist M33 state, add a migration,
+expose API/Web/Demo behavior, mutate a Paper Account, advance replay, or execute
+an order. The migration head remains `0009_market_time_runtime`.
 
-The approved Issue #355 architecture defines:
-
-- account identity and lifecycle;
-- initial cash and controlled funding/adjustment semantics;
-- immutable cash and position ledger entries;
-- order and fill persistence boundaries without execution;
-- fee and adjustment semantics;
-- account versioning, optimistic concurrency, and idempotency;
-- snapshots, reconciliation, and derived-balance authority;
-- how approved M30 evidence is attached without becoming ledger truth;
-- persistence, migration, artifact, API, Web, Demo, and Founder acceptance; and
-- explicit deferral of M32+ market, order-generation, execution, and runtime work.
+Sprints 199–206 remain planned for evaluation, account-bound intent, risk,
+persistence/application service, API/generated contracts, Web, Demo/recovery,
+and closeout respectively.
 
 ## Approved Route to Genuine Paper Trading
 
 ```text
 M30 Portfolio-Level Decision Review Foundation — Complete
-  -> M31 Stateful Paper Account and Ledger Foundation — In Progress
-  -> M32 Market Data Replay, Trading Calendar, and Session Clock
-  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
+  -> M31 Stateful Paper Account and Ledger Foundation — Complete
+  -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
+  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — In Progress
   -> M34 Paper Execution Simulator and First True Paper Trading
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-M31 uses S179–S188. M32–M36 retain no sprint ranges; each milestone receives its
+M33 uses S197–S206. M34–M36 retain no sprint ranges; each milestone receives its
 own planning Issue before implementation.
 
 ### M34 product gate
@@ -240,41 +231,25 @@ Browser
 - The browser never directly accesses SQLite, artifact directories, Python, QMT,
   MiniQMT, or a broker.
 
-## M31 Boundary
+## Frozen M31, M32, and M33 Boundaries
 
-M31 implementation follows Issue #355 and the strict S179–S188 sequence. Sprint
-184 reuses the Sprint 180–183 contracts and makes their account, ledger,
-projection, snapshot, and reconciliation authority durable; it must not silently
-reinterpret:
+M31 ledger events/postings remain financial authority; ledger replay remains
+Paper Account state authority; projections, snapshots, and reconciliation remain
+derived evidence/cache. M33 may read exact verified account state in later
+sprints but cannot mutate M31 authority.
 
-- M30 scenario weights as holdings;
-- M30 approval as account authorization;
-- Paper Job results as ledger events;
-- lifecycle state as cash or position authority; or
-- user-entered balances as a substitute for immutable ledger entries.
+M32 calendar/session definitions, canonical `MarketDataEvent` values, and replay
+engine cursor/lifecycle remain market-time authority. M33 may bind exact M32
+provenance and later interpret supported payloads through versioned adapters, but
+it cannot reorder events, mutate payloads, or advance replay.
 
-Sprint 184 account events and cash/position entries remain durable mutation
-authority. `replay_paper_account_ledger(...)` remains state authority;
-projection rows are replaceable caches; snapshot and reconciliation rows are
-immutable derived evidence. Ordinary reads never repair a stale projection.
-Sprint 185 exposes that authority through exactly ten `/api/v1/paper-accounts`
-operations. API/OpenAPI/generated TypeScript payloads and bounded product logs
-are presentation and correlation surfaces only; they are not financial,
-ledger, projection, digest, snapshot, reconciliation, or governance authority.
-Sprint 186 presents that boundary through three bilingual Founder routes and
-never calculates financial truth. Sprint 187 Demo, Web, API, and descriptor
-surfaces remain presentation and verification layers over the same authority.
-No filesystem evidence artifact, Docker runtime acceptance, order/fill, market,
-execution, or Sprint 188+ behavior exists yet.
+M33 Strategy Signals remain separate from research DataFrames, M15
+`OrderIntent`, and legacy Paper order/fill evidence. A Signal is advisory
+recommendation evidence, not an order, risk decision, execution authorization,
+fill, reservation, ledger posting, or account mutation.
 
-M31 does not pre-authorize:
-
-- market-data replay or a session clock;
-- strategy evaluation for runtime order generation;
-- pre-trade order risk;
-- simulated execution;
-- workers, scheduling, or multi-day operation;
-- broker, QMT, MiniQMT, private-edge, live, or real-money behavior.
+M34 remains the first milestone that may own execution orders, fills, execution
+pricing, fees, and fill-caused account/ledger mutation.
 
 ## Explicitly Deferred
 

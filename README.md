@@ -13,17 +13,18 @@ operate, and improve trading ideas before real capital is deployed.
 
 ## Current Status
 
-Milestones 1–32 are **Complete** after the Milestone 32 closeout merges.
-
-The next milestone is:
+Milestones 1–32 are **Complete**. Milestone 33 is **In Progress** through the
+approved S197–S206 sequence.
 
 ```text
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-M33 starts with CTO-owned architecture and planning. It must consume the M32
-market-time authority and the M31 account/ledger authority without redefining
-either domain.
+Issue #389 is the authoritative M33 architecture source. Sprint 197 planning is
+Complete. Sprint 198 adds the first pure runtime-reference, exact M32
+market-reference, signal-command, immutable Strategy Signal, and compact
+signal-reference contracts. It performs no strategy evaluation and adds no
+Order Intent, risk, persistence, API, Web, Demo, or execution behavior.
 
 Current migration head:
 
@@ -108,6 +109,26 @@ Web / Demo = presentation and verification only
 
 M32 does not create, mutate, or authorize Paper Account financial state.
 
+### M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
+
+Sprint 198 establishes contracts only:
+
+- one closed v1 `moving_average_crossover` runtime reference;
+- one trusted exact M32 calendar/session/replay/current-event reference;
+- one pure signal-evaluation command and deterministic command digest;
+- immutable Strategy Signals restricted to zero or the configured positive
+  `target_position_quantity`; and
+- compact trusted Signal references.
+
+Signal identity covers the complete runtime reference, market reference, target
+semantic, and exact target quantity. Actor, command idempotency, command digest,
+and audit timestamp do not affect Signal identity.
+
+These contracts are separate from research DataFrames, the M15 backtest
+`OrderIntent`, and legacy Paper order/fill evidence. No strategy adapter
+evaluation, account-aware intent, pre-trade risk, persistence, API, Web, Demo,
+fill, or account mutation exists yet.
+
 ## Current Founder Journey
 
 ```text
@@ -150,15 +171,16 @@ It does not yet provide:
 M30 Portfolio-Level Decision Review Foundation — Complete
   -> M31 Stateful Paper Account and Ledger Foundation — Complete
   -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
-  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Next
+  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — In Progress
   -> M34 Paper Execution Simulator and First True Paper Trading
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-M33 owns strategy signals, order intent, and pre-trade risk. It consumes M31
-account authority and M32 market-time authority, but it must not redefine ledger,
-calendar, event, cursor, or replay truth.
+M33 owns strategy signals, order intent, and pre-trade risk through S197–S206.
+Sprint 198 implements only the first Signal contract layer. M33 consumes M31
+account authority and M32 market-time authority, but it must not redefine
+ledger, calendar, event, cursor, or replay truth.
 
 Authoritative runtime roadmap:
 

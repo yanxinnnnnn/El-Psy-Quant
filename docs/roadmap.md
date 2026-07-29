@@ -23,7 +23,7 @@ flowchart LR
     M25 --> M30["M30<br/>Portfolio Decision Review ✅"]
     M30 --> M31["M31<br/>Stateful Account & Ledger ✅"]
     M31 --> M32["M32<br/>Market Time & Replay ✅"]
-    M32 --> M33["M33<br/>Strategy-to-Order & Risk — Next"]
+    M32 --> M33["M33<br/>Strategy-to-Order & Risk — In Progress"]
     M33 --> M34["M34<br/>First True Paper Trading"]
     M34 --> M35["M35-M36<br/>Durable Multi-day Operations"]
     M35 --> FUTURE["Future<br/>Execution Readiness & Broker Adapter"]
@@ -65,13 +65,14 @@ flowchart LR
 | M30 — Portfolio-Level Decision Review Foundation | S169-178 | Complete | Portfolio-aware human decision governance | Concentration, exposure, interaction, historical impact, and one human decision are reproducibly reviewable without automatic allocation. |
 | M31 — Stateful Paper Account and Ledger Foundation | S179-188 | Complete | Durable account truth | One auditable ledger owns cash, positions, adjustments, and account-derived state across sessions. |
 | M32 — Market Data Replay, Trading Calendar, and Session Clock | S189-196 | Complete | Deterministic market-time inputs | Validated calendars, sessions, canonical market events, replay state, persistence, recovery, API, Web, and Demo evidence are complete. |
-| M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | TBD | Planned — Next | Account-aware order intent | Strategy output becomes idempotent risk-checked Paper order intent. |
+| M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | S197-206 | In Progress | Account-aware order intent | Exact strategy and market evidence become deterministic Signal, account-bound intent, and pre-trade risk authority without execution. |
 | M34 — Paper Execution Simulator and First True Paper Trading | TBD | Planned | Market/strategy-driven Paper Trading | The platform generates and fills orders from market data and strategy output, then updates the durable account. |
 | M35 — Durable Paper Runtime and Recovery | TBD | Planned | Reliable session execution | Durable claims, checkpoints, controls, duplicate prevention, and interruption recovery exist. |
 | M36 — Multi-day Paper Operations and Acceptance | TBD | Planned | Continuous multi-session Paper Trading | One account runs safely across sessions and trading days with reconciliation and Founder acceptance. |
 
-M33–M36 retain intentionally unassigned sprint ranges. Each milestone receives
-its own CTO-owned architecture-and-planning Issue before implementation.
+M33 uses the approved S197–S206 sequence from Issue #389. M34–M36 retain
+intentionally unassigned sprint ranges and each receives its own CTO-owned
+architecture-and-planning Issue before implementation.
 
 ## Completed Milestone 30
 
@@ -173,13 +174,14 @@ docs/closeouts/milestone-032-market-data-replay-trading-calendar-and-session-clo
 docs/milestones/m32-closeout.md
 ```
 
-## Current Milestone — M33 Planning Next
+## Current Milestone — M33 In Progress
 
 ```text
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-M33 begins only after M32 closeout. It owns:
+Issue #389 is the authoritative M33 architecture source. Sprint 197 planning is
+Complete and Sprint 198 implements the first pure contract layer. M33 owns:
 
 - canonical strategy signals tied to explicit strategy/evidence identity;
 - idempotent order intent;
@@ -193,9 +195,28 @@ M33 must consume, not redefine:
   lifecycle truth; and
 - M30/M31 evidence links as governance references rather than execution authority.
 
-M33 planning must explicitly settle signal authority, order-intent identity,
-idempotency, account/version concurrency, risk rule/result authority,
-persistence/API/Web/Demo impact, and M34+ non-goals before implementation.
+Sprint 198 provides only versioned runtime references, exact M32 signal-market
+references, pure evaluation commands, immutable Strategy Signals, and compact
+Signal references. It adds no strategy evaluation, Order Intent, risk,
+persistence, API, Web, Demo, account mutation, or execution behavior.
+
+Approved M33 sprint chain:
+
+| Sprint | Deliverable | Status |
+|---:|---|---|
+| S197 | Milestone 33 Architecture and Planning | Complete |
+| S198 | Strategy Runtime Reference and Signal Contract Foundation | In Progress |
+| S199 | Deterministic Strategy Signal Evaluation Foundation | Planned |
+| S200 | Account-Bound Order Intent and Idempotency Foundation | Planned |
+| S201 | Pre-Trade Risk Decision and Evidence Foundation | Planned |
+| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |
+| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
+| S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |
+| S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
+| S206 | Milestone 33 Closeout and M34 Handoff | Planned |
+
+The migration head remains `0009_market_time_runtime` until the planned S202
+additive migration.
 
 ## Approved Paper Trading Runtime Sequence
 
@@ -203,7 +224,7 @@ persistence/API/Web/Demo impact, and M34+ non-goals before implementation.
 M30 Portfolio-Level Decision Review Foundation — Complete
   -> M31 Stateful Paper Account and Ledger Foundation — Complete
   -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
-  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Next
+  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — In Progress
   -> M34 Paper Execution Simulator and First True Paper Trading
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
