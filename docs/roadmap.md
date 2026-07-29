@@ -21,9 +21,11 @@ flowchart LR
     M16 --> M20["M20-M24<br/>Governance & Review Workflow ✅"]
     M20 --> M25["M25-M29<br/>Founder Productization & Hardening ✅"]
     M25 --> M30["M30<br/>Portfolio Decision Review ✅"]
-    M30 --> M31["M31<br/>Stateful Account & Ledger — In Progress"]
-    M31 --> M32["M32-M34<br/>Market-Driven Paper Trading"]
-    M32 --> M35["M35-M36<br/>Durable Multi-day Operations"]
+    M30 --> M31["M31<br/>Stateful Account & Ledger ✅"]
+    M31 --> M32["M32<br/>Market Time & Replay ✅"]
+    M32 --> M33["M33<br/>Strategy-to-Order & Risk — Next"]
+    M33 --> M34["M34<br/>First True Paper Trading"]
+    M34 --> M35["M35-M36<br/>Durable Multi-day Operations"]
     M35 --> FUTURE["Future<br/>Execution Readiness & Broker Adapter"]
 ```
 
@@ -61,84 +63,20 @@ flowchart LR
 | M28 — Founder Paper Trading Web Workspace | S152-160 | Complete | First usable local Founder Web MVP | The complete paper-decision journey is usable through Web/API. |
 | M29 — Product Feedback and Hardening | S161-168 | Complete | Bilingual daily-use product reliability | The modernized product is dependable for routine Founder use. |
 | M30 — Portfolio-Level Decision Review Foundation | S169-178 | Complete | Portfolio-aware human decision governance | Concentration, exposure, interaction, historical impact, and one human decision are reproducibly reviewable without automatic allocation. |
-| M31 — Stateful Paper Account and Ledger Foundation | S179-188 | In Progress | Durable account truth | One auditable ledger owns cash, positions, adjustments, and account-derived state across sessions. |
-| M32 — Market Data Replay, Trading Calendar, and Session Clock | TBD | Planned | Deterministic market-time inputs | Validated historical sessions can drive later Paper runtime behavior. |
-| M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | TBD | Planned | Account-aware order intent | Strategy output becomes idempotent risk-checked Paper order intent. |
+| M31 — Stateful Paper Account and Ledger Foundation | S179-188 | Complete | Durable account truth | One auditable ledger owns cash, positions, adjustments, and account-derived state across sessions. |
+| M32 — Market Data Replay, Trading Calendar, and Session Clock | S189-196 | Complete | Deterministic market-time inputs | Validated calendars, sessions, canonical market events, replay state, persistence, recovery, API, Web, and Demo evidence are complete. |
+| M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | TBD | Planned — Next | Account-aware order intent | Strategy output becomes idempotent risk-checked Paper order intent. |
 | M34 — Paper Execution Simulator and First True Paper Trading | TBD | Planned | Market/strategy-driven Paper Trading | The platform generates and fills orders from market data and strategy output, then updates the durable account. |
 | M35 — Durable Paper Runtime and Recovery | TBD | Planned | Reliable session execution | Durable claims, checkpoints, controls, duplicate prevention, and interruption recovery exist. |
 | M36 — Multi-day Paper Operations and Acceptance | TBD | Planned | Continuous multi-session Paper Trading | One account runs safely across sessions and trading days with reconciliation and Founder acceptance. |
 
-M31 uses the approved S179–S188 sequence. M32–M36 retain intentionally unassigned
-sprint ranges and each receives its own architecture-and-planning Issue before
-implementation.
-
-## Completed Milestone 29
-
-M29 turned the M28 working MVP into a product suitable for routine Founder use:
-
-```text
-complete English / Simplified Chinese product
-  -> modern bilingual visual system
-  -> decision-oriented Founder Dashboard
-  -> understandable Paper Job control and recovery
-  -> actionable error and audit surfaces
-  -> safe migrations and local deployment
-  -> formal runtime-roadmap handoff
-```
-
-Sprint range S161–S168 is Complete.
-
-Closeout records:
-
-```text
-docs/milestones/milestone-029-product-feedback-and-hardening.md
-docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
-```
+M33–M36 retain intentionally unassigned sprint ranges. Each milestone receives
+its own CTO-owned architecture-and-planning Issue before implementation.
 
 ## Completed Milestone 30
 
-M30 delivered:
-
-```text
-explicit immutable review source
-  -> explicit baseline and proposed static scenarios
-  -> concentration and review exposure
-  -> symbol overlap and historical return interaction
-  -> baseline/proposed historical behavior and impact
-  -> immutable source, analysis, and decision evidence
-  -> bilingual Founder inspection and explicit human decision
-  -> isolated Demo v2 and accepted Standard/Demo runtime
-```
-
-Completed sprint chain:
-
-| Sprint | Deliverable | Status |
-|---:|---|---|
-| S169 | Milestone 30 Architecture and Planning | Complete |
-| S170 | Portfolio Review Input and Scenario Contract Foundation | Complete |
-| S171 | Concentration and Exposure Analysis Foundation | Complete |
-| S172 | Strategy Interaction and Proposed Portfolio Impact Foundation | Complete |
-| S173 | Portfolio Review Artifact and Human Decision Foundation | Complete |
-| S174 | Durable Portfolio Review Persistence and Application/API Foundation | Complete |
-| S175 | Founder Portfolio Decision Review Web Workspace | Complete |
-| S176 | Portfolio Review Workflow Integration, Demo, and Acceptance Hardening | Complete |
-| S177 | Backend Runtime Alembic Resource Packaging and Startup Recovery | Complete |
-| S178 | Milestone 30 Closeout and M31 Handoff | Complete after merge |
-
-M30 acceptance confirmed:
-
-- preserved Standard `0005_paper_job_result_references` to
-  `0006_portfolio_reviews` upgrade;
-- Standard read-only verification and non-mutating smoke;
-- Standard remains unseeded;
-- Demo Workspace dataset/descriptor v2;
-- exact create prefill and replay;
-- one explicit decision persisted across Demo restart;
-- return-to-Standard storage isolation; and
-- English and Simplified Chinese browser acceptance.
-
-M30 does not allocate capital, mutate an account, generate orders, simulate
-fills, start a worker, connect to a broker, or implement M31–M36 behavior.
+M30 delivered explicit portfolio-level decision review evidence and one explicit
+human decision without automatic allocation or execution.
 
 Authoritative records:
 
@@ -148,70 +86,124 @@ docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
 docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
 ```
 
-## Current Milestone — M31
+## Completed Milestone 31
+
+M31 delivered:
 
 ```text
-M31 — Stateful Paper Account and Ledger Foundation
+Paper Account identity and lifecycle
+  -> immutable cash and position ledgers
+  -> aggregate cost basis and deterministic replay
+  -> projection rebuild, snapshot, and reconciliation evidence
+  -> SQLite persistence, append-only protection, idempotency, and concurrency
+  -> versioned API and bilingual Founder Web
+  -> isolated Demo v3 upgrade, restart, and recovery evidence
 ```
 
-Sprints 179–185 are Complete after PR #367 merged. Sprint 186 is
-implementation-complete and pending Founder review; it presents durable account
-authority through the bilingual generated-contract-only Founder Web.
+Final authority:
 
-M31 must establish independent account and ledger authority for:
+- ledger events/postings remain financial authority;
+- ledger replay remains account-state authority;
+- projection, snapshot, and reconciliation remain derived evidence/cache; and
+- API, Web, and Demo remain presentation and verification only.
 
-- account identity and lifecycle;
-- initial cash and controlled adjustments;
-- immutable cash and position ledger entries;
-- order/fill persistence boundaries without execution;
-- fee semantics;
-- optimistic concurrency and idempotency;
-- snapshots and reconciliation;
-- derived balances; and
-- an explicit evidence link to approved M30 review records.
+M30 review evidence may be linked, but it cannot create, fund, or mutate an
+account.
 
-M30 scenario weights remain review assumptions. M30 approval remains governance
-evidence. Neither becomes account or ledger truth.
-
-Approved M31 sprint chain:
+Canonical records:
 
 ```text
-S179 planning
-  -> S180 contracts
-  -> S181 cash/event authority
-  -> S182 position/cost-basis authority
-  -> S183 snapshot/reconciliation authority
-  -> S184 persistence/application transaction authority
-  -> S185 API
-  -> S186 Web
-  -> S187 integration and Founder acceptance
-  -> S188 closeout
+docs/architecture/stateful-paper-account-and-ledger.md
+docs/milestones/milestone-031-stateful-paper-account-and-ledger-foundation.md
+docs/sprints/sprint-179-milestone-31-architecture-and-planning.md
 ```
 
-S179–S185 are Complete. S186–S187 are implementation-complete and pending
-Founder review/acceptance. S182 added normalized-symbol position commands, immutable
-position postings, exact long-only quantity and aggregate-cost-basis state,
-display-only average unit cost, and full mixed-ledger replay without changing
-valid S181 event digests. S183 added canonical complete projection rebuild,
-strict no-repair verification, and immutable snapshot/reconciliation evidence.
-S184 persists those authorities at migration head
-`0007_paper_account_ledger` with append-only protection and guarded
-transactions. S185 exposes them through exactly ten versioned operations with
-canonical-string financial transport, bounded list/ledger pages, stable errors,
-request IDs, bounded audit correlation, and generated contracts. API/browser
-payloads are not financial authority. S186 adds the bilingual account
-list/create/detail, ledger, mutation, snapshot, and reconciliation workspace
-without browser calculation. S187 adds isolated Demo v3 exact replay,
-non-repairing ledger/projection/snapshot/reconciliation verification, packaged
-upgrade preservation, and Founder-owned recovery/acceptance support.
+## Completed Milestone 32
+
+M32 delivered:
+
+```text
+Trading Calendar and Trading Session authority
+  -> canonical versioned MarketDataEvent contract
+  -> deterministic replay engine, cursor, lifecycle, and stream binding
+  -> durable event/replay persistence and restart-safe recovery
+  -> read-only market-time inspection APIs
+  -> bilingual Founder Replay Workspace
+  -> isolated Demo v4 replay and recovery evidence
+```
+
+Completed sprint chain:
+
+| Sprint | Deliverable | Status |
+|---:|---|---|
+| S189 | Milestone 32 Architecture and Planning | Complete |
+| S190 | Trading Calendar Foundation | Complete |
+| S191 | Market Data Canonical Contract | Complete |
+| S192 | Deterministic Market Data Replay Engine Foundation | Complete |
+| S193 | Market Time Persistence and API Layer | Complete |
+| S194 | Founder Replay Workspace | Complete |
+| S195 | Demo and Recovery Hardening | Complete |
+| S196 | Milestone 32 Closeout and M33 Handoff | Complete after merge |
+
+Final authority:
+
+- `TradingCalendar` and `TradingSession` own calendar/session definitions;
+- `MarketDataEvent` owns canonical market-state event representation;
+- `MarketDataReplayEngine` owns deterministic consumption, cursor, and lifecycle;
+- persistence stores and restores those authorities but does not replace them;
+- Web and Demo remain presentation and verification only; and
+- M31 financial/account authority remains unchanged.
+
+Migration evolution:
+
+```text
+0007_paper_account_ledger
+  -> 0008_market_time_foundation
+  -> 0009_market_time_runtime
+```
+
+M32 adds no strategy, order, risk, execution, broker, live, or real-money
+behavior.
+
+Authoritative records:
+
+```text
+docs/milestones/milestone-032-market-data-replay-trading-calendar-and-session-clock.md
+docs/closeouts/milestone-032-market-data-replay-trading-calendar-and-session-clock-closeout.md
+docs/milestones/m32-closeout.md
+```
+
+## Current Milestone — M33 Planning Next
+
+```text
+M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
+```
+
+M33 begins only after M32 closeout. It owns:
+
+- canonical strategy signals tied to explicit strategy/evidence identity;
+- idempotent order intent;
+- account-aware pre-trade risk decisions; and
+- an auditable handoff toward the M34 execution simulator.
+
+M33 must consume, not redefine:
+
+- M31 account identity, lifecycle, balances, positions, version, and ledger truth;
+- M32 calendar, session, event-time, canonical event, replay cursor, and replay
+  lifecycle truth; and
+- M30/M31 evidence links as governance references rather than execution authority.
+
+M33 planning must explicitly settle signal authority, order-intent identity,
+idempotency, account/version concurrency, risk rule/result authority,
+persistence/API/Web/Demo impact, and M34+ non-goals before implementation.
 
 ## Approved Paper Trading Runtime Sequence
 
 ```text
 M30 Portfolio-Level Decision Review Foundation — Complete
-  -> M31 Stateful Paper Account and Ledger Foundation — In Progress
-  -> M32 Market Data Replay, Trading Calendar, and Session Clock
-  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline
+  -> M31 Stateful Paper Account and Ledger Foundation — Complete
+  -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
+  -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Next
   -> M34 Paper Execution Simulator and First True Paper Trading
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
@@ -229,7 +221,7 @@ M36 proves the same account can operate across sessions and trading days with
 durable checkpoints, reconciliation, controls, duplicate prevention, and
 interruption recovery.
 
-Authoritative roadmap:
+Authoritative runtime roadmap:
 
 ```text
 docs/strategy/paper-trading-runtime-roadmap.md
@@ -247,12 +239,14 @@ Browser
   -> compact SQLite state and authoritative artifact roots
 ```
 
-- Domain modules remain quantitative and governance authority.
-- Completed files remain full artifact payload authority.
-- SQLite remains compact metadata and operational state.
+- Domain modules remain quantitative and workflow authority.
+- Ledger events/postings remain financial authority.
+- Ledger replay remains Paper Account state authority.
+- Calendar/session definitions and canonical market events remain market-time
+  authority.
+- Replay engine state remains deterministic progression authority.
+- Persistence stores/restores authority but does not replace it.
 - Raw product truth remains unchanged by localization.
-- Paper Job, lifecycle, portfolio review, and future account state remain
-  separate authorities.
 - Standard and Demo storage remain isolated.
 - The browser never accesses SQLite, files, Python, QMT, MiniQMT, or a broker.
 
