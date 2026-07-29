@@ -1,7 +1,7 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "dataset_id": "founder-demo-workspace",
-  "dataset_version": 3,
+  "dataset_version": 4,
   "display_name": "Founder Demo Workspace",
   "warning": "DEMO ONLY — disposable example evidence, not real user data or trading advice.",
   "canonical_strategy_name": "moving_average_crossover",
@@ -59,5 +59,8 @@
   },
   "paper_account_example": {
     "request_relative_path": "paper_accounts/account-journey.json"
+  },
+  "market_time_example": {
+    "request_relative_path": "market_time/replay-journey.json"
   }
 }

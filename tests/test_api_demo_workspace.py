@@ -52,8 +52,8 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
 
     assert response.status_code == 200
     descriptor = DemoWorkspaceDescriptorResponse.model_validate(response.json())
-    assert descriptor.schema_version == 3
-    assert descriptor.dataset_version == 3
+    assert descriptor.schema_version == 4
+    assert descriptor.dataset_version == 4
     assert descriptor.dataset_id == "founder-demo-workspace"
     assert descriptor.comparison_candidate_job_ids == [
         "16000000-0000-4000-8000-000000000001",
@@ -92,6 +92,21 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
         descriptor.paper_account.reconciliation_id
         == "demo-paper-account-reconciliation-001"
     )
+    assert descriptor.market_time.calendar_id == "demo-xnys-2026-v1"
+    assert descriptor.market_time.session_ids == [
+        "demo-xnys-2026-07-28-regular",
+        "demo-xnys-2026-07-29-regular",
+    ]
+    assert descriptor.market_time.replay_id == "demo-market-replay-001"
+    assert descriptor.market_time.event_count == 4
+    assert descriptor.market_time.checkpoint.status == "paused"
+    assert descriptor.market_time.checkpoint.position == 2
+    assert descriptor.market_time.recovery.remaining_event_ids == [
+        "demo-market-event-003",
+        "demo-market-event-004",
+    ]
+    assert descriptor.market_time.recovery.final_status == "completed"
+    assert descriptor.market_time.recovery.final_position == 4
     assert str(installed_demo) not in response.text
     assert "paper_run_artifact.json" not in response.text
 

@@ -131,7 +131,7 @@ allocate cash, create holdings, authorize an order, or execute.
 
 ## Standard and Demo
 
-Standard is unseeded and has no Demo loader. Demo dataset/descriptor v3 seeds
+Standard is unseeded and has no Demo loader. Demo dataset/descriptor v4 seeds
 one exact isolated review, `demo-portfolio-review-001`, initially
 `awaiting_decision`. Its visibly Demo-only create-example action requires
 replace confirmation and only prefills the normal builder; it never auto-loads,

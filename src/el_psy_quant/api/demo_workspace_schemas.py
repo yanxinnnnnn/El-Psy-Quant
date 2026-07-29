@@ -57,8 +57,33 @@ class DemoPaperAccountReferenceResponse(BaseModel):
     reconciliation_id: str
 
 
+class DemoMarketTimeCheckpointResponse(BaseModel):
+    status: Literal["paused"]
+    position: int
+    last_event_id: str
+    current_time: str
+
+
+class DemoMarketTimeRecoveryResponse(BaseModel):
+    remaining_event_ids: list[str]
+    final_status: Literal["completed"]
+    final_position: int
+    last_event_id: str
+    current_time: str
+
+
+class DemoMarketTimeReferenceResponse(BaseModel):
+    calendar_id: str
+    session_ids: list[str]
+    replay_id: str
+    event_count: int
+    event_stream_digest: str
+    checkpoint: DemoMarketTimeCheckpointResponse
+    recovery: DemoMarketTimeRecoveryResponse
+
+
 class DemoWorkspaceDescriptorResponse(BaseModel):
-    schema_version: Literal[3]
+    schema_version: Literal[4]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -73,3 +98,4 @@ class DemoWorkspaceDescriptorResponse(BaseModel):
     paper_job_submission_example: DemoPaperJobSubmissionExampleResponse
     portfolio_review_example: DemoPortfolioReviewExampleResponse
     paper_account: DemoPaperAccountReferenceResponse
+    market_time: DemoMarketTimeReferenceResponse

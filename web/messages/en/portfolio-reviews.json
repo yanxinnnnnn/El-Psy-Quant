@@ -172,7 +172,7 @@
     "refreshing": "Refreshing…",
     "retry": "Retry",
     "demoTitle": "DEMO ONLY — explicit create-example prefill",
-    "demoDescription": "The descriptor v3 request is a prefill only. Loading never submits a review or records a decision.",
+    "demoDescription": "The descriptor v4 request is a prefill only. Loading never submits a review or records a decision.",
     "demoReplaceConfirmation": "Replace every current builder value with the exact Demo example. I understand this does not submit.",
     "demoLoad": "Load exact Demo create example",
     "demoLoaded": "The exact Demo request and editable idempotency key were loaded. Review and submit through the normal form when ready.",

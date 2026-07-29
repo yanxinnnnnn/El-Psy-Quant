@@ -18,9 +18,10 @@ The current product migration chain is exactly:
   -> 0006_portfolio_reviews
   -> 0007_paper_account_ledger
   -> 0008_market_time_foundation
+  -> 0009_market_time_runtime
 ```
 
-`0008_market_time_foundation` is the single current head. Supported Founder
+`0009_market_time_runtime` is the single current head. Supported Founder
 upgrades move forward to that head. Alembic downgrade is developer/test
 behavior, not a supported Founder recovery path.
 
@@ -202,7 +203,7 @@ After the Sprint 177 fix is reviewed and merged:
    `0005_paper_job_result_references -> 0006_portfolio_reviews` upgrade and only
    serves after read-only workspace verification succeeds.
 5. Run the read-only Standard verification and bilingual MVP smoke shown above.
-6. Continue Demo v3 reset/install, exact Paper Account and portfolio-review
+6. Continue Demo v4 reset/install, exact market-time, Paper Account, and portfolio-review
    replay, persistence, return to Standard, volume-isolation, and bilingual
    browser acceptance.
 
@@ -234,21 +235,31 @@ An invalid source, conflicting marker/digest, unrelated target, Standard target,
 failed migration, invalid descriptor/reference, or partial installation fails
 closed without hidden reinstall or reset.
 
-Bundled Demo source and descriptor are version 3. Any earlier installed dataset
+Bundled Demo source and descriptor are version 4. Any earlier installed dataset
 conflicts deliberately: startup does not rewrite, reseed, or replace it. The
-Founder must use the exact Demo-only reset below. Demo v3 seeds one isolated
+Founder must use the exact Demo-only reset below. Demo v4 seeds one isolated
 portfolio review as `awaiting_decision`; exact replay preserves a later valid
 human decision and never touches Standard. The Demo create loader is browser
 prefill only and never auto-submits or records a decision.
 
-Demo v3 also creates one synthetic Paper Account only through the existing
+Demo v4 also creates one synthetic Paper Account only through the existing
 application service. Its immutable ledger contains account creation, one cash
 deposit, one explicit opening-position adjustment, freeze, and reactivation.
 The installer records one immutable snapshot and one matched reconciliation,
 then independently replays the ledger and verifies the persisted projection and
 both evidence rows. Restart repeats the idempotent commands and evidence
-operations and requires exact replay. It does not create orders, fills,
-execution, PnL, equity, market data, or a second financial authority.
+operations and requires exact replay. That account journey does not create
+orders, fills, execution, PnL, equity, or a second financial authority.
+
+Demo v4 separately seeds one deterministic market-time fixture through the
+existing calendar, canonical event, replay-engine, and persistence authorities.
+It contains one XNYS calendar, two sessions, four ordered events, and one paused
+replay checkpoint after the second event. Restart validation restores the exact
+stream digest and cursor, resumes a copy in memory through the remaining two
+events, requires the exact completed recovery state, and then confirms the
+durable checkpoint is still paused and unchanged. Verification does not write a
+checkpoint, repair market-time state, or create or mutate financial/account
+state.
 
 Reset only disposable Demo storage:
 
@@ -284,10 +295,10 @@ events/postings, ledger-derived detail, snapshot, and reconciliation evidence
 persist exactly.
 
 For Demo acceptance, reset only the disposable earlier-version Demo volume,
-start Demo v3, and confirm:
+start Demo v4, and confirm:
 
 ```text
-descriptor v3 and the synthetic account identity are visible
+descriptor v4 and the synthetic account identity are visible
   -> list/detail show the seeded account at exact version 5
   -> ledger shows the five ordered immutable event types
   -> cash and position values match ledger replay
@@ -304,6 +315,31 @@ fails, startup refuses service. Do not rebuild a projection, edit ledger rows,
 stamp Alembic, selectively restore files, or reinstall over the failed
 workspace. Preserve the volume and bounded logs for diagnosis. Recovery
 validation is intentionally non-repairing.
+
+## Sprint 195 Market-Time Demo and Recovery Acceptance
+
+After the reviewed Sprint 195 image is available, the Founder-owned Demo reset,
+startup, verifier, bilingual smoke, browser inspection, restart, and
+return-to-Standard steps remain the commands documented above. Confirm:
+
+```text
+descriptor v4 exposes the exact calendar and replay identities
+  -> Market Time lists one XNYS calendar and the paused Demo replay
+  -> calendar detail shows the two source-ordered sessions
+  -> replay detail shows four canonical events in exact order
+  -> cursor status is paused at position 2 after demo-market-event-002
+  -> restart preserves the same stream digest, cursor, and event order
+  -> read-only verification proves the remaining events complete in memory
+  -> the persisted checkpoint remains paused after verification
+  -> the Demo Paper Account head, ledger, snapshot, and reconciliation are unchanged
+  -> return to Standard shows the preserved Standard workspace unchanged
+```
+
+If the calendar, session, event, stream digest, cursor, or recovery evidence
+diverges, startup or explicit verification must fail closed. Do not edit replay
+rows, reseed over the installed dataset, reset Standard, or treat Demo recovery
+as trading execution. Preserve the disposable Demo evidence for diagnosis or
+perform only the documented Founder-owned Demo reset.
 
 ## Restore Limitations
 

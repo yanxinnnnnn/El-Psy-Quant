@@ -1309,6 +1309,12 @@ function DemoWorkflow({
             <code>{descriptor.paper_account.account_id}</code>
           </Link>
         </li>
+        <li>
+          <Link href={`/market-time/replays/${encodeURIComponent(descriptor.market_time.replay_id)}`}>
+            <span>{t("demo.marketTime", { step: comparisonStep + 4 })}</span>
+            <code>{descriptor.market_time.replay_id}</code>
+          </Link>
+        </li>
       </ol>
       <details className="audit-disclosure">
         <summary>{t("demo.audit")}</summary>
@@ -1318,6 +1324,8 @@ function DemoWorkflow({
           <div><dt>{t("demo.submission")}</dt><dd><code>{descriptor.paper_job_submission_example.idempotency_key}</code></dd></div>
           <div><dt>{t("demo.snapshot")}</dt><dd><code>{descriptor.paper_account.snapshot_id}</code></dd></div>
           <div><dt>{t("demo.reconciliation")}</dt><dd><code>{descriptor.paper_account.reconciliation_id}</code></dd></div>
+          <div><dt>{t("demo.replayCheckpoint")}</dt><dd><code>{descriptor.market_time.checkpoint.position}</code></dd></div>
+          <div><dt>{t("demo.recoveryStatus")}</dt><dd><code>{descriptor.market_time.recovery.final_status}</code></dd></div>
         </dl>
       </details>
     </>

@@ -172,7 +172,7 @@
     "refreshing": "正在刷新…",
     "retry": "重试",
     "demoTitle": "仅限演示——显式创建示例预填",
-    "demoDescription": "描述符 v3 请求仅用于预填。加载不会提交评审或记录决策。",
+    "demoDescription": "描述符 v4 请求仅用于预填。加载不会提交评审或记录决策。",
     "demoReplaceConfirmation": "用精确演示示例替换当前构建器中的全部值。我理解这不会提交。",
     "demoLoad": "加载精确演示创建示例",
     "demoLoaded": "已加载精确演示请求和可编辑的幂等键。准备好后请通过普通表单检查并提交。",
