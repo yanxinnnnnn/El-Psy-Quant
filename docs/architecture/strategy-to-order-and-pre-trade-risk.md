@@ -4,7 +4,7 @@
 
 Milestone 33 is **In Progress** through the approved Sprint 197–206 sequence.
 GitHub Issue #389 is the authoritative M33 architecture and planning source.
-GitHub Issue #390 is the authoritative Sprint 198 implementation specification.
+GitHub Issue #392 is the authoritative Sprint 199 implementation specification.
 
 The frozen authority chain is:
 
@@ -16,9 +16,10 @@ M32 market/session/event/replay truth
   -> future M34 execution candidate
 ```
 
-Sprint 198 implements only the first pure contract layer. It does not evaluate a
-strategy, derive an order, perform risk checks, persist M33 state, expose product
-routes, or execute anything.
+Sprints 197–198 are Complete. Sprint 199 implements only pure deterministic
+Strategy Signal evaluation. It does not read an account, derive an order,
+perform risk checks, persist M33 state, expose product routes, or execute
+anything.
 
 ## Preserved Earlier Authorities
 
@@ -129,6 +130,43 @@ The compact reference contains only schema version, signal ID, and signal
 digest. It can be created only from a complete valid Strategy Signal and copies
 no parameters, market content, target, account, order, risk, or execution data.
 
+## Sprint 199 Deterministic Evaluation Boundary
+
+`StrategySignalRuntimeAdapter` is the explicit closed runtime boundary. Exact
+resolution supports only:
+
+```text
+moving_average_crossover / strategy v1 / adapter v1
+```
+
+There is no registry mutation, alias, dynamic import, entry point, filesystem
+discovery, environment selection, or caller-supplied adapter.
+
+`evaluate_strategy_signal(...)` validates the complete Sprint 198 command and
+reconstructs an equivalent `MarketDataReplayEngine` from its exact canonical
+events and cursor. It recreates the market reference from the concrete calendar,
+session, replay session, and event at `cursor.position - 1`; every command anchor
+must match exactly. Replay lifecycle alone is excluded, but a changed stream,
+cursor, event, time, calendar version, session, or instrument fails closed. The
+source replay engine is never advanced or mutated.
+
+The adapter receives only `events[:cursor.position]`. In existing M32 order it
+selects same-instrument `event_type == "trade"` events and requires one top-level
+concrete JSON integer or float `payload.price` that converts to a finite,
+strictly positive research value. Invalid selected prices fail the whole
+evaluation; other instruments and non-trade events remain ignored. History is
+all selected trades in the consumed prefix, including earlier sessions, and
+requires exactly at least `slow_window + 1` observations.
+
+The adapter resolves the existing research
+`Strategy("moving_average_crossover")`, passes only a deterministic `Close`
+DataFrame and `fast_window`/`slow_window`, and strictly validates row count,
+index alignment, and a complete long-only `position` column. The DataFrame,
+moving averages, returns, costs, and other research results remain ephemeral
+calculation details rather than Signal authority. Latest position `0` maps to
+canonical zero; latest position `1` maps to the configured exact target
+quantity. The trusted Sprint 198 constructor then creates the immutable Signal.
+
 ## Canonicalization
 
 All M33 digests use lowercase SHA-256 over UTF-8 canonical JSON:
@@ -150,8 +188,8 @@ canonical UTC ISO 8601 strings. Exported payloads contain JSON primitives only.
 
 ```text
 S197 architecture and planning — Complete
-S198 runtime reference and signal contracts — implementation in progress
-S199 deterministic signal evaluation — Planned
+S198 runtime reference and signal contracts — Complete
+S199 deterministic signal evaluation — current implementation sprint
 S200 account-bound Order Intent — Planned
 S201 pre-trade risk decision/evidence — Planned
 S202 persistence, migration, concurrency, and application service — Planned

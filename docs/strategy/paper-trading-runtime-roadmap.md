@@ -243,9 +243,9 @@ continuous scheduling.
 ### Status
 
 **In Progress through S197–S206.** Issue #389 is the authoritative M33
-architecture source. Sprint 197 planning is Complete. Sprint 198 establishes
-only the pure runtime-reference, exact M32 market-reference, signal-command,
-immutable Strategy Signal, and compact signal-reference contracts.
+architecture source. Sprints 197–198 are Complete. Sprint 199 is the current
+implementation sprint and adds only exact closed runtime-adapter resolution and
+pure deterministic Signal evaluation over one validated consumed M32 prefix.
 
 ### User-visible outcome
 
@@ -278,9 +278,13 @@ intent without Founder-authored orders.
 ### Non-goals
 
 No fills, execution simulation, account posting, worker, broker, or live behavior.
-Sprint 198 additionally adds no strategy evaluation, Order Intent, pre-trade
-risk, persistence, migration, API, Web, Demo, account mutation, or replay
-progression. The migration head remains `0009_market_time_runtime`.
+Sprint 199 selects only valid same-instrument trade prices in M32 order, requires
+`slow_window + 1` observations, reuses the existing research Strategy seam, and
+maps only the latest validated `0|1` position to an exact target. Pandas results
+remain ephemeral. It adds no account read, Order Intent, pre-trade risk,
+persistence, migration, API, Web, Demo, account mutation, replay progression,
+or execution. The migration head remains `0009_market_time_runtime`, and
+S200–S206 remain planned.
 
 ## M34 — Paper Execution Simulator and First True Paper Trading
 

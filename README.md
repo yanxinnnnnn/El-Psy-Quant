@@ -20,11 +20,11 @@ approved S197–S206 sequence.
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprint 197 planning is
-Complete. Sprint 198 adds the first pure runtime-reference, exact M32
-market-reference, signal-command, immutable Strategy Signal, and compact
-signal-reference contracts. It performs no strategy evaluation and adds no
-Order Intent, risk, persistence, API, Web, Demo, or execution behavior.
+Issue #389 is the authoritative M33 architecture source. Sprints 197–198 are
+Complete. Sprint 199 is the current implementation sprint and adds the first
+pure deterministic Strategy Signal evaluation over the exact consumed M32
+replay prefix. It adds no Order Intent, risk, persistence, API, Web, Demo, or
+execution behavior.
 
 Current migration head:
 
@@ -111,7 +111,7 @@ M32 does not create, mutate, or authorize Paper Account financial state.
 
 ### M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 
-Sprint 198 establishes contracts only:
+Sprint 198 established the immutable contracts:
 
 - one closed v1 `moving_average_crossover` runtime reference;
 - one trusted exact M32 calendar/session/replay/current-event reference;
@@ -120,14 +120,24 @@ Sprint 198 establishes contracts only:
   `target_position_quantity`; and
 - compact trusted Signal references.
 
-Signal identity covers the complete runtime reference, market reference, target
-semantic, and exact target quantity. Actor, command idempotency, command digest,
-and audit timestamp do not affect Signal identity.
+Sprint 199 adds one exact closed adapter resolver and the
+`moving_average_crossover / v1 / v1` adapter. Evaluation reconstructs and
+verifies concrete calendar, session, replay, cursor, stream, current-event, and
+instrument anchors; then uses only same-instrument `trade` prices from the exact
+consumed prefix in M32 order. At least `slow_window + 1` valid prices are
+required. The existing research `Strategy` seam remains the quantitative
+implementation, and its ephemeral pandas result maps only the latest validated
+long-only `0|1` position to canonical zero or the configured target quantity.
 
-These contracts are separate from research DataFrames, the M15 backtest
-`OrderIntent`, and legacy Paper order/fill evidence. No strategy adapter
-evaluation, account-aware intent, pre-trade risk, persistence, API, Web, Demo,
-fill, or account mutation exists yet.
+Signal identity still covers the complete runtime reference, market reference,
+target semantic, and exact target quantity. Actor, command idempotency, command
+digest, audit timestamp, pandas inputs, and research outputs do not affect
+Signal identity.
+
+M33 Signal authority remains separate from research DataFrames, the M15
+backtest `OrderIntent`, and legacy Paper order/fill evidence. No account-aware
+intent, pre-trade risk, persistence, API, Web, Demo, fill, or account mutation
+exists yet.
 
 ## Current Founder Journey
 
@@ -178,7 +188,7 @@ M30 Portfolio-Level Decision Review Foundation — Complete
 ```
 
 M33 owns strategy signals, order intent, and pre-trade risk through S197–S206.
-Sprint 198 implements only the first Signal contract layer. M33 consumes M31
+Sprint 199 implements only deterministic Signal evaluation. M33 consumes M31
 account authority and M32 market-time authority, but it must not redefine
 ledger, calendar, event, cursor, or replay truth.
 

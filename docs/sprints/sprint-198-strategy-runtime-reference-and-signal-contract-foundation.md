@@ -2,7 +2,7 @@
 
 ## Status
 
-**Implementation complete in this PR; pending Founder review and manual merge.**
+**Complete.**
 
 GitHub Issue #390 is the authoritative Sprint implementation specification.
 GitHub Issue #389 remains the authoritative M33 architecture source.
@@ -35,7 +35,7 @@ create_strategy_signal_reference(...)
 
 The package root exports only supported constants, immutable public types, safe
 public factories, and validators. The trusted evaluator-to-signal constructor
-for S199 remains internal to the signal module.
+remains internal to the signal module and is reused by Sprint 199.
 
 ## Runtime Boundary
 
@@ -118,10 +118,11 @@ removal, Demo reset, or Standard/Demo runtime acceptance is performed.
 
 ## Explicit Non-Goals
 
-S199–S206 retain strategy evaluation, price extraction, pandas-series
-construction, Order Intent/no-action derivation, pre-trade risk, persistence,
-`0010` migration, application services, API/OpenAPI/generated contracts, Web,
-localization, Demo v5, recovery hardening, and M33 closeout.
+Sprint 199 adds only strategy evaluation, versioned trade-price extraction, and
+ephemeral pandas construction over the Sprint 198 contracts. S200–S206 retain
+Order Intent/no-action derivation, pre-trade risk, persistence, `0010` migration,
+application services, API/OpenAPI/generated contracts, Web, localization, Demo
+v5, recovery hardening, and M33 closeout.
 
 M34 retains execution orders, reservations, fills, execution pricing, fees,
 ledger posting, and account mutation. Broker, QMT, MiniQMT, live, and real-money
