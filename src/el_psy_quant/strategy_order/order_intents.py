@@ -28,8 +28,10 @@ from el_psy_quant.strategy_order.account_references import (
     validate_order_intent_account_reference,
 )
 from el_psy_quant.strategy_order.intent_commands import (
+    DERIVE_ORDER_INTENT_COMMAND_SCHEMA_VERSION,
     ORDER_INTENT_POLICY_VERSION,
     DeriveOrderIntentCommand,
+    _derive_order_intent_command_digest,
     validate_derive_order_intent_command,
 )
 from el_psy_quant.strategy_order.market_references import (
@@ -115,6 +117,9 @@ def _quantity_from_decimal(value: Decimal) -> PaperQuantity:
 
 def _validate_origin(
     *,
+    signal_reference: StrategySignalReference,
+    account_reference: OrderIntentAccountReference,
+    intent_policy_version: str,
     command_idempotency_key: object,
     command_digest: object,
     actor: object,
@@ -135,6 +140,16 @@ def _validate_origin(
         command_digest,
         field_name="origin_command_digest",
     )
+    expected_digest = _derive_order_intent_command_digest(
+        schema_version=DERIVE_ORDER_INTENT_COMMAND_SCHEMA_VERSION,
+        signal_reference=signal_reference,
+        account_reference=account_reference,
+        intent_policy_version=intent_policy_version,
+        command_idempotency_key=key,
+        actor=normalized_actor,
+    )
+    if digest != expected_digest:
+        raise ValueError("origin command digest does not match command content")
     return key, digest, normalized_actor
 
 
@@ -518,6 +533,9 @@ def validate_order_intent(value: object) -> OrderIntent:
         if requested.decimal_value <= 0:
             raise ValueError("requested quantity must be strictly positive")
         key, command_digest, actor = _validate_origin(
+            signal_reference=value.signal_reference,
+            account_reference=value.account_reference,
+            intent_policy_version=value.intent_policy_version,
             command_idempotency_key=value.origin_command_idempotency_key,
             command_digest=value.origin_command_digest,
             actor=value.origin_actor,
@@ -592,6 +610,9 @@ def validate_order_intent_no_action(
         if current != value.account_reference.current_instrument_quantity:
             raise ValueError("current quantity does not match account reference")
         key, command_digest, actor = _validate_origin(
+            signal_reference=value.signal_reference,
+            account_reference=value.account_reference,
+            intent_policy_version=value.intent_policy_version,
             command_idempotency_key=value.origin_command_idempotency_key,
             command_digest=value.origin_command_digest,
             actor=value.origin_actor,

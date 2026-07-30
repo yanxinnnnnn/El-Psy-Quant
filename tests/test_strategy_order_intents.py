@@ -710,6 +710,49 @@ def test_tampering_policy_side_quantity_reason_and_identity_fails_closed() -> No
         validate_order_intent_no_action(no_action)
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("origin_command_idempotency_key", "different-key"),
+        ("origin_actor", "different-actor"),
+        ("origin_command_digest", "0" * 64),
+    ],
+)
+def test_intent_origin_command_tampering_fails_closed(
+    field: str,
+    value: object,
+) -> None:
+    intent = _derive()
+    assert type(intent) is OrderIntent
+    object.__setattr__(intent, field, value)
+
+    with pytest.raises(ValueError, match="invalid"):
+        validate_order_intent(intent)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("origin_command_idempotency_key", "different-key"),
+        ("origin_actor", "different-actor"),
+        ("origin_command_digest", "0" * 64),
+    ],
+)
+def test_no_action_origin_command_tampering_fails_closed(
+    field: str,
+    value: object,
+) -> None:
+    no_action = _derive(
+        signal=_signal(target="10"),
+        state=_state(quantity="10")[0],
+    )
+    assert type(no_action) is OrderIntentNoAction
+    object.__setattr__(no_action, field, value)
+
+    with pytest.raises(ValueError, match="invalid"):
+        validate_order_intent_no_action(no_action)
+
+
 def test_closed_future_risk_status_vocabulary_has_no_mutation_behavior() -> None:
     assert SUPPORTED_ORDER_INTENT_RISK_STATUSES == (
         "proposed",

@@ -62,6 +62,27 @@ def _payload_without_digest(
     }
 
 
+def _derive_order_intent_command_digest(
+    *,
+    schema_version: int,
+    signal_reference: StrategySignalReference,
+    account_reference: OrderIntentAccountReference,
+    intent_policy_version: str,
+    command_idempotency_key: str,
+    actor: str,
+) -> str:
+    return canonical_digest(
+        _payload_without_digest(
+            schema_version=schema_version,
+            signal_reference=signal_reference,
+            account_reference=account_reference,
+            intent_policy_version=intent_policy_version,
+            command_idempotency_key=command_idempotency_key,
+            actor=actor,
+        )
+    )
+
+
 @dataclass(frozen=True, init=False)
 class DeriveOrderIntentCommand:
     """Immutable side-effect-free input for exact signal-to-delta conversion."""
@@ -102,14 +123,6 @@ def _build_command(
 ) -> DeriveOrderIntentCommand:
     signal_snapshot = _clone_signal_reference(signal_reference)
     account_snapshot = _clone_order_intent_account_reference(account_reference)
-    payload = _payload_without_digest(
-        schema_version=schema_version,
-        signal_reference=signal_snapshot,
-        account_reference=account_snapshot,
-        intent_policy_version=intent_policy_version,
-        command_idempotency_key=command_idempotency_key,
-        actor=actor,
-    )
     result = object.__new__(DeriveOrderIntentCommand)
     for field_name, value in (
         ("schema_version", schema_version),
@@ -118,7 +131,17 @@ def _build_command(
         ("intent_policy_version", intent_policy_version),
         ("command_idempotency_key", command_idempotency_key),
         ("actor", actor),
-        ("command_digest", canonical_digest(payload)),
+        (
+            "command_digest",
+            _derive_order_intent_command_digest(
+                schema_version=schema_version,
+                signal_reference=signal_snapshot,
+                account_reference=account_snapshot,
+                intent_policy_version=intent_policy_version,
+                command_idempotency_key=command_idempotency_key,
+                actor=actor,
+            ),
+        ),
     ):
         object.__setattr__(result, field_name, value)
     return result
