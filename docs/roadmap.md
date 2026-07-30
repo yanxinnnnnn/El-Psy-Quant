@@ -180,8 +180,8 @@ docs/milestones/m32-closeout.md
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprint 197 planning is
-Complete and Sprint 198 implements the first pure contract layer. M33 owns:
+Issue #389 is the authoritative M33 architecture source. Sprints 197–198 are
+Complete and Sprint 199 is the current implementation sprint. M33 owns:
 
 - canonical strategy signals tied to explicit strategy/evidence identity;
 - idempotent order intent;
@@ -195,18 +195,19 @@ M33 must consume, not redefine:
   lifecycle truth; and
 - M30/M31 evidence links as governance references rather than execution authority.
 
-Sprint 198 provides only versioned runtime references, exact M32 signal-market
-references, pure evaluation commands, immutable Strategy Signals, and compact
-Signal references. It adds no strategy evaluation, Order Intent, risk,
-persistence, API, Web, Demo, account mutation, or execution behavior.
+Sprint 199 provides only exact closed runtime-adapter resolution and pure
+deterministic Strategy Signal evaluation over validated same-instrument trade
+prices from the consumed M32 prefix. It reuses ephemeral research pandas output
+and adds no Order Intent, risk, persistence, API, Web, Demo, account mutation,
+replay progression, or execution behavior.
 
 Approved M33 sprint chain:
 
 | Sprint | Deliverable | Status |
 |---:|---|---|
 | S197 | Milestone 33 Architecture and Planning | Complete |
-| S198 | Strategy Runtime Reference and Signal Contract Foundation | In Progress |
-| S199 | Deterministic Strategy Signal Evaluation Foundation | Planned |
+| S198 | Strategy Runtime Reference and Signal Contract Foundation | Complete |
+| S199 | Deterministic Strategy Signal Evaluation Foundation | In Progress |
 | S200 | Account-Bound Order Intent and Idempotency Foundation | Planned |
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Planned |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |

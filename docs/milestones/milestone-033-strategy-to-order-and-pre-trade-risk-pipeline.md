@@ -43,8 +43,8 @@ frozen and separate.
 | Sprint | Deliverable | Status |
 |---:|---|---|
 | S197 | Milestone 33 Architecture and Planning | Complete |
-| S198 | Strategy Runtime Reference and Signal Contract Foundation | In Progress |
-| S199 | Deterministic Strategy Signal Evaluation Foundation | Planned |
+| S198 | Strategy Runtime Reference and Signal Contract Foundation | Complete |
+| S199 | Deterministic Strategy Signal Evaluation Foundation | In Progress |
 | S200 | Account-Bound Order Intent and Idempotency Foundation | Planned |
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Planned |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |
@@ -68,6 +68,26 @@ Sprint 198 does not evaluate a strategy or interpret market payloads. It adds no
 Order Intent, no-action result, risk policy, persistence, migration, application
 service, API, Web, localization, Demo, account mutation, replay progression, or
 execution behavior. The migration head remains `0009_market_time_runtime`.
+
+## Sprint 199 Result
+
+Sprint 199 adds the first pure deterministic evaluation path:
+
+- one explicit `StrategySignalRuntimeAdapter` boundary;
+- exact closed resolution of `moving_average_crossover / v1 / v1`;
+- reconstruction and exact matching of concrete M32 calendar, session, replay,
+  stream, cursor, current-event, time, and instrument authority;
+- selection of only finite positive same-instrument trade prices from the exact
+  consumed prefix in M32 order;
+- a strict `slow_window + 1` minimum history rule;
+- reuse and strict output validation of the existing research Strategy seam;
+- exact long-only position-to-target mapping; and
+- immutable Sprint 198 Signal construction with deterministic identity.
+
+Pandas inputs and research results remain ephemeral. Sprint 199 adds no account
+read, Order Intent, risk, persistence, migration, API, Web, Demo, replay
+progression, execution, fill, or account mutation. S200–S206 remain Planned,
+and the migration head remains `0009_market_time_runtime`.
 
 ## Exit Criteria
 

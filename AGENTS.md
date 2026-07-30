@@ -160,19 +160,21 @@ M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
 M33 is **In Progress** through the approved S197–S206 sequence. Issue #389 is
-the authoritative architecture source. Sprint 197 planning is Complete. Sprint
-198 establishes only the pure runtime-reference, exact M32 market-reference,
-signal-command, immutable Strategy Signal, and compact Signal-reference
-contracts in `el_psy_quant.strategy_order`.
+the authoritative architecture source. Sprints 197–198 are Complete. Sprint 199
+is the current implementation sprint and adds only the closed runtime-adapter
+resolver and deterministic `moving_average_crossover / v1 / v1` Signal
+evaluation over an exact validated M32 consumed replay prefix.
 
-Sprint 198 does not evaluate a strategy, interpret market-event payloads, create
-an Order Intent, perform pre-trade risk, persist M33 state, add a migration,
-expose API/Web/Demo behavior, mutate a Paper Account, advance replay, or execute
-an order. The migration head remains `0009_market_time_runtime`.
+Sprint 199 accepts only same-instrument canonical `trade` events as price
+observations, requires `slow_window + 1` valid observations, reuses the existing
+research Strategy seam, and maps only the latest validated long-only `0|1`
+position to zero or the configured target quantity. Pandas inputs and results
+remain ephemeral calculation details, not M33 authority.
 
-Sprints 199–206 remain planned for evaluation, account-bound intent, risk,
-persistence/application service, API/generated contracts, Web, Demo/recovery,
-and closeout respectively.
+Sprint 199 does not read an account, create an Order Intent, perform pre-trade
+risk, persist M33 state, add a migration, expose API/Web/Demo behavior, mutate a
+Paper Account, advance replay, or execute an order. The migration head remains
+`0009_market_time_runtime`. Sprints 200–206 remain planned.
 
 ## Approved Route to Genuine Paper Trading
 
