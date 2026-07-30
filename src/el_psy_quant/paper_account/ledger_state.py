@@ -303,6 +303,7 @@ def _validate_ledger_state(state: object) -> PaperAccountLedgerState:
         raise ValueError("state must be PaperAccountLedgerState")
     try:
         cash_view = state.to_cash_state()
+        object.__setattr__(cash_view, "available_cash", state.available_cash)
         _validate_state(cash_view)
     except (AttributeError, ValueError) as exc:
         raise ValueError("ledger state cash/header values are invalid") from exc
@@ -317,6 +318,13 @@ def _validate_ledger_state(state: object) -> PaperAccountLedgerState:
             "state positions must be unique and ordered by normalized symbol"
         )
     return state
+
+
+def validate_paper_account_ledger_state(
+    state: object,
+) -> PaperAccountLedgerState:
+    """Validate and return one exact complete replay-derived ledger state."""
+    return _validate_ledger_state(state)
 
 
 @dataclass(frozen=True, init=False)

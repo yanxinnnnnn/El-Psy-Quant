@@ -160,21 +160,21 @@ M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
 M33 is **In Progress** through the approved S197–S206 sequence. Issue #389 is
-the authoritative architecture source. Sprints 197–198 are Complete. Sprint 199
-is the current implementation sprint and adds only the closed runtime-adapter
-resolver and deterministic `moving_average_crossover / v1 / v1` Signal
-evaluation over an exact validated M32 consumed replay prefix.
+the authoritative architecture source. Sprints 197–199 are Complete. Sprint 200
+is the current implementation sprint and adds only pure deterministic
+Signal-to-Order-Intent conversion against one exact validated M31 ledger state.
 
-Sprint 199 accepts only same-instrument canonical `trade` events as price
-observations, requires `slow_window + 1` valid observations, reuses the existing
-research Strategy seam, and maps only the latest validated long-only `0|1`
-position to zero or the configured target quantity. Pandas inputs and results
-remain ephemeral calculation details, not M33 authority.
+Sprint 200 binds the complete Signal and exact active-account head, cash,
+available cash, and same-instrument position evidence into one immutable
+command. It derives only an exact buy/sell quantity delta or deterministic
+`target_already_satisfied` no-action evidence. Different command keys or actors
+over identical authority converge on the same result identity; changed Signal
+or account anchors require a new command and result.
 
-Sprint 199 does not read an account, create an Order Intent, perform pre-trade
-risk, persist M33 state, add a migration, expose API/Web/Demo behavior, mutate a
-Paper Account, advance replay, or execute an order. The migration head remains
-`0009_market_time_runtime`. Sprints 200–206 remain planned.
+Sprint 200 performs no pre-trade risk, persistence, reservation, migration,
+API/Web/Demo behavior, Paper Account mutation, replay progression, or execution.
+The migration head remains `0009_market_time_runtime`. Sprints 201–206 remain
+planned.
 
 ## Approved Route to Genuine Paper Trading
 

@@ -180,8 +180,8 @@ docs/milestones/m32-closeout.md
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–198 are
-Complete and Sprint 199 is the current implementation sprint. M33 owns:
+Issue #389 is the authoritative M33 architecture source. Sprints 197–199 are
+Complete and Sprint 200 is the current implementation sprint. M33 owns:
 
 - canonical strategy signals tied to explicit strategy/evidence identity;
 - idempotent order intent;
@@ -195,11 +195,12 @@ M33 must consume, not redefine:
   lifecycle truth; and
 - M30/M31 evidence links as governance references rather than execution authority.
 
-Sprint 199 provides only exact closed runtime-adapter resolution and pure
-deterministic Strategy Signal evaluation over validated same-instrument trade
-prices from the consumed M32 prefix. It reuses ephemeral research pandas output
-and adds no Order Intent, risk, persistence, API, Web, Demo, account mutation,
-replay progression, or execution behavior.
+Sprint 200 provides only pure deterministic conversion from one complete Signal
+and one exact active M31 ledger state to an immutable account-bound Order Intent
+or target-satisfied no-action result. Exact Signal/account anchors fail stale,
+and different command audit inputs converge on the same deterministic result
+identity. It adds no risk, persistence, API, Web, Demo, reservation, account
+mutation, replay progression, or execution behavior.
 
 Approved M33 sprint chain:
 
@@ -207,8 +208,8 @@ Approved M33 sprint chain:
 |---:|---|---|
 | S197 | Milestone 33 Architecture and Planning | Complete |
 | S198 | Strategy Runtime Reference and Signal Contract Foundation | Complete |
-| S199 | Deterministic Strategy Signal Evaluation Foundation | In Progress |
-| S200 | Account-Bound Order Intent and Idempotency Foundation | Planned |
+| S199 | Deterministic Strategy Signal Evaluation Foundation | Complete |
+| S200 | Account-Bound Order Intent and Idempotency Foundation | In Progress |
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Planned |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
