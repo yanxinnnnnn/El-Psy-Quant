@@ -4,7 +4,7 @@
 
 Milestone 33 is **In Progress** through the approved Sprint 197–206 sequence.
 GitHub Issue #389 is the authoritative M33 architecture and planning source.
-GitHub Issue #392 is the authoritative Sprint 199 implementation specification.
+GitHub Issue #394 is the authoritative Sprint 200 implementation specification.
 
 The frozen authority chain is:
 
@@ -16,10 +16,11 @@ M32 market/session/event/replay truth
   -> future M34 execution candidate
 ```
 
-Sprints 197–198 are Complete. Sprint 199 implements only pure deterministic
-Strategy Signal evaluation. It does not read an account, derive an order,
-perform risk checks, persist M33 state, expose product routes, or execute
-anything.
+Sprints 197–199 are Complete. Sprint 200 implements only pure deterministic
+conversion from a complete Signal and exact active M31 ledger state to an
+account-bound risk-pending Order Intent or deterministic no-action evidence. It
+does not perform risk checks, persist M33 state, expose product routes, reserve
+cash or positions, mutate M31/M32 authority, or execute anything.
 
 ## Preserved Earlier Authorities
 
@@ -167,6 +168,54 @@ calculation details rather than Signal authority. Latest position `0` maps to
 canonical zero; latest position `1` maps to the configured exact target
 quantity. The trusted Sprint 198 constructor then creates the immutable Signal.
 
+## Sprint 200 Account-Bound Intent Boundary
+
+Sprint 200 adds a narrow public M31 state-validation seam and these immutable
+pure M33 contracts:
+
+```text
+OrderIntentAccountReference
+DeriveOrderIntentCommand
+OrderIntent
+OrderIntentNoAction
+OrderIntentReference
+```
+
+The account reference is copied evidence from one exact validated active M31
+ledger state. It binds account identity, currency, lifecycle, head version,
+event and chain digest, cash, available cash, the Signal instrument, and its
+exact current position quantity. A missing exact instrument position is
+canonical zero. It does not become balance, position, account, ledger,
+projection, reservation, or repair authority.
+
+The command binds the complete compact Signal reference, complete account
+reference, exact `target_position_quantity_delta_v1` policy, bounded
+idempotency key, actor, and canonical command digest. Construction derives no
+side or quantity and generates no timestamp.
+
+Conversion recreates both references from the supplied concrete Signal and M31
+state. Any changed Signal, account identity/lifecycle/head/event/chain,
+cash/available-cash, position, instrument, or policy fails stale rather than
+silently rebinding. Exact conversion is:
+
+```text
+target > current -> buy(target - current)
+target < current -> sell(current - target)
+target = current -> target_already_satisfied no-action
+```
+
+Arithmetic uses exact `PaperQuantity` decimal values without rounding. Intent
+identity binds the complete Signal, market, account, target/current, derived
+side/delta, and policy evidence. No-action identity binds the same applicable
+authority plus its closed reason code. Command key, actor, command digest, and
+`created_at` are audit facts excluded from either deterministic result identity,
+so different audit commands over identical authority converge.
+
+An Order Intent is only a risk-pending request. No-action evidence is not an
+intent and cannot produce an intent reference or enter future risk evaluation.
+Neither result reserves, persists, executes, advances replay, or mutates the
+Paper Account.
+
 ## Canonicalization
 
 All M33 digests use lowercase SHA-256 over UTF-8 canonical JSON:
@@ -189,8 +238,8 @@ canonical UTC ISO 8601 strings. Exported payloads contain JSON primitives only.
 ```text
 S197 architecture and planning — Complete
 S198 runtime reference and signal contracts — Complete
-S199 deterministic signal evaluation — current implementation sprint
-S200 account-bound Order Intent — Planned
+S199 deterministic signal evaluation — Complete
+S200 account-bound Order Intent — current implementation sprint
 S201 pre-trade risk decision/evidence — Planned
 S202 persistence, migration, concurrency, and application service — Planned
 S203 versioned API, errors, audit, and generated contracts — Planned

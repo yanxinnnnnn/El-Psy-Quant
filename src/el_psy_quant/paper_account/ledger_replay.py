@@ -486,7 +486,8 @@ def replay_paper_account_ledger(
                 _validate_ledger_state(supplied_state)
             except ValueError as exc:
                 raise ValueError(
-                    f"bundle resulting ledger state is invalid: {exc}"
+                    "bundle resulting ledger state is invalid and does not "
+                    f"match records: {exc}"
                 ) from exc
             if supplied_state != rebuilt_state:
                 raise ValueError(

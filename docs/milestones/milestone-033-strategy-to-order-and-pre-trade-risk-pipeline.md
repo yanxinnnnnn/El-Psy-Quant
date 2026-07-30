@@ -44,8 +44,8 @@ frozen and separate.
 |---:|---|---|
 | S197 | Milestone 33 Architecture and Planning | Complete |
 | S198 | Strategy Runtime Reference and Signal Contract Foundation | Complete |
-| S199 | Deterministic Strategy Signal Evaluation Foundation | In Progress |
-| S200 | Account-Bound Order Intent and Idempotency Foundation | Planned |
+| S199 | Deterministic Strategy Signal Evaluation Foundation | Complete |
+| S200 | Account-Bound Order Intent and Idempotency Foundation | In Progress |
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Planned |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
@@ -86,7 +86,31 @@ Sprint 199 adds the first pure deterministic evaluation path:
 
 Pandas inputs and research results remain ephemeral. Sprint 199 adds no account
 read, Order Intent, risk, persistence, migration, API, Web, Demo, replay
-progression, execution, fill, or account mutation. S200–S206 remain Planned,
+progression, execution, fill, or account mutation.
+
+## Sprint 200 Result
+
+Sprint 200 adds the pure deterministic account-bound conversion boundary:
+
+- one narrow validator exposing complete M31 ledger-state validation;
+- one immutable account reference copied from exact active M31 state and bound
+  to the Signal instrument;
+- one immutable Signal/account/policy/idempotency command;
+- exact target-versus-current buy/sell/no-action conversion;
+- deterministic `oi_<digest>` Order Intent identity;
+- deterministic `no_action_<digest>` target-satisfied evidence;
+- one compact trusted intent reference; and
+- the closed proposed/risk-allowed/risk-rejected future lifecycle vocabulary.
+
+Every Signal and account anchor is recreated at conversion. Changed account
+head, event, chain, cash, available cash, position, lifecycle, or Signal fails
+stale. Different command keys, actors, command digests, and audit timestamps
+over identical authority converge on the same intent or no-action identity.
+
+M31 ledger replay remains account-state authority; the S200 reference is copied
+evidence only. No-action is not executable intent evidence. Sprint 200 adds no
+risk evaluation, persistence, reservation, migration, API, Web, Demo, replay
+progression, execution, fill, or account mutation. S201–S206 remain Planned,
 and the migration head remains `0009_market_time_runtime`.
 
 ## Exit Criteria

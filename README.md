@@ -20,11 +20,12 @@ approved S197–S206 sequence.
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–198 are
-Complete. Sprint 199 is the current implementation sprint and adds the first
-pure deterministic Strategy Signal evaluation over the exact consumed M32
-replay prefix. It adds no Order Intent, risk, persistence, API, Web, Demo, or
-execution behavior.
+Issue #389 is the authoritative M33 architecture source. Sprints 197–199 are
+Complete. Sprint 200 is the current implementation sprint and adds pure
+deterministic conversion from one immutable Strategy Signal and one exact
+validated active M31 ledger state into an account-bound Order Intent or
+non-executable no-action evidence. It adds no risk, persistence, API, Web, Demo,
+reservation, account mutation, or execution behavior.
 
 Current migration head:
 
@@ -134,10 +135,28 @@ target semantic, and exact target quantity. Actor, command idempotency, command
 digest, audit timestamp, pandas inputs, and research outputs do not affect
 Signal identity.
 
-M33 Signal authority remains separate from research DataFrames, the M15
-backtest `OrderIntent`, and legacy Paper order/fill evidence. No account-aware
-intent, pre-trade risk, persistence, API, Web, Demo, fill, or account mutation
-exists yet.
+Sprint 200 adds the narrow public M31 ledger-state validator and immutable
+account-state, command, Order Intent, no-action, and compact intent-reference
+contracts. The account reference copies exact M31 evidence at one ledger head;
+it is not a second balance, position, account, or ledger authority. Conversion
+uses only target quantity versus exact current same-instrument quantity:
+
+```text
+target > current -> buy(target - current)
+target < current -> sell(current - target)
+target = current -> target_already_satisfied no-action
+```
+
+Intent and no-action identity bind the complete Signal, market, account,
+target/current quantity, and conversion policy. Command keys, actors, command
+digests, and audit timestamps remain audit evidence and do not change result
+identity. Any changed Signal or account head/version/event/chain/cash/position
+anchor requires a new command and result.
+
+M33 Signal and Order Intent authority remain separate from research DataFrames,
+the M15 backtest `OrderIntent`, and legacy Paper order/fill evidence. The S200
+intent is risk-pending and reserves nothing; no pre-trade risk, persistence,
+API, Web, Demo, fill, or account mutation exists yet.
 
 ## Current Founder Journey
 
@@ -166,7 +185,6 @@ is not yet genuine strategy-driven Paper Trading.
 
 It does not yet provide:
 
-- automatic strategy-signal-to-order conversion;
 - account-aware pre-trade risk checks for generated orders;
 - a runtime order lifecycle and execution simulator;
 - market-driven fills and resulting ledger mutations;
@@ -188,9 +206,9 @@ M30 Portfolio-Level Decision Review Foundation — Complete
 ```
 
 M33 owns strategy signals, order intent, and pre-trade risk through S197–S206.
-Sprint 199 implements only deterministic Signal evaluation. M33 consumes M31
-account authority and M32 market-time authority, but it must not redefine
-ledger, calendar, event, cursor, or replay truth.
+Sprint 200 implements only pure account-bound intent/no-action conversion. M33
+consumes M31 account authority and M32 market-time authority, but it must not
+redefine ledger, calendar, event, cursor, or replay truth.
 
 Authoritative runtime roadmap:
 

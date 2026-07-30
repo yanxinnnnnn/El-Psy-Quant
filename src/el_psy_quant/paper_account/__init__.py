@@ -67,6 +67,7 @@ from el_psy_quant.paper_account.ledger_state import (
     PaperAccountLedgerState,
     PaperAccountPosition,
     apply_paper_position_adjustment,
+    validate_paper_account_ledger_state,
 )
 from el_psy_quant.paper_account.events import (
     MAX_PAPER_ACCOUNT_EVENT_ID_LENGTH,
@@ -245,5 +246,6 @@ __all__ = [
     "replay_paper_account_cash_ledger",
     "replay_paper_account_ledger",
     "verify_paper_account_projection",
+    "validate_paper_account_ledger_state",
     "validate_paper_account_lifecycle_transition",
 ]

@@ -2,7 +2,7 @@
 
 ## Status
 
-**Implementation complete in this PR; pending Founder review and manual merge.**
+**Complete.**
 
 GitHub Issue #392 is the authoritative Sprint implementation specification.
 GitHub Issue #389 remains the authoritative M33 architecture source.
@@ -104,5 +104,5 @@ service, API/OpenAPI/generated contract, Web/localization, Demo, replay
 progression, reservation, execution order, fill, fee, ledger posting, worker,
 scheduler, broker, QMT, MiniQMT, live, or real-money behavior.
 
-S200–S206 remain Planned. M34 remains the first execution, fill, and
-fill-caused account-mutation milestone.
+Sprint 200 is the current implementation sprint. S201–S206 remain Planned. M34
+remains the first execution, fill, and fill-caused account-mutation milestone.
