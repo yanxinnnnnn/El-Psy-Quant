@@ -4,7 +4,7 @@
 
 Milestone 33 is **In Progress** through the approved Sprint 197–206 sequence.
 GitHub Issue #389 is the authoritative M33 architecture and planning source.
-GitHub Issue #394 is the authoritative Sprint 200 implementation specification.
+GitHub Issue #396 is the authoritative Sprint 201 implementation specification.
 
 The frozen authority chain is:
 
@@ -16,11 +16,10 @@ M32 market/session/event/replay truth
   -> future M34 execution candidate
 ```
 
-Sprints 197–199 are Complete. Sprint 200 implements only pure deterministic
-conversion from a complete Signal and exact active M31 ledger state to an
-account-bound risk-pending Order Intent or deterministic no-action evidence. It
-does not perform risk checks, persist M33 state, expose product routes, reserve
-cash or positions, mutate M31/M32 authority, or execute anything.
+Sprints 197–200 are Complete. Sprint 201 implements only pure deterministic
+pre-trade risk evidence over a complete account-bound Order Intent and exact
+current M31/M32 authority. It does not persist M33 state, expose product routes,
+reserve cash or positions, mutate M31/M32 authority, or execute anything.
 
 ## Preserved Earlier Authorities
 
@@ -216,6 +215,58 @@ intent and cannot produce an intent reference or enter future risk evaluation.
 Neither result reserves, persists, executes, advances replay, or mutates the
 Paper Account.
 
+## Sprint 201 Pre-Trade Risk Evidence Boundary
+
+Sprint 201 adds these immutable pure M33 contracts:
+
+```text
+PreTradeRiskPolicyReference
+EvaluatePreTradeRiskCommand
+PreTradeRiskPriceReference
+PreTradeRiskRuleEvidence
+PreTradeRiskInputSnapshot
+PreTradeRiskDecision
+```
+
+The only policy is `long_only_cash_risk_v1`, with explicit optional exact
+maximum quantity and notional limits and no hidden defaults. Its price policy is
+`latest_trade_price_v1`. Evaluation searches backwards through only the exact
+consumed replay prefix for the latest same-instrument `trade` event, records the
+complete event digest and one-based stream position, and rejects an invalid
+latest match rather than falling back to older data. The exact reference price
+is risk-notional evidence only; it is not execution, fill, or valuation
+authority.
+
+Estimated notional is exact requested quantity multiplied by reference price,
+without rounding. Every snapshot contains these four rule records in order:
+
+```text
+insufficient_position_quantity
+maximum_order_quantity_exceeded
+maximum_order_notional_exceeded
+insufficient_available_cash
+```
+
+Non-applicable rules remain present, pass, and use null observed/threshold
+values. An allow decision has no reasons. A reject decision contains all and
+only failed applicable rules in the same order.
+
+Evaluation validates the complete command, intent, M31 ledger state, calendar,
+session, replay engine, cursor, current event, policy, and selected price. It
+recreates the exact intent, account, and market references before calculating
+evidence. Changed account head or replay cursor always fails stale, while
+replay lifecycle-only changes with the same prefix remain identity-equivalent.
+Invalid, missing, unsupported, tampered, stale, or unrepresentable input raises
+a deterministic domain error and creates no decision; no path defaults to
+allow.
+
+Snapshot identity binds the complete current authority and evidence but excludes
+command/audit facts. Decision identity binds the snapshot, outcome, and ordered
+reasons. Different valid keys, actors, command digests, or audit timestamps over
+identical authority therefore converge on the same snapshot and decision
+identity. A decision is immutable evidence only and cannot mutate an intent,
+reserve cash/position, advance replay, execute, fill, or post to the ledger.
+
 ## Canonicalization
 
 All M33 digests use lowercase SHA-256 over UTF-8 canonical JSON:
@@ -239,8 +290,8 @@ canonical UTC ISO 8601 strings. Exported payloads contain JSON primitives only.
 S197 architecture and planning — Complete
 S198 runtime reference and signal contracts — Complete
 S199 deterministic signal evaluation — Complete
-S200 account-bound Order Intent — current implementation sprint
-S201 pre-trade risk decision/evidence — Planned
+S200 account-bound Order Intent — Complete
+S201 pre-trade risk decision/evidence — current implementation sprint
 S202 persistence, migration, concurrency, and application service — Planned
 S203 versioned API, errors, audit, and generated contracts — Planned
 S204 bilingual Founder workspace — Planned

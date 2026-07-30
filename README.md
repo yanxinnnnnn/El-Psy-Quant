@@ -20,12 +20,11 @@ approved S197–S206 sequence.
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–199 are
-Complete. Sprint 200 is the current implementation sprint and adds pure
-deterministic conversion from one immutable Strategy Signal and one exact
-validated active M31 ledger state into an account-bound Order Intent or
-non-executable no-action evidence. It adds no risk, persistence, API, Web, Demo,
-reservation, account mutation, or execution behavior.
+Issue #389 is the authoritative M33 architecture source. Sprints 197–200 are
+Complete. Sprint 201 is the current implementation sprint and adds pure
+deterministic pre-trade risk evidence over one complete account-bound Order
+Intent and exact current M31/M32 authority. It adds no persistence, API, Web,
+Demo, reservation, account mutation, replay progression, or execution behavior.
 
 Current migration head:
 
@@ -155,8 +154,22 @@ anchor requires a new command and result.
 
 M33 Signal and Order Intent authority remain separate from research DataFrames,
 the M15 backtest `OrderIntent`, and legacy Paper order/fill evidence. The S200
-intent is risk-pending and reserves nothing; no pre-trade risk, persistence,
-API, Web, Demo, fill, or account mutation exists yet.
+intent is risk-pending and reserves nothing.
+
+Sprint 201 adds the immutable `long_only_cash_risk_v1` policy reference, exact
+`latest_trade_price_v1` evidence from the consumed replay prefix, exact
+quantity-times-price notional, four ordered rule records, a deterministic
+`risk_input_<digest>` snapshot, and an immutable `risk_decision_<digest>`
+allow/reject result. The stable rule order is position sufficiency, maximum
+quantity, maximum notional, then available cash. Non-applicable rules remain
+present with null values and pass deterministically.
+
+Evaluation recreates the exact intent, account, calendar, session, replay,
+cursor, and current-event anchors. Changed authority fails stale and produces no
+decision. Missing, invalid, unsupported, or unrepresentable latest-price or
+notional input also fails closed; only valid complete rule evidence can produce
+an allow or reject decision. Reference price is risk evidence only, not
+execution, fill, or valuation authority.
 
 ## Current Founder Journey
 
@@ -185,7 +198,7 @@ is not yet genuine strategy-driven Paper Trading.
 
 It does not yet provide:
 
-- account-aware pre-trade risk checks for generated orders;
+- durable/API/Web exposure of account-aware strategy-to-risk authority;
 - a runtime order lifecycle and execution simulator;
 - market-driven fills and resulting ledger mutations;
 - a durable worker/claim/checkpoint/recovery loop for session execution;
@@ -206,9 +219,10 @@ M30 Portfolio-Level Decision Review Foundation — Complete
 ```
 
 M33 owns strategy signals, order intent, and pre-trade risk through S197–S206.
-Sprint 200 implements only pure account-bound intent/no-action conversion. M33
-consumes M31 account authority and M32 market-time authority, but it must not
-redefine ledger, calendar, event, cursor, or replay truth.
+Sprint 201 implements only pure immutable risk policy, price, rule, snapshot,
+and allow/reject evidence. M33 consumes M31 account authority and M32
+market-time authority, but it must not redefine ledger, calendar, event, cursor,
+or replay truth.
 
 Authoritative runtime roadmap:
 

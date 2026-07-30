@@ -2,7 +2,7 @@
 
 ## Status
 
-**Implementation complete in this PR; pending Founder review and manual merge.**
+**Complete.**
 
 GitHub Issue #394 is the authoritative Sprint implementation specification.
 GitHub Issue #389 remains the authoritative M33 architecture source.
@@ -110,9 +110,9 @@ risk_allowed
 risk_rejected
 ```
 
-S200 intents are semantically proposed/risk-pending because no S201 decision
-exists. Status is not a mutable S200 field, and there is no status mutation or
-execution behavior.
+S200 intents are semantically proposed/risk-pending at creation. Sprint 201
+adds separate immutable decision evidence rather than a mutable S200 field.
+There is no status mutation or execution behavior.
 
 ## Verification
 
@@ -149,5 +149,6 @@ mutation, accepted/execution order lifecycle, cancellation, routing, fill, fee,
 worker, scheduler, broker, QMT, MiniQMT, private-edge, live, real-money, or proxy
 behavior.
 
-S201–S206 remain Planned. M34 remains the first execution, fill, and
-fill-caused Paper Account mutation milestone.
+S201 is the current implementation sprint; S202–S206 remain Planned. M34
+remains the first execution, fill, and fill-caused Paper Account mutation
+milestone.
