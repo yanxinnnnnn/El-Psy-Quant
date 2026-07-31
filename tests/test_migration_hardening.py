@@ -35,6 +35,7 @@ MIGRATION_CHAIN = (
     "0006_portfolio_reviews",
     "0007_paper_account_ledger",
     "0008_market_time_foundation",
+    "0009_market_time_runtime",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -290,4 +291,5 @@ def test_migration_shape_matches_the_approved_linear_chain() -> None:
         "0007_paper_account_ledger",
         "0008_market_time_foundation",
         "0009_market_time_runtime",
+        "0010_strategy_order_risk",
     )

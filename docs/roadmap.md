@@ -161,6 +161,7 @@ Migration evolution:
 0007_paper_account_ledger
   -> 0008_market_time_foundation
   -> 0009_market_time_runtime
+  -> 0010_strategy_order_risk
 ```
 
 M32 adds no strategy, order, risk, execution, broker, live, or real-money
@@ -180,8 +181,8 @@ docs/milestones/m32-closeout.md
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–200 are
-Complete and Sprint 201 is the current implementation sprint. M33 owns:
+Issue #389 is the authoritative M33 architecture source. Sprints 197–201 are
+Complete and Sprint 202 is the current implementation sprint. M33 owns:
 
 - canonical strategy signals tied to explicit strategy/evidence identity;
 - idempotent order intent;
@@ -195,13 +196,19 @@ M33 must consume, not redefine:
   lifecycle truth; and
 - M30/M31 evidence links as governance references rather than execution authority.
 
-Sprint 201 provides only pure deterministic pre-trade risk evidence over one
+Sprint 201 provides pure deterministic pre-trade risk evidence over one
 complete S200 Order Intent and exact current M31/M32 authority. It records one
 explicit long-only cash policy, the latest same-instrument consumed trade price,
 exact notional, four ordered rules, an immutable input snapshot, and an
 allow/reject decision. Stale or invalid authority produces no decision. It adds
 no persistence, API, Web, Demo, reservation, account mutation, replay
 progression, fill, or execution behavior.
+
+Sprint 202 durably stores and strictly reconstructs the complete S198–S201
+authority chain. Scoped command receipts, unique deterministic identities and
+digests, append-only triggers, `BEGIN IMMEDIATE`, and bounded repositories
+provide restart-safe, one-winner idempotency. Thin application services reopen
+and verify exact M31/M32 authority before calling the unchanged pure functions.
 
 Approved M33 sprint chain:
 
@@ -211,15 +218,14 @@ Approved M33 sprint chain:
 | S198 | Strategy Runtime Reference and Signal Contract Foundation | Complete |
 | S199 | Deterministic Strategy Signal Evaluation Foundation | Complete |
 | S200 | Account-Bound Order Intent and Idempotency Foundation | Complete |
-| S201 | Pre-Trade Risk Decision and Evidence Foundation | In Progress |
-| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |
+| S201 | Pre-Trade Risk Decision and Evidence Foundation | Complete |
+| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | In Progress |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
 | S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |
 | S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
 | S206 | Milestone 33 Closeout and M34 Handoff | Planned |
 
-The migration head remains `0009_market_time_runtime` until the planned S202
-additive migration.
+The migration head is `0010_strategy_order_risk`.
 
 ## Approved Paper Trading Runtime Sequence
 

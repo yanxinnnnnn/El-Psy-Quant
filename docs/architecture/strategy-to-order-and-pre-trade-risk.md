@@ -4,7 +4,7 @@
 
 Milestone 33 is **In Progress** through the approved Sprint 197–206 sequence.
 GitHub Issue #389 is the authoritative M33 architecture and planning source.
-GitHub Issue #396 is the authoritative Sprint 201 implementation specification.
+GitHub Issue #398 is the authoritative Sprint 202 implementation specification.
 
 The frozen authority chain is:
 
@@ -16,10 +16,9 @@ M32 market/session/event/replay truth
   -> future M34 execution candidate
 ```
 
-Sprints 197–200 are Complete. Sprint 201 implements only pure deterministic
-pre-trade risk evidence over a complete account-bound Order Intent and exact
-current M31/M32 authority. It does not persist M33 state, expose product routes,
-reserve cash or positions, mutate M31/M32 authority, or execute anything.
+Sprints 197–201 are Complete. Sprint 202 durably persists and strictly
+reconstructs the complete Signal, Intent/no-action, and pre-trade risk authority
+chain. It adds no product routes, reservation, M31/M32 mutation, or execution.
 
 ## Preserved Earlier Authorities
 
@@ -284,6 +283,24 @@ json.dumps(
 Quantities export as canonical fixed-point strings and timestamps export as
 canonical UTC ISO 8601 strings. Exported payloads contain JSON primitives only.
 
+## Sprint 202 Durable Boundary
+
+Migration `0010_strategy_order_risk` adds append-only Signal, Intent, Decision,
+and scoped command-receipt tables. Canonical full payloads remain the durable
+authority; indexed relational columns support bounded lookup and must agree
+exactly with reconstructed payload metadata. Duplicate-key, non-canonical,
+malformed, incomplete, digest-mismatched, or cross-reference-mismatched rows
+fail closed as corrupt authority.
+
+Repository reads are by deterministic identity, unique digest, or bounded
+cursor page. Application services use one `BEGIN IMMEDIATE` transaction to
+verify exact M31 ledger replay/projection and M32 calendar/session/replay
+authority, call the unchanged S198–S201 pure functions, and atomically store
+the complete result plus one scoped command receipt. Identical concurrent
+commands converge on one result; reuse of a key for a different command fails
+as an idempotency conflict. No-action is durable receipt evidence and does not
+create an Order Intent row.
+
 ## Planned M33 Sequence
 
 ```text
@@ -291,15 +308,15 @@ S197 architecture and planning — Complete
 S198 runtime reference and signal contracts — Complete
 S199 deterministic signal evaluation — Complete
 S200 account-bound Order Intent — Complete
-S201 pre-trade risk decision/evidence — current implementation sprint
-S202 persistence, migration, concurrency, and application service — Planned
+S201 pre-trade risk decision/evidence — Complete
+S202 persistence, migration, concurrency, and application service — current implementation sprint
 S203 versioned API, errors, audit, and generated contracts — Planned
 S204 bilingual Founder workspace — Planned
 S205 Demo v5, recovery, and acceptance hardening — Planned
 S206 M33 closeout and M34 handoff — Planned
 ```
 
-The migration head remains `0009_market_time_runtime` until S202.
+The migration head is `0010_strategy_order_risk`.
 
 ## Execution Boundary
 

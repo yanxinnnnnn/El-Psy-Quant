@@ -2,7 +2,7 @@
 
 ## Status
 
-**Implementation complete in this PR; pending Founder review and manual merge.**
+**Complete after PR #397 merged.**
 
 GitHub Issue #396 is the authoritative Sprint implementation specification.
 GitHub Issue #389 remains the authoritative M33 architecture source.
@@ -188,4 +188,4 @@ status, reservation, replay mutation, execution lifecycle/pricing, slippage,
 fees, commissions, fills, ledger mutation, worker, scheduler, broker, QMT,
 MiniQMT, private-edge, live, real-money, or proxy behavior.
 
-S202–S206 remain Planned.
+Sprint 202 is the current implementation sprint. S203–S206 remain Planned.

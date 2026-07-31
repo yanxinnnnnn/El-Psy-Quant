@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-CURRENT_PRODUCT_SCHEMA_REVISION = "0009_market_time_runtime"
+CURRENT_PRODUCT_SCHEMA_REVISION = "0010_strategy_order_risk"
 APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0001_product_baseline",
     "0002_artifact_index",
@@ -15,6 +15,7 @@ APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0006_portfolio_reviews",
     "0007_paper_account_ledger",
     "0008_market_time_foundation",
+    "0009_market_time_runtime",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -271,6 +272,93 @@ REQUIRED_PRODUCT_TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
         "event_position",
         "event_id",
     ),
+    "strategy_signals": (
+        "record_schema_version",
+        "signal_schema_version",
+        "signal_id",
+        "signal_digest",
+        "payload_json",
+        "strategy_name",
+        "strategy_version",
+        "adapter_version",
+        "parameters_digest",
+        "calendar_id",
+        "calendar_version",
+        "trading_session_id",
+        "replay_id",
+        "event_stream_digest",
+        "cursor_position",
+        "signal_event_id",
+        "instrument_id",
+        "target_semantics",
+        "target_position_quantity",
+        "created_at",
+    ),
+    "order_intents": (
+        "record_schema_version",
+        "intent_schema_version",
+        "intent_id",
+        "intent_digest",
+        "payload_json",
+        "signal_id",
+        "signal_digest",
+        "account_id",
+        "account_head_version",
+        "account_head_event_id",
+        "account_head_chain_digest",
+        "calendar_id",
+        "trading_session_id",
+        "replay_id",
+        "event_stream_digest",
+        "cursor_position",
+        "current_event_id",
+        "instrument_id",
+        "side",
+        "requested_quantity",
+        "target_position_quantity",
+        "current_position_quantity",
+        "intent_policy_version",
+        "created_at",
+    ),
+    "pre_trade_risk_decisions": (
+        "record_schema_version",
+        "decision_schema_version",
+        "decision_id",
+        "decision_digest",
+        "payload_json",
+        "snapshot_id",
+        "snapshot_digest",
+        "intent_id",
+        "intent_digest",
+        "account_id",
+        "account_head_version",
+        "account_head_event_id",
+        "account_head_chain_digest",
+        "calendar_id",
+        "trading_session_id",
+        "replay_id",
+        "event_stream_digest",
+        "cursor_position",
+        "current_event_id",
+        "instrument_id",
+        "risk_policy_id",
+        "risk_policy_configuration_digest",
+        "outcome",
+        "reason_codes_json",
+        "created_at",
+    ),
+    "strategy_order_command_receipts": (
+        "record_schema_version",
+        "namespace",
+        "command_idempotency_key",
+        "command_digest",
+        "command_actor",
+        "result_kind",
+        "result_id",
+        "result_digest",
+        "result_payload_json",
+        "created_at",
+    ),
 }
 
 REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
@@ -305,6 +393,24 @@ REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
     "market_data_replay_events": (
         "ix_market_data_replay_events_event_id",
     ),
+    "strategy_signals": (
+        "ix_strategy_signals_created_id",
+        "ix_strategy_signals_market_anchor",
+        "ix_strategy_signals_strategy_instrument",
+    ),
+    "order_intents": (
+        "ix_order_intents_created_id",
+        "ix_order_intents_market_anchor",
+        "ix_order_intents_signal_account",
+    ),
+    "pre_trade_risk_decisions": (
+        "ix_pre_trade_risk_decisions_account_market",
+        "ix_pre_trade_risk_decisions_created_id",
+        "ix_pre_trade_risk_decisions_intent_outcome",
+    ),
+    "strategy_order_command_receipts": (
+        "ix_strategy_order_command_receipts_result",
+    ),
 }
 
 REQUIRED_PRODUCT_TRIGGERS = (
@@ -332,6 +438,14 @@ REQUIRED_PRODUCT_TRIGGERS = (
     "trg_market_data_replay_events_no_delete",
     "trg_market_data_replays_immutable_stream",
     "trg_market_data_replays_no_delete",
+    "trg_strategy_signals_no_update",
+    "trg_strategy_signals_no_delete",
+    "trg_order_intents_no_update",
+    "trg_order_intents_no_delete",
+    "trg_pre_trade_risk_decisions_no_update",
+    "trg_pre_trade_risk_decisions_no_delete",
+    "trg_strategy_order_command_receipts_no_update",
+    "trg_strategy_order_command_receipts_no_delete",
 )
 
 

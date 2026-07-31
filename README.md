@@ -20,16 +20,17 @@ approved S197–S206 sequence.
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–200 are
-Complete. Sprint 201 is the current implementation sprint and adds pure
-deterministic pre-trade risk evidence over one complete account-bound Order
-Intent and exact current M31/M32 authority. It adds no persistence, API, Web,
-Demo, reservation, account mutation, replay progression, or execution behavior.
+Issue #389 is the authoritative M33 architecture source. Sprints 197–201 are
+Complete. Sprint 202 is the current implementation sprint and adds durable
+immutable M33 persistence, strict reconstruction, scoped
+idempotency receipts, one-winner transactions, bounded repository reads, and
+application services over exact M31/M32 authority. It adds no API, Web, Demo,
+worker, reservation, account mutation, replay progression, or execution.
 
 Current migration head:
 
 ```text
-0009_market_time_runtime
+0010_strategy_order_risk
 ```
 
 ## Product Delivered Through M32
@@ -171,6 +172,19 @@ notional input also fails closed; only valid complete rule evidence can produce
 an allow or reject decision. Reference price is risk evidence only, not
 execution, fill, or valuation authority.
 
+Sprint 202 stores complete canonical Signal, Order Intent, no-action, risk
+snapshot, and Decision evidence in the product SQLite database. Migration
+`0010_strategy_order_risk` owns append-only triggers, unique deterministic
+identity/digest constraints, strict foreign references, and scoped durable
+command receipts. Reads reconstruct every nested contract, recompute identities
+and provenance, and fail closed on corrupt payloads or indexed metadata.
+
+Application services reopen and verify persisted M33 references plus exact
+current M31 ledger replay/projection and M32 calendar/session/replay authority
+before invoking the unchanged S198–S201 pure functions. `BEGIN IMMEDIATE`,
+database constraints, and all-or-nothing receipts provide one-winner behavior;
+no-action remains receipt evidence and never creates an executable intent row.
+
 ## Current Founder Journey
 
 ```text
@@ -198,7 +212,7 @@ is not yet genuine strategy-driven Paper Trading.
 
 It does not yet provide:
 
-- durable/API/Web exposure of account-aware strategy-to-risk authority;
+- API/Web exposure of durable account-aware strategy-to-risk authority;
 - a runtime order lifecycle and execution simulator;
 - market-driven fills and resulting ledger mutations;
 - a durable worker/claim/checkpoint/recovery loop for session execution;
@@ -219,10 +233,10 @@ M30 Portfolio-Level Decision Review Foundation — Complete
 ```
 
 M33 owns strategy signals, order intent, and pre-trade risk through S197–S206.
-Sprint 201 implements only pure immutable risk policy, price, rule, snapshot,
-and allow/reject evidence. M33 consumes M31 account authority and M32
-market-time authority, but it must not redefine ledger, calendar, event, cursor,
-or replay truth.
+Sprint 202 stores and orchestrates the immutable S198–S201 authority chain.
+M33 consumes M31 account authority and M32 market-time authority, but
+persistence and application services must not redefine ledger, calendar, event,
+cursor, or replay truth.
 
 Authoritative runtime roadmap:
 

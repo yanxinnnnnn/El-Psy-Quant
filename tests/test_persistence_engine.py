@@ -49,6 +49,10 @@ def test_declarative_metadata_contains_only_approved_product_tables() -> None:
         "paper_jobs",
         "paper_position_ledger_entries",
         "portfolio_reviews",
+        "pre_trade_risk_decisions",
+        "order_intents",
+        "strategy_order_command_receipts",
+        "strategy_signals",
         "trading_calendars",
         "trading_sessions",
     }
