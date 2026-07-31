@@ -160,20 +160,20 @@ M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
 M33 is **In Progress** through the approved S197–S206 sequence. Issue #389 is
-the authoritative architecture source. Sprints 197–199 are Complete. Sprint 200
+the authoritative architecture source. Sprints 197–200 are Complete. Sprint 201
 is the current implementation sprint and adds only pure deterministic
-Signal-to-Order-Intent conversion against one exact validated M31 ledger state.
+pre-trade risk evaluation over one complete S200 Order Intent.
 
-Sprint 200 binds the complete Signal and exact active-account head, cash,
-available cash, and same-instrument position evidence into one immutable
-command. It derives only an exact buy/sell quantity delta or deterministic
-`target_already_satisfied` no-action evidence. Different command keys or actors
-over identical authority converge on the same result identity; changed Signal
-or account anchors require a new command and result.
+Sprint 201 binds the complete intent, exact active M31 account state, and exact
+M32 calendar/session/replay prefix to an immutable versioned policy, latest
+same-instrument consumed trade-price reference, exact notional, four ordered
+rule records, one input snapshot, and one allow/reject decision. Invalid or
+stale authority fails closed without a decision. Different command audit facts
+over identical authority converge on the same snapshot and decision identity.
 
-Sprint 200 performs no pre-trade risk, persistence, reservation, migration,
-API/Web/Demo behavior, Paper Account mutation, replay progression, or execution.
-The migration head remains `0009_market_time_runtime`. Sprints 201–206 remain
+Sprint 201 performs no persistence, reservation, migration, API/Web/Demo
+behavior, Paper Account mutation, replay progression, order execution, or fill.
+The migration head remains `0009_market_time_runtime`. Sprints 202–206 remain
 planned.
 
 ## Approved Route to Genuine Paper Trading

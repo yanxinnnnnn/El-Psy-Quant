@@ -243,9 +243,9 @@ continuous scheduling.
 ### Status
 
 **In Progress through S197–S206.** Issue #389 is the authoritative M33
-architecture source. Sprints 197–199 are Complete. Sprint 200 is the current
-implementation sprint and adds only pure deterministic Signal-to-Order-Intent
-conversion against one exact active M31 ledger state.
+architecture source. Sprints 197–200 are Complete. Sprint 201 is the current
+implementation sprint and adds only pure deterministic pre-trade risk evidence
+over one exact S200 intent and current M31/M32 authority.
 
 ### User-visible outcome
 
@@ -278,14 +278,14 @@ intent without Founder-authored orders.
 ### Non-goals
 
 No fills, execution simulation, account posting, worker, broker, or live behavior.
-Sprint 200 binds complete Signal and M31 account-head evidence, then derives
-only exact target-versus-current buy/sell quantity or non-executable
-`target_already_satisfied` no-action evidence. Different command audit inputs
-over identical authority converge on the same deterministic result identity;
-changed Signal or account anchors require a new command and result. It adds no
-pre-trade risk, persistence, reservation, migration, API, Web, Demo, account
-mutation, replay progression, or execution. The migration head remains
-`0009_market_time_runtime`, and S201–S206 remain planned.
+Sprint 201 binds one complete intent, exact account head, exact replay prefix,
+explicit `long_only_cash_risk_v1` policy, and exact latest consumed trade-price
+evidence into ordered rules, one immutable input snapshot, and one allow/reject
+decision. Stale or invalid authority fails closed without a decision. The
+reference price is not execution, fill, or valuation authority. Sprint 201 adds
+no persistence, reservation, migration, API, Web, Demo, account mutation,
+replay progression, fill, or execution. The migration head remains
+`0009_market_time_runtime`, and S202–S206 remain planned.
 
 ## M34 — Paper Execution Simulator and First True Paper Trading
 

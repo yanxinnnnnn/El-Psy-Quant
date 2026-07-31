@@ -184,16 +184,33 @@ def create_order_intent_account_reference(
 ) -> OrderIntentAccountReference:
     """Bind a complete Signal to copied evidence from one active M31 state."""
     valid_signal = validate_strategy_signal(signal)
+    return _create_order_intent_account_reference_from_instrument(
+        instrument_id=valid_signal.market_reference.instrument_id,
+        account_state=account_state,
+    )
+
+
+def _create_order_intent_account_reference_from_instrument(
+    *,
+    instrument_id: str,
+    account_state: PaperAccountLedgerState,
+) -> OrderIntentAccountReference:
+    """Recreate exact account evidence for a previously validated instrument."""
     valid_state = validate_paper_account_ledger_state(account_state)
     if valid_state.lifecycle_status != "active":
         raise ValueError("order intent account state must be active")
 
-    instrument_id = valid_signal.market_reference.instrument_id
+    normalized_instrument = normalize_market_instrument_id(instrument_id)
+    if normalized_instrument != instrument_id:
+        raise ValueError("account-reference instrument_id is not normalized")
     positions = {
         position.symbol: position.quantity
         for position in valid_state.positions
     }
-    quantity = positions.get(instrument_id, PaperQuantity.parse("0"))
+    quantity = positions.get(
+        normalized_instrument,
+        PaperQuantity.parse("0"),
+    )
     return _build_account_reference(
         schema_version=ORDER_INTENT_ACCOUNT_REFERENCE_SCHEMA_VERSION,
         account_id=valid_state.account_identity.account_id,
@@ -204,7 +221,7 @@ def create_order_intent_account_reference(
         account_head_chain_digest=valid_state.head_chain_digest,
         cash_balance=PaperMoney.parse(valid_state.cash_balance.canonical),
         available_cash=PaperMoney.parse(valid_state.available_cash.canonical),
-        instrument_id=instrument_id,
+        instrument_id=normalized_instrument,
         current_instrument_quantity=PaperQuantity.parse(quantity.canonical),
     )
 

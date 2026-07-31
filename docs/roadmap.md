@@ -180,8 +180,8 @@ docs/milestones/m32-closeout.md
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–199 are
-Complete and Sprint 200 is the current implementation sprint. M33 owns:
+Issue #389 is the authoritative M33 architecture source. Sprints 197–200 are
+Complete and Sprint 201 is the current implementation sprint. M33 owns:
 
 - canonical strategy signals tied to explicit strategy/evidence identity;
 - idempotent order intent;
@@ -195,12 +195,13 @@ M33 must consume, not redefine:
   lifecycle truth; and
 - M30/M31 evidence links as governance references rather than execution authority.
 
-Sprint 200 provides only pure deterministic conversion from one complete Signal
-and one exact active M31 ledger state to an immutable account-bound Order Intent
-or target-satisfied no-action result. Exact Signal/account anchors fail stale,
-and different command audit inputs converge on the same deterministic result
-identity. It adds no risk, persistence, API, Web, Demo, reservation, account
-mutation, replay progression, or execution behavior.
+Sprint 201 provides only pure deterministic pre-trade risk evidence over one
+complete S200 Order Intent and exact current M31/M32 authority. It records one
+explicit long-only cash policy, the latest same-instrument consumed trade price,
+exact notional, four ordered rules, an immutable input snapshot, and an
+allow/reject decision. Stale or invalid authority produces no decision. It adds
+no persistence, API, Web, Demo, reservation, account mutation, replay
+progression, fill, or execution behavior.
 
 Approved M33 sprint chain:
 
@@ -209,8 +210,8 @@ Approved M33 sprint chain:
 | S197 | Milestone 33 Architecture and Planning | Complete |
 | S198 | Strategy Runtime Reference and Signal Contract Foundation | Complete |
 | S199 | Deterministic Strategy Signal Evaluation Foundation | Complete |
-| S200 | Account-Bound Order Intent and Idempotency Foundation | In Progress |
-| S201 | Pre-Trade Risk Decision and Evidence Foundation | Planned |
+| S200 | Account-Bound Order Intent and Idempotency Foundation | Complete |
+| S201 | Pre-Trade Risk Decision and Evidence Foundation | In Progress |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
 | S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |

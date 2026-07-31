@@ -45,8 +45,8 @@ frozen and separate.
 | S197 | Milestone 33 Architecture and Planning | Complete |
 | S198 | Strategy Runtime Reference and Signal Contract Foundation | Complete |
 | S199 | Deterministic Strategy Signal Evaluation Foundation | Complete |
-| S200 | Account-Bound Order Intent and Idempotency Foundation | In Progress |
-| S201 | Pre-Trade Risk Decision and Evidence Foundation | Planned |
+| S200 | Account-Bound Order Intent and Idempotency Foundation | Complete |
+| S201 | Pre-Trade Risk Decision and Evidence Foundation | In Progress |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
 | S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |
@@ -110,8 +110,34 @@ over identical authority converge on the same intent or no-action identity.
 M31 ledger replay remains account-state authority; the S200 reference is copied
 evidence only. No-action is not executable intent evidence. Sprint 200 adds no
 risk evaluation, persistence, reservation, migration, API, Web, Demo, replay
-progression, execution, fill, or account mutation. S201–S206 remain Planned,
-and the migration head remains `0009_market_time_runtime`.
+progression, execution, fill, or account mutation.
+
+## Sprint 201 Result
+
+Sprint 201 adds the pure deterministic pre-trade risk boundary:
+
+- one immutable `long_only_cash_risk_v1` policy reference with optional exact
+  maximum quantity and notional;
+- one immutable risk command bound only to a complete S200 intent and policy;
+- exact `latest_trade_price_v1` evidence from the consumed M32 prefix;
+- exact requested-quantity-times-price notional without rounding;
+- four always-present ordered position, quantity, notional, and cash rules;
+- deterministic `risk_input_<digest>` snapshot identity; and
+- immutable `risk_decision_<digest>` allow/reject evidence with stable ordered
+  reasons and cryptographically revalidated command provenance.
+
+Evaluation recreates exact intent, account, calendar, session, replay, cursor,
+current-event, and policy anchors. Changed authority fails stale. Missing,
+invalid, tampered, unsupported, or unrepresentable input fails closed without a
+decision and never defaults to allow. Lifecycle-only replay status changes do
+not change market identity when the exact stream and cursor prefix remain
+unchanged.
+
+The price reference is risk evidence only, and a decision is not a reservation,
+execution authorization, fill, valuation, ledger posting, or account/replay
+mutation. Sprint 201 adds no persistence, migration, application service, API,
+Web, Demo, worker, scheduler, broker, or execution behavior. S202–S206 remain
+Planned, and the migration head remains `0009_market_time_runtime`.
 
 ## Exit Criteria
 
