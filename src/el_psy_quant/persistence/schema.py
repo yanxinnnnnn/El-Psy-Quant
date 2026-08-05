@@ -395,18 +395,27 @@ REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
     ),
     "strategy_signals": (
         "ix_strategy_signals_created_id",
+        "ix_strategy_signals_instrument_created_id",
         "ix_strategy_signals_market_anchor",
+        "ix_strategy_signals_strategy_created_id",
         "ix_strategy_signals_strategy_instrument",
     ),
     "order_intents": (
+        "ix_order_intents_account_created_id",
         "ix_order_intents_created_id",
+        "ix_order_intents_instrument_created_id",
         "ix_order_intents_market_anchor",
+        "ix_order_intents_side_created_id",
+        "ix_order_intents_signal_created_id",
         "ix_order_intents_signal_account",
     ),
     "pre_trade_risk_decisions": (
+        "ix_pre_trade_risk_decisions_account_created_id",
         "ix_pre_trade_risk_decisions_account_market",
         "ix_pre_trade_risk_decisions_created_id",
+        "ix_pre_trade_risk_decisions_intent_created_id",
         "ix_pre_trade_risk_decisions_intent_outcome",
+        "ix_pre_trade_risk_decisions_outcome_created_id",
     ),
     "strategy_order_command_receipts": (
         "ix_strategy_order_command_receipts_result",

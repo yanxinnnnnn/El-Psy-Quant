@@ -28,16 +28,29 @@ from el_psy_quant.market_time import (
     create_trading_session,
 )
 from el_psy_quant.paper_account import PaperMoney, PaperQuantity
+from el_psy_quant.paper_account import MAX_PAPER_ACCOUNT_ACTOR_LENGTH
 from el_psy_quant.persistence import (
     SqlAlchemyMarketTimeRepository,
     SqlAlchemyOrderIntentRepository,
     SqlAlchemyPreTradeRiskDecisionRepository,
     SqlAlchemyStrategySignalRepository,
+    SqlAlchemyStrategyOrderCommandReceiptRepository,
     StrategyOrderCorruptAuthorityError,
     create_market_data_replay_record,
     create_product_database_engine,
     create_product_session_factory,
     resolve_product_database_config,
+)
+from el_psy_quant.persistence.strategy_order_mapping import (
+    decision_row,
+    intent_row,
+    receipt_row,
+)
+from el_psy_quant.persistence.strategy_order_records import (
+    COMMAND_NAMESPACE_DERIVE_INTENT,
+    RESULT_KIND_NO_ACTION,
+    StrategyOrderCommandReceipt,
+    canonical_json,
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 from el_psy_quant.persistence.schema import (
@@ -52,6 +65,28 @@ from el_psy_quant.strategy_order import (
     PRE_TRADE_RISK_OUTCOME_REJECT,
     create_long_only_cash_risk_policy_reference,
     create_moving_average_crossover_runtime_reference,
+    create_strategy_signal_market_reference,
+    create_strategy_signal_reference,
+)
+from el_psy_quant.strategy_order.intent_commands import (
+    DERIVE_ORDER_INTENT_COMMAND_SCHEMA_VERSION,
+    _derive_order_intent_command_digest,
+)
+from el_psy_quant.strategy_order.order_intents import (
+    _build_intent,
+    _build_no_action,
+)
+from el_psy_quant.strategy_order.risk_commands import (
+    EVALUATE_PRE_TRADE_RISK_COMMAND_SCHEMA_VERSION,
+    _evaluate_pre_trade_risk_command_digest,
+)
+from el_psy_quant.strategy_order.risk_decisions import _build_decision
+from el_psy_quant.strategy_order.risk_evidence import _build_input_snapshot
+from el_psy_quant.strategy_order.signal_commands import (
+    create_evaluate_strategy_signal_command,
+)
+from el_psy_quant.strategy_order.signals import (
+    _create_strategy_signal_from_evaluation,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -82,7 +117,12 @@ def _migrate(path: Path, monkeypatch: pytest.MonkeyPatch, revision: str) -> None
     command.upgrade(_config(), revision)
 
 
-def _seed(path: Path, *, initial_position: str | None = None):
+def _seed(
+    path: Path,
+    *,
+    initial_position: str | None = None,
+    prices: tuple[object, ...] = (3, 2, 1, 4),
+):
     engine = _engine(path)
     factory = create_product_session_factory(engine=engine)
     counters: dict[str, int] = {}
@@ -140,7 +180,7 @@ def _seed(path: Path, *, initial_position: str | None = None):
             payload={"price": price},
             source="fixture:s202",
         )
-        for index, price in enumerate((3, 2, 1, 4), start=1)
+        for index, price in enumerate(prices, start=1)
     ]
     replay = MarketDataReplayEngine(replay_id="replay-s202", events=events)
     replay.start()
@@ -158,11 +198,18 @@ def _seed(path: Path, *, initial_position: str | None = None):
     return engine, factory, account, calendar, session, replay
 
 
-def _signal(service: StrategyOrderApplicationService, replay):
+def _signal(
+    service: StrategyOrderApplicationService,
+    replay,
+    *,
+    target: str = "10",
+    command_key: str = "signal-command-s202",
+    actor: str = "founder",
+):
     runtime = create_moving_average_crossover_runtime_reference(
         fast_window=2,
         slow_window=3,
-        target_position_quantity=PaperQuantity.parse("10"),
+        target_position_quantity=PaperQuantity.parse(target),
     )
     result = service.evaluate_and_store_strategy_signal(
         strategy_runtime_reference=runtime,
@@ -174,11 +221,75 @@ def _signal(service: StrategyOrderApplicationService, replay):
         expected_cursor_position=4,
         expected_signal_event_id="event-s202-4",
         instrument_id=INSTRUMENT,
-        command_idempotency_key="signal-command-s202",
-        actor="founder",
+        command_idempotency_key=command_key,
+        actor=actor,
         created_at=CREATED + timedelta(hours=9),
     )
     return result
+
+
+def _store_signal_without_evaluating_runtime(
+    *,
+    factory,
+    calendar,
+    session,
+    replay,
+    target: str,
+):
+    runtime = create_moving_average_crossover_runtime_reference(
+        fast_window=2,
+        slow_window=3,
+        target_position_quantity=PaperQuantity.parse(target),
+    )
+    market = create_strategy_signal_market_reference(
+        calendar=calendar,
+        session=session,
+        replay_session=replay.session,
+        current_event=replay.events[replay.cursor.position - 1],
+    )
+    command_value = create_evaluate_strategy_signal_command(
+        strategy_runtime_reference=runtime,
+        market_reference=market,
+        command_idempotency_key=f"direct-signal-{target}",
+        actor="test-fixture",
+    )
+    signal = _create_strategy_signal_from_evaluation(
+        command=command_value,
+        target_position_quantity=PaperQuantity.parse(target),
+        created_at=CREATED + timedelta(hours=8),
+    )
+    with factory.begin() as db:
+        return SqlAlchemyStrategySignalRepository(session=db).add(
+            signal=signal
+        )
+
+
+def _risk(
+    service: StrategyOrderApplicationService,
+    *,
+    intent,
+    account,
+    replay,
+    command_key: str,
+):
+    return service.evaluate_and_store_pre_trade_risk(
+        intent_id=intent.intent_id,
+        risk_policy_reference=create_long_only_cash_risk_policy_reference(),
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        expected_calendar_id="calendar-s202",
+        expected_calendar_version=1,
+        expected_trading_session_id="session-s202",
+        expected_replay_id="replay-s202",
+        expected_event_stream_digest=replay.cursor.event_stream_digest,
+        expected_cursor_position=4,
+        expected_current_event_id="event-s202-4",
+        expected_instrument_id=INSTRUMENT,
+        command_idempotency_key=command_key,
+        actor="founder",
+        created_at=CREATED + timedelta(hours=10),
+    )
 
 
 def test_0010_is_additive_linear_append_only_and_current(
@@ -206,6 +317,76 @@ def test_0010_is_additive_linear_append_only_and_current(
             assert set(REQUIRED_PRODUCT_INDEXES[table]).issubset(
                 {index["name"] for index in inspector.get_indexes(table)}
             )
+        receipt_columns = {
+            column["name"]: column
+            for column in inspector.get_columns(
+                "strategy_order_command_receipts"
+            )
+        }
+        assert (
+            receipt_columns["command_actor"]["type"].length
+            == MAX_PAPER_ACCOUNT_ACTOR_LENGTH
+        )
+        expected_filter_indexes = {
+            "strategy_signals": {
+                "ix_strategy_signals_strategy_created_id": (
+                    "strategy_name",
+                    "created_at",
+                    "signal_id",
+                ),
+                "ix_strategy_signals_instrument_created_id": (
+                    "instrument_id",
+                    "created_at",
+                    "signal_id",
+                ),
+            },
+            "order_intents": {
+                "ix_order_intents_signal_created_id": (
+                    "signal_id",
+                    "created_at",
+                    "intent_id",
+                ),
+                "ix_order_intents_account_created_id": (
+                    "account_id",
+                    "created_at",
+                    "intent_id",
+                ),
+                "ix_order_intents_instrument_created_id": (
+                    "instrument_id",
+                    "created_at",
+                    "intent_id",
+                ),
+                "ix_order_intents_side_created_id": (
+                    "side",
+                    "created_at",
+                    "intent_id",
+                ),
+            },
+            "pre_trade_risk_decisions": {
+                "ix_pre_trade_risk_decisions_intent_created_id": (
+                    "intent_id",
+                    "created_at",
+                    "decision_id",
+                ),
+                "ix_pre_trade_risk_decisions_account_created_id": (
+                    "account_id",
+                    "created_at",
+                    "decision_id",
+                ),
+                "ix_pre_trade_risk_decisions_outcome_created_id": (
+                    "outcome",
+                    "created_at",
+                    "decision_id",
+                ),
+            },
+        }
+        for table, indexes in expected_filter_indexes.items():
+            actual = {
+                index["name"]: tuple(index["column_names"])
+                for index in inspector.get_indexes(table)
+            }
+            for index_name, columns in indexes.items():
+                assert actual[index_name] == columns
         with engine.connect() as connection:
             triggers = {
                 row[0]
@@ -269,6 +450,90 @@ def test_populated_0009_upgrade_preserves_m31_m32_authority(
         )
     finally:
         upgraded.dispose()
+
+
+def test_every_list_filter_uses_its_keyset_ordering_index(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "product.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine = _engine(path)
+    cases = (
+        (
+            "strategy_signals",
+            "strategy_name",
+            "signal_id",
+            "ix_strategy_signals_strategy_created_id",
+        ),
+        (
+            "strategy_signals",
+            "instrument_id",
+            "signal_id",
+            "ix_strategy_signals_instrument_created_id",
+        ),
+        (
+            "order_intents",
+            "signal_id",
+            "intent_id",
+            "ix_order_intents_signal_created_id",
+        ),
+        (
+            "order_intents",
+            "account_id",
+            "intent_id",
+            "ix_order_intents_account_created_id",
+        ),
+        (
+            "order_intents",
+            "instrument_id",
+            "intent_id",
+            "ix_order_intents_instrument_created_id",
+        ),
+        (
+            "order_intents",
+            "side",
+            "intent_id",
+            "ix_order_intents_side_created_id",
+        ),
+        (
+            "pre_trade_risk_decisions",
+            "intent_id",
+            "decision_id",
+            "ix_pre_trade_risk_decisions_intent_created_id",
+        ),
+        (
+            "pre_trade_risk_decisions",
+            "account_id",
+            "decision_id",
+            "ix_pre_trade_risk_decisions_account_created_id",
+        ),
+        (
+            "pre_trade_risk_decisions",
+            "outcome",
+            "decision_id",
+            "ix_pre_trade_risk_decisions_outcome_created_id",
+        ),
+    )
+    try:
+        with engine.connect() as connection:
+            for table, field, identity, index_name in cases:
+                plan = " ".join(
+                    str(value)
+                    for row in connection.execute(
+                        text(
+                            f"EXPLAIN QUERY PLAN SELECT {identity} "
+                            f"FROM {table} WHERE {field} = :value "
+                            f"ORDER BY created_at DESC, {identity} ASC "
+                            "LIMIT 5"
+                        ),
+                        {"value": "fixture"},
+                    )
+                    for value in row
+                )
+                assert index_name in plan
+                assert "USE TEMP B-TREE" not in plan
+    finally:
+        engine.dispose()
 
 
 def test_application_round_trip_replay_and_restart(
@@ -340,6 +605,59 @@ def test_application_round_trip_replay_and_restart(
         ).to_dict()
         == risk_result.result.to_dict()
     )
+    reopened.dispose()
+
+
+def test_maximum_actor_round_trips_and_whitespace_retry_replays_after_restart(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "product.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine, factory, _, _, _, replay = _seed(path)
+    actor = "a" * MAX_PAPER_ACCOUNT_ACTOR_LENGTH
+    first = _signal(
+        StrategyOrderApplicationService(session_factory=factory),
+        replay,
+        command_key="  normalized-signal-key  ",
+        actor=f"  {actor}  ",
+    )
+    assert not first.replayed
+    with engine.connect() as connection:
+        stored = connection.execute(
+            text(
+                "SELECT command_idempotency_key, command_actor "
+                "FROM strategy_order_command_receipts"
+            )
+        ).one()
+        assert stored == ("normalized-signal-key", actor)
+    engine.dispose()
+
+    reopened = _engine(path)
+    reopened_factory = create_product_session_factory(engine=reopened)
+    replayed = _signal(
+        StrategyOrderApplicationService(session_factory=reopened_factory),
+        replay,
+        command_key="normalized-signal-key",
+        actor=actor,
+    )
+    assert replayed.replayed
+    assert replayed.result.to_dict() == first.result.to_dict()
+    with pytest.raises(StrategyOrderCorruptAuthorityError):
+        _signal(
+            StrategyOrderApplicationService(
+                session_factory=reopened_factory
+            ),
+            replay,
+            command_key="actor-too-long",
+            actor="a" * (MAX_PAPER_ACCOUNT_ACTOR_LENGTH + 1),
+        )
+    with reopened.connect() as connection:
+        assert (
+            connection.scalar(
+                text("SELECT COUNT(*) FROM strategy_order_command_receipts")
+            )
+            == 1
+        )
     reopened.dispose()
 
 
@@ -829,6 +1147,114 @@ def test_sell_stale_reconciliation_and_storage_busy_boundaries(
         engine.dispose()
 
 
+@pytest.mark.parametrize(
+    ("latest_price", "target"),
+    (
+        (None, "10"),
+        (999999999999999999, "999999999999999999"),
+    ),
+    ids=("invalid-latest-price", "unrepresentable-notional"),
+)
+def test_invalid_risk_inputs_are_corrupt_not_stale_or_raw_value_errors(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    latest_price: object,
+    target: str,
+) -> None:
+    path = tmp_path / "product.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine, factory, account, calendar, session, replay = _seed(
+        path,
+        prices=(3, 2, 1, latest_price),
+    )
+    service = StrategyOrderApplicationService(session_factory=factory)
+    signal = _store_signal_without_evaluating_runtime(
+        factory=factory,
+        calendar=calendar,
+        session=session,
+        replay=replay,
+        target=target,
+    )
+    intent = service.derive_and_store_order_intent(
+        signal_id=signal.signal_id,
+        account_id=account.account_id,
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        command_idempotency_key=f"intent-invalid-risk-{target}",
+        actor="founder",
+        created_at=CREATED + timedelta(hours=9),
+    ).result
+    with pytest.raises(StrategyOrderCorruptAuthorityError):
+        _risk(
+            service,
+            intent=intent,
+            account=account,
+            replay=replay,
+            command_key=f"risk-invalid-input-{target}",
+        )
+    with engine.connect() as connection:
+        assert (
+            connection.scalar(
+                text("SELECT COUNT(*) FROM pre_trade_risk_decisions")
+            )
+            == 0
+        )
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT COUNT(*) "
+                    "FROM strategy_order_command_receipts "
+                    "WHERE namespace = 'evaluate_pre_trade_risk'"
+                )
+            )
+            == 0
+        )
+    engine.dispose()
+
+
+def test_risk_rejects_an_intent_bound_to_superseded_account_authority_as_stale(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "product.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine, factory, account, _, _, replay = _seed(path)
+    service = StrategyOrderApplicationService(session_factory=factory)
+    signal = _signal(service, replay).result
+    intent = service.derive_and_store_order_intent(
+        signal_id=signal.signal_id,
+        account_id=account.account_id,
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        command_idempotency_key="intent-before-account-advance",
+        actor="founder",
+        created_at=CREATED + timedelta(hours=9),
+    ).result
+    advanced = PaperAccountApplicationService(
+        session_factory=factory,
+        clock=lambda: CREATED + timedelta(hours=10),
+        id_factory=lambda kind: f"stale-risk-{kind}",
+    ).post_cash_movement(
+        account_id=account.account_id,
+        expected_account_version=account.head_version,
+        command_idempotency_key="advance-account-after-intent",
+        actor="founder",
+        reason="stale-authority regression fixture",
+        movement_type="deposit",
+        requested_amount=PaperMoney.parse("1"),
+    ).account
+    with pytest.raises(StrategyOrderStaleAuthorityError):
+        _risk(
+            service,
+            intent=intent,
+            account=advanced,
+            replay=replay,
+            command_key="risk-after-account-advance",
+        )
+    engine.dispose()
+
+
 def test_reject_decision_round_trips_as_immutable_evidence(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -871,6 +1297,230 @@ def test_reject_decision_round_trips_as_immutable_evidence(
     assert service.get_pre_trade_risk_decision(
         decision_id=rejected.decision_id
     ).to_dict() == rejected.to_dict()
+    engine.dispose()
+
+
+def test_recomputed_intent_and_decision_that_disagree_with_parent_fail_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "product.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine, factory, account, _, _, replay = _seed(path)
+    service = StrategyOrderApplicationService(session_factory=factory)
+    signal_10 = _signal(service, replay).result
+    signal_20 = _signal(
+        service,
+        replay,
+        target="20",
+        command_key="signal-20-for-corruption",
+    ).result
+    intent_10 = service.derive_and_store_order_intent(
+        signal_id=signal_10.signal_id,
+        account_id=account.account_id,
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        command_idempotency_key="intent-10-for-corruption",
+        actor="founder",
+        created_at=CREATED + timedelta(hours=9),
+    ).result
+    intent_20 = service.derive_and_store_order_intent(
+        signal_id=signal_20.signal_id,
+        account_id=account.account_id,
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        command_idempotency_key="intent-20-for-corruption",
+        actor="founder",
+        created_at=CREATED + timedelta(hours=9),
+    ).result
+    decision_10 = _risk(
+        service,
+        intent=intent_10,
+        account=account,
+        replay=replay,
+        command_key="risk-10-for-corruption",
+    ).result
+    decision_20 = _risk(
+        service,
+        intent=intent_20,
+        account=account,
+        replay=replay,
+        command_key="risk-20-for-corruption",
+    ).result
+
+    corrupt_intent_key = "internally-valid-wrong-parent-intent"
+    corrupt_intent_actor = "corruption-fixture"
+    corrupt_intent_command_digest = _derive_order_intent_command_digest(
+        schema_version=DERIVE_ORDER_INTENT_COMMAND_SCHEMA_VERSION,
+        signal_reference=intent_10.signal_reference,
+        account_reference=intent_20.account_reference,
+        intent_policy_version=intent_20.intent_policy_version,
+        command_idempotency_key=corrupt_intent_key,
+        actor=corrupt_intent_actor,
+    )
+    corrupt_intent = _build_intent(
+        signal_reference=intent_10.signal_reference,
+        market_reference=intent_20.market_reference,
+        account_reference=intent_20.account_reference,
+        target_semantics=intent_20.target_semantics,
+        target_position_quantity=intent_20.target_position_quantity,
+        current_position_quantity=intent_20.current_position_quantity,
+        side=intent_20.side,
+        requested_quantity=intent_20.requested_quantity,
+        intent_policy_version=intent_20.intent_policy_version,
+        origin_command_idempotency_key=corrupt_intent_key,
+        origin_command_digest=corrupt_intent_command_digest,
+        origin_actor=corrupt_intent_actor,
+        created_at=CREATED + timedelta(hours=11),
+    )
+
+    second_snapshot = decision_20.input_snapshot
+    corrupt_snapshot = _build_input_snapshot(
+        intent_reference=decision_10.input_snapshot.intent_reference,
+        market_reference=second_snapshot.market_reference,
+        account_reference=second_snapshot.account_reference,
+        risk_policy_reference=second_snapshot.risk_policy_reference,
+        price_reference=second_snapshot.price_reference,
+        side=second_snapshot.side,
+        requested_quantity=second_snapshot.requested_quantity,
+        verified_available_cash=second_snapshot.verified_available_cash,
+        verified_current_instrument_quantity=(
+            second_snapshot.verified_current_instrument_quantity
+        ),
+        estimated_order_notional=second_snapshot.estimated_order_notional,
+        rule_evidence=second_snapshot.rule_evidence,
+    )
+    corrupt_decision_key = "internally-valid-wrong-parent-decision"
+    corrupt_decision_actor = "corruption-fixture"
+    corrupt_decision_command_digest = (
+        _evaluate_pre_trade_risk_command_digest(
+            schema_version=EVALUATE_PRE_TRADE_RISK_COMMAND_SCHEMA_VERSION,
+            intent_reference=corrupt_snapshot.intent_reference,
+            risk_policy_reference=corrupt_snapshot.risk_policy_reference,
+            command_idempotency_key=corrupt_decision_key,
+            actor=corrupt_decision_actor,
+        )
+    )
+    corrupt_decision = _build_decision(
+        input_snapshot=corrupt_snapshot,
+        outcome=decision_20.outcome,
+        reason_codes=decision_20.reason_codes,
+        origin_command_idempotency_key=corrupt_decision_key,
+        origin_command_digest=corrupt_decision_command_digest,
+        origin_actor=corrupt_decision_actor,
+        created_at=CREATED + timedelta(hours=11),
+    )
+    with factory.begin() as db:
+        db.add(intent_row(corrupt_intent))
+        db.add(decision_row(corrupt_decision))
+
+    with pytest.raises(StrategyOrderCorruptAuthorityError):
+        service.get_order_intent(intent_id=corrupt_intent.intent_id)
+    with pytest.raises(StrategyOrderCorruptAuthorityError):
+        service.get_pre_trade_risk_decision(
+            decision_id=corrupt_decision.decision_id
+        )
+    with factory() as db:
+        with pytest.raises(StrategyOrderCorruptAuthorityError):
+            SqlAlchemyOrderIntentRepository(session=db).add(
+                intent=corrupt_intent
+            )
+        with pytest.raises(StrategyOrderCorruptAuthorityError):
+            SqlAlchemyPreTradeRiskDecisionRepository(session=db).add(
+                decision=corrupt_decision
+            )
+    engine.dispose()
+
+
+def test_recomputed_no_action_that_disagrees_with_signal_fails_on_replay(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "product.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine, factory, account, _, _, replay = _seed(
+        path, initial_position="20"
+    )
+    service = StrategyOrderApplicationService(session_factory=factory)
+    signal_10 = _signal(service, replay).result
+    signal_20 = _signal(
+        service,
+        replay,
+        target="20",
+        command_key="signal-20-for-no-action-corruption",
+    ).result
+    no_action = service.derive_and_store_order_intent(
+        signal_id=signal_20.signal_id,
+        account_id=account.account_id,
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        command_idempotency_key="valid-no-action-20",
+        actor="founder",
+        created_at=CREATED + timedelta(hours=9),
+    ).result
+    corrupt_key = "internally-valid-wrong-parent-no-action"
+    corrupt_actor = "corruption-fixture"
+    corrupt_signal_reference = create_strategy_signal_reference(signal_10)
+    corrupt_command_digest = _derive_order_intent_command_digest(
+        schema_version=DERIVE_ORDER_INTENT_COMMAND_SCHEMA_VERSION,
+        signal_reference=corrupt_signal_reference,
+        account_reference=no_action.account_reference,
+        intent_policy_version=no_action.intent_policy_version,
+        command_idempotency_key=corrupt_key,
+        actor=corrupt_actor,
+    )
+    corrupt_no_action = _build_no_action(
+        signal_reference=corrupt_signal_reference,
+        market_reference=no_action.market_reference,
+        account_reference=no_action.account_reference,
+        target_semantics=no_action.target_semantics,
+        target_position_quantity=no_action.target_position_quantity,
+        current_position_quantity=no_action.current_position_quantity,
+        intent_policy_version=no_action.intent_policy_version,
+        origin_command_idempotency_key=corrupt_key,
+        origin_command_digest=corrupt_command_digest,
+        origin_actor=corrupt_actor,
+        created_at=CREATED + timedelta(hours=11),
+    )
+    receipt = StrategyOrderCommandReceipt(
+        namespace=COMMAND_NAMESPACE_DERIVE_INTENT,
+        command_idempotency_key=corrupt_key,
+        command_digest=corrupt_command_digest,
+        command_actor=corrupt_actor,
+        result_kind=RESULT_KIND_NO_ACTION,
+        result_id=corrupt_no_action.no_action_id,
+        result_digest=corrupt_no_action.no_action_digest,
+        result_payload_json=canonical_json(corrupt_no_action.to_dict()),
+        created_at=corrupt_no_action.created_at,
+    )
+    with factory.begin() as db:
+        db.add(receipt_row(receipt))
+
+    with factory() as db:
+        repository = SqlAlchemyStrategyOrderCommandReceiptRepository(
+            session=db
+        )
+        stored_receipt = repository.get(
+            namespace=COMMAND_NAMESPACE_DERIVE_INTENT,
+            command_idempotency_key=corrupt_key,
+        )
+        assert stored_receipt is not None
+        with pytest.raises(StrategyOrderCorruptAuthorityError):
+            repository.resolve(receipt=stored_receipt)
+    with pytest.raises(StrategyOrderCorruptAuthorityError):
+        service.derive_and_store_order_intent(
+            signal_id=signal_10.signal_id,
+            account_id=account.account_id,
+            expected_account_head_version=account.head_version,
+            expected_account_head_event_id=account.head_event_id,
+            expected_account_head_chain_digest=(
+                account.head_chain_digest
+            ),
+            command_idempotency_key=f"  {corrupt_key}  ",
+            actor=f"  {corrupt_actor}  ",
+            created_at=CREATED + timedelta(days=1),
+        )
     engine.dispose()
 
 

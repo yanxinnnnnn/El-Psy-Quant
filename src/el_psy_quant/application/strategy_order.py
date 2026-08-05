@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from el_psy_quant.market_time import MarketDataReplayEngine
 from el_psy_quant.paper_account import (
+    MAX_PAPER_ACCOUNT_ACTOR_LENGTH,
+    MAX_PAPER_ACCOUNT_COMMAND_IDEMPOTENCY_KEY_LENGTH,
     PaperAccountLedgerState,
     replay_paper_account_ledger,
     verify_paper_account_projection,
@@ -55,6 +57,7 @@ from el_psy_quant.strategy_order import (
     create_derive_order_intent_command,
     create_evaluate_pre_trade_risk_command,
     create_evaluate_strategy_signal_command,
+    create_order_intent_account_reference,
     create_strategy_signal_market_reference,
     derive_order_intent,
     evaluate_pre_trade_risk,
@@ -62,6 +65,7 @@ from el_psy_quant.strategy_order import (
     validate_pre_trade_risk_policy_reference,
     validate_strategy_runtime_reference,
 )
+from el_psy_quant.strategy_order._canonical import normalize_bounded_string
 
 
 def _busy(exc: OperationalError) -> bool:
@@ -73,21 +77,37 @@ def _busy(exc: OperationalError) -> bool:
 
 def _utc(value: object, field: str) -> datetime:
     if type(value) is not datetime or value.tzinfo is None:
-        raise ValueError(f"{field} must be timezone-aware")
+        raise StrategyOrderCorruptAuthorityError()
     normalized = value.astimezone(timezone.utc)
     if normalized != value:
-        raise ValueError(f"{field} must be normalized to UTC")
+        raise StrategyOrderCorruptAuthorityError()
     return normalized
 
 
 def _positive_int(value: object, field: str) -> int:
     if type(value) is not int or value < 1:
-        raise ValueError(f"{field} must be a positive integer")
+        raise StrategyOrderCorruptAuthorityError()
     return value
 
 
-def _same(value: object, expected: object) -> bool:
-    return value == expected and type(value) is type(expected)
+def _normalize_command_strings(
+    command_idempotency_key: object,
+    actor: object,
+) -> tuple[str, str]:
+    try:
+        key = normalize_bounded_string(
+            command_idempotency_key,
+            field_name="command_idempotency_key",
+            maximum_length=MAX_PAPER_ACCOUNT_COMMAND_IDEMPOTENCY_KEY_LENGTH,
+        )
+        normalized_actor = normalize_bounded_string(
+            actor,
+            field_name="actor",
+            maximum_length=MAX_PAPER_ACCOUNT_ACTOR_LENGTH,
+        )
+    except (TypeError, ValueError) as exc:
+        raise StrategyOrderCorruptAuthorityError() from exc
+    return key, normalized_actor
 
 
 class StrategyOrderApplicationService:
@@ -311,21 +331,27 @@ class StrategyOrderApplicationService:
         expected_signal_time: datetime | None = None,
     ) -> StrategyOrderStoredResult[StrategySignal]:
         """Evaluate only current M32 authority and store one immutable Signal."""
-        runtime = validate_strategy_runtime_reference(
-            strategy_runtime_reference
+        key, normalized_actor = _normalize_command_strings(
+            command_idempotency_key, actor
         )
+        try:
+            runtime = validate_strategy_runtime_reference(
+                strategy_runtime_reference
+            )
+        except (TypeError, ValueError) as exc:
+            raise StrategyOrderCorruptAuthorityError() from exc
         audit_time = _utc(created_at, "created_at")
         with self._write() as session:
             existing = self._existing(
                 session,
                 namespace=COMMAND_NAMESPACE_EVALUATE_SIGNAL,
-                command_key=command_idempotency_key,
+                command_key=key,
             )
             if existing is not None:
                 receipt, result = existing
                 if (
                     type(result) is not StrategySignal
-                    or receipt.command_actor != actor
+                    or receipt.command_actor != normalized_actor
                     or result.strategy_runtime_reference != runtime
                     or result.market_reference.calendar_id != calendar_id
                     or result.market_reference.calendar_version
@@ -361,25 +387,28 @@ class StrategyOrderApplicationService:
                 instrument_id=instrument_id,
                 current_event_time=expected_signal_time,
             )
-            market = create_strategy_signal_market_reference(
-                calendar=calendar,
-                session=trading_session,
-                replay_session=engine.session,
-                current_event=event,
-            )
-            command = create_evaluate_strategy_signal_command(
-                strategy_runtime_reference=runtime,
-                market_reference=market,
-                command_idempotency_key=command_idempotency_key,
-                actor=actor,
-            )
-            result = evaluate_strategy_signal(
-                command,
-                calendar=calendar,
-                session=trading_session,
-                replay_engine=engine,
-                created_at=audit_time,
-            )
+            try:
+                market = create_strategy_signal_market_reference(
+                    calendar=calendar,
+                    session=trading_session,
+                    replay_session=engine.session,
+                    current_event=event,
+                )
+                command = create_evaluate_strategy_signal_command(
+                    strategy_runtime_reference=runtime,
+                    market_reference=market,
+                    command_idempotency_key=key,
+                    actor=normalized_actor,
+                )
+                result = evaluate_strategy_signal(
+                    command,
+                    calendar=calendar,
+                    session=trading_session,
+                    replay_engine=engine,
+                    created_at=audit_time,
+                )
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
             stored = SqlAlchemyStrategySignalRepository(
                 session=session
             ).add(signal=result)
@@ -409,18 +438,21 @@ class StrategyOrderApplicationService:
         intent_policy_version: str = ORDER_INTENT_POLICY_VERSION,
     ) -> StrategyOrderStoredResult[OrderIntent | OrderIntentNoAction]:
         """Derive from one persisted Signal and one verified M31 state."""
+        key, normalized_actor = _normalize_command_strings(
+            command_idempotency_key, actor
+        )
         audit_time = _utc(created_at, "created_at")
         with self._write() as session:
             existing = self._existing(
                 session,
                 namespace=COMMAND_NAMESPACE_DERIVE_INTENT,
-                command_key=command_idempotency_key,
+                command_key=key,
             )
             if existing is not None:
                 receipt, result = existing
                 if (
                     type(result) not in (OrderIntent, OrderIntentNoAction)
-                    or receipt.command_actor != actor
+                    or receipt.command_actor != normalized_actor
                     or result.signal_reference.signal_id != signal_id
                     or result.account_reference.account_id != account_id
                     or result.account_reference.account_head_version
@@ -446,19 +478,22 @@ class StrategyOrderApplicationService:
                 expected_event_id=expected_account_head_event_id,
                 expected_chain_digest=expected_account_head_chain_digest,
             )
-            command = create_derive_order_intent_command(
-                signal=signal,
-                account_state=state,
-                command_idempotency_key=command_idempotency_key,
-                actor=actor,
-                intent_policy_version=intent_policy_version,
-            )
-            result = derive_order_intent(
-                command,
-                signal=signal,
-                account_state=state,
-                created_at=audit_time,
-            )
+            try:
+                command = create_derive_order_intent_command(
+                    signal=signal,
+                    account_state=state,
+                    command_idempotency_key=key,
+                    actor=normalized_actor,
+                    intent_policy_version=intent_policy_version,
+                )
+                result = derive_order_intent(
+                    command,
+                    signal=signal,
+                    account_state=state,
+                    created_at=audit_time,
+                )
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
             stored = (
                 result
                 if type(result) is OrderIntentNoAction
@@ -500,15 +535,21 @@ class StrategyOrderApplicationService:
         expected_current_event_time: datetime | None = None,
     ) -> StrategyOrderStoredResult[PreTradeRiskDecision]:
         """Evaluate risk from persisted Intent and freshly verified M31/M32."""
-        policy = validate_pre_trade_risk_policy_reference(
-            risk_policy_reference
+        key, normalized_actor = _normalize_command_strings(
+            command_idempotency_key, actor
         )
+        try:
+            policy = validate_pre_trade_risk_policy_reference(
+                risk_policy_reference
+            )
+        except (TypeError, ValueError) as exc:
+            raise StrategyOrderCorruptAuthorityError() from exc
         audit_time = _utc(created_at, "created_at")
         with self._write() as session:
             existing = self._existing(
                 session,
                 namespace=COMMAND_NAMESPACE_EVALUATE_RISK,
-                command_key=command_idempotency_key,
+                command_key=key,
             )
             if existing is not None:
                 receipt, result = existing
@@ -516,7 +557,7 @@ class StrategyOrderApplicationService:
                     raise StrategyOrderCorruptAuthorityError()
                 snapshot = result.input_snapshot
                 if (
-                    receipt.command_actor != actor
+                    receipt.command_actor != normalized_actor
                     or snapshot.intent_reference.intent_id != intent_id
                     or snapshot.risk_policy_reference != policy
                     or snapshot.account_reference.account_head_version
@@ -573,7 +614,18 @@ class StrategyOrderApplicationService:
                 expected_event_id=expected_account_head_event_id,
                 expected_chain_digest=expected_account_head_chain_digest,
             )
-            calendar, trading_session, engine, _ = self._market(
+            try:
+                current_account_reference = (
+                    create_order_intent_account_reference(
+                        signal=signal,
+                        account_state=state,
+                    )
+                )
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
+            if current_account_reference != intent.account_reference:
+                raise StrategyOrderStaleAuthorityError()
+            calendar, trading_session, engine, event = self._market(
                 session,
                 calendar_id=expected_calendar_id,
                 calendar_version=expected_calendar_version,
@@ -585,13 +637,26 @@ class StrategyOrderApplicationService:
                 instrument_id=expected_instrument_id,
                 current_event_time=expected_current_event_time,
             )
-            command = create_evaluate_pre_trade_risk_command(
-                intent=intent,
-                risk_policy_reference=policy,
-                command_idempotency_key=command_idempotency_key,
-                actor=actor,
-            )
             try:
+                current_market_reference = (
+                    create_strategy_signal_market_reference(
+                        calendar=calendar,
+                        session=trading_session,
+                        replay_session=engine.session,
+                        current_event=event,
+                    )
+                )
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
+            if current_market_reference != intent.market_reference:
+                raise StrategyOrderStaleAuthorityError()
+            try:
+                command = create_evaluate_pre_trade_risk_command(
+                    intent=intent,
+                    risk_policy_reference=policy,
+                    command_idempotency_key=key,
+                    actor=normalized_actor,
+                )
                 result = evaluate_pre_trade_risk(
                     command,
                     intent=intent,
@@ -601,8 +666,8 @@ class StrategyOrderApplicationService:
                     replay_engine=engine,
                     created_at=audit_time,
                 )
-            except ValueError as exc:
-                raise StrategyOrderStaleAuthorityError() from exc
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
             stored = SqlAlchemyPreTradeRiskDecisionRepository(
                 session=session
             ).add(decision=result)
@@ -620,18 +685,24 @@ class StrategyOrderApplicationService:
 
     def get_strategy_signal(self, *, signal_id: str) -> StrategySignal:
         with self._read() as session:
-            result = SqlAlchemyStrategySignalRepository(
-                session=session
-            ).get(signal_id=signal_id)
+            try:
+                result = SqlAlchemyStrategySignalRepository(
+                    session=session
+                ).get(signal_id=signal_id)
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
             if result is None:
                 raise StrategyOrderNotFoundError()
             return result
 
     def get_order_intent(self, *, intent_id: str) -> OrderIntent:
         with self._read() as session:
-            result = SqlAlchemyOrderIntentRepository(
-                session=session
-            ).get(intent_id=intent_id)
+            try:
+                result = SqlAlchemyOrderIntentRepository(
+                    session=session
+                ).get(intent_id=intent_id)
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
             if result is None:
                 raise StrategyOrderNotFoundError()
             return result
@@ -640,9 +711,12 @@ class StrategyOrderApplicationService:
         self, *, decision_id: str
     ) -> PreTradeRiskDecision:
         with self._read() as session:
-            result = SqlAlchemyPreTradeRiskDecisionRepository(
-                session=session
-            ).get(decision_id=decision_id)
+            try:
+                result = SqlAlchemyPreTradeRiskDecisionRepository(
+                    session=session
+                ).get(decision_id=decision_id)
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
             if result is None:
                 raise StrategyOrderNotFoundError()
             return result

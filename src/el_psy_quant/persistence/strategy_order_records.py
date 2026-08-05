@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Generic, Literal, TypeVar
 
+from el_psy_quant.paper_account import MAX_PAPER_ACCOUNT_ACTOR_LENGTH
 from el_psy_quant.strategy_order import (
     OrderIntent,
     OrderIntentNoAction,
@@ -171,7 +172,11 @@ class StrategyOrderCommandReceipt:
             raise ValueError("unsupported command namespace")
         _bounded_string(self.command_idempotency_key, "command key", 128)
         _digest(self.command_digest, "command digest")
-        _bounded_string(self.command_actor, "command actor", 256)
+        _bounded_string(
+            self.command_actor,
+            "command actor",
+            MAX_PAPER_ACCOUNT_ACTOR_LENGTH,
+        )
         if self.result_kind not in SUPPORTED_STRATEGY_ORDER_RESULT_KINDS:
             raise ValueError("unsupported result kind")
         _bounded_string(self.result_id, "result ID", 96)

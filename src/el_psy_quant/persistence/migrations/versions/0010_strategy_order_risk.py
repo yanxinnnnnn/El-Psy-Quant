@@ -135,6 +135,16 @@ def upgrade() -> None:
             "signal_id",
         ),
     )
+    op.create_index(
+        "ix_strategy_signals_strategy_created_id",
+        "strategy_signals",
+        ("strategy_name", sa.column("created_at").desc(), "signal_id"),
+    )
+    op.create_index(
+        "ix_strategy_signals_instrument_created_id",
+        "strategy_signals",
+        ("instrument_id", sa.column("created_at").desc(), "signal_id"),
+    )
 
     op.create_table(
         "order_intents",
@@ -239,6 +249,17 @@ def upgrade() -> None:
         "order_intents",
         ("replay_id", "cursor_position", "instrument_id", "intent_id"),
     )
+    for name, column in (
+        ("ix_order_intents_signal_created_id", "signal_id"),
+        ("ix_order_intents_account_created_id", "account_id"),
+        ("ix_order_intents_instrument_created_id", "instrument_id"),
+        ("ix_order_intents_side_created_id", "side"),
+    ):
+        op.create_index(
+            name,
+            "order_intents",
+            (column, sa.column("created_at").desc(), "intent_id"),
+        )
 
     op.create_table(
         "pre_trade_risk_decisions",
@@ -346,6 +367,16 @@ def upgrade() -> None:
         "pre_trade_risk_decisions",
         ("account_id", "replay_id", "cursor_position", "decision_id"),
     )
+    for name, column in (
+        ("ix_pre_trade_risk_decisions_intent_created_id", "intent_id"),
+        ("ix_pre_trade_risk_decisions_account_created_id", "account_id"),
+        ("ix_pre_trade_risk_decisions_outcome_created_id", "outcome"),
+    ):
+        op.create_index(
+            name,
+            "pre_trade_risk_decisions",
+            (column, sa.column("created_at").desc(), "decision_id"),
+        )
 
     op.create_table(
         "strategy_order_command_receipts",
@@ -355,7 +386,7 @@ def upgrade() -> None:
             "command_idempotency_key", sa.String(length=128), nullable=False
         ),
         sa.Column("command_digest", sa.String(length=64), nullable=False),
-        sa.Column("command_actor", sa.String(length=256), nullable=False),
+        sa.Column("command_actor", sa.String(length=512), nullable=False),
         sa.Column("result_kind", sa.String(length=64), nullable=False),
         sa.Column("result_id", sa.String(length=96), nullable=False),
         sa.Column("result_digest", sa.String(length=64), nullable=False),

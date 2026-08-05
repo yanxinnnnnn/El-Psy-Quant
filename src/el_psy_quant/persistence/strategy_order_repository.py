@@ -44,6 +44,7 @@ from el_psy_quant.persistence.strategy_order_records import (
 )
 from el_psy_quant.strategy_order import (
     OrderIntent,
+    OrderIntentNoAction,
     PreTradeRiskDecision,
     StrategySignal,
     create_evaluate_strategy_signal_command,
@@ -89,6 +90,35 @@ def _cursor(
     if type(created_at) is not datetime or created_at.tzinfo is None:
         raise ValueError("cursor timestamp is invalid")
     return created_at.astimezone(timezone.utc), _text(identity, "cursor ID")
+
+
+def _intent_matches_signal(
+    intent: OrderIntent | OrderIntentNoAction,
+    signal: StrategySignal,
+) -> bool:
+    return (
+        intent.signal_reference.signal_id == signal.signal_id
+        and intent.signal_reference.signal_digest == signal.signal_digest
+        and intent.market_reference == signal.market_reference
+        and intent.target_semantics == signal.target_semantics
+        and intent.target_position_quantity
+        == signal.target_position_quantity
+    )
+
+
+def _decision_matches_intent(
+    decision: PreTradeRiskDecision,
+    intent: OrderIntent,
+) -> bool:
+    snapshot = decision.input_snapshot
+    return (
+        snapshot.intent_reference.intent_id == intent.intent_id
+        and snapshot.intent_reference.intent_digest == intent.intent_digest
+        and snapshot.market_reference == intent.market_reference
+        and snapshot.account_reference == intent.account_reference
+        and snapshot.side == intent.side
+        and snapshot.requested_quantity == intent.requested_quantity
+    )
 
 
 class StrategySignalRepository(Protocol):
@@ -260,11 +290,7 @@ class SqlAlchemyOrderIntentRepository(_Repository):
         signal = SqlAlchemyStrategySignalRepository(
             session=self._session
         ).get(signal_id=intent.signal_reference.signal_id)
-        if (
-            signal is None
-            or signal.signal_digest != intent.signal_reference.signal_digest
-            or signal.market_reference != intent.market_reference
-        ):
+        if signal is None or not _intent_matches_signal(intent, signal):
             raise StrategyOrderCorruptAuthorityError()
         return intent
 
@@ -287,12 +313,8 @@ class SqlAlchemyOrderIntentRepository(_Repository):
         signal = SqlAlchemyStrategySignalRepository(
             session=self._session
         ).get(signal_id=intent.signal_reference.signal_id)
-        if (
-            signal is None
-            or signal.signal_digest != intent.signal_reference.signal_digest
-            or signal.market_reference != intent.market_reference
-        ):
-            raise ValueError("intent must reference the persisted signal")
+        if signal is None or not _intent_matches_signal(intent, signal):
+            raise StrategyOrderCorruptAuthorityError()
         by_id = self.get(intent_id=intent.intent_id)
         by_digest = self.get_by_digest(intent_digest=intent.intent_digest)
         existing = by_id or by_digest
@@ -373,7 +395,7 @@ class SqlAlchemyPreTradeRiskDecisionRepository(_Repository):
         intent = SqlAlchemyOrderIntentRepository(
             session=self._session
         ).get(intent_id=intent_ref.intent_id)
-        if intent is None or intent.intent_digest != intent_ref.intent_digest:
+        if intent is None or not _decision_matches_intent(decision, intent):
             raise StrategyOrderCorruptAuthorityError()
         return decision
 
@@ -402,8 +424,8 @@ class SqlAlchemyPreTradeRiskDecisionRepository(_Repository):
         intent = SqlAlchemyOrderIntentRepository(
             session=self._session
         ).get(intent_id=intent_ref.intent_id)
-        if intent is None or intent.intent_digest != intent_ref.intent_digest:
-            raise ValueError("decision must reference the persisted intent")
+        if intent is None or not _decision_matches_intent(decision, intent):
+            raise StrategyOrderCorruptAuthorityError()
         by_id = self.get(decision_id=decision.decision_id)
         by_digest = self.get_by_digest(
             decision_digest=decision.decision_digest
@@ -555,6 +577,11 @@ class SqlAlchemyStrategyOrderCommandReceiptRepository(_Repository):
             result = order_intent_no_action_from_payload(
                 load_canonical_json(receipt.result_payload_json)
             )
+            signal = SqlAlchemyStrategySignalRepository(
+                session=self._session
+            ).get(signal_id=result.signal_reference.signal_id)
+            if signal is None or not _intent_matches_signal(result, signal):
+                raise StrategyOrderCorruptAuthorityError()
             expected = _derive_order_intent_command_digest(
                 schema_version=DERIVE_ORDER_INTENT_COMMAND_SCHEMA_VERSION,
                 signal_reference=result.signal_reference,

@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
+    desc,
     ForeignKeyConstraint,
     Index,
     Integer,
@@ -15,6 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
+from el_psy_quant.paper_account import MAX_PAPER_ACCOUNT_ACTOR_LENGTH
 from el_psy_quant.persistence.base import ProductPersistenceBase
 
 
@@ -91,6 +93,18 @@ class StrategySignalRow(ProductPersistenceBase):
             "trading_session_id",
             "replay_id",
             "cursor_position",
+            "signal_id",
+        ),
+        Index(
+            "ix_strategy_signals_strategy_created_id",
+            "strategy_name",
+            desc("created_at"),
+            "signal_id",
+        ),
+        Index(
+            "ix_strategy_signals_instrument_created_id",
+            "instrument_id",
+            desc("created_at"),
             "signal_id",
         ),
     )
@@ -198,6 +212,30 @@ class OrderIntentRow(ProductPersistenceBase):
             "replay_id",
             "cursor_position",
             "instrument_id",
+            "intent_id",
+        ),
+        Index(
+            "ix_order_intents_signal_created_id",
+            "signal_id",
+            desc("created_at"),
+            "intent_id",
+        ),
+        Index(
+            "ix_order_intents_account_created_id",
+            "account_id",
+            desc("created_at"),
+            "intent_id",
+        ),
+        Index(
+            "ix_order_intents_instrument_created_id",
+            "instrument_id",
+            desc("created_at"),
+            "intent_id",
+        ),
+        Index(
+            "ix_order_intents_side_created_id",
+            "side",
+            desc("created_at"),
             "intent_id",
         ),
     )
@@ -316,6 +354,24 @@ class PreTradeRiskDecisionRow(ProductPersistenceBase):
             "cursor_position",
             "decision_id",
         ),
+        Index(
+            "ix_pre_trade_risk_decisions_intent_created_id",
+            "intent_id",
+            desc("created_at"),
+            "decision_id",
+        ),
+        Index(
+            "ix_pre_trade_risk_decisions_account_created_id",
+            "account_id",
+            desc("created_at"),
+            "decision_id",
+        ),
+        Index(
+            "ix_pre_trade_risk_decisions_outcome_created_id",
+            "outcome",
+            desc("created_at"),
+            "decision_id",
+        ),
     )
 
     record_schema_version: Mapped[int] = mapped_column(Integer(), nullable=False)
@@ -408,7 +464,9 @@ class StrategyOrderCommandReceiptRow(ProductPersistenceBase):
         String(128), nullable=False
     )
     command_digest: Mapped[str] = mapped_column(String(64), nullable=False)
-    command_actor: Mapped[str] = mapped_column(String(256), nullable=False)
+    command_actor: Mapped[str] = mapped_column(
+        String(MAX_PAPER_ACCOUNT_ACTOR_LENGTH), nullable=False
+    )
     result_kind: Mapped[str] = mapped_column(String(64), nullable=False)
     result_id: Mapped[str] = mapped_column(String(96), nullable=False)
     result_digest: Mapped[str] = mapped_column(String(64), nullable=False)
