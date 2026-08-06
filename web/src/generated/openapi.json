@@ -1,6 +1,43 @@
 {
   "components": {
     "schemas": {
+      "ApiError": {
+        "description": "Stable public error detail.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ApiError",
+        "type": "object"
+      },
+      "ApiErrorResponse": {
+        "description": "Stable public error envelope with request correlation.",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "request_id"
+        ],
+        "title": "ApiErrorResponse",
+        "type": "object"
+      },
       "ApprovedPortfolioReviewReferenceResponse": {
         "additionalProperties": false,
         "properties": {
@@ -710,6 +747,518 @@
           "events"
         ],
         "title": "MarketDataReplayDetailResponse",
+        "type": "object"
+      },
+      "MovingAverageRuntimeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_version": {
+            "const": "v1",
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "fast_window": {
+            "exclusiveMinimum": 0.0,
+            "title": "Fast Window",
+            "type": "integer"
+          },
+          "runtime_sizing_semantics": {
+            "const": "target_position_quantity",
+            "title": "Runtime Sizing Semantics",
+            "type": "string"
+          },
+          "slow_window": {
+            "exclusiveMinimum": 0.0,
+            "title": "Slow Window",
+            "type": "integer"
+          },
+          "strategy_name": {
+            "const": "moving_average_crossover",
+            "title": "Strategy Name",
+            "type": "string"
+          },
+          "strategy_version": {
+            "const": "v1",
+            "title": "Strategy Version",
+            "type": "string"
+          },
+          "target_position_quantity": {
+            "title": "Target Position Quantity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "strategy_name",
+          "strategy_version",
+          "adapter_version",
+          "runtime_sizing_semantics",
+          "fast_window",
+          "slow_window",
+          "target_position_quantity"
+        ],
+        "title": "MovingAverageRuntimeRequest",
+        "type": "object"
+      },
+      "OrderIntentAccountReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_head_chain_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Account Head Chain Digest",
+            "type": "string"
+          },
+          "account_head_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Head Event Id",
+            "type": "string"
+          },
+          "account_head_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Account Head Version",
+            "type": "integer"
+          },
+          "account_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "available_cash": {
+            "title": "Available Cash",
+            "type": "string"
+          },
+          "base_currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Base Currency",
+            "type": "string"
+          },
+          "cash_balance": {
+            "title": "Cash Balance",
+            "type": "string"
+          },
+          "current_instrument_quantity": {
+            "title": "Current Instrument Quantity",
+            "type": "string"
+          },
+          "instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "const": "active",
+            "title": "Lifecycle Status",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "account_id",
+          "base_currency",
+          "lifecycle_status",
+          "account_head_version",
+          "account_head_event_id",
+          "account_head_chain_digest",
+          "cash_balance",
+          "available_cash",
+          "instrument_id",
+          "current_instrument_quantity",
+          "reference_digest"
+        ],
+        "title": "OrderIntentAccountReferenceResponse",
+        "type": "object"
+      },
+      "OrderIntentAccountRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "expected_account_head_chain_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Account Head Chain Digest",
+            "type": "string"
+          },
+          "expected_account_head_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Account Head Event Id",
+            "type": "string"
+          },
+          "expected_account_head_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Account Head Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "account_id",
+          "expected_account_head_version",
+          "expected_account_head_event_id",
+          "expected_account_head_chain_digest"
+        ],
+        "title": "OrderIntentAccountRequest",
+        "type": "object"
+      },
+      "OrderIntentCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/OrderIntentResponse"
+          },
+          "result_kind": {
+            "const": "order_intent",
+            "title": "Result Kind",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "result_kind",
+          "result"
+        ],
+        "title": "OrderIntentCommandResponse",
+        "type": "object"
+      },
+      "OrderIntentCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/OrderIntentAccountRequest"
+          },
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "intent_policy_version": {
+            "const": "target_position_quantity_delta_v1",
+            "title": "Intent Policy Version",
+            "type": "string"
+          },
+          "signal_id": {
+            "pattern": "^sig_[0-9a-f]{64}$",
+            "title": "Signal Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "signal_id",
+          "account",
+          "intent_policy_version",
+          "actor"
+        ],
+        "title": "OrderIntentCreateRequest",
+        "type": "object"
+      },
+      "OrderIntentListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderIntentResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "OrderIntentListResponse",
+        "type": "object"
+      },
+      "OrderIntentNoActionCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/OrderIntentNoActionResponse"
+          },
+          "result_kind": {
+            "const": "order_intent_no_action",
+            "title": "Result Kind",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "result_kind",
+          "result"
+        ],
+        "title": "OrderIntentNoActionCommandResponse",
+        "type": "object"
+      },
+      "OrderIntentNoActionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_reference": {
+            "$ref": "#/components/schemas/OrderIntentAccountReferenceResponse"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_position_quantity": {
+            "title": "Current Position Quantity",
+            "type": "string"
+          },
+          "intent_policy_version": {
+            "const": "target_position_quantity_delta_v1",
+            "title": "Intent Policy Version",
+            "type": "string"
+          },
+          "market_reference": {
+            "$ref": "#/components/schemas/StrategySignalMarketReferenceResponse"
+          },
+          "no_action_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "No Action Digest",
+            "type": "string"
+          },
+          "no_action_id": {
+            "pattern": "^no_action_[0-9a-f]{64}$",
+            "title": "No Action Id",
+            "type": "string"
+          },
+          "origin_actor": {
+            "title": "Origin Actor",
+            "type": "string"
+          },
+          "origin_command_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Origin Command Digest",
+            "type": "string"
+          },
+          "reason_code": {
+            "const": "target_already_satisfied",
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "signal_reference": {
+            "$ref": "#/components/schemas/StrategySignalReferenceResponse"
+          },
+          "target_position_quantity": {
+            "title": "Target Position Quantity",
+            "type": "string"
+          },
+          "target_semantics": {
+            "const": "target_position_quantity",
+            "title": "Target Semantics",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "no_action_id",
+          "no_action_digest",
+          "reason_code",
+          "signal_reference",
+          "market_reference",
+          "account_reference",
+          "target_semantics",
+          "target_position_quantity",
+          "current_position_quantity",
+          "intent_policy_version",
+          "origin_command_digest",
+          "origin_actor",
+          "created_at"
+        ],
+        "title": "OrderIntentNoActionResponse",
+        "type": "object"
+      },
+      "OrderIntentReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "intent_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Intent Digest",
+            "type": "string"
+          },
+          "intent_id": {
+            "pattern": "^oi_[0-9a-f]{64}$",
+            "title": "Intent Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "intent_id",
+          "intent_digest"
+        ],
+        "title": "OrderIntentReferenceResponse",
+        "type": "object"
+      },
+      "OrderIntentResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_reference": {
+            "$ref": "#/components/schemas/OrderIntentAccountReferenceResponse"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_position_quantity": {
+            "title": "Current Position Quantity",
+            "type": "string"
+          },
+          "intent_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Intent Digest",
+            "type": "string"
+          },
+          "intent_id": {
+            "pattern": "^oi_[0-9a-f]{64}$",
+            "title": "Intent Id",
+            "type": "string"
+          },
+          "intent_policy_version": {
+            "const": "target_position_quantity_delta_v1",
+            "title": "Intent Policy Version",
+            "type": "string"
+          },
+          "market_reference": {
+            "$ref": "#/components/schemas/StrategySignalMarketReferenceResponse"
+          },
+          "origin_actor": {
+            "title": "Origin Actor",
+            "type": "string"
+          },
+          "origin_command_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Origin Command Digest",
+            "type": "string"
+          },
+          "requested_quantity": {
+            "title": "Requested Quantity",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "side": {
+            "enum": [
+              "buy",
+              "sell"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "signal_reference": {
+            "$ref": "#/components/schemas/StrategySignalReferenceResponse"
+          },
+          "target_position_quantity": {
+            "title": "Target Position Quantity",
+            "type": "string"
+          },
+          "target_semantics": {
+            "const": "target_position_quantity",
+            "title": "Target Semantics",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "intent_id",
+          "intent_digest",
+          "signal_reference",
+          "market_reference",
+          "account_reference",
+          "target_semantics",
+          "target_position_quantity",
+          "current_position_quantity",
+          "side",
+          "requested_quantity",
+          "intent_policy_version",
+          "origin_command_digest",
+          "origin_actor",
+          "created_at"
+        ],
+        "title": "OrderIntentResponse",
         "type": "object"
       },
       "PaperAccountCashMovementRequest": {
@@ -5350,6 +5899,606 @@
         "title": "PortfolioReviewWorstDrawdownResponse",
         "type": "object"
       },
+      "PreTradeRiskDecisionCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/PreTradeRiskDecisionResponse"
+          },
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "decision"
+        ],
+        "title": "PreTradeRiskDecisionCommandResponse",
+        "type": "object"
+      },
+      "PreTradeRiskDecisionCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/OrderIntentAccountRequest"
+          },
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "intent_id": {
+            "pattern": "^oi_[0-9a-f]{64}$",
+            "title": "Intent Id",
+            "type": "string"
+          },
+          "market": {
+            "$ref": "#/components/schemas/PreTradeRiskMarketRequest"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/PreTradeRiskPolicyRequest"
+          }
+        },
+        "required": [
+          "intent_id",
+          "policy",
+          "account",
+          "market",
+          "actor"
+        ],
+        "title": "PreTradeRiskDecisionCreateRequest",
+        "type": "object"
+      },
+      "PreTradeRiskDecisionListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PreTradeRiskDecisionResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PreTradeRiskDecisionListResponse",
+        "type": "object"
+      },
+      "PreTradeRiskDecisionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decision_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Decision Digest",
+            "type": "string"
+          },
+          "decision_id": {
+            "pattern": "^risk_decision_[0-9a-f]{64}$",
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "input_snapshot": {
+            "$ref": "#/components/schemas/PreTradeRiskInputSnapshotResponse"
+          },
+          "origin_actor": {
+            "title": "Origin Actor",
+            "type": "string"
+          },
+          "origin_command_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Origin Command Digest",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "allow",
+              "reject"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "enum": [
+                "insufficient_position_quantity",
+                "maximum_order_quantity_exceeded",
+                "maximum_order_notional_exceeded",
+                "insufficient_available_cash"
+              ],
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "decision_id",
+          "decision_digest",
+          "input_snapshot",
+          "outcome",
+          "reason_codes",
+          "origin_command_digest",
+          "origin_actor",
+          "created_at"
+        ],
+        "title": "PreTradeRiskDecisionResponse",
+        "type": "object"
+      },
+      "PreTradeRiskInputSnapshotResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_reference": {
+            "$ref": "#/components/schemas/OrderIntentAccountReferenceResponse"
+          },
+          "estimated_order_notional": {
+            "title": "Estimated Order Notional",
+            "type": "string"
+          },
+          "intent_reference": {
+            "$ref": "#/components/schemas/OrderIntentReferenceResponse"
+          },
+          "market_reference": {
+            "$ref": "#/components/schemas/StrategySignalMarketReferenceResponse"
+          },
+          "price_reference": {
+            "$ref": "#/components/schemas/PreTradeRiskPriceReferenceResponse"
+          },
+          "requested_quantity": {
+            "title": "Requested Quantity",
+            "type": "string"
+          },
+          "risk_policy_reference": {
+            "$ref": "#/components/schemas/PreTradeRiskPolicyReferenceResponse"
+          },
+          "rule_evidence": {
+            "items": {
+              "$ref": "#/components/schemas/PreTradeRiskRuleEvidenceResponse"
+            },
+            "title": "Rule Evidence",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "side": {
+            "enum": [
+              "buy",
+              "sell"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "snapshot_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Digest",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^risk_input_[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "verified_available_cash": {
+            "title": "Verified Available Cash",
+            "type": "string"
+          },
+          "verified_current_instrument_quantity": {
+            "title": "Verified Current Instrument Quantity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "snapshot_id",
+          "snapshot_digest",
+          "intent_reference",
+          "market_reference",
+          "account_reference",
+          "risk_policy_reference",
+          "price_reference",
+          "side",
+          "requested_quantity",
+          "verified_available_cash",
+          "verified_current_instrument_quantity",
+          "estimated_order_notional",
+          "rule_evidence"
+        ],
+        "title": "PreTradeRiskInputSnapshotResponse",
+        "type": "object"
+      },
+      "PreTradeRiskMarketRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_calendar_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Calendar Id",
+            "type": "string"
+          },
+          "expected_calendar_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Calendar Version",
+            "type": "integer"
+          },
+          "expected_current_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Current Event Id",
+            "type": "string"
+          },
+          "expected_current_event_time_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Current Event Time Utc"
+          },
+          "expected_cursor_position": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Cursor Position",
+            "type": "integer"
+          },
+          "expected_event_stream_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Event Stream Digest",
+            "type": "string"
+          },
+          "expected_instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Instrument Id",
+            "type": "string"
+          },
+          "expected_replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Replay Id",
+            "type": "string"
+          },
+          "expected_trading_session_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Trading Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_calendar_id",
+          "expected_calendar_version",
+          "expected_trading_session_id",
+          "expected_replay_id",
+          "expected_event_stream_digest",
+          "expected_cursor_position",
+          "expected_current_event_id",
+          "expected_instrument_id"
+        ],
+        "title": "PreTradeRiskMarketRequest",
+        "type": "object"
+      },
+      "PreTradeRiskPolicyReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Configuration Digest",
+            "type": "string"
+          },
+          "maximum_order_notional": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum Order Notional"
+          },
+          "maximum_order_quantity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum Order Quantity"
+          },
+          "policy_id": {
+            "const": "long_only_cash_risk_v1",
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "reference_price_policy_id": {
+            "const": "latest_trade_price_v1",
+            "title": "Reference Price Policy Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "policy_id",
+          "reference_price_policy_id",
+          "maximum_order_quantity",
+          "maximum_order_notional",
+          "configuration_digest",
+          "reference_digest"
+        ],
+        "title": "PreTradeRiskPolicyReferenceResponse",
+        "type": "object"
+      },
+      "PreTradeRiskPolicyRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "maximum_order_notional": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum Order Notional"
+          },
+          "maximum_order_quantity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum Order Quantity"
+          },
+          "policy_id": {
+            "const": "long_only_cash_risk_v1",
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "reference_price_policy_id": {
+            "const": "latest_trade_price_v1",
+            "title": "Reference Price Policy Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy_id",
+          "reference_price_policy_id"
+        ],
+        "title": "PreTradeRiskPolicyRequest",
+        "type": "object"
+      },
+      "PreTradeRiskPriceReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor_position": {
+            "exclusiveMinimum": 0.0,
+            "title": "Cursor Position",
+            "type": "integer"
+          },
+          "event_stream_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "price_event_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Price Event Digest",
+            "type": "string"
+          },
+          "price_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Price Event Id",
+            "type": "string"
+          },
+          "price_event_position": {
+            "exclusiveMinimum": 0.0,
+            "title": "Price Event Position",
+            "type": "integer"
+          },
+          "price_event_time": {
+            "format": "date-time",
+            "title": "Price Event Time",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "reference_price": {
+            "title": "Reference Price",
+            "type": "string"
+          },
+          "reference_price_policy_id": {
+            "const": "latest_trade_price_v1",
+            "title": "Reference Price Policy Id",
+            "type": "string"
+          },
+          "replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "reference_price_policy_id",
+          "event_stream_digest",
+          "replay_id",
+          "cursor_position",
+          "price_event_position",
+          "price_event_id",
+          "price_event_time",
+          "instrument_id",
+          "price_event_digest",
+          "reference_price",
+          "reference_digest"
+        ],
+        "title": "PreTradeRiskPriceReferenceResponse",
+        "type": "object"
+      },
+      "PreTradeRiskRuleEvidenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "applicable": {
+            "title": "Applicable",
+            "type": "boolean"
+          },
+          "observed_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Value"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "rule_code": {
+            "enum": [
+              "insufficient_position_quantity",
+              "maximum_order_quantity_exceeded",
+              "maximum_order_notional_exceeded",
+              "insufficient_available_cash"
+            ],
+            "title": "Rule Code",
+            "type": "string"
+          },
+          "rule_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Rule Digest",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "threshold_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold Value"
+          },
+          "value_type": {
+            "enum": [
+              "quantity",
+              "money"
+            ],
+            "title": "Value Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "rule_code",
+          "applicable",
+          "value_type",
+          "observed_value",
+          "threshold_value",
+          "passed",
+          "rule_digest"
+        ],
+        "title": "PreTradeRiskRuleEvidenceResponse",
+        "type": "object"
+      },
       "ReplayCursorResponse": {
         "additionalProperties": false,
         "properties": {
@@ -6546,6 +7695,427 @@
         "title": "StrategyReviewWorkflowManifestDetailResponse",
         "type": "object"
       },
+      "StrategyRuntimeParametersResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "fast_window": {
+            "exclusiveMinimum": 0.0,
+            "title": "Fast Window",
+            "type": "integer"
+          },
+          "slow_window": {
+            "exclusiveMinimum": 0.0,
+            "title": "Slow Window",
+            "type": "integer"
+          },
+          "target_position_quantity": {
+            "title": "Target Position Quantity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fast_window",
+          "slow_window",
+          "target_position_quantity"
+        ],
+        "title": "StrategyRuntimeParametersResponse",
+        "type": "object"
+      },
+      "StrategyRuntimeReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_version": {
+            "const": "v1",
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/StrategyRuntimeParametersResponse"
+          },
+          "parameters_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Parameters Digest",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "runtime_sizing_semantics": {
+            "const": "target_position_quantity",
+            "title": "Runtime Sizing Semantics",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "strategy_name": {
+            "const": "moving_average_crossover",
+            "title": "Strategy Name",
+            "type": "string"
+          },
+          "strategy_version": {
+            "const": "v1",
+            "title": "Strategy Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "strategy_name",
+          "strategy_version",
+          "adapter_version",
+          "runtime_sizing_semantics",
+          "parameters",
+          "parameters_digest",
+          "reference_digest"
+        ],
+        "title": "StrategyRuntimeReferenceResponse",
+        "type": "object"
+      },
+      "StrategySignalCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "signal": {
+            "$ref": "#/components/schemas/StrategySignalResponse"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "signal"
+        ],
+        "title": "StrategySignalCommandResponse",
+        "type": "object"
+      },
+      "StrategySignalEvaluateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "market": {
+            "$ref": "#/components/schemas/StrategySignalMarketRequest"
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/MovingAverageRuntimeRequest"
+          }
+        },
+        "required": [
+          "runtime",
+          "market",
+          "actor"
+        ],
+        "title": "StrategySignalEvaluateRequest",
+        "type": "object"
+      },
+      "StrategySignalListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StrategySignalResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "StrategySignalListResponse",
+        "type": "object"
+      },
+      "StrategySignalMarketReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Calendar Id",
+            "type": "string"
+          },
+          "calendar_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Calendar Version",
+            "type": "integer"
+          },
+          "cursor_position": {
+            "exclusiveMinimum": 0.0,
+            "title": "Cursor Position",
+            "type": "integer"
+          },
+          "event_stream_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "last_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Last Event Id",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "signal_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Signal Event Id",
+            "type": "string"
+          },
+          "signal_time": {
+            "format": "date-time",
+            "title": "Signal Time",
+            "type": "string"
+          },
+          "trading_session_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Trading Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "calendar_id",
+          "calendar_version",
+          "trading_session_id",
+          "replay_id",
+          "event_stream_digest",
+          "cursor_position",
+          "last_event_id",
+          "signal_event_id",
+          "signal_time",
+          "instrument_id",
+          "reference_digest"
+        ],
+        "title": "StrategySignalMarketReferenceResponse",
+        "type": "object"
+      },
+      "StrategySignalMarketRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Calendar Id",
+            "type": "string"
+          },
+          "expected_calendar_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Calendar Version",
+            "type": "integer"
+          },
+          "expected_cursor_position": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Cursor Position",
+            "type": "integer"
+          },
+          "expected_event_stream_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Event Stream Digest",
+            "type": "string"
+          },
+          "expected_signal_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Signal Event Id",
+            "type": "string"
+          },
+          "expected_signal_time_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Signal Time Utc"
+          },
+          "instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "trading_session_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Trading Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "calendar_id",
+          "expected_calendar_version",
+          "trading_session_id",
+          "replay_id",
+          "expected_event_stream_digest",
+          "expected_cursor_position",
+          "expected_signal_event_id",
+          "instrument_id"
+        ],
+        "title": "StrategySignalMarketRequest",
+        "type": "object"
+      },
+      "StrategySignalReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "signal_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Signal Digest",
+            "type": "string"
+          },
+          "signal_id": {
+            "pattern": "^sig_[0-9a-f]{64}$",
+            "title": "Signal Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "signal_id",
+          "signal_digest"
+        ],
+        "title": "StrategySignalReferenceResponse",
+        "type": "object"
+      },
+      "StrategySignalResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "market_reference": {
+            "$ref": "#/components/schemas/StrategySignalMarketReferenceResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "signal_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Signal Digest",
+            "type": "string"
+          },
+          "signal_id": {
+            "pattern": "^sig_[0-9a-f]{64}$",
+            "title": "Signal Id",
+            "type": "string"
+          },
+          "strategy_runtime_reference": {
+            "$ref": "#/components/schemas/StrategyRuntimeReferenceResponse"
+          },
+          "target_position_quantity": {
+            "title": "Target Position Quantity",
+            "type": "string"
+          },
+          "target_semantics": {
+            "const": "target_position_quantity",
+            "title": "Target Semantics",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "signal_id",
+          "signal_digest",
+          "strategy_runtime_reference",
+          "market_reference",
+          "target_semantics",
+          "target_position_quantity",
+          "created_at"
+        ],
+        "title": "StrategySignalResponse",
+        "type": "object"
+      },
       "StrategySummaryResponse": {
         "description": "Built-in strategy list item.",
         "properties": {
@@ -7163,6 +8733,335 @@
           }
         },
         "summary": "Get Market Data Replay"
+      }
+    },
+    "/api/v1/order-intents": {
+      "get": {
+        "description": "Return one deterministic bounded Intent page.",
+        "operationId": "list_order_intents_v1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "signal_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Signal Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "instrument_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Instrument Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "side",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "buy",
+                    "sell"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Side"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderIntentListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Order Intents V1"
+      },
+      "post": {
+        "description": "Derive one Intent or no-action result from persisted authority.",
+        "operationId": "create_order_intent_v1",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderIntentCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "discriminator": {
+                    "mapping": {
+                      "order_intent": "#/components/schemas/OrderIntentCommandResponse",
+                      "order_intent_no_action": "#/components/schemas/OrderIntentNoActionCommandResponse"
+                    },
+                    "propertyName": "result_kind"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OrderIntentCommandResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OrderIntentNoActionCommandResponse"
+                    }
+                  ],
+                  "title": "Response 200 Create Order Intent V1"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "discriminator": {
+                    "mapping": {
+                      "order_intent": "#/components/schemas/OrderIntentCommandResponse",
+                      "order_intent_no_action": "#/components/schemas/OrderIntentNoActionCommandResponse"
+                    },
+                    "propertyName": "result_kind"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OrderIntentCommandResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OrderIntentNoActionCommandResponse"
+                    }
+                  ],
+                  "title": "Response Create Order Intent V1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Order Intent V1"
+      }
+    },
+    "/api/v1/order-intents/{intent_id}": {
+      "get": {
+        "description": "Return one strictly reconstructed immutable Intent.",
+        "operationId": "get_order_intent_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intent_id",
+            "required": true,
+            "schema": {
+              "pattern": "^oi_[0-9a-f]{64}$",
+              "title": "Intent Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderIntentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Order Intent V1"
       }
     },
     "/api/v1/paper-accounts": {
@@ -8546,6 +10445,286 @@
         "summary": "Post Portfolio Review Decision"
       }
     },
+    "/api/v1/pre-trade-risk-decisions": {
+      "get": {
+        "description": "Return one deterministic bounded Decision page.",
+        "operationId": "list_pre_trade_risk_decisions_v1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "intent_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Intent Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "outcome",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "allow",
+                    "reject"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Outcome"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreTradeRiskDecisionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Pre Trade Risk Decisions V1"
+      },
+      "post": {
+        "description": "Evaluate pre-trade risk without creating execution authority.",
+        "operationId": "create_pre_trade_risk_decision_v1",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreTradeRiskDecisionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreTradeRiskDecisionCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreTradeRiskDecisionCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Pre Trade Risk Decision V1"
+      }
+    },
+    "/api/v1/pre-trade-risk-decisions/{decision_id}": {
+      "get": {
+        "description": "Return one strictly reconstructed immutable risk Decision.",
+        "operationId": "get_pre_trade_risk_decision_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "required": true,
+            "schema": {
+              "pattern": "^risk_decision_[0-9a-f]{64}$",
+              "title": "Decision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreTradeRiskDecisionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Pre Trade Risk Decision V1"
+      }
+    },
     "/api/v1/research-runs": {
       "get": {
         "description": "List direct configured research runs from their manifests only.",
@@ -8671,6 +10850,268 @@
           }
         },
         "summary": "Get Strategy"
+      }
+    },
+    "/api/v1/strategy-signals": {
+      "get": {
+        "description": "Return one deterministic bounded Signal page.",
+        "operationId": "list_strategy_signals_v1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "strategy_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Strategy Name"
+            }
+          },
+          {
+            "in": "query",
+            "name": "instrument_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Instrument Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrategySignalListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Strategy Signals V1"
+      }
+    },
+    "/api/v1/strategy-signals/evaluate": {
+      "post": {
+        "description": "Evaluate one approved runtime against exact current M32 authority.",
+        "operationId": "evaluate_strategy_signal_v1",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StrategySignalEvaluateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrategySignalCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrategySignalCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Evaluate Strategy Signal V1"
+      }
+    },
+    "/api/v1/strategy-signals/{signal_id}": {
+      "get": {
+        "description": "Return one strictly reconstructed immutable Signal.",
+        "operationId": "get_strategy_signal_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "signal_id",
+            "required": true,
+            "schema": {
+              "pattern": "^sig_[0-9a-f]{64}$",
+              "title": "Signal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrategySignalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Strategy Signal V1"
       }
     }
   }

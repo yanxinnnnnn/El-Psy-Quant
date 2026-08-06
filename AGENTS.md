@@ -160,10 +160,11 @@ M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
 M33 is **In Progress** through the approved S197–S206 sequence. Issue #389 is
-the authoritative architecture source. Sprints 197–201 are Complete. Sprint 202
-is the current implementation sprint and adds durable M33 persistence, strict
-reconstruction, concurrency-safe idempotency, bounded reads, and application
-services over the complete S198–S201 chain.
+the authoritative architecture source. Sprints 197–202 are Complete. Sprint 203
+is the current implementation sprint and adds the exact nine-operation
+Strategy-to-Risk API, strict schemas, stable errors, server request correlation,
+bounded command audit events, opaque pagination, canonical OpenAPI, and
+generated TypeScript contracts over the complete S198–S202 chain.
 
 Sprint 202 stores canonical Signal, Intent, no-action, snapshot, and Decision
 evidence under migration `0010_strategy_order_risk`. One-winner SQLite
@@ -172,9 +173,9 @@ receipts, and strict restart reconstruction preserve exact authority. New
 operations reopen and verify current M31 ledger/projection and M32
 calendar/session/replay authority before invoking the unchanged pure functions.
 
-Sprint 202 adds no API/Web/Demo behavior, worker, reservation, Paper Account
-mutation, replay progression, order execution, or fill. The migration head is
-`0010_strategy_order_risk`. Sprints 203–206 remain planned.
+Sprint 203 adds no Web workflow, Demo behavior, migration, worker, reservation,
+Paper Account mutation, replay progression, order execution, or fill. The
+migration head is `0010_strategy_order_risk`. Sprints 204–206 remain planned.
 
 ## Approved Route to Genuine Paper Trading
 

@@ -309,14 +309,37 @@ S198 runtime reference and signal contracts — Complete
 S199 deterministic signal evaluation — Complete
 S200 account-bound Order Intent — Complete
 S201 pre-trade risk decision/evidence — Complete
-S202 persistence, migration, concurrency, and application service — current implementation sprint
-S203 versioned API, errors, audit, and generated contracts — Planned
+S202 persistence, migration, concurrency, and application service — Complete
+S203 versioned API, errors, audit, and generated contracts — current implementation sprint
 S204 bilingual Founder workspace — Planned
 S205 Demo v5, recovery, and acceptance hardening — Planned
 S206 M33 closeout and M34 handoff — Planned
 ```
 
 The migration head is `0010_strategy_order_risk`.
+
+## Sprint 203 API Boundary
+
+Sprint 203 exposes exactly nine founder-authenticated `/api/v1` operations:
+create/list/detail for Strategy Signals, Order Intents, and Pre-Trade Risk
+Decisions, with Signal creation named `evaluate`. No-action evidence is returned
+only by the Intent command and is not a list/detail resource.
+
+Routes accept only runtime/policy selections, durable resource references,
+expected M31/M32 anchors, actors, and idempotency keys. They construct the two
+approved references and delegate all strategy output, target, delta, price,
+notional, outcome, reason, identity, digest, and command provenance authority to
+the unchanged S198–S202 chain.
+
+Strict projections preserve canonical fixed-point strings and raw stable
+authority values while omitting command idempotency keys and raw market event
+payloads. Bounded repository reads use collection-specific integrity-checked
+opaque keyset cursors. Stable sanitized errors distinguish not-found,
+idempotency, stale authority, reconciliation, invalid selection, corrupt or
+unavailable authority, incompatible schema, busy storage, and storage failure.
+The existing server request ID is returned on commands and included with
+bounded non-financial completion events. Canonical OpenAPI and generated
+TypeScript are presentation contracts only.
 
 ## Execution Boundary
 

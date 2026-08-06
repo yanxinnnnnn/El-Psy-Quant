@@ -22,6 +22,7 @@ from el_psy_quant.api.routes.portfolio_reviews import (
 )
 from el_psy_quant.api.routes.research_runs import router as research_runs_router
 from el_psy_quant.api.routes.strategies import router as strategies_router
+from el_psy_quant.api.routes.strategy_order import router as strategy_order_router
 
 API_V1_PREFIX = "/api/v1"
 
@@ -40,5 +41,6 @@ api_v1_router.include_router(paper_jobs_router)
 api_v1_router.include_router(portfolio_reviews_router)
 api_v1_router.include_router(research_runs_router)
 api_v1_router.include_router(strategies_router)
+api_v1_router.include_router(strategy_order_router)
 
 __all__ = ["API_V1_PREFIX", "api_v1_router"]

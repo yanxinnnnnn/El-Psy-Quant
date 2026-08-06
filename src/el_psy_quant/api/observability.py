@@ -143,6 +143,41 @@ API_OPERATIONS: tuple[ApiOperation, ...] = (
         "/api/v1/lifecycle-transition-records",
         "lifecycle.review",
     ),
+    ApiOperation(
+        "POST",
+        "/api/v1/strategy-signals/evaluate",
+        "strategy_signal.evaluate",
+    ),
+    ApiOperation(
+        "GET", "/api/v1/strategy-signals", "strategy_signal.list"
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/strategy-signals/{signal_id}",
+        "strategy_signal.detail",
+    ),
+    ApiOperation("POST", "/api/v1/order-intents", "order_intent.create"),
+    ApiOperation("GET", "/api/v1/order-intents", "order_intent.list"),
+    ApiOperation(
+        "GET",
+        "/api/v1/order-intents/{intent_id}",
+        "order_intent.detail",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/pre-trade-risk-decisions",
+        "pre_trade_risk_decision.create",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/pre-trade-risk-decisions",
+        "pre_trade_risk_decision.list",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/pre-trade-risk-decisions/{decision_id}",
+        "pre_trade_risk_decision.detail",
+    ),
 )
 
 def build_operation_indexes(
@@ -508,6 +543,149 @@ def log_paper_account_reconciliation_completed(
     )
 
 
+def log_strategy_signal_evaluation_completed(
+    *,
+    request_id: str,
+    http_status: int,
+    replayed: bool,
+    signal_id: str,
+    signal_digest: str,
+    replay_id: str,
+    instrument_id: str,
+) -> None:
+    """Log only bounded Signal result identity and immediate anchors."""
+    PRODUCT_LOGGER.info(
+        (
+            "strategy_signal_evaluation_completed request_id=%s "
+            "http_status=%s replayed=%s result_kind=strategy_signal "
+            "signal_id=%s signal_digest=%s replay_id=%s instrument_id=%s"
+        ),
+        request_id,
+        http_status,
+        replayed,
+        signal_id,
+        signal_digest,
+        replay_id,
+        instrument_id,
+        extra={
+            "event": "strategy_signal_evaluation_completed",
+            "request_id": request_id,
+            "http_status": http_status,
+            "replayed": replayed,
+            "result_kind": "strategy_signal",
+            "signal_id": signal_id,
+            "signal_digest": signal_digest,
+            "replay_id": replay_id,
+            "instrument_id": instrument_id,
+        },
+    )
+
+
+def log_order_intent_derivation_completed(
+    *,
+    request_id: str,
+    http_status: int,
+    replayed: bool,
+    result_kind: Literal["order_intent", "order_intent_no_action"],
+    result_id: str,
+    result_digest: str,
+    signal_id: str,
+    account_id: str,
+    replay_id: str,
+    instrument_id: str,
+    side: Literal["buy", "sell"] | None,
+    no_action_reason: Literal["target_already_satisfied"] | None,
+) -> None:
+    """Log bounded Intent/no-action identity without financial values."""
+    PRODUCT_LOGGER.info(
+        (
+            "order_intent_derivation_completed request_id=%s http_status=%s "
+            "replayed=%s result_kind=%s result_id=%s result_digest=%s "
+            "signal_id=%s account_id=%s replay_id=%s instrument_id=%s "
+            "side=%s no_action_reason=%s"
+        ),
+        request_id,
+        http_status,
+        replayed,
+        result_kind,
+        result_id,
+        result_digest,
+        signal_id,
+        account_id,
+        replay_id,
+        instrument_id,
+        side,
+        no_action_reason,
+        extra={
+            "event": "order_intent_derivation_completed",
+            "request_id": request_id,
+            "http_status": http_status,
+            "replayed": replayed,
+            "result_kind": result_kind,
+            "result_id": result_id,
+            "result_digest": result_digest,
+            "signal_id": signal_id,
+            "account_id": account_id,
+            "replay_id": replay_id,
+            "instrument_id": instrument_id,
+            "side": side,
+            "no_action_reason": no_action_reason,
+        },
+    )
+
+
+def log_pre_trade_risk_evaluation_completed(
+    *,
+    request_id: str,
+    http_status: int,
+    replayed: bool,
+    decision_id: str,
+    decision_digest: str,
+    intent_id: str,
+    account_id: str,
+    replay_id: str,
+    instrument_id: str,
+    outcome: Literal["allow", "reject"],
+    reason_codes: tuple[str, ...],
+) -> None:
+    """Log bounded Decision identity, outcome, and closed ordered reasons."""
+    PRODUCT_LOGGER.info(
+        (
+            "pre_trade_risk_evaluation_completed request_id=%s "
+            "http_status=%s replayed=%s "
+            "result_kind=pre_trade_risk_decision decision_id=%s "
+            "decision_digest=%s intent_id=%s account_id=%s replay_id=%s "
+            "instrument_id=%s outcome=%s reason_codes=%s"
+        ),
+        request_id,
+        http_status,
+        replayed,
+        decision_id,
+        decision_digest,
+        intent_id,
+        account_id,
+        replay_id,
+        instrument_id,
+        outcome,
+        ",".join(reason_codes),
+        extra={
+            "event": "pre_trade_risk_evaluation_completed",
+            "request_id": request_id,
+            "http_status": http_status,
+            "replayed": replayed,
+            "result_kind": "pre_trade_risk_decision",
+            "decision_id": decision_id,
+            "decision_digest": decision_digest,
+            "intent_id": intent_id,
+            "account_id": account_id,
+            "replay_id": replay_id,
+            "instrument_id": instrument_id,
+            "outcome": outcome,
+            "reason_codes": reason_codes,
+        },
+    )
+
+
 __all__ = [
     "API_OPERATIONS",
     "MAX_DURATION_MS",
@@ -522,8 +700,11 @@ __all__ = [
     "log_paper_account_command_completed",
     "log_paper_account_reconciliation_completed",
     "log_paper_account_snapshot_completed",
+    "log_order_intent_derivation_completed",
     "log_paper_job_command_completed",
     "log_paper_job_execution_terminal",
     "log_portfolio_review_command_completed",
+    "log_pre_trade_risk_evaluation_completed",
+    "log_strategy_signal_evaluation_completed",
     "resolve_api_operation",
 ]

@@ -20,12 +20,14 @@ approved S197–S206 sequence.
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–201 are
-Complete. Sprint 202 is the current implementation sprint and adds durable
-immutable M33 persistence, strict reconstruction, scoped
-idempotency receipts, one-winner transactions, bounded repository reads, and
-application services over exact M31/M32 authority. It adds no API, Web, Demo,
-worker, reservation, account mutation, replay progression, or execution.
+Issue #389 is the authoritative M33 architecture source. Sprints 197–202 are
+Complete. Sprint 203 is the current implementation sprint and exposes the
+durable M33 authority through exactly nine founder-authenticated versioned API
+operations, strict schemas, stable sanitized errors, server request IDs,
+bounded command audit events, opaque keyset cursors, canonical OpenAPI, and
+generated TypeScript contracts. The API remains presentation/orchestration and
+adds no Web workflow, Demo, worker, reservation, account mutation, replay
+progression, or execution.
 
 Current migration head:
 
@@ -212,7 +214,7 @@ is not yet genuine strategy-driven Paper Trading.
 
 It does not yet provide:
 
-- API/Web exposure of durable account-aware strategy-to-risk authority;
+- a bilingual Founder Web workflow over durable strategy-to-risk authority;
 - a runtime order lifecycle and execution simulator;
 - market-driven fills and resulting ledger mutations;
 - a durable worker/claim/checkpoint/recovery loop for session execution;
@@ -234,6 +236,8 @@ M30 Portfolio-Level Decision Review Foundation — Complete
 
 M33 owns strategy signals, order intent, and pre-trade risk through S197–S206.
 Sprint 202 stores and orchestrates the immutable S198–S201 authority chain.
+Sprint 203 exposes that authority through exactly nine thin versioned routes
+without recalculating Signal, Intent, no-action, price, notional, or risk truth.
 M33 consumes M31 account authority and M32 market-time authority, but
 persistence and application services must not redefine ledger, calendar, event,
 cursor, or replay truth.

@@ -243,10 +243,10 @@ continuous scheduling.
 ### Status
 
 **In Progress through S197–S206.** Issue #389 is the authoritative M33
-architecture source. Sprints 197–201 are Complete. Sprint 202 is the current
-implementation sprint and adds durable persistence, strict reconstruction,
-concurrency-safe idempotency, and application services over exact M31/M32
-authority.
+architecture source. Sprints 197–202 are Complete. Sprint 203 is the current
+implementation sprint and adds exactly nine versioned API operations, strict
+schemas, stable errors, request correlation, bounded audit events, opaque
+pagination, and generated contracts over exact S198–S202 authority.
 
 ### User-visible outcome
 
@@ -291,8 +291,14 @@ unique identities and digests, bounded repository reads, and one-winner
 transactions preserve deterministic restart and concurrency behavior. Thin
 application services verify current M31/M32 authority before invoking the
 unchanged pure functions. Sprint 202 adds no API, Web, Demo, reservation,
-account mutation, replay progression, fill, or execution. S203–S206 remain
-planned.
+account mutation, replay progression, fill, or execution.
+
+Sprint 203 exposes the complete durable chain through exactly nine thin
+versioned operations, strict schemas, stable errors, request correlation,
+bounded command audit events, collection-bound opaque pagination, canonical
+OpenAPI, and generated TypeScript. It adds no Web workflow, Demo, migration,
+worker, reservation, execution, fill, replay progression, or account mutation.
+S204–S206 remain planned.
 
 ## M34 — Paper Execution Simulator and First True Paper Trading
 
