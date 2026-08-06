@@ -1,5 +1,6 @@
 """Explicit reusable composition dependencies for durable local routes."""
 
+from datetime import datetime, timezone
 from http import HTTPStatus
 from pathlib import Path
 from typing import Annotated
@@ -12,6 +13,7 @@ from el_psy_quant.application import (
     PaperArtifactRootUnavailableError,
     PaperAccountApplicationService,
     PortfolioReviewArtifactRootUnavailableError,
+    StrategyOrderApplicationService,
 )
 from el_psy_quant.application.paper_jobs import validate_paper_artifact_root
 from el_psy_quant.portfolio_review import validate_portfolio_review_artifact_root
@@ -31,6 +33,22 @@ def paper_account_schema_incompatible() -> PublicApiError:
         status_code=HTTPStatus.SERVICE_UNAVAILABLE,
         code="paper_account_schema_incompatible",
         message="Paper Account durable authority is unavailable",
+    )
+
+
+def strategy_order_authority_unavailable() -> PublicApiError:
+    return PublicApiError(
+        status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+        code="strategy_order_authority_unavailable",
+        message="Strategy-to-risk authority is unavailable",
+    )
+
+
+def strategy_order_schema_incompatible() -> PublicApiError:
+    return PublicApiError(
+        status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+        code="strategy_order_schema_incompatible",
+        message="Strategy-to-risk schema is incompatible",
     )
 
 
@@ -113,6 +131,48 @@ def get_paper_account_application_service(
         ),
         portfolio_review_session_factory=session_factory,
     )
+
+
+def get_strategy_order_session_factory(
+    request: Request,
+) -> sessionmaker[Session]:
+    """Resolve M33 storage while preserving availability/schema boundaries."""
+    path = getattr(request.app.state, "product_database_path", None)
+    factory = getattr(request.app.state, "product_session_factory", None)
+    try:
+        storage_available = (
+            isinstance(path, Path)
+            and path.exists()
+            and path.is_file()
+            and isinstance(factory, sessionmaker)
+        )
+    except OSError as exc:
+        raise strategy_order_authority_unavailable() from exc
+    if not storage_available:
+        raise strategy_order_authority_unavailable()
+    try:
+        if not _product_schema_is_compatible(path):
+            raise strategy_order_schema_incompatible()
+    except PublicApiError:
+        raise
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise strategy_order_schema_incompatible() from exc
+    return factory
+
+
+def get_strategy_order_application_service(
+    session_factory: Annotated[
+        sessionmaker[Session],
+        Depends(get_strategy_order_session_factory),
+    ],
+) -> StrategyOrderApplicationService:
+    """Construct one explicit request-scoped M33 application service."""
+    return StrategyOrderApplicationService(session_factory=session_factory)
+
+
+def get_server_utc_timestamp() -> datetime:
+    """Return one server-owned normalized UTC command audit timestamp."""
+    return datetime.now(timezone.utc)
 
 
 def get_paper_artifact_root(request: Request) -> Path:

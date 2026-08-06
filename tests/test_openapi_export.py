@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -16,6 +17,56 @@ SERVER_LOCAL_ENVIRONMENT_NAMES = (
     "EL_PSY_QUANT_WORKSPACE_MODE",
     "EL_PSY_QUANT_DEMO_WORKSPACE_ROOT",
 )
+
+
+def test_m33_generated_contracts_are_strict_and_operation_ids_are_stable() -> None:
+    snapshot_path = REPOSITORY_ROOT / "web/src/generated/openapi.json"
+    types_path = REPOSITORY_ROOT / "web/src/generated/api-types.ts"
+    document = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    expected = {
+        "evaluate_strategy_signal_v1",
+        "list_strategy_signals_v1",
+        "get_strategy_signal_v1",
+        "create_order_intent_v1",
+        "list_order_intents_v1",
+        "get_order_intent_v1",
+        "create_pre_trade_risk_decision_v1",
+        "list_pre_trade_risk_decisions_v1",
+        "get_pre_trade_risk_decision_v1",
+    }
+    observed = {
+        operation["operationId"]
+        for path, methods in document["paths"].items()
+        if path.startswith(
+            (
+                "/api/v1/strategy-signals",
+                "/api/v1/order-intents",
+                "/api/v1/pre-trade-risk-decisions",
+            )
+        )
+        for operation in methods.values()
+    }
+    assert observed == expected
+    schemas = document["components"]["schemas"]
+    for name in (
+        "StrategySignalEvaluateRequest",
+        "OrderIntentCreateRequest",
+        "PreTradeRiskDecisionCreateRequest",
+        "StrategySignalResponse",
+        "OrderIntentResponse",
+        "PreTradeRiskDecisionResponse",
+    ):
+        assert schemas[name]["additionalProperties"] is False
+    assert (
+        schemas["MovingAverageRuntimeRequest"]["properties"][
+            "target_position_quantity"
+        ]["type"]
+        == "string"
+    )
+    generated = types_path.read_text(encoding="utf-8")
+    assert all(operation_id in generated for operation_id in expected)
+    assert "StrategySignalEvaluateRequest" in generated
+    assert "PreTradeRiskDecisionResponse" in generated
 
 
 def test_canonical_openapi_matches_checked_in_snapshot() -> None:

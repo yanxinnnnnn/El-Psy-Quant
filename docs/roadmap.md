@@ -181,8 +181,8 @@ docs/milestones/m32-closeout.md
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–201 are
-Complete and Sprint 202 is the current implementation sprint. M33 owns:
+Issue #389 is the authoritative M33 architecture source. Sprints 197–202 are
+Complete, and Sprint 203 is the current implementation sprint. M33 owns:
 
 - canonical strategy signals tied to explicit strategy/evidence identity;
 - idempotent order intent;
@@ -210,6 +210,12 @@ digests, append-only triggers, `BEGIN IMMEDIATE`, and bounded repositories
 provide restart-safe, one-winner idempotency. Thin application services reopen
 and verify exact M31/M32 authority before calling the unchanged pure functions.
 
+Sprint 203 exposes exactly nine versioned API operations through strict request
+and inspection schemas, stable sanitized errors, server request correlation,
+bounded command audit events, deterministic opaque keyset cursors, canonical
+OpenAPI, and generated TypeScript. The API does not calculate or replace M31,
+M32, or S198–S202 authority.
+
 Approved M33 sprint chain:
 
 | Sprint | Deliverable | Status |
@@ -219,8 +225,8 @@ Approved M33 sprint chain:
 | S199 | Deterministic Strategy Signal Evaluation Foundation | Complete |
 | S200 | Account-Bound Order Intent and Idempotency Foundation | Complete |
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Complete |
-| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | In Progress |
-| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
+| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Complete |
+| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | In Progress |
 | S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |
 | S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
 | S206 | Milestone 33 Closeout and M34 Handoff | Planned |

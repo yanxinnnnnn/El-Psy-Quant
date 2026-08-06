@@ -82,6 +82,26 @@ STABLE_API_ERRORS: tuple[StableApiError, ...] = (
     StableApiError("paper_account_snapshot_conflict", "conflict"),
     StableApiError("paper_account_storage_busy", "unavailable"),
     StableApiError("paper_account_schema_incompatible", "unavailable"),
+    StableApiError("strategy_signal_not_found", "not_found"),
+    StableApiError("order_intent_not_found", "not_found"),
+    StableApiError(
+        "pre_trade_risk_decision_not_found", "not_found"
+    ),
+    StableApiError("strategy_order_idempotency_conflict", "conflict"),
+    StableApiError("strategy_order_stale_authority", "conflict"),
+    StableApiError(
+        "strategy_order_reconciliation_required", "conflict"
+    ),
+    StableApiError(
+        "strategy_order_invalid_runtime_configuration", "invalid"
+    ),
+    StableApiError("strategy_order_invalid_risk_policy", "invalid"),
+    StableApiError("strategy_order_invalid_decimal", "invalid"),
+    StableApiError("strategy_order_invalid_cursor", "invalid"),
+    StableApiError("strategy_order_schema_incompatible", "unavailable"),
+    StableApiError("strategy_order_authority_unavailable", "unavailable"),
+    StableApiError("strategy_order_storage_busy", "unavailable"),
+    StableApiError("strategy_order_storage_failure", "unavailable"),
     StableApiError("lifecycle_transition_proposal_invalid", "invalid"),
     StableApiError("lifecycle_transition_record_invalid", "invalid"),
     StableApiError("demo_workspace_not_configured", "not_found"),
