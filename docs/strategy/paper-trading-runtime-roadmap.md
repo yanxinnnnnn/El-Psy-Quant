@@ -243,9 +243,10 @@ continuous scheduling.
 ### Status
 
 **In Progress through S197–S206.** Issue #389 is the authoritative M33
-architecture source. Sprints 197–200 are Complete. Sprint 201 is the current
-implementation sprint and adds only pure deterministic pre-trade risk evidence
-over one exact S200 intent and current M31/M32 authority.
+architecture source. Sprints 197–201 are Complete. Sprint 202 is the current
+implementation sprint and adds durable persistence, strict reconstruction,
+concurrency-safe idempotency, and application services over exact M31/M32
+authority.
 
 ### User-visible outcome
 
@@ -282,10 +283,16 @@ Sprint 201 binds one complete intent, exact account head, exact replay prefix,
 explicit `long_only_cash_risk_v1` policy, and exact latest consumed trade-price
 evidence into ordered rules, one immutable input snapshot, and one allow/reject
 decision. Stale or invalid authority fails closed without a decision. The
-reference price is not execution, fill, or valuation authority. Sprint 201 adds
-no persistence, reservation, migration, API, Web, Demo, account mutation,
-replay progression, fill, or execution. The migration head remains
-`0009_market_time_runtime`, and S202–S206 remain planned.
+reference price is not execution, fill, or valuation authority.
+
+Sprint 202 stores the complete canonical S198–S201 authority chain under
+migration `0010_strategy_order_risk`. Append-only rows, scoped command receipts,
+unique identities and digests, bounded repository reads, and one-winner
+transactions preserve deterministic restart and concurrency behavior. Thin
+application services verify current M31/M32 authority before invoking the
+unchanged pure functions. Sprint 202 adds no API, Web, Demo, reservation,
+account mutation, replay progression, fill, or execution. S203–S206 remain
+planned.
 
 ## M34 — Paper Execution Simulator and First True Paper Trading
 

@@ -22,6 +22,7 @@ RESULT_REFERENCE_REVISION = "0005_paper_job_result_references"
 PORTFOLIO_REVIEW_REVISION = "0006_portfolio_reviews"
 PAPER_ACCOUNT_REVISION = "0007_paper_account_ledger"
 MARKET_TIME_FOUNDATION_REVISION = "0008_market_time_foundation"
+MARKET_TIME_RUNTIME_REVISION = "0009_market_time_runtime"
 
 
 def _config() -> Config:
@@ -48,6 +49,9 @@ def test_exact_result_reference_head_chain() -> None:
 
     assert scripts.get_heads() == [CURRENT_PRODUCT_SCHEMA_REVISION]
     assert scripts.get_revision(CURRENT_PRODUCT_SCHEMA_REVISION).down_revision == (
+        MARKET_TIME_RUNTIME_REVISION
+    )
+    assert scripts.get_revision(MARKET_TIME_RUNTIME_REVISION).down_revision == (
         MARKET_TIME_FOUNDATION_REVISION
     )
     assert scripts.get_revision(MARKET_TIME_FOUNDATION_REVISION).down_revision == (

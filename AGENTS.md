@@ -160,21 +160,21 @@ M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
 M33 is **In Progress** through the approved S197–S206 sequence. Issue #389 is
-the authoritative architecture source. Sprints 197–200 are Complete. Sprint 201
-is the current implementation sprint and adds only pure deterministic
-pre-trade risk evaluation over one complete S200 Order Intent.
+the authoritative architecture source. Sprints 197–201 are Complete. Sprint 202
+is the current implementation sprint and adds durable M33 persistence, strict
+reconstruction, concurrency-safe idempotency, bounded reads, and application
+services over the complete S198–S201 chain.
 
-Sprint 201 binds the complete intent, exact active M31 account state, and exact
-M32 calendar/session/replay prefix to an immutable versioned policy, latest
-same-instrument consumed trade-price reference, exact notional, four ordered
-rule records, one input snapshot, and one allow/reject decision. Invalid or
-stale authority fails closed without a decision. Different command audit facts
-over identical authority converge on the same snapshot and decision identity.
+Sprint 202 stores canonical Signal, Intent, no-action, snapshot, and Decision
+evidence under migration `0010_strategy_order_risk`. One-winner SQLite
+transactions, append-only triggers, unique identities/digests, scoped command
+receipts, and strict restart reconstruction preserve exact authority. New
+operations reopen and verify current M31 ledger/projection and M32
+calendar/session/replay authority before invoking the unchanged pure functions.
 
-Sprint 201 performs no persistence, reservation, migration, API/Web/Demo
-behavior, Paper Account mutation, replay progression, order execution, or fill.
-The migration head remains `0009_market_time_runtime`. Sprints 202–206 remain
-planned.
+Sprint 202 adds no API/Web/Demo behavior, worker, reservation, Paper Account
+mutation, replay progression, order execution, or fill. The migration head is
+`0010_strategy_order_risk`. Sprints 203–206 remain planned.
 
 ## Approved Route to Genuine Paper Trading
 

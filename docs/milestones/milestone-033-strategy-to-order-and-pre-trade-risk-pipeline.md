@@ -46,8 +46,8 @@ frozen and separate.
 | S198 | Strategy Runtime Reference and Signal Contract Foundation | Complete |
 | S199 | Deterministic Strategy Signal Evaluation Foundation | Complete |
 | S200 | Account-Bound Order Intent and Idempotency Foundation | Complete |
-| S201 | Pre-Trade Risk Decision and Evidence Foundation | In Progress |
-| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Planned |
+| S201 | Pre-Trade Risk Decision and Evidence Foundation | Complete |
+| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | In Progress |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
 | S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |
 | S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
@@ -136,8 +136,29 @@ unchanged.
 The price reference is risk evidence only, and a decision is not a reservation,
 execution authorization, fill, valuation, ledger posting, or account/replay
 mutation. Sprint 201 adds no persistence, migration, application service, API,
-Web, Demo, worker, scheduler, broker, or execution behavior. S202–S206 remain
-Planned, and the migration head remains `0009_market_time_runtime`.
+Web, Demo, worker, scheduler, broker, or execution behavior.
+
+## Sprint 202 Result
+
+Sprint 202 adds the durable M33 product boundary:
+
+- additive migration `0010_strategy_order_risk` with immutable Signal, Intent,
+  Decision, and command-receipt tables;
+- canonical full-payload authority plus unique deterministic identities,
+  digests, foreign references, indexes, and append-only triggers;
+- strict reconstruction that rejects duplicate-key, non-canonical, malformed,
+  incomplete, digest-mismatched, and cross-reference-mismatched rows;
+- bounded identity/digest/filter repositories without unbounded reads or repair;
+- one-winner `BEGIN IMMEDIATE` transactions and scoped durable idempotency;
+- exact no-action replay through receipts without manufacturing an Intent row;
+  and
+- thin application services that reopen and verify exact M31/M32 authority
+  before invoking the unchanged S198–S201 pure functions.
+
+Sprint 202 adds no API, OpenAPI, generated TypeScript, Web, Demo, worker,
+reservation, execution, fill, replay progression, or ledger/account mutation.
+S203–S206 remain Planned, and the migration head is
+`0010_strategy_order_risk`.
 
 ## Exit Criteria
 
