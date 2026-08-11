@@ -312,10 +312,16 @@ class PreTradeRiskMarketRequest(_StrictModel):
     )(_normalized_utc)
 
 
+class PreTradeRiskAccountRequest(_StrictModel):
+    expected_account_head_version: ExactPositiveInt
+    expected_account_head_event_id: BoundedId
+    expected_account_head_chain_digest: Sha256Digest
+
+
 class PreTradeRiskDecisionCreateRequest(_StrictModel):
     intent_id: IntentId
     policy: PreTradeRiskPolicyRequest
-    account: OrderIntentAccountRequest
+    account: PreTradeRiskAccountRequest
     market: PreTradeRiskMarketRequest
     actor: BoundedActor
 

@@ -5899,6 +5899,35 @@
         "title": "PortfolioReviewWorstDrawdownResponse",
         "type": "object"
       },
+      "PreTradeRiskAccountRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_account_head_chain_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Account Head Chain Digest",
+            "type": "string"
+          },
+          "expected_account_head_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Expected Account Head Event Id",
+            "type": "string"
+          },
+          "expected_account_head_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Account Head Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_account_head_version",
+          "expected_account_head_event_id",
+          "expected_account_head_chain_digest"
+        ],
+        "title": "PreTradeRiskAccountRequest",
+        "type": "object"
+      },
       "PreTradeRiskDecisionCommandResponse": {
         "additionalProperties": false,
         "properties": {
@@ -5932,7 +5961,7 @@
         "additionalProperties": false,
         "properties": {
           "account": {
-            "$ref": "#/components/schemas/OrderIntentAccountRequest"
+            "$ref": "#/components/schemas/PreTradeRiskAccountRequest"
           },
           "actor": {
             "maxLength": 512,
@@ -8747,9 +8776,9 @@
             "schema": {
               "anyOf": [
                 {
-                  "maxLength": 512,
-                  "minLength": 1,
-                  "pattern": "^\\S(?:.*\\S)?$",
+                  "maxLength": 68,
+                  "minLength": 68,
+                  "pattern": "^sig_[0-9a-f]{64}$",
                   "type": "string"
                 },
                 {
@@ -9044,11 +9073,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           },
           "503": {
             "content": {
@@ -10457,9 +10486,9 @@
             "schema": {
               "anyOf": [
                 {
-                  "maxLength": 512,
-                  "minLength": 1,
-                  "pattern": "^\\S(?:.*\\S)?$",
+                  "maxLength": 67,
+                  "minLength": 67,
+                  "pattern": "^oi_[0-9a-f]{64}$",
                   "type": "string"
                 },
                 {
@@ -10705,11 +10734,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           },
           "503": {
             "content": {
@@ -11094,11 +11123,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Unprocessable Entity"
           },
           "503": {
             "content": {

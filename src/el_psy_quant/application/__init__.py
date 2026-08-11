@@ -155,6 +155,7 @@ from el_psy_quant.application.strategy_catalog import (
     list_strategies,
 )
 from el_psy_quant.application.strategy_order import (
+    OrderIntentNotFoundError,
     StrategyOrderApplicationService,
     StrategyOrderCorruptAuthorityError,
     StrategyOrderIdempotencyConflictError,
@@ -164,6 +165,8 @@ from el_psy_quant.application.strategy_order import (
     StrategyOrderStorageBusyError,
     StrategyOrderStorageFailureError,
     StrategyOrderStoredResult,
+    StrategyOrderUpstreamAuthorityUnavailableError,
+    StrategySignalNotFoundError,
 )
 
 __all__ = [
@@ -247,6 +250,7 @@ __all__ = [
     "ResearchRunParameters",
     "ResearchRunSummary",
     "StrategyDetail",
+    "OrderIntentNotFoundError",
     "StrategyOrderApplicationService",
     "StrategyOrderCorruptAuthorityError",
     "StrategyOrderIdempotencyConflictError",
@@ -256,6 +260,8 @@ __all__ = [
     "StrategyOrderStorageBusyError",
     "StrategyOrderStorageFailureError",
     "StrategyOrderStoredResult",
+    "StrategyOrderUpstreamAuthorityUnavailableError",
+    "StrategySignalNotFoundError",
     "StrategyDecisionManifestDetail",
     "StrategyLifecycleStateSnapshotCommandInput",
     "StrategyLifecycleStateSnapshotView",

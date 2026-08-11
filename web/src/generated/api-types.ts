@@ -3078,6 +3078,15 @@ export interface components {
             /** Trough Date */
             trough_date: string;
         };
+        /** PreTradeRiskAccountRequest */
+        PreTradeRiskAccountRequest: {
+            /** Expected Account Head Chain Digest */
+            expected_account_head_chain_digest: string;
+            /** Expected Account Head Event Id */
+            expected_account_head_event_id: string;
+            /** Expected Account Head Version */
+            expected_account_head_version: number;
+        };
         /** PreTradeRiskDecisionCommandResponse */
         PreTradeRiskDecisionCommandResponse: {
             decision: components["schemas"]["PreTradeRiskDecisionResponse"];
@@ -3093,7 +3102,7 @@ export interface components {
         };
         /** PreTradeRiskDecisionCreateRequest */
         PreTradeRiskDecisionCreateRequest: {
-            account: components["schemas"]["OrderIntentAccountRequest"];
+            account: components["schemas"]["PreTradeRiskAccountRequest"];
             /** Actor */
             actor: string;
             /** Intent Id */
@@ -4377,13 +4386,13 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
             /** @description Service Unavailable */
@@ -5433,13 +5442,13 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
             /** @description Service Unavailable */
@@ -5699,13 +5708,13 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
             /** @description Service Unavailable */

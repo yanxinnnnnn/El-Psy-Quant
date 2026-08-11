@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import os
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -63,9 +63,37 @@ def test_m33_generated_contracts_are_strict_and_operation_ids_are_stable() -> No
         ]["type"]
         == "string"
     )
+    risk_account = schemas["PreTradeRiskAccountRequest"]
+    assert set(risk_account["properties"]) == {
+        "expected_account_head_version",
+        "expected_account_head_event_id",
+        "expected_account_head_chain_digest",
+    }
+    assert set(risk_account["required"]) == set(risk_account["properties"])
+    assert (
+        schemas["PreTradeRiskDecisionCreateRequest"]["properties"][
+            "account"
+        ]["$ref"]
+        == "#/components/schemas/PreTradeRiskAccountRequest"
+    )
+    for path in (
+        "/api/v1/strategy-signals/{signal_id}",
+        "/api/v1/order-intents/{intent_id}",
+        "/api/v1/pre-trade-risk-decisions/{decision_id}",
+    ):
+        validation_schema = document["paths"][path]["get"]["responses"][
+            "422"
+        ]["content"]["application/json"]["schema"]
+        assert validation_schema == {
+            "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+        assert "HTTPValidationError" not in json.dumps(
+            document["paths"][path]["get"]["responses"]["422"]
+        )
     generated = types_path.read_text(encoding="utf-8")
     assert all(operation_id in generated for operation_id in expected)
     assert "StrategySignalEvaluateRequest" in generated
+    assert "PreTradeRiskAccountRequest" in generated
     assert "PreTradeRiskDecisionResponse" in generated
 
 

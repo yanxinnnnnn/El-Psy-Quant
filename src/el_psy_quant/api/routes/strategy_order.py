@@ -83,6 +83,14 @@ IntentIdPath = Annotated[str, Path(pattern=r"^oi_[0-9a-f]{64}$")]
 DecisionIdPath = Annotated[
     str, Path(pattern=r"^risk_decision_[0-9a-f]{64}$")
 ]
+SignalIdFilter = Annotated[
+    str,
+    Query(min_length=68, max_length=68, pattern=r"^sig_[0-9a-f]{64}$"),
+]
+IntentIdFilter = Annotated[
+    str,
+    Query(min_length=67, max_length=67, pattern=r"^oi_[0-9a-f]{64}$"),
+]
 BoundedFilter = Annotated[
     str,
     Query(min_length=1, max_length=512, pattern=r"^\S(?:.*\S)?$"),
@@ -314,6 +322,7 @@ def list_strategy_signals_v1(
     operation_id="get_strategy_signal_v1",
     responses={
         HTTPStatus.NOT_FOUND: _ERROR_404,
+        HTTPStatus.UNPROCESSABLE_ENTITY: _ERROR_422,
         HTTPStatus.SERVICE_UNAVAILABLE: _ERROR_503,
     },
 )
@@ -431,7 +440,7 @@ def create_order_intent_v1(
 )
 def list_order_intents_v1(
     service: StrategyOrderService,
-    signal_id: BoundedFilter | None = None,
+    signal_id: SignalIdFilter | None = None,
     account_id: BoundedFilter | None = None,
     instrument_id: BoundedFilter | None = None,
     side: Annotated[OrderSide | None, Query()] = None,
@@ -483,6 +492,7 @@ def list_order_intents_v1(
     operation_id="get_order_intent_v1",
     responses={
         HTTPStatus.NOT_FOUND: _ERROR_404,
+        HTTPStatus.UNPROCESSABLE_ENTITY: _ERROR_422,
         HTTPStatus.SERVICE_UNAVAILABLE: _ERROR_503,
     },
 )
@@ -592,7 +602,7 @@ def create_pre_trade_risk_decision_v1(
 )
 def list_pre_trade_risk_decisions_v1(
     service: StrategyOrderService,
-    intent_id: BoundedFilter | None = None,
+    intent_id: IntentIdFilter | None = None,
     account_id: BoundedFilter | None = None,
     outcome: Annotated[RiskOutcome | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
@@ -642,6 +652,7 @@ def list_pre_trade_risk_decisions_v1(
     operation_id="get_pre_trade_risk_decision_v1",
     responses={
         HTTPStatus.NOT_FOUND: _ERROR_404,
+        HTTPStatus.UNPROCESSABLE_ENTITY: _ERROR_422,
         HTTPStatus.SERVICE_UNAVAILABLE: _ERROR_503,
     },
 )

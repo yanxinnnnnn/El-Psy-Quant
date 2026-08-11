@@ -33,6 +33,9 @@ from el_psy_quant.api.strategy_order_pagination import (
 from el_psy_quant.application import (
     PaperAccountApplicationService,
     StrategyOrderApplicationService,
+    StrategyOrderReconciliationRequiredError,
+    StrategyOrderStorageBusyError,
+    StrategyOrderStorageFailureError,
 )
 from el_psy_quant.market_time import (
     MarketDataReplayEngine,
@@ -52,6 +55,43 @@ AUTH = ("strategy-founder", "strategy-secret")
 CREATED = datetime(2026, 8, 6, 1, tzinfo=timezone.utc)
 AUDIT_TIME = CREATED + timedelta(hours=10)
 INSTRUMENT = "XNYS:AAPL"
+ERROR_MESSAGES = {
+    "order_intent_not_found": "Order Intent was not found",
+    "pre_trade_risk_decision_not_found": (
+        "Pre-Trade Risk Decision was not found"
+    ),
+    "request_validation_error": "Request Validation Error",
+    "strategy_order_authority_unavailable": (
+        "Strategy-to-risk authority is unavailable"
+    ),
+    "strategy_order_idempotency_conflict": (
+        "Strategy-to-risk idempotency key conflicts"
+    ),
+    "strategy_order_invalid_cursor": "Strategy-to-risk cursor is invalid",
+    "strategy_order_invalid_decimal": (
+        "Strategy-to-risk decimal value is invalid"
+    ),
+    "strategy_order_invalid_risk_policy": (
+        "Pre-trade risk policy is invalid"
+    ),
+    "strategy_order_invalid_runtime_configuration": (
+        "Strategy runtime configuration is invalid"
+    ),
+    "strategy_order_reconciliation_required": (
+        "Paper Account reconciliation is required"
+    ),
+    "strategy_order_schema_incompatible": (
+        "Strategy-to-risk schema is incompatible"
+    ),
+    "strategy_order_stale_authority": (
+        "Strategy-to-risk authority is stale"
+    ),
+    "strategy_order_storage_busy": (
+        "Strategy-to-risk storage is temporarily unavailable"
+    ),
+    "strategy_order_storage_failure": "Strategy-to-risk storage failed",
+    "strategy_signal_not_found": "Strategy Signal was not found",
+}
 
 
 @dataclass(frozen=True)
@@ -202,6 +242,14 @@ def _account(account: object) -> dict[str, object]:
     }
 
 
+def _risk_account(account: object) -> dict[str, object]:
+    return {
+        "expected_account_head_version": account.head_version,
+        "expected_account_head_event_id": account.head_event_id,
+        "expected_account_head_chain_digest": account.head_chain_digest,
+    }
+
+
 def _post_intent(
     client: TestClient,
     *,
@@ -222,6 +270,42 @@ def _post_intent(
     )
 
 
+def _risk_payload(
+    configured: _Configured,
+    *,
+    intent_id: str,
+    account: object,
+    maximum_notional: str | None = None,
+) -> dict[str, object]:
+    market = _market(configured)
+    return {
+        "intent_id": intent_id,
+        "policy": {
+            "policy_id": "long_only_cash_risk_v1",
+            "reference_price_policy_id": "latest_trade_price_v1",
+            "maximum_order_quantity": None,
+            "maximum_order_notional": maximum_notional,
+        },
+        "account": _risk_account(account),
+        "market": {
+            "expected_calendar_id": market["calendar_id"],
+            "expected_calendar_version": market["expected_calendar_version"],
+            "expected_trading_session_id": market["trading_session_id"],
+            "expected_replay_id": market["replay_id"],
+            "expected_event_stream_digest": market[
+                "expected_event_stream_digest"
+            ],
+            "expected_cursor_position": market["expected_cursor_position"],
+            "expected_current_event_id": market["expected_signal_event_id"],
+            "expected_current_event_time_utc": market[
+                "expected_signal_time_utc"
+            ],
+            "expected_instrument_id": market["instrument_id"],
+        },
+        "actor": "founder",
+    }
+
+
 def _post_risk(
     client: TestClient,
     configured: _Configured,
@@ -231,45 +315,16 @@ def _post_risk(
     key: str = "risk-s203",
     maximum_notional: str | None = None,
 ):
-    market = _market(configured)
     return client.post(
         "/api/v1/pre-trade-risk-decisions",
         auth=AUTH,
         headers={"Idempotency-Key": key},
-        json={
-            "intent_id": intent_id,
-            "policy": {
-                "policy_id": "long_only_cash_risk_v1",
-                "reference_price_policy_id": "latest_trade_price_v1",
-                "maximum_order_quantity": None,
-                "maximum_order_notional": maximum_notional,
-            },
-            "account": _account(account),
-            "market": {
-                "expected_calendar_id": market["calendar_id"],
-                "expected_calendar_version": market[
-                    "expected_calendar_version"
-                ],
-                "expected_trading_session_id": market[
-                    "trading_session_id"
-                ],
-                "expected_replay_id": market["replay_id"],
-                "expected_event_stream_digest": market[
-                    "expected_event_stream_digest"
-                ],
-                "expected_cursor_position": market[
-                    "expected_cursor_position"
-                ],
-                "expected_current_event_id": market[
-                    "expected_signal_event_id"
-                ],
-                "expected_current_event_time_utc": market[
-                    "expected_signal_time_utc"
-                ],
-                "expected_instrument_id": market["instrument_id"],
-            },
-            "actor": "founder",
-        },
+        json=_risk_payload(
+            configured,
+            intent_id=intent_id,
+            account=account,
+            maximum_notional=maximum_notional,
+        ),
     )
 
 
@@ -277,6 +332,7 @@ def _assert_error(response, status: int, code: str) -> None:
     assert response.status_code == status, response.text
     body = response.json()
     assert body["error"]["code"] == code
+    assert body["error"]["message"] == ERROR_MESSAGES[code]
     request_id = response.headers[REQUEST_ID_HEADER]
     assert str(UUID(request_id)) == request_id == body["request_id"]
     assert "product.sqlite3" not in response.text
@@ -599,6 +655,167 @@ def test_stable_validation_stale_idempotency_and_not_found_errors(
         missing_decision, 404, "pre_trade_risk_decision_not_found"
     )
     _assert_error(rejected_unknown, 422, "request_validation_error")
+
+
+def test_risk_request_rejects_account_identity_and_invalid_policy(
+    configured: _Configured,
+) -> None:
+    intent_id = "oi_" + "a" * 64
+    payload = _risk_payload(
+        configured,
+        intent_id=intent_id,
+        account=configured.account,
+    )
+    payload["account"]["account_id"] = configured.account.account_id
+    with TestClient(configured.application) as client:
+        caller_account_id = client.post(
+            "/api/v1/pre-trade-risk-decisions",
+            auth=AUTH,
+            headers={"Idempotency-Key": "risk-account-id"},
+            json=payload,
+        )
+        invalid_policy = _post_risk(
+            client,
+            configured,
+            intent_id=intent_id,
+            account=configured.account,
+            key="risk-invalid-policy",
+            maximum_notional="0",
+        )
+    _assert_error(caller_account_id, 422, "request_validation_error")
+    _assert_error(
+        invalid_policy, 422, "strategy_order_invalid_risk_policy"
+    )
+
+
+def test_missing_primary_resources_are_distinct_from_missing_upstream_authority(
+    configured: _Configured,
+) -> None:
+    with TestClient(configured.application) as client:
+        signal = _post_signal(client, configured).json()["signal"]
+        missing_account_payload = {
+            "signal_id": signal["signal_id"],
+            "account": {
+                **_account(configured.account),
+                "account_id": "missing-account",
+            },
+            "intent_policy_version": "target_position_quantity_delta_v1",
+            "actor": "founder",
+        }
+        missing_account = client.post(
+            "/api/v1/order-intents",
+            auth=AUTH,
+            headers={"Idempotency-Key": "intent-missing-account"},
+            json=missing_account_payload,
+        )
+        missing_intent = _post_risk(
+            client,
+            configured,
+            intent_id="oi_" + "b" * 64,
+            account=configured.account,
+            key="risk-missing-intent",
+        )
+        intent = _post_intent(
+            client,
+            signal_id=signal["signal_id"],
+            account=configured.account,
+            key="intent-for-missing-market",
+        ).json()["result"]
+        missing_market_payload = _risk_payload(
+            configured,
+            intent_id=intent["intent_id"],
+            account=configured.account,
+        )
+        missing_market_payload["market"]["expected_calendar_id"] = (
+            "missing-calendar"
+        )
+        missing_market = client.post(
+            "/api/v1/pre-trade-risk-decisions",
+            auth=AUTH,
+            headers={"Idempotency-Key": "risk-missing-market"},
+            json=missing_market_payload,
+        )
+    _assert_error(
+        missing_account, 503, "strategy_order_authority_unavailable"
+    )
+    _assert_error(missing_intent, 404, "order_intent_not_found")
+    _assert_error(
+        missing_market, 503, "strategy_order_authority_unavailable"
+    )
+
+
+def test_malformed_list_resource_filters_use_request_validation_error(
+    configured: _Configured,
+) -> None:
+    with TestClient(configured.application) as client:
+        malformed_signal = client.get(
+            "/api/v1/order-intents",
+            auth=AUTH,
+            params={"signal_id": "signal-not-an-id"},
+        )
+        overlong_signal = client.get(
+            "/api/v1/order-intents",
+            auth=AUTH,
+            params={"signal_id": "sig_" + "a" * 65},
+        )
+        malformed_intent = client.get(
+            "/api/v1/pre-trade-risk-decisions",
+            auth=AUTH,
+            params={"intent_id": "intent-not-an-id"},
+        )
+        overlong_intent = client.get(
+            "/api/v1/pre-trade-risk-decisions",
+            auth=AUTH,
+            params={"intent_id": "oi_" + "a" * 65},
+        )
+    for response in (
+        malformed_signal,
+        overlong_signal,
+        malformed_intent,
+        overlong_intent,
+    ):
+        _assert_error(response, 422, "request_validation_error")
+
+
+def test_reconciliation_busy_and_storage_failure_mappings(
+    configured: _Configured,
+) -> None:
+    class _ReconciliationService:
+        def derive_and_store_order_intent(self, **kwargs):
+            del kwargs
+            raise StrategyOrderReconciliationRequiredError()
+
+    class _ListFailureService:
+        def __init__(self, failure: Exception) -> None:
+            self.failure = failure
+
+        def list_strategy_signals(self, **kwargs):
+            del kwargs
+            raise self.failure
+
+    configured.application.dependency_overrides[
+        get_strategy_order_application_service
+    ] = lambda: _ReconciliationService()
+    with TestClient(configured.application) as client:
+        reconciliation = _post_intent(
+            client,
+            signal_id="sig_" + "c" * 64,
+            account=configured.account,
+            key="reconciliation-required",
+        )
+        configured.application.dependency_overrides[
+            get_strategy_order_application_service
+        ] = lambda: _ListFailureService(StrategyOrderStorageBusyError())
+        busy = client.get("/api/v1/strategy-signals", auth=AUTH)
+        configured.application.dependency_overrides[
+            get_strategy_order_application_service
+        ] = lambda: _ListFailureService(StrategyOrderStorageFailureError())
+        failure = client.get("/api/v1/strategy-signals", auth=AUTH)
+    _assert_error(
+        reconciliation, 409, "strategy_order_reconciliation_required"
+    )
+    _assert_error(busy, 503, "strategy_order_storage_busy")
+    _assert_error(failure, 503, "strategy_order_storage_failure")
 
 
 def test_cursor_canonical_round_trip_tampering_cross_type_and_duplicates() -> None:

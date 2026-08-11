@@ -7,6 +7,7 @@ from typing import Literal, NoReturn
 
 from el_psy_quant.api.errors import PublicApiError
 from el_psy_quant.application import (
+    OrderIntentNotFoundError,
     StrategyOrderCorruptAuthorityError,
     StrategyOrderIdempotencyConflictError,
     StrategyOrderNotFoundError,
@@ -14,6 +15,8 @@ from el_psy_quant.application import (
     StrategyOrderStaleAuthorityError,
     StrategyOrderStorageBusyError,
     StrategyOrderStorageFailureError,
+    StrategyOrderUpstreamAuthorityUnavailableError,
+    StrategySignalNotFoundError,
 )
 
 StrategyOrderApiOperation = Literal[
@@ -49,14 +52,22 @@ def _public(status: int, code: str, message: str) -> PublicApiError:
     return PublicApiError(status_code=status, code=code, message=message)
 
 
-def _not_found(operation: StrategyOrderApiOperation) -> PublicApiError:
-    if operation in ("signal_detail", "intent_create"):
+def _authority_unavailable() -> PublicApiError:
+    return _public(
+        HTTPStatus.SERVICE_UNAVAILABLE,
+        "strategy_order_authority_unavailable",
+        "Strategy-to-risk authority is unavailable",
+    )
+
+
+def _detail_not_found(operation: StrategyOrderApiOperation) -> PublicApiError:
+    if operation == "signal_detail":
         return _public(
             HTTPStatus.NOT_FOUND,
             "strategy_signal_not_found",
             "Strategy Signal was not found",
         )
-    if operation in ("intent_detail", "decision_create"):
+    if operation == "intent_detail":
         return _public(
             HTTPStatus.NOT_FOUND,
             "order_intent_not_found",
@@ -68,11 +79,7 @@ def _not_found(operation: StrategyOrderApiOperation) -> PublicApiError:
             "pre_trade_risk_decision_not_found",
             "Pre-Trade Risk Decision was not found",
         )
-    return _public(
-        HTTPStatus.SERVICE_UNAVAILABLE,
-        "strategy_order_authority_unavailable",
-        "Strategy-to-risk authority is unavailable",
-    )
+    return _authority_unavailable()
 
 
 def raise_strategy_order_api_error(
@@ -81,8 +88,22 @@ def raise_strategy_order_api_error(
     operation: StrategyOrderApiOperation,
 ) -> NoReturn:
     """Raise one fixed public error or preserve an unexpected exception."""
-    if isinstance(exc, StrategyOrderNotFoundError):
-        error = _not_found(operation)
+    if isinstance(exc, StrategySignalNotFoundError):
+        error = _public(
+            HTTPStatus.NOT_FOUND,
+            "strategy_signal_not_found",
+            "Strategy Signal was not found",
+        )
+    elif isinstance(exc, OrderIntentNotFoundError):
+        error = _public(
+            HTTPStatus.NOT_FOUND,
+            "order_intent_not_found",
+            "Order Intent was not found",
+        )
+    elif isinstance(exc, StrategyOrderUpstreamAuthorityUnavailableError):
+        error = _authority_unavailable()
+    elif isinstance(exc, StrategyOrderNotFoundError):
+        error = _detail_not_found(operation)
     elif isinstance(exc, StrategyOrderIdempotencyConflictError):
         error = _public(
             HTTPStatus.CONFLICT,
@@ -126,11 +147,7 @@ def raise_strategy_order_api_error(
             "Strategy-to-risk cursor is invalid",
         )
     elif isinstance(exc, StrategyOrderCorruptAuthorityError):
-        error = _public(
-            HTTPStatus.SERVICE_UNAVAILABLE,
-            "strategy_order_authority_unavailable",
-            "Strategy-to-risk authority is unavailable",
-        )
+        error = _authority_unavailable()
     elif isinstance(exc, StrategyOrderStorageBusyError):
         error = _public(
             HTTPStatus.SERVICE_UNAVAILABLE,

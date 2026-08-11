@@ -69,6 +69,20 @@ from el_psy_quant.strategy_order import (
 from el_psy_quant.strategy_order._canonical import normalize_bounded_string
 
 
+class StrategySignalNotFoundError(StrategyOrderNotFoundError):
+    """The explicitly addressed persisted Strategy Signal is absent."""
+
+
+class OrderIntentNotFoundError(StrategyOrderNotFoundError):
+    """The explicitly addressed persisted Order Intent is absent."""
+
+
+class StrategyOrderUpstreamAuthorityUnavailableError(
+    StrategyOrderNotFoundError
+):
+    """Required upstream M31 or M32 authority is absent."""
+
+
 def _busy(exc: OperationalError) -> bool:
     original = exc.orig
     return isinstance(original, sqlite3.OperationalError) and any(
@@ -168,7 +182,7 @@ class StrategyOrderApplicationService:
         try:
             account = repository.get_account(account_id=account_id)
             if account is None:
-                raise StrategyOrderNotFoundError()
+                raise StrategyOrderUpstreamAuthorityUnavailableError()
             history = repository.get_history(account=account)
             state = replay_paper_account_ledger(history)
             if account.projection_status != "current":
@@ -216,7 +230,7 @@ class StrategyOrderApplicationService:
             )
             replay = repository.get_replay(replay_id=replay_id)
             if calendar is None or trading_session is None or replay is None:
-                raise StrategyOrderNotFoundError()
+                raise StrategyOrderUpstreamAuthorityUnavailableError()
             engine = MarketDataReplayEngine(
                 replay_id=replay.session.replay_id,
                 events=replay.events,
@@ -471,7 +485,7 @@ class StrategyOrderApplicationService:
                 session=session
             ).get(signal_id=signal_id)
             if signal is None:
-                raise StrategyOrderNotFoundError()
+                raise StrategySignalNotFoundError()
             state = self._account_state(session, account_id=account_id)
             self._account_matches(
                 state,
@@ -599,7 +613,7 @@ class StrategyOrderApplicationService:
                 session=session
             ).get(intent_id=intent_id)
             if intent is None:
-                raise StrategyOrderNotFoundError()
+                raise OrderIntentNotFoundError()
             signal = SqlAlchemyStrategySignalRepository(
                 session=session
             ).get(signal_id=intent.signal_reference.signal_id)
@@ -802,6 +816,7 @@ class StrategyOrderApplicationService:
 
 
 __all__ = [
+    "OrderIntentNotFoundError",
     "StrategyOrderApplicationService",
     "StrategyOrderCorruptAuthorityError",
     "StrategyOrderIdempotencyConflictError",
@@ -811,4 +826,6 @@ __all__ = [
     "StrategyOrderStorageBusyError",
     "StrategyOrderStorageFailureError",
     "StrategyOrderStoredResult",
+    "StrategyOrderUpstreamAuthorityUnavailableError",
+    "StrategySignalNotFoundError",
 ]
