@@ -368,6 +368,11 @@
     "explanation": "后端无法安全持久化或重新打开不可变的策略到风控证据。",
     "recovery": "保留上游证据，记录请求 ID，并在重试前验证本地持久化存储。"
   },
+  "strategy_order_schema_incompatible": {
+    "title": "策略到风控架构不兼容",
+    "explanation": "本地产品数据库或持久化存储架构与当前策略到风控证据契约不兼容。",
+    "recovery": "保留全部可见证据并记录请求 ID。请先按文档执行本地升级或修复，再显式重试；本工作区不会重新解释已存储的证据。"
+  },
   "request_validation_error": {
     "title": "命令结构无效",
     "explanation": "提交的请求与生成的 API 契约不一致。",

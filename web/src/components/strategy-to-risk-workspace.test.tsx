@@ -1,12 +1,11 @@
 import { NextIntlClientProvider } from "next-intl";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import userEvent from "@testing-library/user-event";
 
 import { StrategyToRiskWorkspace } from "@/components/strategy-to-risk-workspace";
 import { loadMessages } from "@/i18n/messages";
 import { ApiClientError } from "@/lib/api-client";
-import { render, screen, waitFor, within } from "@/test/render";
+import { fireEvent, render, screen, waitFor, within } from "@/test/render";
 import {
   calendarDetail,
   calendarList,
@@ -55,42 +54,43 @@ beforeEach(() => {
   apiMocks.createPreTradeRiskDecision.mockReturnValue(apiResult(riskCommand));
 });
 
-async function selectAuthorities(user: ReturnType<typeof userEvent.setup>) {
+async function selectAuthorities() {
   const account = await screen.findByRole("combobox", { name: "Paper Account" });
-  await user.selectOptions(account, raw.accountId);
-  await user.click(screen.getByRole("button", { name: "Load selected account anchors" }));
+  fireEvent.change(account, { target: { value: raw.accountId } });
+  fireEvent.click(screen.getByRole("button", { name: "Load selected account anchors" }));
   await screen.findByText(raw.accountChainDigest);
 
-  await user.selectOptions(
+  fireEvent.change(
     screen.getByRole("combobox", { name: "Trading calendar" }),
-    raw.calendarId,
+    { target: { value: raw.calendarId } },
   );
-  await user.click(screen.getByRole("button", { name: "Load calendar sessions" }));
+  fireEvent.click(screen.getByRole("button", { name: "Load calendar sessions" }));
   await waitFor(() =>
     expect(screen.getByRole("combobox", { name: "Trading session" })).toBeEnabled(),
   );
-  await user.selectOptions(
+  fireEvent.change(
     screen.getByRole("combobox", { name: "Trading session" }),
-    raw.sessionId,
+    { target: { value: raw.sessionId } },
   );
 
-  await user.selectOptions(
+  fireEvent.change(
     screen.getByRole("combobox", { name: "Market-data replay" }),
-    raw.replayId,
+    { target: { value: raw.replayId } },
   );
-  await user.click(screen.getByRole("button", { name: "Load current replay anchors" }));
+  fireEvent.click(screen.getByRole("button", { name: "Load current replay anchors" }));
   await screen.findByText(raw.streamDigest);
-  await user.type(screen.getByRole("textbox", { name: "Instrument ID" }), raw.instrumentId);
+  fireEvent.change(screen.getByRole("textbox", { name: "Instrument ID" }), {
+    target: { value: raw.instrumentId },
+  });
 }
 
-async function evaluateSignal(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "Evaluate Signal" }));
+async function evaluateSignal() {
+  fireEvent.click(screen.getByRole("button", { name: "Evaluate Signal" }));
   await screen.findByText(raw.signalId);
 }
 
 describe("Founder Strategy-to-Risk workspace", () => {
   it("starts without fabricated authority and never posts on mount or selection", async () => {
-    const user = userEvent.setup();
     render(<StrategyToRiskWorkspace />);
 
     expect(await screen.findByRole("heading", { name: "Strategy-to-Risk Workspace" })).toBeVisible();
@@ -101,17 +101,17 @@ describe("Founder Strategy-to-Risk workspace", () => {
     expect(apiMocks.createOrderIntent).not.toHaveBeenCalled();
     expect(apiMocks.createPreTradeRiskDecision).not.toHaveBeenCalled();
 
-    await user.selectOptions(
+    fireEvent.change(
       screen.getByRole("combobox", { name: "Paper Account" }),
-      raw.accountId,
+      { target: { value: raw.accountId } },
     );
-    await user.selectOptions(
+    fireEvent.change(
       screen.getByRole("combobox", { name: "Trading calendar" }),
-      raw.calendarId,
+      { target: { value: raw.calendarId } },
     );
-    await user.selectOptions(
+    fireEvent.change(
       screen.getByRole("combobox", { name: "Market-data replay" }),
-      raw.replayId,
+      { target: { value: raw.replayId } },
     );
     expect(apiMocks.evaluateStrategySignal).not.toHaveBeenCalled();
     expect(apiMocks.createOrderIntent).not.toHaveBeenCalled();
@@ -119,11 +119,10 @@ describe("Founder Strategy-to-Risk workspace", () => {
   });
 
   it("constructs the exact Signal → Intent → Risk commands and renders complete allow evidence", async () => {
-    const user = userEvent.setup();
     render(<StrategyToRiskWorkspace />);
-    await selectAuthorities(user);
+    await selectAuthorities();
 
-    await evaluateSignal(user);
+    await evaluateSignal();
     expect(apiMocks.evaluateStrategySignal).toHaveBeenCalledWith(
       {
         runtime: {
@@ -151,7 +150,7 @@ describe("Founder Strategy-to-Risk workspace", () => {
       expect.stringMatching(/^s204-signal-/),
     );
 
-    await user.click(screen.getByRole("button", { name: "Derive Intent" }));
+    fireEvent.click(screen.getByRole("button", { name: "Derive Intent" }));
     await screen.findByText(raw.intentId);
     const intentRequest = apiMocks.createOrderIntent.mock.calls[0][0];
     expect(intentRequest).toEqual({
@@ -171,9 +170,13 @@ describe("Founder Strategy-to-Risk workspace", () => {
     expect(screen.getByText("buy")).toBeVisible();
     expect(screen.getAllByText("100").length).toBeGreaterThan(0);
 
-    await user.type(screen.getByRole("textbox", { name: "Maximum order quantity" }), "200");
-    await user.type(screen.getByRole("textbox", { name: "Maximum order notional" }), "2000");
-    await user.click(screen.getByRole("button", { name: "Evaluate Risk" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Maximum order quantity" }), {
+      target: { value: "200" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Maximum order notional" }), {
+      target: { value: "2000" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Evaluate Risk" }));
     await screen.findByText(raw.decisionId);
     const riskRequest = apiMocks.createPreTradeRiskDecision.mock.calls[0][0];
     expect(riskRequest.account).toEqual({
@@ -215,11 +218,10 @@ describe("Founder Strategy-to-Risk workspace", () => {
 
   it("treats no-action as terminal and never enables Risk", async () => {
     apiMocks.createOrderIntent.mockReturnValue(apiResult(noActionCommand));
-    const user = userEvent.setup();
     render(<StrategyToRiskWorkspace />);
-    await selectAuthorities(user);
-    await evaluateSignal(user);
-    await user.click(screen.getByRole("button", { name: "Derive Intent" }));
+    await selectAuthorities();
+    await evaluateSignal();
+    fireEvent.click(screen.getByRole("button", { name: "Derive Intent" }));
 
     expect(await screen.findByText(raw.noActionId)).toBeVisible();
     expect(screen.getByText("target_already_satisfied")).toBeVisible();
@@ -251,13 +253,12 @@ describe("Founder Strategy-to-Risk workspace", () => {
           },
         },
       }));
-    const user = userEvent.setup();
     render(<StrategyToRiskWorkspace />);
-    await selectAuthorities(user);
+    await selectAuthorities();
 
-    await user.click(screen.getByRole("button", { name: "Evaluate Signal" }));
+    fireEvent.click(screen.getByRole("button", { name: "Evaluate Signal" }));
     await screen.findByRole("button", { name: "Retry the unchanged Signal draft" });
-    await user.click(screen.getByRole("button", { name: "Retry the unchanged Signal draft" }));
+    fireEvent.click(screen.getByRole("button", { name: "Retry the unchanged Signal draft" }));
     await screen.findByText(raw.signalId);
 
     const firstKey = apiMocks.evaluateStrategySignal.mock.calls[0][1];
@@ -265,9 +266,8 @@ describe("Founder Strategy-to-Risk workspace", () => {
     expect(retryKey).toBe(firstKey);
 
     const target = screen.getByRole("textbox", { name: "Target position quantity" });
-    await user.clear(target);
-    await user.type(target, "101");
-    await user.click(screen.getByRole("button", { name: "Evaluate Signal" }));
+    fireEvent.change(target, { target: { value: "101" } });
+    fireEvent.click(screen.getByRole("button", { name: "Evaluate Signal" }));
     await waitFor(() => expect(apiMocks.evaluateStrategySignal).toHaveBeenCalledTimes(3));
     expect(apiMocks.evaluateStrategySignal.mock.calls[2][1]).not.toBe(firstKey);
   });
@@ -279,11 +279,10 @@ describe("Founder Strategy-to-Risk workspace", () => {
       publicMessage: "Strategy-to-risk authority is stale",
       requestId: "stale-request-id",
     }));
-    const user = userEvent.setup();
     render(<StrategyToRiskWorkspace />);
-    await selectAuthorities(user);
-    await evaluateSignal(user);
-    await user.click(screen.getByRole("button", { name: "Derive Intent" }));
+    await selectAuthorities();
+    await evaluateSignal();
+    fireEvent.click(screen.getByRole("button", { name: "Derive Intent" }));
 
     expect(await screen.findByText(/strategy_order_stale_authority/)).toBeVisible();
     expect(screen.getByText("Strategy-to-risk authority is stale")).toBeVisible();
@@ -300,15 +299,18 @@ describe("Founder Strategy-to-Risk workspace", () => {
 
   it("renders reject as complete immutable evidence rather than an API error", async () => {
     apiMocks.createPreTradeRiskDecision.mockReturnValue(apiResult(rejectedRiskCommand));
-    const user = userEvent.setup();
     render(<StrategyToRiskWorkspace />);
-    await selectAuthorities(user);
-    await evaluateSignal(user);
-    await user.click(screen.getByRole("button", { name: "Derive Intent" }));
+    await selectAuthorities();
+    await evaluateSignal();
+    fireEvent.click(screen.getByRole("button", { name: "Derive Intent" }));
     await screen.findByText(raw.intentId);
-    await user.type(screen.getByRole("textbox", { name: "Maximum order quantity" }), "200");
-    await user.type(screen.getByRole("textbox", { name: "Maximum order notional" }), "2000");
-    await user.click(screen.getByRole("button", { name: "Evaluate Risk" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Maximum order quantity" }), {
+      target: { value: "200" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Maximum order notional" }), {
+      target: { value: "2000" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Evaluate Risk" }));
 
     expect(await screen.findByText(/Valid pre-trade reject evidence/)).toBeVisible();
     expect(screen.getAllByText("insufficient_available_cash").length).toBeGreaterThanOrEqual(2);
@@ -326,13 +328,12 @@ describe("Founder Strategy-to-Risk workspace", () => {
       );
     }
 
-    const user = userEvent.setup();
     render(<LocaleHarness />);
-    await selectAuthorities(user);
-    await evaluateSignal(user);
+    await selectAuthorities();
+    await evaluateSignal();
     const postsBefore = apiMocks.evaluateStrategySignal.mock.calls.length;
 
-    await user.click(screen.getByRole("button", { name: "switch locale" }));
+    fireEvent.click(screen.getByRole("button", { name: "switch locale" }));
     expect(await screen.findByRole("heading", { name: "策略到风控工作区" })).toBeVisible();
     expect(screen.getByText(raw.signalId)).toBeVisible();
     expect(screen.getByText(raw.signalDigest)).toBeVisible();

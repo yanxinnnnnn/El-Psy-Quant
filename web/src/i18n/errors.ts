@@ -80,6 +80,7 @@ export const ERROR_PRESENTATION_INVENTORY = {
   strategy_order_invalid_cursor: "invalid",
   strategy_order_authority_unavailable: "unavailable",
   strategy_order_storage_busy: "unavailable",
+  strategy_order_schema_incompatible: "unavailable",
   strategy_order_storage_failure: "unavailable",
   demo_workspace_not_configured: "not_found",
   demo_workspace_unavailable: "unavailable",

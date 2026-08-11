@@ -368,6 +368,11 @@
     "explanation": "The backend could not safely persist or reopen immutable Strategy-to-Risk evidence.",
     "recovery": "Preserve upstream evidence, record the request ID, and verify local durable storage before retrying."
   },
+  "strategy_order_schema_incompatible": {
+    "title": "Strategy-to-Risk schema is incompatible",
+    "explanation": "The local product database or durable storage schema is incompatible with the current Strategy-to-Risk evidence contract.",
+    "recovery": "Preserve all visible evidence and record the request ID. Follow the documented local upgrade or repair procedure before an explicit retry; this workspace will not reinterpret stored evidence."
+  },
   "request_validation_error": {
     "title": "Command structure is invalid",
     "explanation": "The submitted request does not match the generated API contract.",

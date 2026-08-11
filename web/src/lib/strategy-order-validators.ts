@@ -85,7 +85,11 @@ function canonicalDecimal(
   value: unknown,
   maximumFractionalDigits: number,
 ): value is string {
-  if (!string(value) || !CANONICAL_DECIMAL_PATTERN.test(value)) {
+  if (
+    !string(value) ||
+    !CANONICAL_DECIMAL_PATTERN.test(value) ||
+    value === "-0"
+  ) {
     return false;
   }
   const unsigned = value.startsWith("-") ? value.slice(1) : value;
@@ -99,6 +103,22 @@ function quantity(value: unknown): value is string {
 
 function money(value: unknown): value is string {
   return canonicalDecimal(value, 8);
+}
+
+function nonNegativeQuantity(value: unknown): value is string {
+  return quantity(value) && !value.startsWith("-");
+}
+
+function positiveQuantity(value: unknown): value is string {
+  return nonNegativeQuantity(value) && value !== "0";
+}
+
+function nonNegativeMoney(value: unknown): value is string {
+  return money(value) && !value.startsWith("-");
+}
+
+function positiveMoney(value: unknown): value is string {
+  return nonNegativeMoney(value) && value !== "0";
 }
 
 function timestamp(value: unknown): value is string {
@@ -150,7 +170,8 @@ function strategyRuntimeReference(value: unknown): boolean {
     ]) ||
     !positiveInteger(value.parameters.fast_window) ||
     !positiveInteger(value.parameters.slow_window) ||
-    !quantity(value.parameters.target_position_quantity) ||
+    value.parameters.fast_window >= value.parameters.slow_window ||
+    !positiveQuantity(value.parameters.target_position_quantity) ||
     !sha256(value.parameters_digest) ||
     !sha256(value.reference_digest)
   ) {
@@ -160,9 +181,9 @@ function strategyRuntimeReference(value: unknown): boolean {
 }
 
 function signalMarketReference(value: unknown): boolean {
-  return (
-    object(value) &&
-    exactKeys(value, [
+  if (
+    !object(value) ||
+    !exactKeys(value, [
       "schema_version",
       "calendar_id",
       "calendar_version",
@@ -175,20 +196,23 @@ function signalMarketReference(value: unknown): boolean {
       "signal_time",
       "instrument_id",
       "reference_digest",
-    ]) &&
-    value.schema_version === 1 &&
-    boundedString(value.calendar_id) &&
-    positiveInteger(value.calendar_version) &&
-    boundedString(value.trading_session_id) &&
-    boundedString(value.replay_id) &&
-    sha256(value.event_stream_digest) &&
-    positiveInteger(value.cursor_position) &&
-    boundedString(value.last_event_id) &&
-    boundedString(value.signal_event_id) &&
-    timestamp(value.signal_time) &&
-    boundedString(value.instrument_id) &&
-    sha256(value.reference_digest)
-  );
+    ]) ||
+    value.schema_version !== 1 ||
+    !boundedString(value.calendar_id) ||
+    !positiveInteger(value.calendar_version) ||
+    !boundedString(value.trading_session_id) ||
+    !boundedString(value.replay_id) ||
+    !sha256(value.event_stream_digest) ||
+    !positiveInteger(value.cursor_position) ||
+    !boundedString(value.last_event_id) ||
+    !boundedString(value.signal_event_id) ||
+    !timestamp(value.signal_time) ||
+    !boundedString(value.instrument_id) ||
+    !sha256(value.reference_digest)
+  ) {
+    return false;
+  }
+  return value.last_event_id === value.signal_event_id;
 }
 
 export function isStrategySignalResponse(
@@ -213,16 +237,22 @@ export function isStrategySignalResponse(
     !strategyRuntimeReference(value.strategy_runtime_reference) ||
     !signalMarketReference(value.market_reference) ||
     value.target_semantics !== "target_position_quantity" ||
-    !quantity(value.target_position_quantity) ||
+    !nonNegativeQuantity(value.target_position_quantity) ||
     !timestamp(value.created_at)
   ) {
     return false;
   }
+  if (
+    !object(value.strategy_runtime_reference) ||
+    !object(value.strategy_runtime_reference.parameters)
+  ) {
+    return false;
+  }
+  const configuredTarget =
+    value.strategy_runtime_reference.parameters.target_position_quantity;
   return (
-    object(value.strategy_runtime_reference) &&
-    object(value.strategy_runtime_reference.parameters) &&
-    value.target_position_quantity ===
-      value.strategy_runtime_reference.parameters.target_position_quantity
+    value.target_position_quantity === "0" ||
+    value.target_position_quantity === configuredTarget
   );
 }
 
@@ -258,9 +288,9 @@ export function isStrategySignalListResponse(
 }
 
 function accountReference(value: unknown): boolean {
-  return (
-    object(value) &&
-    exactKeys(value, [
+  if (
+    !object(value) ||
+    !exactKeys(value, [
       "schema_version",
       "account_id",
       "base_currency",
@@ -273,21 +303,24 @@ function accountReference(value: unknown): boolean {
       "instrument_id",
       "current_instrument_quantity",
       "reference_digest",
-    ]) &&
-    value.schema_version === 1 &&
-    boundedString(value.account_id) &&
-    string(value.base_currency) &&
-    /^[A-Z]{3}$/.test(value.base_currency) &&
-    value.lifecycle_status === "active" &&
-    positiveInteger(value.account_head_version) &&
-    boundedString(value.account_head_event_id) &&
-    sha256(value.account_head_chain_digest) &&
-    money(value.cash_balance) &&
-    money(value.available_cash) &&
-    boundedString(value.instrument_id) &&
-    quantity(value.current_instrument_quantity) &&
-    sha256(value.reference_digest)
-  );
+    ]) ||
+    value.schema_version !== 1 ||
+    !boundedString(value.account_id) ||
+    !string(value.base_currency) ||
+    !/^[A-Z]{3}$/.test(value.base_currency) ||
+    value.lifecycle_status !== "active" ||
+    !positiveInteger(value.account_head_version) ||
+    !boundedString(value.account_head_event_id) ||
+    !sha256(value.account_head_chain_digest) ||
+    !nonNegativeMoney(value.cash_balance) ||
+    !nonNegativeMoney(value.available_cash) ||
+    !boundedString(value.instrument_id) ||
+    !nonNegativeQuantity(value.current_instrument_quantity) ||
+    !sha256(value.reference_digest)
+  ) {
+    return false;
+  }
+  return value.available_cash === value.cash_balance;
 }
 
 function orderIntentBase(value: Record<string, unknown>): boolean {
@@ -297,15 +330,17 @@ function orderIntentBase(value: Record<string, unknown>): boolean {
     signalMarketReference(value.market_reference) &&
     accountReference(value.account_reference) &&
     value.target_semantics === "target_position_quantity" &&
-    quantity(value.target_position_quantity) &&
-    quantity(value.current_position_quantity) &&
+    nonNegativeQuantity(value.target_position_quantity) &&
+    nonNegativeQuantity(value.current_position_quantity) &&
     value.intent_policy_version === "target_position_quantity_delta_v1" &&
     sha256(value.origin_command_digest) &&
     boundedString(value.origin_actor) &&
     timestamp(value.created_at) &&
     object(value.account_reference) &&
+    object(value.market_reference) &&
     value.current_position_quantity ===
-      value.account_reference.current_instrument_quantity
+      value.account_reference.current_instrument_quantity &&
+    value.account_reference.instrument_id === value.market_reference.instrument_id
   );
 }
 
@@ -334,7 +369,7 @@ export function isOrderIntentResponse(value: unknown): value is OrderIntent {
     INTENT_ID_PATTERN.test(value.intent_id) &&
     sha256(value.intent_digest) &&
     (value.side === "buy" || value.side === "sell") &&
-    quantity(value.requested_quantity)
+    positiveQuantity(value.requested_quantity)
   );
 }
 
@@ -363,7 +398,8 @@ export function isOrderIntentNoActionResponse(
     string(value.no_action_id) &&
     NO_ACTION_ID_PATTERN.test(value.no_action_id) &&
     sha256(value.no_action_digest) &&
-    value.reason_code === "target_already_satisfied"
+    value.reason_code === "target_already_satisfied" &&
+    value.target_position_quantity === value.current_position_quantity
   );
 }
 
@@ -431,8 +467,9 @@ function riskPolicyReference(value: unknown): boolean {
     value.policy_id === "long_only_cash_risk_v1" &&
     value.reference_price_policy_id === "latest_trade_price_v1" &&
     (value.maximum_order_quantity === null ||
-      quantity(value.maximum_order_quantity)) &&
-    (value.maximum_order_notional === null || money(value.maximum_order_notional)) &&
+      positiveQuantity(value.maximum_order_quantity)) &&
+    (value.maximum_order_notional === null ||
+      positiveMoney(value.maximum_order_notional)) &&
     sha256(value.configuration_digest) &&
     sha256(value.reference_digest)
   );
@@ -465,7 +502,8 @@ function priceReference(value: unknown): boolean {
     timestamp(value.price_event_time) &&
     boundedString(value.instrument_id) &&
     sha256(value.price_event_digest) &&
-    money(value.reference_price) &&
+    positiveMoney(value.reference_price) &&
+    value.price_event_position <= value.cursor_position &&
     sha256(value.reference_digest)
   );
 }
@@ -499,10 +537,27 @@ function riskRule(value: unknown, expectedCode: RiskRuleCode): boolean {
   if (value.value_type !== expectedType) {
     return false;
   }
-  const decimalValidator = expectedType === "money" ? money : quantity;
+  if (!value.applicable) {
+    return (
+      value.passed === true &&
+      value.observed_value === null &&
+      value.threshold_value === null
+    );
+  }
+  const observedValidator =
+    expectedCode === "insufficient_position_quantity"
+      ? nonNegativeQuantity
+      : expectedCode === "insufficient_available_cash"
+        ? nonNegativeMoney
+        : expectedType === "money"
+          ? positiveMoney
+          : positiveQuantity;
+  const thresholdValidator = expectedType === "money"
+    ? positiveMoney
+    : positiveQuantity;
   return (
-    (value.observed_value === null || decimalValidator(value.observed_value)) &&
-    (value.threshold_value === null || decimalValidator(value.threshold_value))
+    observedValidator(value.observed_value) &&
+    thresholdValidator(value.threshold_value)
   );
 }
 
@@ -535,10 +590,10 @@ function riskInputSnapshot(value: unknown): boolean {
     !riskPolicyReference(value.risk_policy_reference) ||
     !priceReference(value.price_reference) ||
     (value.side !== "buy" && value.side !== "sell") ||
-    !quantity(value.requested_quantity) ||
-    !money(value.verified_available_cash) ||
-    !quantity(value.verified_current_instrument_quantity) ||
-    !money(value.estimated_order_notional) ||
+    !positiveQuantity(value.requested_quantity) ||
+    !nonNegativeMoney(value.verified_available_cash) ||
+    !nonNegativeQuantity(value.verified_current_instrument_quantity) ||
+    !positiveMoney(value.estimated_order_notional) ||
     !Array.isArray(value.rule_evidence) ||
     value.rule_evidence.length !== preTradeRiskRuleOrder.length ||
     !value.rule_evidence.every((rule, index) =>
@@ -559,6 +614,7 @@ function riskInputSnapshot(value: unknown): boolean {
     value.verified_available_cash === value.account_reference.available_cash &&
     value.verified_current_instrument_quantity ===
       value.account_reference.current_instrument_quantity &&
+    value.account_reference.instrument_id === value.market_reference.instrument_id &&
     value.price_reference.replay_id === value.market_reference.replay_id &&
     value.price_reference.event_stream_digest ===
       value.market_reference.event_stream_digest &&

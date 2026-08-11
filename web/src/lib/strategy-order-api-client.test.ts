@@ -1,3 +1,7 @@
+// @vitest-environment node
+
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -12,6 +16,7 @@ import {
   fetchStrategySignals,
   type OrderIntentCreateRequest,
   type PreTradeRiskDecisionCreateRequest,
+  type PreTradeRiskDecisionCommandResponse,
   type StrategySignalEvaluateRequest,
 } from "@/lib/api-client";
 import {
@@ -31,6 +36,10 @@ function response(body: unknown, status = 200) {
       "X-Request-ID": raw.requestId,
     },
   });
+}
+
+function source(path: string) {
+  return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
 const signalRequest: StrategySignalEvaluateRequest = {
@@ -95,6 +104,29 @@ const riskRequest: PreTradeRiskDecisionCreateRequest = {
   },
   actor: "founder",
 };
+
+type RiskCommandMutation = (
+  body: PreTradeRiskDecisionCommandResponse,
+) => void;
+
+function malformedRiskCommand(
+  mutate: RiskCommandMutation,
+): PreTradeRiskDecisionCommandResponse {
+  const body: PreTradeRiskDecisionCommandResponse = structuredClone(riskCommand);
+  mutate(body);
+  return body;
+}
+
+function riskRule(
+  body: PreTradeRiskDecisionCommandResponse,
+  index: number,
+) {
+  const rule = body.decision.input_snapshot.rule_evidence[index];
+  if (rule === undefined) {
+    throw new Error(`Missing risk rule fixture at index ${index}`);
+  }
+  return rule;
+}
 
 describe("generated-contract Strategy-to-Risk API client", () => {
   it("sends the three explicit commands with exact bodies and isolated idempotency headers", async () => {
@@ -197,6 +229,23 @@ describe("generated-contract Strategy-to-Risk API client", () => {
     });
   });
 
+  it("accepts the server's valid zero Signal output without deriving it in the browser", async () => {
+    const flatSignal = {
+      ...signalCommand,
+      signal: {
+        ...signalCommand.signal,
+        target_position_quantity: "0",
+      },
+    };
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response(flatSignal, 201));
+
+    await expect(
+      evaluateStrategySignal(signalRequest, "signal-key", fetchMock),
+    ).resolves.toMatchObject({
+      data: { signal: { target_position_quantity: "0" } },
+    });
+  });
+
   it.each([
     [
       "missing Signal market anchor",
@@ -255,6 +304,93 @@ describe("generated-contract Strategy-to-Risk API client", () => {
     });
   });
 
+  it.each<[string, RiskCommandMutation]>([
+    ["signed zero", (body) => {
+      body.decision.input_snapshot.requested_quantity = "-0";
+    }],
+    ["negative account cash", (body) => {
+      body.decision.input_snapshot.account_reference.cash_balance = "-1";
+      body.decision.input_snapshot.account_reference.available_cash = "-1";
+      body.decision.input_snapshot.verified_available_cash = "-1";
+    }],
+    ["negative account current quantity", (body) => {
+      body.decision.input_snapshot.account_reference.current_instrument_quantity = "-1";
+      body.decision.input_snapshot.verified_current_instrument_quantity = "-1";
+    }],
+    ["negative verified current quantity", (body) => {
+      body.decision.input_snapshot.verified_current_instrument_quantity = "-1";
+    }],
+    ["available cash different from cash balance", (body) => {
+      body.decision.input_snapshot.account_reference.available_cash = "999";
+      body.decision.input_snapshot.verified_available_cash = "999";
+    }],
+    ["zero maximum order quantity", (body) => {
+      body.decision.input_snapshot.risk_policy_reference.maximum_order_quantity = "0";
+    }],
+    ["negative maximum order notional", (body) => {
+      body.decision.input_snapshot.risk_policy_reference.maximum_order_notional = "-1";
+    }],
+    ["zero reference price", (body) => {
+      body.decision.input_snapshot.price_reference.reference_price = "0";
+    }],
+    ["negative reference price", (body) => {
+      body.decision.input_snapshot.price_reference.reference_price = "-1";
+    }],
+    ["price event outside consumed prefix", (body) => {
+      body.decision.input_snapshot.price_reference.price_event_position = 3;
+    }],
+    ["account instrument different from market", (body) => {
+      body.decision.input_snapshot.account_reference.instrument_id = "OTHER";
+    }],
+    ["price instrument different from market", (body) => {
+      body.decision.input_snapshot.price_reference.instrument_id = "OTHER";
+    }],
+    ["non-applicable failed rule", (body) => {
+      riskRule(body, 0).passed = false;
+    }],
+    ["non-applicable observed value", (body) => {
+      riskRule(body, 0).observed_value = "0";
+    }],
+    ["non-applicable threshold value", (body) => {
+      riskRule(body, 0).threshold_value = "100";
+    }],
+    ["applicable rule missing observed value", (body) => {
+      riskRule(body, 1).observed_value = null;
+    }],
+    ["applicable rule missing threshold value", (body) => {
+      riskRule(body, 1).threshold_value = null;
+    }],
+    ["applicable maximum rule has zero observed quantity", (body) => {
+      riskRule(body, 1).observed_value = "0";
+    }],
+    ["applicable cash rule has negative observed money", (body) => {
+      riskRule(body, 3).observed_value = "-1";
+    }],
+  ])(
+    "rejects domain-invalid Risk success: %s without exposing downstream authority",
+    async (_name, mutate) => {
+      const body = malformedRiskCommand(mutate);
+      const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response(body, 201));
+      let downstreamAuthority: unknown;
+
+      try {
+        const result = await createPreTradeRiskDecision(
+          riskRequest,
+          "risk-key",
+          fetchMock,
+        );
+        downstreamAuthority = result.data;
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: "api_response_invalid",
+          requestId: raw.requestId,
+        });
+      }
+
+      expect(downstreamAuthority).toBeUndefined();
+    },
+  );
+
   it("rejects blank or overlong idempotency values before transport", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     expect(() =>
@@ -264,5 +400,41 @@ describe("generated-contract Strategy-to-Risk API client", () => {
       evaluateStrategySignal(signalRequest, "x".repeat(129), fetchMock),
     ).toThrow(TypeError);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("Sprint 204 Web authority boundary", () => {
+  it("uses generated contracts as the M33 transport type source", () => {
+    const client = source("src/lib/api-client.ts");
+    const validators = source("src/lib/strategy-order-validators.ts");
+    expect(client).toContain('import type { paths } from "@/generated/api-types"');
+    expect(client).toContain("type StrategySignalEvaluateRequest = PostRequestBody");
+    expect(client).toContain("type PreTradeRiskDecisionCreateRequest = PostRequestBody");
+    expect(validators).toContain('import type { components } from "@/generated/api-types"');
+    expect(validators).not.toMatch(/\bany\b/);
+  });
+
+  it("introduces no parallel browser authority or mutation client", () => {
+    const workspace = source("src/components/strategy-to-risk-workspace.tsx");
+    expect(workspace).not.toMatch(/\bfetch\s*\(/);
+    expect(workspace).not.toMatch(/postPaperAccount|createPaperAccount|runMarket|advanceReplay|pauseReplay|resumeReplay/);
+    expect(workspace).not.toMatch(/sqlite|python process|qmt|miniqmt|broker adapter/i);
+    expect(workspace).not.toMatch(/\bany\b/);
+  });
+
+  it("keeps account identity out of the dedicated Risk request block", () => {
+    const workspace = source("src/components/strategy-to-risk-workspace.tsx");
+    const riskBlock = workspace.slice(
+      workspace.indexOf("const riskRequest"),
+      workspace.indexOf("const riskFingerprint"),
+    );
+    const accountBlock = riskBlock.slice(
+      riskBlock.indexOf("account: {"),
+      riskBlock.indexOf("market: {"),
+    );
+    expect(accountBlock).toContain("expected_account_head_version");
+    expect(accountBlock).toContain("expected_account_head_event_id");
+    expect(accountBlock).toContain("expected_account_head_chain_digest");
+    expect(accountBlock).not.toContain("account_id");
   });
 });

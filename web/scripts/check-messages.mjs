@@ -92,6 +92,7 @@ export const REQUIRED_ERROR_CODES = Object.freeze([
   "strategy_order_invalid_cursor",
   "strategy_order_authority_unavailable",
   "strategy_order_storage_busy",
+  "strategy_order_schema_incompatible",
   "strategy_order_storage_failure",
   "demo_workspace_not_configured",
   "demo_workspace_unavailable",

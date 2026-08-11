@@ -155,8 +155,8 @@ const rules = [
     rule_code: "insufficient_position_quantity" as const,
     applicable: false,
     value_type: "quantity" as const,
-    observed_value: "0",
-    threshold_value: "100",
+    observed_value: null,
+    threshold_value: null,
     passed: true,
     rule_digest: "d".repeat(64),
   },
@@ -185,8 +185,8 @@ const rules = [
     rule_code: "insufficient_available_cash" as const,
     applicable: true,
     value_type: "money" as const,
-    observed_value: "500",
-    threshold_value: "1000",
+    observed_value: "1000",
+    threshold_value: "500",
     passed: true,
     rule_digest: "0".repeat(64),
   },
@@ -259,9 +259,20 @@ export const rejectedRiskCommand: PreTradeRiskDecisionCommandResponse = {
     reason_codes: ["insufficient_available_cash"],
     input_snapshot: {
       ...riskCommand.decision.input_snapshot,
+      account_reference: {
+        ...riskCommand.decision.input_snapshot.account_reference,
+        cash_balance: "100",
+        available_cash: "100",
+      },
+      verified_available_cash: "100",
       rule_evidence: rules.map((rule) =>
         rule.rule_code === "insufficient_available_cash"
-          ? { ...rule, passed: false }
+          ? {
+              ...rule,
+              observed_value: "100",
+              threshold_value: "500",
+              passed: false,
+            }
           : rule,
       ),
     },
