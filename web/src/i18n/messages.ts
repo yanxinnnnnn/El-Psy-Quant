@@ -12,6 +12,7 @@ import portfolioRecordsEn from "../../messages/en/portfolio-records.json";
 import portfolioReviewsEn from "../../messages/en/portfolio-reviews.json";
 import researchEn from "../../messages/en/research.json";
 import strategiesEn from "../../messages/en/strategies.json";
+import strategyToRiskEn from "../../messages/en/strategy-to-risk.json";
 import commonZhCn from "../../messages/zh-CN/common.json";
 import comparisonsZhCn from "../../messages/zh-CN/comparisons.json";
 import errorsZhCn from "../../messages/zh-CN/errors.json";
@@ -26,6 +27,7 @@ import portfolioRecordsZhCn from "../../messages/zh-CN/portfolio-records.json";
 import portfolioReviewsZhCn from "../../messages/zh-CN/portfolio-reviews.json";
 import researchZhCn from "../../messages/zh-CN/research.json";
 import strategiesZhCn from "../../messages/zh-CN/strategies.json";
+import strategyToRiskZhCn from "../../messages/zh-CN/strategy-to-risk.json";
 
 import { FALLBACK_LOCALE, type Locale } from "@/i18n/config";
 
@@ -42,6 +44,7 @@ const EN_MESSAGES = {
   portfolioReviews: portfolioReviewsEn,
   paperAccounts: paperAccountsEn,
   marketTime: marketTimeEn,
+  strategyToRisk: strategyToRiskEn,
   lifecycle: lifecycleEn,
   errors: errorsEn,
 } as const;
@@ -59,6 +62,7 @@ const ZH_CN_MESSAGES: typeof EN_MESSAGES = {
   portfolioReviews: portfolioReviewsZhCn,
   paperAccounts: paperAccountsZhCn,
   marketTime: marketTimeZhCn,
+  strategyToRisk: strategyToRiskZhCn,
   lifecycle: lifecycleZhCn,
   errors: errorsZhCn,
 };

@@ -181,8 +181,8 @@ docs/milestones/m32-closeout.md
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–202 are
-Complete, and Sprint 203 is the current implementation sprint. M33 owns:
+Issue #389 is the authoritative M33 architecture source. Sprints 197–203 are
+Complete, and Sprint 204 is the current implementation sprint. M33 owns:
 
 - canonical strategy signals tied to explicit strategy/evidence identity;
 - idempotent order intent;
@@ -216,6 +216,12 @@ bounded command audit events, deterministic opaque keyset cursors, canonical
 OpenAPI, and generated TypeScript. The API does not calculate or replace M31,
 M32, or S198–S202 authority.
 
+Sprint 204 adds one bilingual `/strategy-to-risk` Founder workflow that uses
+the generated S203 contracts to select exact M31/M32 anchors, explicitly request
+Signal → Intent or no-action → Risk evidence, and inspect complete immutable
+server results. It performs no browser-side authority calculation and exposes
+no account/replay mutation or execution control.
+
 Approved M33 sprint chain:
 
 | Sprint | Deliverable | Status |
@@ -226,8 +232,8 @@ Approved M33 sprint chain:
 | S200 | Account-Bound Order Intent and Idempotency Foundation | Complete |
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Complete |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Complete |
-| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | In Progress |
-| S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |
+| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Complete |
+| S204 | Bilingual Founder Strategy-to-Risk Workspace | In Progress |
 | S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
 | S206 | Milestone 33 Closeout and M34 Handoff | Planned |
 

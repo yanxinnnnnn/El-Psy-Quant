@@ -310,8 +310,8 @@ S199 deterministic signal evaluation — Complete
 S200 account-bound Order Intent — Complete
 S201 pre-trade risk decision/evidence — Complete
 S202 persistence, migration, concurrency, and application service — Complete
-S203 versioned API, errors, audit, and generated contracts — current implementation sprint
-S204 bilingual Founder workspace — Planned
+S203 versioned API, errors, audit, and generated contracts — Complete
+S204 bilingual Founder workspace — current implementation sprint
 S205 Demo v5, recovery, and acceptance hardening — Planned
 S206 M33 closeout and M34 handoff — Planned
 ```
@@ -340,6 +340,22 @@ unavailable authority, incompatible schema, busy storage, and storage failure.
 The existing server request ID is returned on commands and included with
 bounded non-financial completion events. Canonical OpenAPI and generated
 TypeScript are presentation contracts only.
+
+## Sprint 204 Web Boundary
+
+Sprint 204 adds exactly one top-level `/strategy-to-risk` Founder workspace.
+The bilingual Web uses only generated S203 transport types and fail-closed
+runtime validators while explicitly orchestrating Signal evaluation, Intent or
+no-action derivation, and pre-trade Risk evaluation. It preserves selected
+expected M31/M32 anchors until explicit Founder refresh or reselection, reuses a
+step key only for an unchanged retry, and never refreshes stale authority and
+retries automatically.
+
+The Web renders raw identities, digests, codes, canonical decimals, timestamps,
+the discriminated no-action result, and all four ordered Risk rule records
+without recalculation or localization. It adds no domain, persistence, API,
+OpenAPI, generated-contract, Demo, migration, Paper Account/replay mutation,
+reservation, execution-order, fill, or broker authority.
 
 ## Execution Boundary
 

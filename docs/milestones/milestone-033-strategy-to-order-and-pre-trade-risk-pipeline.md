@@ -48,8 +48,8 @@ frozen and separate.
 | S200 | Account-Bound Order Intent and Idempotency Foundation | Complete |
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Complete |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Complete |
-| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | In Progress |
-| S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |
+| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Complete |
+| S204 | Bilingual Founder Strategy-to-Risk Workspace | In Progress |
 | S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
 | S206 | Milestone 33 Closeout and M34 Handoff | Planned |
 
@@ -175,8 +175,29 @@ Canonical OpenAPI and generated TypeScript now include the nine stable
 operation IDs and strict unions.
 
 Sprint 203 adds no Web workflow, Demo, migration, worker, reservation,
-execution, fill, replay progression, or ledger/account mutation. S204–S206
-remain Planned, and the migration head is `0010_strategy_order_risk`.
+execution, fill, replay progression, or ledger/account mutation.
+
+## Sprint 204 Result
+
+Sprint 204 adds one bilingual `/strategy-to-risk` Founder workspace over the
+checked-in generated S203 contracts. It loads exact M31 Paper Account and M32
+calendar/session/replay anchors, preserves them until explicit refresh or
+reselection, and provides three explicit commands for Signal evaluation, Intent
+or no-action derivation, and pre-trade Risk evaluation.
+
+Fail-closed validators require complete nested runtime, market, account, Intent,
+policy, price, and Decision references plus exactly four ordered risk-rule
+records. New versus replayed evidence, valid allow versus reject, no-action,
+stale authority, reconciliation, invalid configuration, unavailable authority,
+storage failure, and sanitized unexpected failures remain distinct. Raw IDs,
+digests, codes, canonical decimals, and timestamps remain unchanged across
+locales.
+
+Sprint 204 adds no domain, persistence, API, OpenAPI, generated-contract, Demo,
+migration, worker, reservation, Paper Account/replay mutation, execution order,
+fill, broker, or live behavior. S204 remains the current implementation sprint
+until Founder merge/acceptance; S205–S206 remain Planned, and the migration head
+is `0010_strategy_order_risk`.
 
 ## Exit Criteria
 

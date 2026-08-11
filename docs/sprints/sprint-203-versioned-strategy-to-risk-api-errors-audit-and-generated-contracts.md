@@ -2,9 +2,10 @@
 
 ## Status
 
-In Progress. Issue #400 is the authoritative Sprint specification, and Issue
-#389 remains the authoritative Milestone 33 architecture source. Sprints
-197–202 are Complete. Sprints 204–206 remain Planned.
+Complete after Founder merge of PR #401. Issue #400 is the authoritative Sprint
+specification, and Issue #389 remains the authoritative Milestone 33
+architecture source. Sprints 197–203 are Complete. Sprint 204 is the current
+implementation sprint; Sprints 205–206 remain Planned.
 
 ## Delivered Boundary
 

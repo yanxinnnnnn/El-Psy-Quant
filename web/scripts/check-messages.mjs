@@ -17,6 +17,7 @@ export const REQUIRED_NAMESPACES = Object.freeze([
   "portfolio-reviews",
   "paper-accounts",
   "market-time",
+  "strategy-to-risk",
   "lifecycle",
   "errors",
 ]);
@@ -79,6 +80,19 @@ export const REQUIRED_ERROR_CODES = Object.freeze([
   "paper_account_schema_incompatible",
   "market_time_not_found",
   "market_time_invalid",
+  "strategy_signal_not_found",
+  "order_intent_not_found",
+  "pre_trade_risk_decision_not_found",
+  "strategy_order_idempotency_conflict",
+  "strategy_order_stale_authority",
+  "strategy_order_reconciliation_required",
+  "strategy_order_invalid_runtime_configuration",
+  "strategy_order_invalid_risk_policy",
+  "strategy_order_invalid_decimal",
+  "strategy_order_invalid_cursor",
+  "strategy_order_authority_unavailable",
+  "strategy_order_storage_busy",
+  "strategy_order_storage_failure",
   "demo_workspace_not_configured",
   "demo_workspace_unavailable",
 ]);
@@ -309,7 +323,8 @@ export async function validateMessageCatalogs(messagesRoot) {
         : namespace === "portfolio-records" ? "portfolioRecords"
           : namespace === "portfolio-reviews" ? "portfolioReviews"
             : namespace === "paper-accounts" ? "paperAccounts"
-              : namespace === "market-time" ? "marketTime"
+            : namespace === "market-time" ? "marketTime"
+              : namespace === "strategy-to-risk" ? "strategyToRisk"
           : namespace] = parsed;
     }
     const translator = createTranslator({ locale, messages });
