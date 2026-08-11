@@ -47,8 +47,8 @@ frozen and separate.
 | S199 | Deterministic Strategy Signal Evaluation Foundation | Complete |
 | S200 | Account-Bound Order Intent and Idempotency Foundation | Complete |
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Complete |
-| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | In Progress |
-| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Planned |
+| S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Complete |
+| S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | In Progress |
 | S204 | Bilingual Founder Strategy-to-Risk Workspace | Planned |
 | S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
 | S206 | Milestone 33 Closeout and M34 Handoff | Planned |
@@ -157,8 +157,26 @@ Sprint 202 adds the durable M33 product boundary:
 
 Sprint 202 adds no API, OpenAPI, generated TypeScript, Web, Demo, worker,
 reservation, execution, fill, replay progression, or ledger/account mutation.
-S203–S206 remain Planned, and the migration head is
-`0010_strategy_order_risk`.
+
+## Sprint 203 Result
+
+Sprint 203 adds exactly nine authenticated versioned operations over the S202
+application boundary. Strict public requests accept only approved selections,
+references, expected authority anchors, actors, and idempotency keys. Complete
+inspection responses preserve canonical decimal strings and raw authority
+values while omitting command idempotency keys and raw event payloads.
+
+List reads are bounded to 1–200 records and use deterministic collection-bound
+opaque keyset cursors. Central sanitized translation exposes stable not-found,
+conflict, invalid-input, schema, authority, busy, and storage errors through the
+existing request-ID envelope. Successful commands emit bounded correlation
+events without actors, keys, financial values, payloads, SQL, or paths.
+Canonical OpenAPI and generated TypeScript now include the nine stable
+operation IDs and strict unions.
+
+Sprint 203 adds no Web workflow, Demo, migration, worker, reservation,
+execution, fill, replay progression, or ledger/account mutation. S204–S206
+remain Planned, and the migration head is `0010_strategy_order_risk`.
 
 ## Exit Criteria
 

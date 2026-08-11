@@ -33,6 +33,7 @@ from el_psy_quant.persistence.strategy_order_records import (
     StrategyOrderCorruptAuthorityError,
     StrategyOrderIdempotencyConflictError,
     StrategyOrderNotFoundError,
+    StrategyOrderPage,
     StrategyOrderReconciliationRequiredError,
     StrategyOrderStaleAuthorityError,
     StrategyOrderStorageBusyError,
@@ -66,6 +67,20 @@ from el_psy_quant.strategy_order import (
     validate_strategy_runtime_reference,
 )
 from el_psy_quant.strategy_order._canonical import normalize_bounded_string
+
+
+class StrategySignalNotFoundError(StrategyOrderNotFoundError):
+    """The explicitly addressed persisted Strategy Signal is absent."""
+
+
+class OrderIntentNotFoundError(StrategyOrderNotFoundError):
+    """The explicitly addressed persisted Order Intent is absent."""
+
+
+class StrategyOrderUpstreamAuthorityUnavailableError(
+    StrategyOrderNotFoundError
+):
+    """Required upstream M31 or M32 authority is absent."""
 
 
 def _busy(exc: OperationalError) -> bool:
@@ -167,7 +182,7 @@ class StrategyOrderApplicationService:
         try:
             account = repository.get_account(account_id=account_id)
             if account is None:
-                raise StrategyOrderNotFoundError()
+                raise StrategyOrderUpstreamAuthorityUnavailableError()
             history = repository.get_history(account=account)
             state = replay_paper_account_ledger(history)
             if account.projection_status != "current":
@@ -215,7 +230,7 @@ class StrategyOrderApplicationService:
             )
             replay = repository.get_replay(replay_id=replay_id)
             if calendar is None or trading_session is None or replay is None:
-                raise StrategyOrderNotFoundError()
+                raise StrategyOrderUpstreamAuthorityUnavailableError()
             engine = MarketDataReplayEngine(
                 replay_id=replay.session.replay_id,
                 events=replay.events,
@@ -470,7 +485,7 @@ class StrategyOrderApplicationService:
                 session=session
             ).get(signal_id=signal_id)
             if signal is None:
-                raise StrategyOrderNotFoundError()
+                raise StrategySignalNotFoundError()
             state = self._account_state(session, account_id=account_id)
             self._account_matches(
                 state,
@@ -598,7 +613,7 @@ class StrategyOrderApplicationService:
                 session=session
             ).get(intent_id=intent_id)
             if intent is None:
-                raise StrategyOrderNotFoundError()
+                raise OrderIntentNotFoundError()
             signal = SqlAlchemyStrategySignalRepository(
                 session=session
             ).get(signal_id=intent.signal_reference.signal_id)
@@ -695,6 +710,30 @@ class StrategyOrderApplicationService:
                 raise StrategyOrderNotFoundError()
             return result
 
+    def list_strategy_signals(
+        self,
+        *,
+        limit: int,
+        cursor_created_at: datetime | None = None,
+        cursor_signal_id: str | None = None,
+        strategy_name: str | None = None,
+        instrument_id: str | None = None,
+    ) -> StrategyOrderPage[StrategySignal]:
+        """Return one bounded page through strict repository reconstruction."""
+        with self._read() as session:
+            try:
+                return SqlAlchemyStrategySignalRepository(
+                    session=session
+                ).list_page(
+                    limit=limit,
+                    cursor_created_at=cursor_created_at,
+                    cursor_signal_id=cursor_signal_id,
+                    strategy_name=strategy_name,
+                    instrument_id=instrument_id,
+                )
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
+
     def get_order_intent(self, *, intent_id: str) -> OrderIntent:
         with self._read() as session:
             try:
@@ -706,6 +745,34 @@ class StrategyOrderApplicationService:
             if result is None:
                 raise StrategyOrderNotFoundError()
             return result
+
+    def list_order_intents(
+        self,
+        *,
+        limit: int,
+        cursor_created_at: datetime | None = None,
+        cursor_intent_id: str | None = None,
+        signal_id: str | None = None,
+        account_id: str | None = None,
+        instrument_id: str | None = None,
+        side: str | None = None,
+    ) -> StrategyOrderPage[OrderIntent]:
+        """Return one bounded Intent page without recalculating authority."""
+        with self._read() as session:
+            try:
+                return SqlAlchemyOrderIntentRepository(
+                    session=session
+                ).list_page(
+                    limit=limit,
+                    cursor_created_at=cursor_created_at,
+                    cursor_intent_id=cursor_intent_id,
+                    signal_id=signal_id,
+                    account_id=account_id,
+                    instrument_id=instrument_id,
+                    side=side,
+                )
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
 
     def get_pre_trade_risk_decision(
         self, *, decision_id: str
@@ -721,8 +788,35 @@ class StrategyOrderApplicationService:
                 raise StrategyOrderNotFoundError()
             return result
 
+    def list_pre_trade_risk_decisions(
+        self,
+        *,
+        limit: int,
+        cursor_created_at: datetime | None = None,
+        cursor_decision_id: str | None = None,
+        intent_id: str | None = None,
+        account_id: str | None = None,
+        outcome: str | None = None,
+    ) -> StrategyOrderPage[PreTradeRiskDecision]:
+        """Return one bounded Decision page through strict reconstruction."""
+        with self._read() as session:
+            try:
+                return SqlAlchemyPreTradeRiskDecisionRepository(
+                    session=session
+                ).list_page(
+                    limit=limit,
+                    cursor_created_at=cursor_created_at,
+                    cursor_decision_id=cursor_decision_id,
+                    intent_id=intent_id,
+                    account_id=account_id,
+                    outcome=outcome,
+                )
+            except (TypeError, ValueError) as exc:
+                raise StrategyOrderCorruptAuthorityError() from exc
+
 
 __all__ = [
+    "OrderIntentNotFoundError",
     "StrategyOrderApplicationService",
     "StrategyOrderCorruptAuthorityError",
     "StrategyOrderIdempotencyConflictError",
@@ -732,4 +826,6 @@ __all__ = [
     "StrategyOrderStorageBusyError",
     "StrategyOrderStorageFailureError",
     "StrategyOrderStoredResult",
+    "StrategyOrderUpstreamAuthorityUnavailableError",
+    "StrategySignalNotFoundError",
 ]

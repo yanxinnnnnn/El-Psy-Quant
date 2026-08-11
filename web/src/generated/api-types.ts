@@ -204,6 +204,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/order-intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Order Intents V1
+         * @description Return one deterministic bounded Intent page.
+         */
+        get: operations["list_order_intents_v1"];
+        put?: never;
+        /**
+         * Create Order Intent V1
+         * @description Derive one Intent or no-action result from persisted authority.
+         */
+        post: operations["create_order_intent_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/order-intents/{intent_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Order Intent V1
+         * @description Return one strictly reconstructed immutable Intent.
+         */
+        get: operations["get_order_intent_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/paper-accounts": {
         parameters: {
             query?: never;
@@ -594,6 +638,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pre-trade-risk-decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Pre Trade Risk Decisions V1
+         * @description Return one deterministic bounded Decision page.
+         */
+        get: operations["list_pre_trade_risk_decisions_v1"];
+        put?: never;
+        /**
+         * Create Pre Trade Risk Decision V1
+         * @description Evaluate pre-trade risk without creating execution authority.
+         */
+        post: operations["create_pre_trade_risk_decision_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pre-trade-risk-decisions/{decision_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pre Trade Risk Decision V1
+         * @description Return one strictly reconstructed immutable risk Decision.
+         */
+        get: operations["get_pre_trade_risk_decision_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/research-runs": {
         parameters: {
             query?: never;
@@ -674,10 +762,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/strategy-signals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Strategy Signals V1
+         * @description Return one deterministic bounded Signal page.
+         */
+        get: operations["list_strategy_signals_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/strategy-signals/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Evaluate Strategy Signal V1
+         * @description Evaluate one approved runtime against exact current M32 authority.
+         */
+        post: operations["evaluate_strategy_signal_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/strategy-signals/{signal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Strategy Signal V1
+         * @description Return one strictly reconstructed immutable Signal.
+         */
+        get: operations["get_strategy_signal_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ApiError
+         * @description Stable public error detail.
+         */
+        ApiError: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
+        /**
+         * ApiErrorResponse
+         * @description Stable public error envelope with request correlation.
+         */
+        ApiErrorResponse: {
+            error: components["schemas"]["ApiError"];
+            /** Request Id */
+            request_id: string;
+        };
         /** ApprovedPortfolioReviewReferenceResponse */
         ApprovedPortfolioReviewReferenceResponse: {
             /** Analysis Digest */
@@ -932,6 +1099,240 @@ export interface components {
              */
             record_schema_version: 1;
             session: components["schemas"]["ReplaySessionResponse"];
+        };
+        /** MovingAverageRuntimeRequest */
+        MovingAverageRuntimeRequest: {
+            /**
+             * Adapter Version
+             * @constant
+             */
+            adapter_version: "v1";
+            /** Fast Window */
+            fast_window: number;
+            /**
+             * Runtime Sizing Semantics
+             * @constant
+             */
+            runtime_sizing_semantics: "target_position_quantity";
+            /** Slow Window */
+            slow_window: number;
+            /**
+             * Strategy Name
+             * @constant
+             */
+            strategy_name: "moving_average_crossover";
+            /**
+             * Strategy Version
+             * @constant
+             */
+            strategy_version: "v1";
+            /** Target Position Quantity */
+            target_position_quantity: string;
+        };
+        /** OrderIntentAccountReferenceResponse */
+        OrderIntentAccountReferenceResponse: {
+            /** Account Head Chain Digest */
+            account_head_chain_digest: string;
+            /** Account Head Event Id */
+            account_head_event_id: string;
+            /** Account Head Version */
+            account_head_version: number;
+            /** Account Id */
+            account_id: string;
+            /** Available Cash */
+            available_cash: string;
+            /** Base Currency */
+            base_currency: string;
+            /** Cash Balance */
+            cash_balance: string;
+            /** Current Instrument Quantity */
+            current_instrument_quantity: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /**
+             * Lifecycle Status
+             * @constant
+             */
+            lifecycle_status: "active";
+            /** Reference Digest */
+            reference_digest: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** OrderIntentAccountRequest */
+        OrderIntentAccountRequest: {
+            /** Account Id */
+            account_id: string;
+            /** Expected Account Head Chain Digest */
+            expected_account_head_chain_digest: string;
+            /** Expected Account Head Event Id */
+            expected_account_head_event_id: string;
+            /** Expected Account Head Version */
+            expected_account_head_version: number;
+        };
+        /** OrderIntentCommandResponse */
+        OrderIntentCommandResponse: {
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            result: components["schemas"]["OrderIntentResponse"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            result_kind: "order_intent";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** OrderIntentCreateRequest */
+        OrderIntentCreateRequest: {
+            account: components["schemas"]["OrderIntentAccountRequest"];
+            /** Actor */
+            actor: string;
+            /**
+             * Intent Policy Version
+             * @constant
+             */
+            intent_policy_version: "target_position_quantity_delta_v1";
+            /** Signal Id */
+            signal_id: string;
+        };
+        /** OrderIntentListResponse */
+        OrderIntentListResponse: {
+            /** Items */
+            items: components["schemas"]["OrderIntentResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** OrderIntentNoActionCommandResponse */
+        OrderIntentNoActionCommandResponse: {
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            result: components["schemas"]["OrderIntentNoActionResponse"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            result_kind: "order_intent_no_action";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** OrderIntentNoActionResponse */
+        OrderIntentNoActionResponse: {
+            account_reference: components["schemas"]["OrderIntentAccountReferenceResponse"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Current Position Quantity */
+            current_position_quantity: string;
+            /**
+             * Intent Policy Version
+             * @constant
+             */
+            intent_policy_version: "target_position_quantity_delta_v1";
+            market_reference: components["schemas"]["StrategySignalMarketReferenceResponse"];
+            /** No Action Digest */
+            no_action_digest: string;
+            /** No Action Id */
+            no_action_id: string;
+            /** Origin Actor */
+            origin_actor: string;
+            /** Origin Command Digest */
+            origin_command_digest: string;
+            /**
+             * Reason Code
+             * @constant
+             */
+            reason_code: "target_already_satisfied";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            signal_reference: components["schemas"]["StrategySignalReferenceResponse"];
+            /** Target Position Quantity */
+            target_position_quantity: string;
+            /**
+             * Target Semantics
+             * @constant
+             */
+            target_semantics: "target_position_quantity";
+        };
+        /** OrderIntentReferenceResponse */
+        OrderIntentReferenceResponse: {
+            /** Intent Digest */
+            intent_digest: string;
+            /** Intent Id */
+            intent_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** OrderIntentResponse */
+        OrderIntentResponse: {
+            account_reference: components["schemas"]["OrderIntentAccountReferenceResponse"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Current Position Quantity */
+            current_position_quantity: string;
+            /** Intent Digest */
+            intent_digest: string;
+            /** Intent Id */
+            intent_id: string;
+            /**
+             * Intent Policy Version
+             * @constant
+             */
+            intent_policy_version: "target_position_quantity_delta_v1";
+            market_reference: components["schemas"]["StrategySignalMarketReferenceResponse"];
+            /** Origin Actor */
+            origin_actor: string;
+            /** Origin Command Digest */
+            origin_command_digest: string;
+            /** Requested Quantity */
+            requested_quantity: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "buy" | "sell";
+            signal_reference: components["schemas"]["StrategySignalReferenceResponse"];
+            /** Target Position Quantity */
+            target_position_quantity: string;
+            /**
+             * Target Semantics
+             * @constant
+             */
+            target_semantics: "target_position_quantity";
         };
         /** PaperAccountCashMovementRequest */
         PaperAccountCashMovementRequest: {
@@ -2677,6 +3078,239 @@ export interface components {
             /** Trough Date */
             trough_date: string;
         };
+        /** PreTradeRiskAccountRequest */
+        PreTradeRiskAccountRequest: {
+            /** Expected Account Head Chain Digest */
+            expected_account_head_chain_digest: string;
+            /** Expected Account Head Event Id */
+            expected_account_head_event_id: string;
+            /** Expected Account Head Version */
+            expected_account_head_version: number;
+        };
+        /** PreTradeRiskDecisionCommandResponse */
+        PreTradeRiskDecisionCommandResponse: {
+            decision: components["schemas"]["PreTradeRiskDecisionResponse"];
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PreTradeRiskDecisionCreateRequest */
+        PreTradeRiskDecisionCreateRequest: {
+            account: components["schemas"]["PreTradeRiskAccountRequest"];
+            /** Actor */
+            actor: string;
+            /** Intent Id */
+            intent_id: string;
+            market: components["schemas"]["PreTradeRiskMarketRequest"];
+            policy: components["schemas"]["PreTradeRiskPolicyRequest"];
+        };
+        /** PreTradeRiskDecisionListResponse */
+        PreTradeRiskDecisionListResponse: {
+            /** Items */
+            items: components["schemas"]["PreTradeRiskDecisionResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PreTradeRiskDecisionResponse */
+        PreTradeRiskDecisionResponse: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decision Digest */
+            decision_digest: string;
+            /** Decision Id */
+            decision_id: string;
+            input_snapshot: components["schemas"]["PreTradeRiskInputSnapshotResponse"];
+            /** Origin Actor */
+            origin_actor: string;
+            /** Origin Command Digest */
+            origin_command_digest: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "allow" | "reject";
+            /** Reason Codes */
+            reason_codes: ("insufficient_position_quantity" | "maximum_order_quantity_exceeded" | "maximum_order_notional_exceeded" | "insufficient_available_cash")[];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PreTradeRiskInputSnapshotResponse */
+        PreTradeRiskInputSnapshotResponse: {
+            account_reference: components["schemas"]["OrderIntentAccountReferenceResponse"];
+            /** Estimated Order Notional */
+            estimated_order_notional: string;
+            intent_reference: components["schemas"]["OrderIntentReferenceResponse"];
+            market_reference: components["schemas"]["StrategySignalMarketReferenceResponse"];
+            price_reference: components["schemas"]["PreTradeRiskPriceReferenceResponse"];
+            /** Requested Quantity */
+            requested_quantity: string;
+            risk_policy_reference: components["schemas"]["PreTradeRiskPolicyReferenceResponse"];
+            /** Rule Evidence */
+            rule_evidence: components["schemas"]["PreTradeRiskRuleEvidenceResponse"][];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "buy" | "sell";
+            /** Snapshot Digest */
+            snapshot_digest: string;
+            /** Snapshot Id */
+            snapshot_id: string;
+            /** Verified Available Cash */
+            verified_available_cash: string;
+            /** Verified Current Instrument Quantity */
+            verified_current_instrument_quantity: string;
+        };
+        /** PreTradeRiskMarketRequest */
+        PreTradeRiskMarketRequest: {
+            /** Expected Calendar Id */
+            expected_calendar_id: string;
+            /** Expected Calendar Version */
+            expected_calendar_version: number;
+            /** Expected Current Event Id */
+            expected_current_event_id: string;
+            /** Expected Current Event Time Utc */
+            expected_current_event_time_utc?: string | null;
+            /** Expected Cursor Position */
+            expected_cursor_position: number;
+            /** Expected Event Stream Digest */
+            expected_event_stream_digest: string;
+            /** Expected Instrument Id */
+            expected_instrument_id: string;
+            /** Expected Replay Id */
+            expected_replay_id: string;
+            /** Expected Trading Session Id */
+            expected_trading_session_id: string;
+        };
+        /** PreTradeRiskPolicyReferenceResponse */
+        PreTradeRiskPolicyReferenceResponse: {
+            /** Configuration Digest */
+            configuration_digest: string;
+            /** Maximum Order Notional */
+            maximum_order_notional: string | null;
+            /** Maximum Order Quantity */
+            maximum_order_quantity: string | null;
+            /**
+             * Policy Id
+             * @constant
+             */
+            policy_id: "long_only_cash_risk_v1";
+            /** Reference Digest */
+            reference_digest: string;
+            /**
+             * Reference Price Policy Id
+             * @constant
+             */
+            reference_price_policy_id: "latest_trade_price_v1";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PreTradeRiskPolicyRequest */
+        PreTradeRiskPolicyRequest: {
+            /** Maximum Order Notional */
+            maximum_order_notional?: string | null;
+            /** Maximum Order Quantity */
+            maximum_order_quantity?: string | null;
+            /**
+             * Policy Id
+             * @constant
+             */
+            policy_id: "long_only_cash_risk_v1";
+            /**
+             * Reference Price Policy Id
+             * @constant
+             */
+            reference_price_policy_id: "latest_trade_price_v1";
+        };
+        /** PreTradeRiskPriceReferenceResponse */
+        PreTradeRiskPriceReferenceResponse: {
+            /** Cursor Position */
+            cursor_position: number;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /** Price Event Digest */
+            price_event_digest: string;
+            /** Price Event Id */
+            price_event_id: string;
+            /** Price Event Position */
+            price_event_position: number;
+            /**
+             * Price Event Time
+             * Format: date-time
+             */
+            price_event_time: string;
+            /** Reference Digest */
+            reference_digest: string;
+            /** Reference Price */
+            reference_price: string;
+            /**
+             * Reference Price Policy Id
+             * @constant
+             */
+            reference_price_policy_id: "latest_trade_price_v1";
+            /** Replay Id */
+            replay_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PreTradeRiskRuleEvidenceResponse */
+        PreTradeRiskRuleEvidenceResponse: {
+            /** Applicable */
+            applicable: boolean;
+            /** Observed Value */
+            observed_value: string | null;
+            /** Passed */
+            passed: boolean;
+            /**
+             * Rule Code
+             * @enum {string}
+             */
+            rule_code: "insufficient_position_quantity" | "maximum_order_quantity_exceeded" | "maximum_order_notional_exceeded" | "insufficient_available_cash";
+            /** Rule Digest */
+            rule_digest: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Threshold Value */
+            threshold_value: string | null;
+            /**
+             * Value Type
+             * @enum {string}
+             */
+            value_type: "quantity" | "money";
+        };
         /** ReplayCursorResponse */
         ReplayCursorResponse: {
             /** Current Event Time */
@@ -3077,6 +3711,172 @@ export interface components {
             /** Transition Record References */
             transition_record_references: components["schemas"]["EvidenceManifestReferenceResponse"][];
         };
+        /** StrategyRuntimeParametersResponse */
+        StrategyRuntimeParametersResponse: {
+            /** Fast Window */
+            fast_window: number;
+            /** Slow Window */
+            slow_window: number;
+            /** Target Position Quantity */
+            target_position_quantity: string;
+        };
+        /** StrategyRuntimeReferenceResponse */
+        StrategyRuntimeReferenceResponse: {
+            /**
+             * Adapter Version
+             * @constant
+             */
+            adapter_version: "v1";
+            parameters: components["schemas"]["StrategyRuntimeParametersResponse"];
+            /** Parameters Digest */
+            parameters_digest: string;
+            /** Reference Digest */
+            reference_digest: string;
+            /**
+             * Runtime Sizing Semantics
+             * @constant
+             */
+            runtime_sizing_semantics: "target_position_quantity";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Strategy Name
+             * @constant
+             */
+            strategy_name: "moving_average_crossover";
+            /**
+             * Strategy Version
+             * @constant
+             */
+            strategy_version: "v1";
+        };
+        /** StrategySignalCommandResponse */
+        StrategySignalCommandResponse: {
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            signal: components["schemas"]["StrategySignalResponse"];
+        };
+        /** StrategySignalEvaluateRequest */
+        StrategySignalEvaluateRequest: {
+            /** Actor */
+            actor: string;
+            market: components["schemas"]["StrategySignalMarketRequest"];
+            runtime: components["schemas"]["MovingAverageRuntimeRequest"];
+        };
+        /** StrategySignalListResponse */
+        StrategySignalListResponse: {
+            /** Items */
+            items: components["schemas"]["StrategySignalResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** StrategySignalMarketReferenceResponse */
+        StrategySignalMarketReferenceResponse: {
+            /** Calendar Id */
+            calendar_id: string;
+            /** Calendar Version */
+            calendar_version: number;
+            /** Cursor Position */
+            cursor_position: number;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /** Last Event Id */
+            last_event_id: string;
+            /** Reference Digest */
+            reference_digest: string;
+            /** Replay Id */
+            replay_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Signal Event Id */
+            signal_event_id: string;
+            /**
+             * Signal Time
+             * Format: date-time
+             */
+            signal_time: string;
+            /** Trading Session Id */
+            trading_session_id: string;
+        };
+        /** StrategySignalMarketRequest */
+        StrategySignalMarketRequest: {
+            /** Calendar Id */
+            calendar_id: string;
+            /** Expected Calendar Version */
+            expected_calendar_version: number;
+            /** Expected Cursor Position */
+            expected_cursor_position: number;
+            /** Expected Event Stream Digest */
+            expected_event_stream_digest: string;
+            /** Expected Signal Event Id */
+            expected_signal_event_id: string;
+            /** Expected Signal Time Utc */
+            expected_signal_time_utc?: string | null;
+            /** Instrument Id */
+            instrument_id: string;
+            /** Replay Id */
+            replay_id: string;
+            /** Trading Session Id */
+            trading_session_id: string;
+        };
+        /** StrategySignalReferenceResponse */
+        StrategySignalReferenceResponse: {
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Signal Digest */
+            signal_digest: string;
+            /** Signal Id */
+            signal_id: string;
+        };
+        /** StrategySignalResponse */
+        StrategySignalResponse: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            market_reference: components["schemas"]["StrategySignalMarketReferenceResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Signal Digest */
+            signal_digest: string;
+            /** Signal Id */
+            signal_id: string;
+            strategy_runtime_reference: components["schemas"]["StrategyRuntimeReferenceResponse"];
+            /** Target Position Quantity */
+            target_position_quantity: string;
+            /**
+             * Target Semantics
+             * @constant
+             */
+            target_semantics: "target_position_quantity";
+        };
         /**
          * StrategySummaryResponse
          * @description Built-in strategy list item.
@@ -3437,6 +4237,171 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_order_intents_v1: {
+        parameters: {
+            query?: {
+                signal_id?: string | null;
+                account_id?: string | null;
+                instrument_id?: string | null;
+                side?: ("buy" | "sell") | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderIntentListResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    create_order_intent_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderIntentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderIntentCommandResponse"] | components["schemas"]["OrderIntentNoActionCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderIntentCommandResponse"] | components["schemas"]["OrderIntentNoActionCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_order_intent_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                intent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderIntentResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
         };
@@ -4333,6 +5298,170 @@ export interface operations {
             };
         };
     };
+    list_pre_trade_risk_decisions_v1: {
+        parameters: {
+            query?: {
+                intent_id?: string | null;
+                account_id?: string | null;
+                outcome?: ("allow" | "reject") | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreTradeRiskDecisionListResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    create_pre_trade_risk_decision_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreTradeRiskDecisionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreTradeRiskDecisionCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreTradeRiskDecisionCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_pre_trade_risk_decision_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreTradeRiskDecisionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
     get_research_runs_api_v1_research_runs_get: {
         parameters: {
             query?: never;
@@ -4432,6 +5561,169 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_strategy_signals_v1: {
+        parameters: {
+            query?: {
+                strategy_name?: string | null;
+                instrument_id?: string | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StrategySignalListResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    evaluate_strategy_signal_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StrategySignalEvaluateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StrategySignalCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StrategySignalCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_strategy_signal_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                signal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StrategySignalResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
         };
