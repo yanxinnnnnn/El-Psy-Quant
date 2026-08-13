@@ -167,6 +167,14 @@ Migration evolution:
 M32 adds no strategy, order, risk, execution, broker, live, or real-money
 behavior.
 
+## Current Milestone 33
+
+M33 is In Progress through Sprint 205. Sprints 197–204 are Complete. Sprint 205
+adds deterministic isolated Demo v5 integration, restart, stale-authority,
+corruption/no-repair, upgrade, concurrency, and Standard/Demo-isolation
+evidence over the unchanged M31 + M32 → Signal → Intent → Risk chain. Sprint
+206 remains the planned closeout and M34 handoff.
+
 Authoritative records:
 
 ```text
@@ -181,8 +189,8 @@ docs/milestones/m32-closeout.md
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–203 are
-Complete, and Sprint 204 is the current implementation sprint. M33 owns:
+Issue #389 is the authoritative M33 architecture source. Sprints 197–204 are
+Complete, and Sprint 205 is the current implementation sprint. M33 owns:
 
 - canonical strategy signals tied to explicit strategy/evidence identity;
 - idempotent order intent;
@@ -233,8 +241,8 @@ Approved M33 sprint chain:
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Complete |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Complete |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Complete |
-| S204 | Bilingual Founder Strategy-to-Risk Workspace | In Progress |
-| S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
+| S204 | Bilingual Founder Strategy-to-Risk Workspace | Complete |
+| S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | In Progress |
 | S206 | Milestone 33 Closeout and M34 Handoff | Planned |
 
 The migration head is `0010_strategy_order_risk`.

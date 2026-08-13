@@ -318,6 +318,7 @@ function stableDescriptorIdentity(descriptor) {
     },
     paper_account: descriptor.paper_account,
     market_time: descriptor.market_time,
+    strategy_order: descriptor.strategy_order,
   };
 }
 
@@ -356,8 +357,8 @@ async function verifyDemoJourney(
     cookies.chineseCookie,
   );
   if (
-    descriptor.schema_version !== 4 ||
-    descriptor.dataset_version !== 4 ||
+    descriptor.schema_version !== 5 ||
+    descriptor.dataset_version !== 5 ||
     typeof descriptor.canonical_strategy_name !== "string" ||
     !Array.isArray(descriptor.evidence_manifests) ||
     !Array.isArray(descriptor.paper_jobs) ||
@@ -389,7 +390,16 @@ async function verifyDemoJourney(
     !Array.isArray(descriptor.market_time?.recovery?.remaining_event_ids) ||
     descriptor.market_time?.recovery?.final_status !== "completed" ||
     descriptor.market_time?.recovery?.final_position !==
-      descriptor.market_time?.event_count
+      descriptor.market_time?.event_count ||
+    descriptor.strategy_order?.workspace_path !== "/strategy-to-risk" ||
+    typeof descriptor.strategy_order?.signal?.id !== "string" ||
+    !/^[0-9a-f]{64}$/.test(descriptor.strategy_order?.signal?.digest ?? "") ||
+    typeof descriptor.strategy_order?.intent?.id !== "string" ||
+    descriptor.strategy_order?.allow_decision?.outcome !== "allow" ||
+    descriptor.strategy_order?.allow_decision?.reason_codes?.length !== 0 ||
+    descriptor.strategy_order?.reject_decision?.outcome !== "reject" ||
+    descriptor.strategy_order?.reject_decision?.reason_codes?.join(",") !==
+      "maximum_order_quantity_exceeded"
   ) {
     throw new Error("Demo workspace descriptor returned an unexpected contract");
   }

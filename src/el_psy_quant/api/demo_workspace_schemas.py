@@ -82,8 +82,36 @@ class DemoMarketTimeReferenceResponse(BaseModel):
     recovery: DemoMarketTimeRecoveryResponse
 
 
+class DemoStrategyRuntimeResponse(BaseModel):
+    fast_window: int
+    slow_window: int
+    target_position_quantity: str
+
+
+class DemoStrategyAuthorityResponse(BaseModel):
+    id: str
+    digest: str
+
+
+class DemoStrategyDecisionResponse(DemoStrategyAuthorityResponse):
+    outcome: Literal["allow", "reject"]
+    reason_codes: list[str]
+
+
+class DemoStrategyOrderReferenceResponse(BaseModel):
+    workspace_path: Literal["/strategy-to-risk"]
+    account_id: str
+    trading_session_id: str
+    instrument_id: str
+    runtime: DemoStrategyRuntimeResponse
+    signal: DemoStrategyAuthorityResponse
+    intent: DemoStrategyAuthorityResponse
+    allow_decision: DemoStrategyDecisionResponse
+    reject_decision: DemoStrategyDecisionResponse
+
+
 class DemoWorkspaceDescriptorResponse(BaseModel):
-    schema_version: Literal[4]
+    schema_version: Literal[5]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -99,3 +127,4 @@ class DemoWorkspaceDescriptorResponse(BaseModel):
     portfolio_review_example: DemoPortfolioReviewExampleResponse
     paper_account: DemoPaperAccountReferenceResponse
     market_time: DemoMarketTimeReferenceResponse
+    strategy_order: DemoStrategyOrderReferenceResponse

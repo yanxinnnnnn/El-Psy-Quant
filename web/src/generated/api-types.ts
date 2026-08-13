@@ -964,6 +964,55 @@ export interface components {
             /** Run Id */
             run_id: string;
         };
+        /** DemoStrategyAuthorityResponse */
+        DemoStrategyAuthorityResponse: {
+            /** Digest */
+            digest: string;
+            /** Id */
+            id: string;
+        };
+        /** DemoStrategyDecisionResponse */
+        DemoStrategyDecisionResponse: {
+            /** Digest */
+            digest: string;
+            /** Id */
+            id: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "allow" | "reject";
+            /** Reason Codes */
+            reason_codes: string[];
+        };
+        /** DemoStrategyOrderReferenceResponse */
+        DemoStrategyOrderReferenceResponse: {
+            /** Account Id */
+            account_id: string;
+            allow_decision: components["schemas"]["DemoStrategyDecisionResponse"];
+            /** Instrument Id */
+            instrument_id: string;
+            intent: components["schemas"]["DemoStrategyAuthorityResponse"];
+            reject_decision: components["schemas"]["DemoStrategyDecisionResponse"];
+            runtime: components["schemas"]["DemoStrategyRuntimeResponse"];
+            signal: components["schemas"]["DemoStrategyAuthorityResponse"];
+            /** Trading Session Id */
+            trading_session_id: string;
+            /**
+             * Workspace Path
+             * @constant
+             */
+            workspace_path: "/strategy-to-risk";
+        };
+        /** DemoStrategyRuntimeResponse */
+        DemoStrategyRuntimeResponse: {
+            /** Fast Window */
+            fast_window: number;
+            /** Slow Window */
+            slow_window: number;
+            /** Target Position Quantity */
+            target_position_quantity: string;
+        };
         /** DemoWorkspaceDescriptorResponse */
         DemoWorkspaceDescriptorResponse: {
             /** Canonical Strategy Name */
@@ -991,7 +1040,8 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: 4;
+            schema_version: 5;
+            strategy_order: components["schemas"]["DemoStrategyOrderReferenceResponse"];
             /** Warning */
             warning: string;
         };

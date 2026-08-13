@@ -335,6 +335,131 @@
         "title": "DemoResearchRunReferenceResponse",
         "type": "object"
       },
+      "DemoStrategyAuthorityResponse": {
+        "properties": {
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "digest"
+        ],
+        "title": "DemoStrategyAuthorityResponse",
+        "type": "object"
+      },
+      "DemoStrategyDecisionResponse": {
+        "properties": {
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "allow",
+              "reject"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "digest",
+          "outcome",
+          "reason_codes"
+        ],
+        "title": "DemoStrategyDecisionResponse",
+        "type": "object"
+      },
+      "DemoStrategyOrderReferenceResponse": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "allow_decision": {
+            "$ref": "#/components/schemas/DemoStrategyDecisionResponse"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/DemoStrategyAuthorityResponse"
+          },
+          "reject_decision": {
+            "$ref": "#/components/schemas/DemoStrategyDecisionResponse"
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/DemoStrategyRuntimeResponse"
+          },
+          "signal": {
+            "$ref": "#/components/schemas/DemoStrategyAuthorityResponse"
+          },
+          "trading_session_id": {
+            "title": "Trading Session Id",
+            "type": "string"
+          },
+          "workspace_path": {
+            "const": "/strategy-to-risk",
+            "title": "Workspace Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_path",
+          "account_id",
+          "trading_session_id",
+          "instrument_id",
+          "runtime",
+          "signal",
+          "intent",
+          "allow_decision",
+          "reject_decision"
+        ],
+        "title": "DemoStrategyOrderReferenceResponse",
+        "type": "object"
+      },
+      "DemoStrategyRuntimeResponse": {
+        "properties": {
+          "fast_window": {
+            "title": "Fast Window",
+            "type": "integer"
+          },
+          "slow_window": {
+            "title": "Slow Window",
+            "type": "integer"
+          },
+          "target_position_quantity": {
+            "title": "Target Position Quantity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fast_window",
+          "slow_window",
+          "target_position_quantity"
+        ],
+        "title": "DemoStrategyRuntimeResponse",
+        "type": "object"
+      },
       "DemoWorkspaceDescriptorResponse": {
         "properties": {
           "canonical_strategy_name": {
@@ -396,9 +521,12 @@
             "$ref": "#/components/schemas/DemoResearchRunReferenceResponse"
           },
           "schema_version": {
-            "const": 4,
+            "const": 5,
             "title": "Schema Version",
             "type": "integer"
+          },
+          "strategy_order": {
+            "$ref": "#/components/schemas/DemoStrategyOrderReferenceResponse"
           },
           "warning": {
             "title": "Warning",
@@ -421,7 +549,8 @@
           "paper_job_submission_example",
           "portfolio_review_example",
           "paper_account",
-          "market_time"
+          "market_time",
+          "strategy_order"
         ],
         "title": "DemoWorkspaceDescriptorResponse",
         "type": "object"

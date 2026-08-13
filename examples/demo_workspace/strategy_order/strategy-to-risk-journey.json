@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "account_id": "demo-paper-account-001",
+  "trading_session_id": "demo-xnys-2026-07-28-regular",
+  "instrument_id": "XNYS:AAPL",
+  "runtime": {
+    "fast_window": 2,
+    "slow_window": 3,
+    "target_position_quantity": "10"
+  },
+  "signal": {
+    "idempotency_key": "demo-m33-signal-v1",
+    "actor": "demo-founder",
+    "created_at": "2026-07-28T21:00:00Z"
+  },
+  "intent": {
+    "idempotency_key": "demo-m33-intent-v1",
+    "actor": "demo-founder",
+    "created_at": "2026-07-28T21:01:00Z"
+  },
+  "allow_risk": {
+    "idempotency_key": "demo-m33-risk-allow-v1",
+    "actor": "demo-founder",
+    "created_at": "2026-07-28T21:02:00Z",
+    "maximum_order_quantity": null
+  },
+  "reject_risk": {
+    "idempotency_key": "demo-m33-risk-reject-v1",
+    "actor": "demo-founder",
+    "created_at": "2026-07-28T21:03:00Z",
+    "maximum_order_quantity": "5"
+  },
+  "expected": {
+    "signal": {
+      "id": "sig_322204ed99a70fad0df678c18ca6e3e7640ab016919005bb2711f0a96645cd3f",
+      "digest": "322204ed99a70fad0df678c18ca6e3e7640ab016919005bb2711f0a96645cd3f"
+    },
+    "intent": {
+      "id": "oi_5686dd4fd951b196b83aaafa06e42bdabef2197640e68a070b5371d11ab61375",
+      "digest": "5686dd4fd951b196b83aaafa06e42bdabef2197640e68a070b5371d11ab61375"
+    },
+    "allow_decision": {
+      "id": "risk_decision_3bdece7fcb397c2fabdc0e0106b4aa07337b8d3fa6800dbb92833b41810b50ff",
+      "digest": "3bdece7fcb397c2fabdc0e0106b4aa07337b8d3fa6800dbb92833b41810b50ff",
+      "outcome": "allow",
+      "reason_codes": []
+    },
+    "reject_decision": {
+      "id": "risk_decision_afa3165510d11b50791a11f498e5ae5c353b881e6a4f237dff523bb8e97c1f9a",
+      "digest": "afa3165510d11b50791a11f498e5ae5c353b881e6a4f237dff523bb8e97c1f9a",
+      "outcome": "reject",
+      "reason_codes": [
+        "maximum_order_quantity_exceeded"
+      ]
+    }
+  }
+}

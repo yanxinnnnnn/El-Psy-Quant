@@ -3,6 +3,8 @@
 import json
 import shutil
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -10,6 +12,11 @@ from el_psy_quant.application.paper_accounts import (
     PaperAccountApplicationService,
 )
 from el_psy_quant.application.paper_jobs import read_paper_job_result
+from el_psy_quant.application.strategy_order import (
+    StrategyOrderApplicationService,
+    StrategyOrderIdempotencyConflictError,
+    StrategyOrderStaleAuthorityError,
+)
 from el_psy_quant.application.portfolio_reviews import (
     get_portfolio_review_detail,
     record_portfolio_review_decision_with_outcome,
@@ -29,10 +36,15 @@ from el_psy_quant.persistence import (
     SqlAlchemyMarketTimeRepository,
     SqlAlchemyPaperJobAttemptRepository,
     SqlAlchemyPaperJobRepository,
+    StrategyOrderCorruptAuthorityError,
     create_product_database_engine,
     create_product_session_factory,
     resolve_product_database_config,
 )
+from el_psy_quant.strategy_order import (
+    create_moving_average_crossover_runtime_reference,
+)
+from el_psy_quant.paper_account import PaperQuantity
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEMO_SOURCE = PROJECT_ROOT / "examples" / "demo_workspace"
@@ -48,6 +60,19 @@ def _install(source: Path, target: Path):
     )
 
 
+def _demo_m33(target: Path):
+    paths = DemoWorkspacePaths.from_root(target)
+    descriptor = load_demo_workspace_descriptor(target).to_dict()
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    return (
+        engine,
+        create_product_session_factory(engine=engine),
+        descriptor["strategy_order"],
+    )
+
+
 def test_versioned_source_validates_every_authoritative_contract() -> None:
     source = validate_demo_workspace_source(DEMO_SOURCE)
 
@@ -60,8 +85,8 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
     )
     assert len(set(source.manifest.comparison_candidate_job_ids)) == 2
     descriptor = source.descriptor.to_dict()
-    assert descriptor["schema_version"] == 4
-    assert descriptor["dataset_version"] == 4
+    assert descriptor["schema_version"] == 5
+    assert descriptor["dataset_version"] == 5
     assert descriptor["portfolio_review_example"]["create_idempotency_key"] == (
         "demo-portfolio-review-create-v1"
     )
@@ -90,28 +115,32 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
             "demo-xnys-2026-07-29-regular",
         ],
         "replay_id": "demo-market-replay-001",
-        "event_count": 4,
+        "event_count": 5,
         "event_stream_digest": (
-            "b9ae184fb1eb574dcd0282e892105773e462a212b3dc203b98f4ed5bc277a9e2"
+            "f529dc98893820bbbffc79c9fa740b808967ddd13e0e7da9ba21b78c1c8ec78f"
         ),
         "checkpoint": {
             "status": "paused",
-            "position": 2,
-            "last_event_id": "demo-market-event-002",
-            "current_time": "2026-07-28T13:30:30+00:00",
-        },
-        "recovery": {
-            "remaining_event_ids": [
-                "demo-market-event-003",
-                "demo-market-event-004",
-            ],
-            "final_status": "completed",
-            "final_position": 4,
+            "position": 4,
             "last_event_id": "demo-market-event-004",
             "current_time": "2026-07-28T13:31:30+00:00",
         },
+        "recovery": {
+            "remaining_event_ids": [
+                "demo-market-event-005",
+            ],
+            "final_status": "completed",
+            "final_position": 5,
+            "last_event_id": "demo-market-event-005",
+            "current_time": "2026-07-28T13:32:00+00:00",
+        },
     }
     assert "DEMO" in descriptor["warning"]
+    assert descriptor["strategy_order"]["workspace_path"] == "/strategy-to-risk"
+    assert descriptor["strategy_order"]["allow_decision"]["outcome"] == "allow"
+    assert descriptor["strategy_order"]["reject_decision"]["reason_codes"] == [
+        "maximum_order_quantity_exceeded"
+    ]
 
 
 def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) -> None:
@@ -212,7 +241,7 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         ]
         assert durable_replay is not None
         assert durable_replay.session.status == "paused"
-        assert durable_replay.session.cursor.position == 2
+        assert durable_replay.session.cursor.position == 4
         recovered = MarketDataReplayEngine(
             replay_id=durable_replay.session.replay_id,
             events=durable_replay.events,
@@ -220,8 +249,7 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         )
         recovered.resume()
         assert [event.event_id for event in recovered.iter_remaining()] == [
-            "demo-market-event-003",
-            "demo-market-event-004",
+            "demo-market-event-005",
         ]
         assert recovered.session.status == "completed"
         with factory() as session:
@@ -231,6 +259,189 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         assert unchanged == durable_replay
     finally:
         engine.dispose()
+
+
+def test_demo_v5_restart_exact_replay_conflict_and_concurrent_convergence(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    engine, factory, journey = _demo_m33(target)
+    descriptor = load_demo_workspace_descriptor(target).to_dict()
+    account = PaperAccountApplicationService(session_factory=factory).get_account_detail(
+        account_id=journey["account_id"]
+    ).account
+    market = descriptor["market_time"]
+    runtime = create_moving_average_crossover_runtime_reference(
+        fast_window=2,
+        slow_window=3,
+        target_position_quantity=PaperQuantity.parse("10"),
+    )
+    engine.dispose()
+
+    reopened = create_product_database_engine(
+        config=resolve_product_database_config(
+            database_path=DemoWorkspacePaths.from_root(target).database_path
+        )
+    )
+    reopened_factory = create_product_session_factory(engine=reopened)
+    service = StrategyOrderApplicationService(session_factory=reopened_factory)
+    exact = service.evaluate_and_store_strategy_signal(
+        strategy_runtime_reference=runtime,
+        calendar_id=market["calendar_id"],
+        expected_calendar_version=1,
+        trading_session_id=journey["trading_session_id"],
+        replay_id=market["replay_id"],
+        expected_event_stream_digest=market["event_stream_digest"],
+        expected_cursor_position=market["checkpoint"]["position"],
+        expected_signal_event_id=market["checkpoint"]["last_event_id"],
+        instrument_id=journey["instrument_id"],
+        command_idempotency_key="demo-m33-signal-v1",
+        actor="demo-founder",
+        created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+    )
+    assert exact.replayed
+    assert exact.result.signal_id == journey["signal"]["id"]
+    with pytest.raises(StrategyOrderIdempotencyConflictError):
+        service.evaluate_and_store_strategy_signal(
+            strategy_runtime_reference=create_moving_average_crossover_runtime_reference(
+                fast_window=1,
+                slow_window=3,
+                target_position_quantity=PaperQuantity.parse("10"),
+            ),
+            calendar_id=market["calendar_id"],
+            expected_calendar_version=1,
+            trading_session_id=journey["trading_session_id"],
+            replay_id=market["replay_id"],
+            expected_event_stream_digest=market["event_stream_digest"],
+            expected_cursor_position=market["checkpoint"]["position"],
+            expected_signal_event_id=market["checkpoint"]["last_event_id"],
+            instrument_id=journey["instrument_id"],
+            command_idempotency_key="demo-m33-signal-v1",
+            actor="demo-founder",
+            created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+        )
+
+    def alternate(index: int):
+        return StrategyOrderApplicationService(
+            session_factory=reopened_factory
+        ).derive_and_store_order_intent(
+            signal_id=journey["signal"]["id"],
+            account_id=journey["account_id"],
+            expected_account_head_version=account.head_version,
+            expected_account_head_event_id=account.head_event_id,
+            expected_account_head_chain_digest=account.head_chain_digest,
+            command_idempotency_key=f"demo-m33-intent-concurrent-{index}",
+            actor=f"demo-concurrent-{index}",
+            created_at=datetime(2030, 1, index + 1, tzinfo=timezone.utc),
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = tuple(pool.map(alternate, (1, 2)))
+    assert {item.result.intent_id for item in results} == {journey["intent"]["id"]}
+    assert not any(item.replayed for item in results)
+    reopened.dispose()
+
+
+def test_demo_v5_stale_authority_and_corruption_fail_closed_without_repair(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    engine, factory, journey = _demo_m33(target)
+    descriptor = load_demo_workspace_descriptor(target).to_dict()
+    service = StrategyOrderApplicationService(session_factory=factory)
+    with engine.connect() as connection:
+        before = connection.exec_driver_sql(
+            "SELECT COUNT(*) FROM strategy_order_command_receipts"
+        ).scalar_one()
+    with pytest.raises(StrategyOrderStaleAuthorityError):
+        service.derive_and_store_order_intent(
+            signal_id=journey["signal"]["id"],
+            account_id=journey["account_id"],
+            expected_account_head_version=999,
+            expected_account_head_event_id="stale-event",
+            expected_account_head_chain_digest="0" * 64,
+            command_idempotency_key="demo-stale-account",
+            actor="demo-founder",
+            created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+        )
+    runtime = create_moving_average_crossover_runtime_reference(
+        fast_window=2,
+        slow_window=3,
+        target_position_quantity=PaperQuantity.parse("10"),
+    )
+    with pytest.raises(StrategyOrderStaleAuthorityError):
+        service.evaluate_and_store_strategy_signal(
+            strategy_runtime_reference=runtime,
+            calendar_id=descriptor["market_time"]["calendar_id"],
+            expected_calendar_version=1,
+            trading_session_id=journey["trading_session_id"],
+            replay_id=descriptor["market_time"]["replay_id"],
+            expected_event_stream_digest="0" * 64,
+            expected_cursor_position=4,
+            expected_signal_event_id="demo-market-event-004",
+            instrument_id=journey["instrument_id"],
+            command_idempotency_key="demo-stale-market",
+            actor="demo-founder",
+            created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+        )
+    with engine.connect() as connection:
+        after = connection.exec_driver_sql(
+            "SELECT COUNT(*) FROM strategy_order_command_receipts"
+        ).scalar_one()
+    assert after == before
+    engine.dispose()
+
+    database = DemoWorkspacePaths.from_root(target).database_path
+    with sqlite3.connect(database) as connection:
+        connection.execute("DROP TRIGGER trg_strategy_order_command_receipts_no_update")
+        connection.execute(
+            "UPDATE strategy_order_command_receipts SET result_digest = ? "
+            "WHERE namespace = ? AND command_idempotency_key = ?",
+            (
+                "f" * 64,
+                "evaluate_strategy_signal",
+                "demo-m33-signal-v1",
+            ),
+        )
+        connection.commit()
+    with pytest.raises(DemoWorkspaceUnavailableError):
+        install_demo_workspace(
+            source_root=DEMO_SOURCE,
+            workspace_root=target,
+            workspace_mode="demo",
+            alembic_config_path=ALEMBIC_CONFIG,
+        )
+    with sqlite3.connect(database) as connection:
+        persisted = connection.execute(
+            "SELECT result_digest FROM strategy_order_command_receipts "
+            "WHERE namespace = ? AND command_idempotency_key = ?",
+            ("evaluate_strategy_signal", "demo-m33-signal-v1"),
+        ).fetchone()
+    assert persisted == ("f" * 64,)
+    corrupt_engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=database)
+    )
+    corrupt_service = StrategyOrderApplicationService(
+        session_factory=create_product_session_factory(engine=corrupt_engine)
+    )
+    with pytest.raises(StrategyOrderCorruptAuthorityError):
+        corrupt_service.evaluate_and_store_strategy_signal(
+            strategy_runtime_reference=runtime,
+            calendar_id=descriptor["market_time"]["calendar_id"],
+            expected_calendar_version=1,
+            trading_session_id=journey["trading_session_id"],
+            replay_id=descriptor["market_time"]["replay_id"],
+            expected_event_stream_digest=descriptor["market_time"]["event_stream_digest"],
+            expected_cursor_position=4,
+            expected_signal_event_id="demo-market-event-004",
+            instrument_id=journey["instrument_id"],
+            command_idempotency_key="demo-m33-signal-v1",
+            actor="demo-founder",
+            created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+        )
+    corrupt_engine.dispose()
 
 
 def test_prior_dataset_marker_is_refused_without_reinstall_or_mutation(
@@ -480,10 +691,10 @@ def test_conflicting_dataset_replay_is_refused_without_changes(
         _install(source, target)
 
     assert (target / ".demo-workspace-install.json").read_bytes() == marker_before
-    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 4
+    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 5
 
 
-def test_descriptor_requires_exact_dataset_version_four(tmp_path: Path) -> None:
+def test_descriptor_requires_exact_dataset_version_five(tmp_path: Path) -> None:
     target = tmp_path / "demo-workspace"
     _install(DEMO_SOURCE, target)
     descriptor_path = target / "workspace-descriptor.json"

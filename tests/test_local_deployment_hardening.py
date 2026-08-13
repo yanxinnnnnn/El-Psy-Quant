@@ -234,7 +234,7 @@ def test_demo_verification_reads_complete_descriptor_journey_without_changes(
         mode="demo",
         schema_revision=CURRENT_PRODUCT_SCHEMA_REVISION,
         dataset_id="founder-demo-workspace",
-        dataset_version=4,
+        dataset_version=5,
     )
     assert _tree_digest(root) == before
 

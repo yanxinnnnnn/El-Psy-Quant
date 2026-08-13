@@ -694,6 +694,7 @@ function isDemoWorkspaceDescriptor(
     "portfolio_review_example",
     "paper_account",
     "market_time",
+    "strategy_order",
   ])) {
     return false;
   }
@@ -704,9 +705,9 @@ function isDemoWorkspaceDescriptor(
         .filter(isString)
     : [];
   return (
-    value.schema_version === 4 &&
+    value.schema_version === 5 &&
     isString(value.dataset_id) &&
-    value.dataset_version === 4 &&
+    value.dataset_version === 5 &&
     isString(value.display_name) &&
     isString(value.warning) &&
     isString(value.canonical_strategy_name) &&
@@ -819,7 +820,53 @@ function isDemoWorkspaceDescriptor(
     isNormalizedNonblankString(value.market_time.recovery.last_event_id) &&
     value.market_time.recovery.last_event_id ===
       value.market_time.recovery.remaining_event_ids.at(-1) &&
-    isNormalizedNonblankString(value.market_time.recovery.current_time)
+    isNormalizedNonblankString(value.market_time.recovery.current_time) &&
+    isObject(value.strategy_order) &&
+    hasOnlyKeys(value.strategy_order, [
+      "workspace_path",
+      "account_id",
+      "trading_session_id",
+      "instrument_id",
+      "runtime",
+      "signal",
+      "intent",
+      "allow_decision",
+      "reject_decision",
+    ]) &&
+    value.strategy_order.workspace_path === "/strategy-to-risk" &&
+    isNormalizedNonblankString(value.strategy_order.account_id) &&
+    isNormalizedNonblankString(value.strategy_order.trading_session_id) &&
+    isNormalizedNonblankString(value.strategy_order.instrument_id) &&
+    isObject(value.strategy_order.runtime) &&
+    hasOnlyKeys(value.strategy_order.runtime, [
+      "fast_window", "slow_window", "target_position_quantity",
+    ]) &&
+    Number.isInteger(value.strategy_order.runtime.fast_window) &&
+    Number.isInteger(value.strategy_order.runtime.slow_window) &&
+    isNormalizedNonblankString(
+      value.strategy_order.runtime.target_position_quantity,
+    ) &&
+    [value.strategy_order.signal, value.strategy_order.intent].every(
+      (authority) => isObject(authority) &&
+        hasOnlyKeys(authority, ["id", "digest"]) &&
+        isNormalizedNonblankString(authority.id) &&
+        typeof authority.digest === "string" &&
+        /^[0-9a-f]{64}$/.test(authority.digest),
+    ) &&
+    [
+      [value.strategy_order.allow_decision, "allow", []],
+      [value.strategy_order.reject_decision, "reject", [
+        "maximum_order_quantity_exceeded",
+      ]],
+    ].every(([authority, outcome, reasonCodes]) =>
+      isObject(authority) &&
+      hasOnlyKeys(authority, ["id", "digest", "outcome", "reason_codes"]) &&
+      isNormalizedNonblankString(authority.id) &&
+      typeof authority.digest === "string" &&
+      /^[0-9a-f]{64}$/.test(authority.digest) &&
+      authority.outcome === outcome &&
+      JSON.stringify(authority.reason_codes) === JSON.stringify(reasonCodes)
+    )
   );
 }
 

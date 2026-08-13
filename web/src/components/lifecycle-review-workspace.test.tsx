@@ -31,8 +31,10 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
   const marketTimeCalendar = marketTime.calendar as Record<string, unknown>;
   const marketTimeSessions = marketTime.sessions as Array<Record<string, unknown>>;
   const marketTimeExpected = marketTime.expected as Record<string, unknown>;
+  const strategyOrder = demoSourceJson("strategy_order/strategy-to-risk-journey.json");
+  const strategyOrderExpected = strategyOrder.expected as Record<string, unknown>;
   return {
-    schema_version: manifest.schema_version as 4,
+    schema_version: manifest.schema_version as 5,
     dataset_id: manifest.dataset_id as string,
     dataset_version: manifest.dataset_version as number,
     display_name: manifest.display_name as string,
@@ -78,6 +80,17 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
         last_event_id: marketTimeExpected.recovery_last_event_id as string,
         current_time: marketTimeExpected.recovery_current_time as string,
       },
+    },
+    strategy_order: {
+      workspace_path: "/strategy-to-risk",
+      account_id: strategyOrder.account_id as string,
+      trading_session_id: strategyOrder.trading_session_id as string,
+      instrument_id: strategyOrder.instrument_id as string,
+      runtime: strategyOrder.runtime as DemoWorkspaceDescriptorResponse["strategy_order"]["runtime"],
+      signal: strategyOrderExpected.signal as DemoWorkspaceDescriptorResponse["strategy_order"]["signal"],
+      intent: strategyOrderExpected.intent as DemoWorkspaceDescriptorResponse["strategy_order"]["intent"],
+      allow_decision: strategyOrderExpected.allow_decision as DemoWorkspaceDescriptorResponse["strategy_order"]["allow_decision"],
+      reject_decision: strategyOrderExpected.reject_decision as DemoWorkspaceDescriptorResponse["strategy_order"]["reject_decision"],
     },
   };
 }

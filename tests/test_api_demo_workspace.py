@@ -52,8 +52,8 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
 
     assert response.status_code == 200
     descriptor = DemoWorkspaceDescriptorResponse.model_validate(response.json())
-    assert descriptor.schema_version == 4
-    assert descriptor.dataset_version == 4
+    assert descriptor.schema_version == 5
+    assert descriptor.dataset_version == 5
     assert descriptor.dataset_id == "founder-demo-workspace"
     assert descriptor.comparison_candidate_job_ids == [
         "16000000-0000-4000-8000-000000000001",
@@ -98,15 +98,21 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
         "demo-xnys-2026-07-29-regular",
     ]
     assert descriptor.market_time.replay_id == "demo-market-replay-001"
-    assert descriptor.market_time.event_count == 4
+    assert descriptor.market_time.event_count == 5
     assert descriptor.market_time.checkpoint.status == "paused"
-    assert descriptor.market_time.checkpoint.position == 2
+    assert descriptor.market_time.checkpoint.position == 4
     assert descriptor.market_time.recovery.remaining_event_ids == [
-        "demo-market-event-003",
-        "demo-market-event-004",
+        "demo-market-event-005",
     ]
     assert descriptor.market_time.recovery.final_status == "completed"
-    assert descriptor.market_time.recovery.final_position == 4
+    assert descriptor.market_time.recovery.final_position == 5
+    assert descriptor.strategy_order.workspace_path == "/strategy-to-risk"
+    assert descriptor.strategy_order.signal.id.startswith("sig_")
+    assert descriptor.strategy_order.intent.id.startswith("oi_")
+    assert descriptor.strategy_order.allow_decision.outcome == "allow"
+    assert descriptor.strategy_order.reject_decision.reason_codes == [
+        "maximum_order_quantity_exceeded"
+    ]
     assert str(installed_demo) not in response.text
     assert "paper_run_artifact.json" not in response.text
 

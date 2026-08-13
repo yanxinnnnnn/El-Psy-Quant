@@ -38,6 +38,9 @@ from el_psy_quant.application.paper_jobs import read_paper_job_result
 from el_psy_quant.application.paper_accounts import (
     PaperAccountApplicationService,
 )
+from el_psy_quant.application.strategy_order import (
+    StrategyOrderApplicationService,
+)
 from el_psy_quant.application.paper_runs import (
     PaperAccountStateCommandInput,
     PaperFillCommandInput,
@@ -84,6 +87,7 @@ from el_psy_quant.persistence import (
     SqlAlchemyPaperJobAttemptRepository,
     SqlAlchemyPaperJobRepository,
     SqlAlchemyPaperJobResultReferenceRepository,
+    SqlAlchemyStrategyOrderCommandReceiptRepository,
     create_product_database_engine,
     create_product_session_factory,
     create_market_data_replay_record,
@@ -92,6 +96,11 @@ from el_psy_quant.persistence import (
     create_paper_job_result_reference,
     prepare_paper_run_request_for_persistence,
     resolve_product_database_config,
+)
+from el_psy_quant.persistence.strategy_order_records import (
+    COMMAND_NAMESPACE_DERIVE_INTENT,
+    COMMAND_NAMESPACE_EVALUATE_RISK,
+    COMMAND_NAMESPACE_EVALUATE_SIGNAL,
 )
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 from el_psy_quant.persistence.schema import (
@@ -110,12 +119,17 @@ from el_psy_quant.portfolio_review import (
     create_portfolio_review_scenario_pair,
     create_portfolio_review_source,
 )
+from el_psy_quant.strategy_order import (
+    OrderIntent,
+    create_long_only_cash_risk_policy_reference,
+    create_moving_average_crossover_runtime_reference,
+)
 
 if TYPE_CHECKING:
     from el_psy_quant.api.portfolio_review_schemas import PortfolioReviewCreateRequest
 
-DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 4
-DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 4
+DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 5
+DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 5
 DEMO_WORKSPACE_INSTALL_SCHEMA_VERSION = 1
 DEMO_WORKSPACE_MODE = "demo"
 STANDARD_WORKSPACE_MODE = "standard"
@@ -137,6 +151,7 @@ _SOURCE_ROOT_DIRECTORIES = (
     "portfolio_reviews",
     "paper_accounts",
     "market_time",
+    "strategy_order",
 )
 _SOURCE_ROOT_FILES = ("README.md", WORKSPACE_MANIFEST_FILE_NAME)
 _INSTALLED_CHILDREN = (
@@ -211,6 +226,10 @@ class _MarketTimeExampleSource(_StrictSourceModel):
     request_relative_path: str
 
 
+class _StrategyOrderExampleSource(_StrictSourceModel):
+    request_relative_path: str
+
+
 class _DemoTradingCalendar(_StrictSourceModel):
     schema_version: Literal[1]
     id: str
@@ -261,6 +280,52 @@ class _DemoMarketTimeJourney(_StrictSourceModel):
     events: tuple[_DemoMarketDataEvent, ...]
     checkpoint_after_event_count: int
     expected: _DemoMarketTimeExpected
+
+
+class _DemoStrategyRuntime(_StrictSourceModel):
+    fast_window: int
+    slow_window: int
+    target_position_quantity: str
+
+
+class _DemoStrategyCommand(_StrictSourceModel):
+    idempotency_key: str
+    actor: str
+    created_at: str
+
+
+class _DemoRiskCommand(_DemoStrategyCommand):
+    maximum_order_quantity: str | None = None
+
+
+class _DemoStrategyExpectedAuthority(_StrictSourceModel):
+    id: str
+    digest: str
+
+
+class _DemoStrategyExpectedDecision(_DemoStrategyExpectedAuthority):
+    outcome: Literal["allow", "reject"]
+    reason_codes: tuple[str, ...]
+
+
+class _DemoStrategyOrderExpected(_StrictSourceModel):
+    signal: _DemoStrategyExpectedAuthority
+    intent: _DemoStrategyExpectedAuthority
+    allow_decision: _DemoStrategyExpectedDecision
+    reject_decision: _DemoStrategyExpectedDecision
+
+
+class _DemoStrategyOrderJourney(_StrictSourceModel):
+    schema_version: Literal[1]
+    account_id: str
+    trading_session_id: str
+    instrument_id: str
+    runtime: _DemoStrategyRuntime
+    signal: _DemoStrategyCommand
+    intent: _DemoStrategyCommand
+    allow_risk: _DemoRiskCommand
+    reject_risk: _DemoRiskCommand
+    expected: _DemoStrategyOrderExpected
 
 
 class _DemoPaperAccountCreation(_StrictSourceModel):
@@ -343,7 +408,7 @@ class _DemoPaperAccountJourney(_StrictSourceModel):
 
 
 class _DemoWorkspaceSourceManifest(_StrictSourceModel):
-    schema_version: Literal[4]
+    schema_version: Literal[5]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -359,6 +424,7 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     portfolio_review_example: _PortfolioReviewExampleSource
     paper_account_example: _PaperAccountExampleSource
     market_time_example: _MarketTimeExampleSource
+    strategy_order_example: _StrategyOrderExampleSource
 
     @field_validator(
         "dataset_id",
@@ -385,8 +451,8 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     def require_coherent_journey(self) -> _DemoWorkspaceSourceManifest:
         if "DEMO" not in self.warning.upper():
             raise ValueError("demo warning must identify demo data")
-        if self.dataset_version != 4:
-            raise ValueError("demo dataset version must be 4")
+        if self.dataset_version != 5:
+            raise ValueError("demo dataset version must be 5")
         if len(self.paper_jobs) < 2:
             raise ValueError("at least two paper jobs are required")
         job_ids = tuple(job.job_id for job in self.paper_jobs)
@@ -466,6 +532,7 @@ class _ValidatedDemoSource:
     portfolio_review_scenario_pair: PortfolioReviewScenarioPair
     paper_account_journey: _DemoPaperAccountJourney
     market_time: _ValidatedDemoMarketTime
+    strategy_order_journey: _DemoStrategyOrderJourney
     descriptor: DemoWorkspaceDescriptor
 
 
@@ -566,6 +633,15 @@ def _uuid(value: object) -> str:
         raise DemoWorkspaceSourceInvalidError("demo source UUID is invalid") from exc
     if str(parsed) != text:
         raise DemoWorkspaceSourceInvalidError("demo source UUID is invalid")
+    return text
+
+
+def _digest(value: object) -> str:
+    text = _normalized_text(value)
+    if len(text) != 64 or any(
+        character not in "0123456789abcdef" for character in text
+    ):
+        raise DemoWorkspaceSourceInvalidError("demo source digest is invalid")
     return text
 
 
@@ -1132,6 +1208,93 @@ def _validate_market_time_journey(
     )
 
 
+def _validate_strategy_order_journey(
+    payload: dict[str, Any],
+    *,
+    account_journey: _DemoPaperAccountJourney,
+    market_time: _ValidatedDemoMarketTime,
+) -> _DemoStrategyOrderJourney:
+    try:
+        journey = _DemoStrategyOrderJourney.model_validate(payload)
+        create_moving_average_crossover_runtime_reference(
+            fast_window=journey.runtime.fast_window,
+            slow_window=journey.runtime.slow_window,
+            target_position_quantity=PaperQuantity.parse(
+                journey.runtime.target_position_quantity
+            ),
+        )
+        command_times = tuple(
+            _utc_timestamp(item.created_at)
+            for item in (
+                journey.signal,
+                journey.intent,
+                journey.allow_risk,
+                journey.reject_risk,
+            )
+        )
+        reject_limit = PaperQuantity.parse(
+            cast(str, journey.reject_risk.maximum_order_quantity)
+        )
+    except (TypeError, ValueError) as exc:
+        raise DemoWorkspaceSourceInvalidError(
+            "demo strategy-to-risk journey is invalid"
+        ) from exc
+    expected = journey.expected
+    authorities = (
+        expected.signal,
+        expected.intent,
+        expected.allow_decision,
+        expected.reject_decision,
+    )
+    checkpoint = market_time.replay.session.cursor
+    if (
+        journey.account_id != account_journey.account_id
+        or journey.trading_session_id not in {
+            item.id for item in market_time.sessions
+        }
+        or checkpoint.position < journey.runtime.slow_window
+        or checkpoint.last_event_id is None
+        or market_time.replay.events[checkpoint.position - 1].instrument_id
+        != journey.instrument_id
+        or tuple(sorted(command_times)) != command_times
+        or journey.allow_risk.maximum_order_quantity is not None
+        or reject_limit.decimal_value
+        >= PaperQuantity.parse(
+            journey.runtime.target_position_quantity
+        ).decimal_value
+        or expected.allow_decision.outcome != "allow"
+        or expected.allow_decision.reason_codes
+        or expected.reject_decision.outcome != "reject"
+        or expected.reject_decision.reason_codes
+        != ("maximum_order_quantity_exceeded",)
+        or any(
+            not item.id or len(item.digest) != 64
+            for item in authorities
+        )
+        or len({item.id for item in authorities}) != len(authorities)
+    ):
+        raise DemoWorkspaceSourceInvalidError(
+            "demo strategy-to-risk journey is inconsistent"
+        )
+    for value in (
+        journey.account_id,
+        journey.trading_session_id,
+        journey.instrument_id,
+        journey.signal.idempotency_key,
+        journey.intent.idempotency_key,
+        journey.allow_risk.idempotency_key,
+        journey.reject_risk.idempotency_key,
+        *(item.actor for item in (
+            journey.signal,
+            journey.intent,
+            journey.allow_risk,
+            journey.reject_risk,
+        )),
+    ):
+        _normalized_text(value)
+    return journey
+
+
 def _descriptor_payload(
     *,
     manifest: _DemoWorkspaceSourceManifest,
@@ -1141,6 +1304,7 @@ def _descriptor_payload(
     portfolio_review_payload: dict[str, Any],
     paper_account_journey: _DemoPaperAccountJourney,
     market_time: _ValidatedDemoMarketTime,
+    strategy_order_journey: _DemoStrategyOrderJourney,
 ) -> dict[str, Any]:
     checkpoint = market_time.replay.session.cursor
     recovered = market_time.recovered_session.cursor
@@ -1208,6 +1372,21 @@ def _descriptor_payload(
                 if recovered.current_event_time is not None
                 else None,
             },
+        },
+        "strategy_order": {
+            "workspace_path": "/strategy-to-risk",
+            "account_id": strategy_order_journey.account_id,
+            "trading_session_id": strategy_order_journey.trading_session_id,
+            "instrument_id": strategy_order_journey.instrument_id,
+            "runtime": strategy_order_journey.runtime.model_dump(),
+            "signal": strategy_order_journey.expected.signal.model_dump(),
+            "intent": strategy_order_journey.expected.intent.model_dump(),
+            "allow_decision": (
+                strategy_order_journey.expected.allow_decision.model_dump()
+            ),
+            "reject_decision": (
+                strategy_order_journey.expected.reject_decision.model_dump()
+            ),
         },
     }
 
@@ -1378,6 +1557,16 @@ def validate_demo_workspace_source(
                 )
             )
         )
+        strategy_order_journey = _validate_strategy_order_journey(
+            _read_json_object(
+                _relative_source_path(
+                    root,
+                    manifest.strategy_order_example.request_relative_path,
+                )
+            ),
+            account_journey=paper_account_journey,
+            market_time=market_time,
+        )
         descriptor = DemoWorkspaceDescriptor(
             payload=_descriptor_payload(
                 manifest=manifest,
@@ -1387,6 +1576,7 @@ def validate_demo_workspace_source(
                 portfolio_review_payload=portfolio_review_payload,
                 paper_account_journey=paper_account_journey,
                 market_time=market_time,
+                strategy_order_journey=strategy_order_journey,
             )
         )
         _validate_descriptor_payload(descriptor.to_dict())
@@ -1404,6 +1594,7 @@ def validate_demo_workspace_source(
             portfolio_review_scenario_pair=portfolio_review_scenario_pair,
             paper_account_journey=paper_account_journey,
             market_time=market_time,
+            strategy_order_journey=strategy_order_journey,
             descriptor=descriptor,
         )
     except DemoWorkspaceSourceInvalidError:
@@ -1432,12 +1623,13 @@ def _validate_descriptor_payload(payload: object) -> None:
             "portfolio_review_example",
             "paper_account",
             "market_time",
+            "strategy_order",
         },
     )
     if root["schema_version"] != DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["dataset_id"])
-    if type(root["dataset_version"]) is not int or root["dataset_version"] != 4:
+    if type(root["dataset_version"]) is not int or root["dataset_version"] != 5:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["display_name"])
     if "DEMO" not in _normalized_text(root["warning"]).upper():
@@ -1610,6 +1802,70 @@ def _validate_descriptor_payload(payload: object) -> None:
         _normalized_text(value)
     _utc_timestamp(checkpoint["current_time"])
     _utc_timestamp(recovery["current_time"])
+    strategy_order = _exact_object(
+        root["strategy_order"],
+        {
+            "workspace_path",
+            "account_id",
+            "trading_session_id",
+            "instrument_id",
+            "runtime",
+            "signal",
+            "intent",
+            "allow_decision",
+            "reject_decision",
+        },
+    )
+    if strategy_order["workspace_path"] != "/strategy-to-risk":
+        raise DemoWorkspaceSourceInvalidError(
+            "demo descriptor strategy-to-risk journey is invalid"
+        )
+    runtime = _exact_object(
+        strategy_order["runtime"],
+        {"fast_window", "slow_window", "target_position_quantity"},
+    )
+    try:
+        create_moving_average_crossover_runtime_reference(
+            fast_window=runtime["fast_window"],
+            slow_window=runtime["slow_window"],
+            target_position_quantity=PaperQuantity.parse(
+                runtime["target_position_quantity"]
+            ),
+        )
+    except (TypeError, ValueError) as exc:
+        raise DemoWorkspaceSourceInvalidError(
+            "demo descriptor strategy-to-risk journey is invalid"
+        ) from exc
+    for value in (
+        strategy_order["account_id"],
+        strategy_order["trading_session_id"],
+        strategy_order["instrument_id"],
+    ):
+        _normalized_text(value)
+    for name, outcome, reasons in (
+        ("allow_decision", "allow", []),
+        (
+            "reject_decision",
+            "reject",
+            ["maximum_order_quantity_exceeded"],
+        ),
+    ):
+        authority = _exact_object(
+            strategy_order[name],
+            {"id", "digest", "outcome", "reason_codes"},
+        )
+        if authority["outcome"] != outcome or authority["reason_codes"] != reasons:
+            raise DemoWorkspaceSourceInvalidError(
+                "demo descriptor strategy-to-risk journey is invalid"
+            )
+        _normalized_text(authority["id"])
+        _digest(authority["digest"])
+    for name in ("signal", "intent"):
+        authority = _exact_object(
+            strategy_order[name], {"id", "digest"}
+        )
+        _normalized_text(authority["id"])
+        _digest(authority["digest"])
 
 
 @contextmanager
@@ -2085,6 +2341,214 @@ def _validate_seeded_demo_market_time(
         engine.dispose()
 
 
+def _strategy_order_policy(command: _DemoRiskCommand):
+    return create_long_only_cash_risk_policy_reference(
+        maximum_order_quantity=(
+            None
+            if command.maximum_order_quantity is None
+            else PaperQuantity.parse(command.maximum_order_quantity)
+        )
+    )
+
+
+def _seed_demo_strategy_order(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    factory = create_product_session_factory(engine=engine)
+    journey = source.strategy_order_journey
+    account_service = PaperAccountApplicationService(session_factory=factory)
+    service = StrategyOrderApplicationService(session_factory=factory)
+    checkpoint = source.market_time.replay.session.cursor
+    current_event = source.market_time.replay.events[checkpoint.position - 1]
+    try:
+        account = account_service.get_account_detail(
+            account_id=journey.account_id
+        ).account
+        runtime = create_moving_average_crossover_runtime_reference(
+            fast_window=journey.runtime.fast_window,
+            slow_window=journey.runtime.slow_window,
+            target_position_quantity=PaperQuantity.parse(
+                journey.runtime.target_position_quantity
+            ),
+        )
+        signal = service.evaluate_and_store_strategy_signal(
+            strategy_runtime_reference=runtime,
+            calendar_id=source.market_time.calendar.id,
+            expected_calendar_version=source.market_time.calendar.calendar_version,
+            trading_session_id=journey.trading_session_id,
+            replay_id=source.market_time.replay.session.replay_id,
+            expected_event_stream_digest=checkpoint.event_stream_digest,
+            expected_cursor_position=checkpoint.position,
+            expected_signal_event_id=cast(str, checkpoint.last_event_id),
+            expected_signal_time=current_event.event_time,
+            instrument_id=journey.instrument_id,
+            command_idempotency_key=journey.signal.idempotency_key,
+            actor=journey.signal.actor,
+            created_at=_utc_timestamp(journey.signal.created_at),
+        )
+        intent = service.derive_and_store_order_intent(
+            signal_id=signal.result.signal_id,
+            account_id=journey.account_id,
+            expected_account_head_version=account.head_version,
+            expected_account_head_event_id=account.head_event_id,
+            expected_account_head_chain_digest=account.head_chain_digest,
+            command_idempotency_key=journey.intent.idempotency_key,
+            actor=journey.intent.actor,
+            created_at=_utc_timestamp(journey.intent.created_at),
+        )
+        if type(intent.result) is not OrderIntent:
+            raise DemoWorkspaceUnavailableError(
+                "demo strategy-to-risk intent is not executable"
+            )
+        decisions = []
+        for command in (journey.allow_risk, journey.reject_risk):
+            decisions.append(
+                service.evaluate_and_store_pre_trade_risk(
+                    intent_id=intent.result.intent_id,
+                    risk_policy_reference=_strategy_order_policy(command),
+                    expected_account_head_version=account.head_version,
+                    expected_account_head_event_id=account.head_event_id,
+                    expected_account_head_chain_digest=account.head_chain_digest,
+                    expected_calendar_id=source.market_time.calendar.id,
+                    expected_calendar_version=(
+                        source.market_time.calendar.calendar_version
+                    ),
+                    expected_trading_session_id=journey.trading_session_id,
+                    expected_replay_id=source.market_time.replay.session.replay_id,
+                    expected_event_stream_digest=checkpoint.event_stream_digest,
+                    expected_cursor_position=checkpoint.position,
+                    expected_current_event_id=cast(str, checkpoint.last_event_id),
+                    expected_current_event_time=current_event.event_time,
+                    expected_instrument_id=journey.instrument_id,
+                    command_idempotency_key=command.idempotency_key,
+                    actor=command.actor,
+                    created_at=_utc_timestamp(command.created_at),
+                )
+            )
+        actual = (
+            (signal.result.signal_id, signal.result.signal_digest),
+            (intent.result.intent_id, intent.result.intent_digest),
+            (
+                decisions[0].result.decision_id,
+                decisions[0].result.decision_digest,
+                decisions[0].result.outcome,
+                decisions[0].result.reason_codes,
+            ),
+            (
+                decisions[1].result.decision_id,
+                decisions[1].result.decision_digest,
+                decisions[1].result.outcome,
+                decisions[1].result.reason_codes,
+            ),
+        )
+        expected = journey.expected
+        if actual != (
+            (expected.signal.id, expected.signal.digest),
+            (expected.intent.id, expected.intent.digest),
+            (
+                expected.allow_decision.id,
+                expected.allow_decision.digest,
+                expected.allow_decision.outcome,
+                expected.allow_decision.reason_codes,
+            ),
+            (
+                expected.reject_decision.id,
+                expected.reject_decision.digest,
+                expected.reject_decision.outcome,
+                expected.reject_decision.reason_codes,
+            ),
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "demo strategy-to-risk authority is inconsistent: "
+                + repr(actual)
+            )
+    finally:
+        engine.dispose()
+
+
+def _validate_seeded_demo_strategy_order(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    """Read and strictly reconstruct Demo M33 authority without rerunning it."""
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    factory = create_product_session_factory(engine=engine)
+    journey = source.strategy_order_journey
+    expected = journey.expected
+    service = StrategyOrderApplicationService(session_factory=factory)
+    try:
+        signal = service.get_strategy_signal(signal_id=expected.signal.id)
+        intent = service.get_order_intent(intent_id=expected.intent.id)
+        allow = service.get_pre_trade_risk_decision(
+            decision_id=expected.allow_decision.id
+        )
+        reject = service.get_pre_trade_risk_decision(
+            decision_id=expected.reject_decision.id
+        )
+        if (
+            signal.signal_digest != expected.signal.digest
+            or intent.intent_digest != expected.intent.digest
+            or allow.decision_digest != expected.allow_decision.digest
+            or allow.outcome != expected.allow_decision.outcome
+            or allow.reason_codes != expected.allow_decision.reason_codes
+            or reject.decision_digest != expected.reject_decision.digest
+            or reject.outcome != expected.reject_decision.outcome
+            or reject.reason_codes != expected.reject_decision.reason_codes
+            or service.list_strategy_signals(limit=10).items != (signal,)
+            or service.list_order_intents(limit=10).items != (intent,)
+            or service.list_pre_trade_risk_decisions(limit=10).items
+            != (reject, allow)
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "demo strategy-to-risk authority is inconsistent"
+            )
+        receipts = (
+            (
+                COMMAND_NAMESPACE_EVALUATE_SIGNAL,
+                journey.signal.idempotency_key,
+                signal,
+            ),
+            (
+                COMMAND_NAMESPACE_DERIVE_INTENT,
+                journey.intent.idempotency_key,
+                intent,
+            ),
+            (
+                COMMAND_NAMESPACE_EVALUATE_RISK,
+                journey.allow_risk.idempotency_key,
+                allow,
+            ),
+            (
+                COMMAND_NAMESPACE_EVALUATE_RISK,
+                journey.reject_risk.idempotency_key,
+                reject,
+            ),
+        )
+        with factory() as session:
+            repository = SqlAlchemyStrategyOrderCommandReceiptRepository(
+                session=session
+            )
+            for namespace, key, result in receipts:
+                receipt = repository.get(
+                    namespace=namespace,
+                    command_idempotency_key=key,
+                )
+                if receipt is None or repository.resolve(receipt=receipt) != result:
+                    raise DemoWorkspaceUnavailableError(
+                        "demo strategy-to-risk receipt is inconsistent"
+                    )
+    finally:
+        engine.dispose()
+
+
 def _validate_seeded_portfolio_review(
     *,
     paths: DemoWorkspacePaths,
@@ -2342,6 +2806,14 @@ def _validate_installed_workspace(
         raise DemoWorkspaceUnavailableError(
             "demo market time is unavailable"
         ) from exc
+    try:
+        _validate_seeded_demo_strategy_order(paths=paths, source=source)
+    except DemoWorkspaceUnavailableError:
+        raise
+    except Exception as exc:
+        raise DemoWorkspaceUnavailableError(
+            "demo strategy-to-risk authority is unavailable"
+        ) from exc
     installed_descriptor = _read_json_object(paths.descriptor_path)
     if _canonical_json(installed_descriptor) != _canonical_json(
         source.descriptor.to_dict()
@@ -2475,6 +2947,7 @@ def install_demo_workspace(
         _seed_portfolio_review(paths=staging, source=source)
         _seed_demo_paper_account(paths=staging, source=source)
         _seed_demo_market_time(paths=staging, source=source)
+        _seed_demo_strategy_order(paths=staging, source=source)
         _write_json(staging.descriptor_path, source.descriptor.to_dict())
         _write_json(staging.marker_path, _install_marker(source))
         _validate_installed_workspace(paths=staging, source=source)

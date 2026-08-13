@@ -311,8 +311,8 @@ S200 account-bound Order Intent — Complete
 S201 pre-trade risk decision/evidence — Complete
 S202 persistence, migration, concurrency, and application service — Complete
 S203 versioned API, errors, audit, and generated contracts — Complete
-S204 bilingual Founder workspace — current implementation sprint
-S205 Demo v5, recovery, and acceptance hardening — Planned
+S204 bilingual Founder workspace — Complete
+S205 Demo v5, recovery, and acceptance hardening — current implementation sprint
 S206 M33 closeout and M34 handoff — Planned
 ```
 

@@ -46,9 +46,9 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 4,
+  schema_version: 5,
   dataset_id: "dataset-from-api",
-  dataset_version: 4,
+  dataset_version: 5,
   display_name: "Founder Demo Workspace",
   warning: "Disposable example evidence, not real user data.",
   canonical_strategy_name: "strategy-from-api",
@@ -144,6 +144,17 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
       last_event_id: "event-from-api-d",
       current_time: "2026-07-28T13:31:30+00:00",
     },
+  },
+  strategy_order: {
+    workspace_path: "/strategy-to-risk",
+    account_id: "paper-account-from-api",
+    trading_session_id: "session-from-api-a",
+    instrument_id: "XNYS:AAPL",
+    runtime: { fast_window: 2, slow_window: 3, target_position_quantity: "10" },
+    signal: { id: `sig_${"1".repeat(64)}`, digest: "1".repeat(64) },
+    intent: { id: `oi_${"2".repeat(64)}`, digest: "2".repeat(64) },
+    allow_decision: { id: `risk_decision_${"3".repeat(64)}`, digest: "3".repeat(64), outcome: "allow", reason_codes: [] },
+    reject_decision: { id: `risk_decision_${"4".repeat(64)}`, digest: "4".repeat(64), outcome: "reject", reason_codes: ["maximum_order_quantity_exceeded"] },
   },
 };
 

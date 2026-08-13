@@ -49,8 +49,8 @@ frozen and separate.
 | S201 | Pre-Trade Risk Decision and Evidence Foundation | Complete |
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Complete |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Complete |
-| S204 | Bilingual Founder Strategy-to-Risk Workspace | In Progress |
-| S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Planned |
+| S204 | Bilingual Founder Strategy-to-Risk Workspace | Complete |
+| S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | In Progress |
 | S206 | Milestone 33 Closeout and M34 Handoff | Planned |
 
 ## Sprint 198 Result
@@ -195,9 +195,9 @@ locales.
 
 Sprint 204 adds no domain, persistence, API, OpenAPI, generated-contract, Demo,
 migration, worker, reservation, Paper Account/replay mutation, execution order,
-fill, broker, or live behavior. S204 remains the current implementation sprint
-until Founder merge/acceptance; S205–S206 remain Planned, and the migration head
-is `0010_strategy_order_risk`.
+fill, broker, or live behavior. S204 is Complete. Sprint 205 is the current
+implementation sprint, S206 remains Planned, and the migration head is
+`0010_strategy_order_risk`.
 
 ## Exit Criteria
 

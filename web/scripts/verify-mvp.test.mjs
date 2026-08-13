@@ -261,11 +261,11 @@ describe("non-mutating bilingual MVP verifier", () => {
     ).rejects.not.toThrow(secretBody);
   });
 
-  it("verifies Demo descriptor v4, market-time recovery, seeded review, and Paper Account without product mutation", async () => {
+  it("verifies Demo descriptor v5 and integrated authority without product mutation", async () => {
     const descriptor = {
-      schema_version: 4,
+      schema_version: 5,
       dataset_id: "demo-dataset",
-      dataset_version: 4,
+      dataset_version: 5,
       canonical_strategy_name: "moving_average_crossover",
       research_run: { experiment_slug: "demo-experiment", run_id: "demo-run" },
       evidence_manifests: [{
@@ -317,6 +317,17 @@ describe("non-mutating bilingual MVP verifier", () => {
           last_event_id: "demo-event-d",
           current_time: "2026-07-28T13:31:30+00:00",
         },
+      },
+      strategy_order: {
+        workspace_path: "/strategy-to-risk",
+        account_id: "demo-paper-account",
+        trading_session_id: "demo-session-a",
+        instrument_id: "XNYS:AAPL",
+        runtime: { fast_window: 2, slow_window: 3, target_position_quantity: "10" },
+        signal: { id: `sig_${"1".repeat(64)}`, digest: "1".repeat(64) },
+        intent: { id: `oi_${"2".repeat(64)}`, digest: "2".repeat(64) },
+        allow_decision: { id: `risk_decision_${"3".repeat(64)}`, digest: "3".repeat(64), outcome: "allow", reason_codes: [] },
+        reject_decision: { id: `risk_decision_${"4".repeat(64)}`, digest: "4".repeat(64), outcome: "reject", reason_codes: ["maximum_order_quantity_exceeded"] },
       },
     };
     const { calls, fetcher } = standardFetchRecorder(descriptor);
