@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { PortfolioReviewCreateView } from "@/components/portfolio-review-create-view";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { ApiClientError } from "@/lib/api-client";
-import { render, screen, waitFor } from "@/test/render";
+import { fireEvent, render, screen, waitFor } from "@/test/render";
 import { portfolioReviewDetail } from "@/test/portfolio-review-fixtures";
 
 const apiMocks = vi.hoisted(() => ({
@@ -69,53 +69,55 @@ function response(body: unknown, status = 200): Response {
 }
 
 async function completeMinimumForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText(/^Review ID/), "synthetic-review-175");
-  await user.type(screen.getByLabelText(/^Idempotency-Key/), "Synthetic.Create:175");
-  await user.type(screen.getByLabelText(/^Source ID/), "synthetic-source-175");
-  await user.type(screen.getByLabelText(/^Created by/), "synthetic-founder");
-  await user.type(screen.getByLabelText(/^Created timestamp/), "2026-07-20T00:30:00Z");
-  await user.type(screen.getByLabelText(/^Evaluation frequency/), "synthetic-daily");
+  const set = (element: HTMLElement, value: string) =>
+    fireEvent.change(element, { target: { value } });
+  set(screen.getByLabelText(/^Review ID/), "synthetic-review-175");
+  set(screen.getByLabelText(/^Idempotency-Key/), "Synthetic.Create:175");
+  set(screen.getByLabelText(/^Source ID/), "synthetic-source-175");
+  set(screen.getByLabelText(/^Created by/), "synthetic-founder");
+  set(screen.getByLabelText(/^Created timestamp/), "2026-07-20T00:30:00Z");
+  set(screen.getByLabelText(/^Evaluation frequency/), "synthetic-daily");
 
   const componentIds = screen.getAllByLabelText(/^Component ID/);
   const strategyIds = screen.getAllByLabelText(/^Strategy ID/);
-  await user.type(componentIds[0], "component-a");
-  await user.type(componentIds[1], "component-b");
-  await user.type(strategyIds[0], "synthetic-strategy-a");
-  await user.type(strategyIds[1], "synthetic-strategy-b");
+  set(componentIds[0], "component-a");
+  set(componentIds[1], "component-b");
+  set(strategyIds[0], "synthetic-strategy-a");
+  set(strategyIds[1], "synthetic-strategy-b");
   const referenceTypes = screen.getAllByLabelText(/^Reference type/);
   const referenceIds = screen.getAllByLabelText(/^Reference ID/);
   await user.selectOptions(referenceTypes[0], "research_run");
   await user.selectOptions(referenceTypes[1], "configured_run");
-  await user.type(referenceIds[0], "synthetic-run-a");
-  await user.type(referenceIds[1], "synthetic-run-b");
+  set(referenceIds[0], "synthetic-run-a");
+  set(referenceIds[1], "synthetic-run-b");
 
   const timestamps = screen.getAllByLabelText(/^Timestamp/);
-  await user.type(timestamps[0], "2026-01-01T00:00:00Z");
-  await user.type(timestamps[1], "2026-01-02T00:00:00Z");
-  await user.type(timestamps[2], "2026-01-03T00:00:00Z");
+  set(timestamps[0], "2026-01-01T00:00:00Z");
+  set(timestamps[1], "2026-01-02T00:00:00Z");
+  set(timestamps[2], "2026-01-03T00:00:00Z");
   const returnsA = screen.getAllByLabelText(/^Return for component-a/);
   const returnsB = screen.getAllByLabelText(/^Return for component-b/);
-  await user.type(returnsA[0], "0.1");
-  await user.type(returnsB[0], "-0.1");
-  await user.type(returnsA[1], "0.2");
-  await user.type(returnsB[1], "-0.2");
-  await user.type(returnsA[2], "0.3");
-  await user.type(returnsB[2], "-0.3");
+  set(returnsA[0], "0.1");
+  set(returnsB[0], "-0.1");
+  set(returnsA[1], "0.2");
+  set(returnsB[1], "-0.2");
+  set(returnsA[2], "0.3");
+  set(returnsB[2], "-0.3");
 
   const scenarioIds = screen.getAllByLabelText(/^Scenario ID/);
   const rationales = screen.getAllByLabelText(/^Rationale/);
-  await user.type(scenarioIds[0], "synthetic-baseline");
-  await user.type(scenarioIds[1], "synthetic-proposed");
-  await user.type(rationales[0], "Synthetic baseline rationale");
-  await user.type(rationales[1], "Synthetic proposed rationale");
-  await user.type(screen.getByLabelText(/^Baseline weight for component-a/), "0.8");
-  await user.type(screen.getByLabelText(/^Baseline weight for component-b/), "0.2");
-  await user.type(screen.getByLabelText(/^Proposed weight for component-a/), "0.4");
-  await user.type(screen.getByLabelText(/^Proposed weight for component-b/), "0.6");
+  set(scenarioIds[0], "synthetic-baseline");
+  set(scenarioIds[1], "synthetic-proposed");
+  set(rationales[0], "Synthetic baseline rationale");
+  set(rationales[1], "Synthetic proposed rationale");
+  set(screen.getByLabelText(/^Baseline weight for component-a/), "0.8");
+  set(screen.getByLabelText(/^Baseline weight for component-b/), "0.2");
+  set(screen.getByLabelText(/^Proposed weight for component-a/), "0.4");
+  set(screen.getByLabelText(/^Proposed weight for component-b/), "0.6");
   await user.selectOptions(screen.getByLabelText(/^Proposed component/), "component-b");
 
-  await user.type(screen.getByLabelText(/^Analysis created by/), "synthetic-analyst");
-  await user.type(screen.getByLabelText(/^Analysis created timestamp/), "2026-07-20T01:00:00Z");
+  set(screen.getByLabelText(/^Analysis created by/), "synthetic-analyst");
+  set(screen.getByLabelText(/^Analysis created timestamp/), "2026-07-20T01:00:00Z");
   await user.click(screen.getByRole("checkbox"));
 }
 
@@ -168,8 +170,12 @@ describe("PortfolioReviewCreateView", () => {
     vi.stubGlobal("fetch", fetcher);
     const user = userEvent.setup();
     renderCreate();
-    await user.type(screen.getByLabelText(/^Review ID/), "preserved-review");
-    await user.type(screen.getAllByLabelText(/Baseline weight/)[0], "1e3");
+    fireEvent.change(screen.getByLabelText(/^Review ID/), {
+      target: { value: "preserved-review" },
+    });
+    fireEvent.change(screen.getAllByLabelText(/Baseline weight/)[0], {
+      target: { value: "1e3" },
+    });
     await user.click(screen.getByRole("button", { name: "Create review" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "No request was sent",

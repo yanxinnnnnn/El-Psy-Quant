@@ -19,9 +19,10 @@ The current product migration chain is exactly:
   -> 0007_paper_account_ledger
   -> 0008_market_time_foundation
   -> 0009_market_time_runtime
+  -> 0010_strategy_order_risk
 ```
 
-`0009_market_time_runtime` is the single current head. Supported Founder
+`0010_strategy_order_risk` is the single current head. Supported Founder
 upgrades move forward to that head. Alembic downgrade is developer/test
 behavior, not a supported Founder recovery path.
 
@@ -326,9 +327,9 @@ stamp Alembic, selectively restore files, or reinstall over the failed
 workspace. Preserve the volume and bounded logs for diagnosis. Recovery
 validation is intentionally non-repairing.
 
-## Sprint 195 Market-Time Demo and Recovery Acceptance
+## Sprint 205 Current Demo v5 and Recovery Acceptance
 
-After the reviewed Sprint 195 image is available, the Founder-owned Demo reset,
+After the reviewed Sprint 205 image is available, the Founder-owned Demo reset,
 startup, verifier, bilingual smoke, browser inspection, restart, and
 return-to-Standard steps remain the commands documented above. Confirm:
 

@@ -344,11 +344,15 @@
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/DemoStrategyReceiptReferenceResponse"
           }
         },
         "required": [
           "id",
-          "digest"
+          "digest",
+          "receipt"
         ],
         "title": "DemoStrategyAuthorityResponse",
         "type": "object"
@@ -377,11 +381,15 @@
             },
             "title": "Reason Codes",
             "type": "array"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/DemoStrategyReceiptReferenceResponse"
           }
         },
         "required": [
           "id",
           "digest",
+          "receipt",
           "outcome",
           "reason_codes"
         ],
@@ -435,6 +443,29 @@
           "reject_decision"
         ],
         "title": "DemoStrategyOrderReferenceResponse",
+        "type": "object"
+      },
+      "DemoStrategyReceiptReferenceResponse": {
+        "properties": {
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "namespace": {
+            "enum": [
+              "evaluate_strategy_signal",
+              "derive_order_intent",
+              "evaluate_pre_trade_risk"
+            ],
+            "title": "Namespace",
+            "type": "string"
+          }
+        },
+        "required": [
+          "namespace",
+          "idempotency_key"
+        ],
+        "title": "DemoStrategyReceiptReferenceResponse",
         "type": "object"
       },
       "DemoStrategyRuntimeResponse": {

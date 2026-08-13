@@ -8,6 +8,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
+import el_psy_quant.demo_workspace as demo_workspace_module
+from alembic import command as alembic_command
+from alembic.config import Config as AlembicConfig
 from el_psy_quant.application.paper_accounts import (
     PaperAccountApplicationService,
 )
@@ -16,6 +19,7 @@ from el_psy_quant.application.strategy_order import (
     StrategyOrderApplicationService,
     StrategyOrderIdempotencyConflictError,
     StrategyOrderStaleAuthorityError,
+    StrategyOrderStorageBusyError,
 )
 from el_psy_quant.application.portfolio_reviews import (
     get_portfolio_review_detail,
@@ -29,6 +33,7 @@ from el_psy_quant.demo_workspace import (
     DemoWorkspaceUnavailableError,
     install_demo_workspace,
     load_demo_workspace_descriptor,
+    validate_installed_demo_workspace,
     validate_demo_workspace_source,
 )
 from el_psy_quant.market_time import MarketDataReplayEngine
@@ -42,8 +47,10 @@ from el_psy_quant.persistence import (
     resolve_product_database_config,
 )
 from el_psy_quant.strategy_order import (
+    create_long_only_cash_risk_policy_reference,
     create_moving_average_crossover_runtime_reference,
 )
+from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 from el_psy_quant.paper_account import PaperQuantity
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -286,6 +293,16 @@ def test_demo_v5_restart_exact_replay_conflict_and_concurrent_convergence(
     )
     reopened_factory = create_product_session_factory(engine=reopened)
     service = StrategyOrderApplicationService(session_factory=reopened_factory)
+    with reopened.connect() as connection:
+        before_counts = tuple(
+            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+            for table in (
+                "strategy_signals",
+                "order_intents",
+                "pre_trade_risk_decisions",
+                "strategy_order_command_receipts",
+            )
+        )
     exact = service.evaluate_and_store_strategy_signal(
         strategy_runtime_reference=runtime,
         calendar_id=market["calendar_id"],
@@ -302,6 +319,59 @@ def test_demo_v5_restart_exact_replay_conflict_and_concurrent_convergence(
     )
     assert exact.replayed
     assert exact.result.signal_id == journey["signal"]["id"]
+    assert exact.result.signal_digest == journey["signal"]["digest"]
+    exact_intent = service.derive_and_store_order_intent(
+        signal_id=journey["signal"]["id"],
+        account_id=journey["account_id"],
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        command_idempotency_key=journey["intent"]["receipt"]["idempotency_key"],
+        actor="demo-founder",
+        created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
+    )
+    assert exact_intent.replayed
+    assert exact_intent.result.intent_id == journey["intent"]["id"]
+    assert exact_intent.result.intent_digest == journey["intent"]["digest"]
+    risk_common = {
+        "intent_id": journey["intent"]["id"],
+        "expected_account_head_version": account.head_version,
+        "expected_account_head_event_id": account.head_event_id,
+        "expected_account_head_chain_digest": account.head_chain_digest,
+        "expected_calendar_id": market["calendar_id"],
+        "expected_calendar_version": 1,
+        "expected_trading_session_id": journey["trading_session_id"],
+        "expected_replay_id": market["replay_id"],
+        "expected_event_stream_digest": market["event_stream_digest"],
+        "expected_cursor_position": market["checkpoint"]["position"],
+        "expected_current_event_id": market["checkpoint"]["last_event_id"],
+        "expected_instrument_id": journey["instrument_id"],
+        "actor": "demo-founder",
+        "created_at": datetime(2030, 1, 1, tzinfo=timezone.utc),
+    }
+    for name, maximum in (("allow_decision", None), ("reject_decision", "5")):
+        replayed = service.evaluate_and_store_pre_trade_risk(
+            **risk_common,
+            risk_policy_reference=create_long_only_cash_risk_policy_reference(
+                maximum_order_quantity=(
+                    None if maximum is None else PaperQuantity.parse(maximum)
+                )
+            ),
+            command_idempotency_key=journey[name]["receipt"]["idempotency_key"],
+        )
+        assert replayed.replayed
+        assert replayed.result.decision_id == journey[name]["id"]
+        assert replayed.result.decision_digest == journey[name]["digest"]
+    with reopened.connect() as connection:
+        assert tuple(
+            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+            for table in (
+                "strategy_signals",
+                "order_intents",
+                "pre_trade_risk_decisions",
+                "strategy_order_command_receipts",
+            )
+        ) == before_counts
     with pytest.raises(StrategyOrderIdempotencyConflictError):
         service.evaluate_and_store_strategy_signal(
             strategy_runtime_reference=create_moving_average_crossover_runtime_reference(
@@ -340,6 +410,50 @@ def test_demo_v5_restart_exact_replay_conflict_and_concurrent_convergence(
         results = tuple(pool.map(alternate, (1, 2)))
     assert {item.result.intent_id for item in results} == {journey["intent"]["id"]}
     assert not any(item.replayed for item in results)
+
+    def duplicate():
+        return StrategyOrderApplicationService(
+            session_factory=reopened_factory
+        ).derive_and_store_order_intent(
+            signal_id=journey["signal"]["id"],
+            account_id=journey["account_id"],
+            expected_account_head_version=account.head_version,
+            expected_account_head_event_id=account.head_event_id,
+            expected_account_head_chain_digest=account.head_chain_digest,
+            command_idempotency_key="demo-m33-intent-duplicate-race",
+            actor="demo-duplicate-race",
+            created_at=datetime(2030, 1, 10, tzinfo=timezone.utc),
+        )
+
+    with reopened.connect() as connection:
+        before_duplicate = tuple(
+            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+            for table in ("order_intents", "strategy_order_command_receipts")
+        )
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        duplicates = tuple(pool.map(lambda _: duplicate(), (1, 2)))
+    assert {item.result for item in duplicates} == {exact_intent.result}
+    assert {item.replayed for item in duplicates} == {False, True}
+    with reopened.connect() as connection:
+        after_duplicate = tuple(
+            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+            for table in ("order_intents", "strategy_order_command_receipts")
+        )
+    assert after_duplicate == (before_duplicate[0], before_duplicate[1] + 1)
+
+    blocker = reopened.connect()
+    try:
+        blocker.exec_driver_sql("BEGIN IMMEDIATE")
+        with pytest.raises(StrategyOrderStorageBusyError):
+            duplicate()
+    finally:
+        blocker.rollback()
+        blocker.close()
+    with reopened.connect() as connection:
+        assert tuple(
+            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+            for table in ("order_intents", "strategy_order_command_receipts")
+        ) == after_duplicate
     reopened.dispose()
 
 
@@ -407,6 +521,8 @@ def test_demo_v5_stale_authority_and_corruption_fail_closed_without_repair(
         )
         connection.commit()
     with pytest.raises(DemoWorkspaceUnavailableError):
+        validate_installed_demo_workspace(target)
+    with pytest.raises(DemoWorkspaceUnavailableError):
         install_demo_workspace(
             source_root=DEMO_SOURCE,
             workspace_root=target,
@@ -442,6 +558,103 @@ def test_demo_v5_stale_authority_and_corruption_fail_closed_without_repair(
             created_at=datetime(2030, 1, 1, tzinfo=timezone.utc),
         )
     corrupt_engine.dispose()
+
+
+def test_populated_0009_upgrade_then_explicit_demo_v5_install_and_verify(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Migration stays seed-free; the explicit installer adds M33 exactly once."""
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    paths = DemoWorkspacePaths.from_root(target)
+    monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(paths.database_path))
+    config = AlembicConfig(str(ALEMBIC_CONFIG))
+    alembic_command.downgrade(config, "0009_market_time_runtime")
+    with sqlite3.connect(paths.database_path) as connection:
+        assert connection.execute(
+            "SELECT version_num FROM alembic_version"
+        ).fetchone() == ("0009_market_time_runtime",)
+        for table in (
+            "strategy_signals",
+            "order_intents",
+            "pre_trade_risk_decisions",
+            "strategy_order_command_receipts",
+        ):
+            assert connection.execute(
+                "SELECT COUNT(*) FROM sqlite_master "
+                "WHERE type = 'table' AND name = ?",
+                (table,),
+            ).fetchone() == (0,)
+        account_count = connection.execute(
+            "SELECT COUNT(*) FROM paper_accounts"
+        ).fetchone()
+        replay_count = connection.execute(
+            "SELECT COUNT(*) FROM market_data_replays"
+        ).fetchone()
+
+    original_seed = demo_workspace_module._seed_demo_strategy_order
+    observed_migration_counts: list[tuple[int, int, int, int]] = []
+
+    def seed_after_upgrade(*, paths, source):
+        with sqlite3.connect(paths.database_path) as connection:
+            assert connection.execute(
+                "SELECT version_num FROM alembic_version"
+            ).fetchone() == ("0010_strategy_order_risk",)
+            observed_migration_counts.append(
+                tuple(
+                    connection.execute(
+                        f"SELECT COUNT(*) FROM {table}"
+                    ).fetchone()[0]
+                    for table in (
+                        "strategy_signals",
+                        "order_intents",
+                        "pre_trade_risk_decisions",
+                        "strategy_order_command_receipts",
+                    )
+                )
+            )
+            assert connection.execute(
+                "SELECT COUNT(*) FROM paper_accounts"
+            ).fetchone() == account_count
+            assert connection.execute(
+                "SELECT COUNT(*) FROM market_data_replays"
+            ).fetchone() == replay_count
+        original_seed(paths=paths, source=source)
+
+    monkeypatch.setattr(
+        demo_workspace_module,
+        "_seed_demo_strategy_order",
+        seed_after_upgrade,
+    )
+    installed = _install(DEMO_SOURCE, target)
+    assert installed.already_installed
+    assert observed_migration_counts == [(0, 0, 0, 0)]
+    validate_installed_demo_workspace(target)
+    with sqlite3.connect(paths.database_path) as connection:
+        counts = tuple(
+            connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in (
+                "strategy_signals",
+                "order_intents",
+                "pre_trade_risk_decisions",
+                "strategy_order_command_receipts",
+            )
+        )
+    assert counts == (1, 1, 2, 4)
+    replayed = _install(DEMO_SOURCE, target)
+    assert replayed.already_installed
+    validate_installed_demo_workspace(target)
+    with sqlite3.connect(paths.database_path) as connection:
+        assert tuple(
+            connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in (
+                "strategy_signals",
+                "order_intents",
+                "pre_trade_risk_decisions",
+                "strategy_order_command_receipts",
+            )
+        ) == counts
 
 
 def test_prior_dataset_marker_is_refused_without_reinstall_or_mutation(

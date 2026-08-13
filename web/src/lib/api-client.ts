@@ -846,12 +846,19 @@ function isDemoWorkspaceDescriptor(
     isNormalizedNonblankString(
       value.strategy_order.runtime.target_position_quantity,
     ) &&
-    [value.strategy_order.signal, value.strategy_order.intent].every(
-      (authority) => isObject(authority) &&
-        hasOnlyKeys(authority, ["id", "digest"]) &&
+    [
+      [value.strategy_order.signal, "evaluate_strategy_signal"],
+      [value.strategy_order.intent, "derive_order_intent"],
+    ].every(([authority, namespace]) =>
+      isObject(authority) &&
+        hasOnlyKeys(authority, ["id", "digest", "receipt"]) &&
         isNormalizedNonblankString(authority.id) &&
         typeof authority.digest === "string" &&
-        /^[0-9a-f]{64}$/.test(authority.digest),
+        /^[0-9a-f]{64}$/.test(authority.digest) &&
+        isObject(authority.receipt) &&
+        hasOnlyKeys(authority.receipt, ["namespace", "idempotency_key"]) &&
+        authority.receipt.namespace === namespace &&
+        isNormalizedNonblankString(authority.receipt.idempotency_key),
     ) &&
     [
       [value.strategy_order.allow_decision, "allow", []],
@@ -860,10 +867,16 @@ function isDemoWorkspaceDescriptor(
       ]],
     ].every(([authority, outcome, reasonCodes]) =>
       isObject(authority) &&
-      hasOnlyKeys(authority, ["id", "digest", "outcome", "reason_codes"]) &&
+      hasOnlyKeys(authority, [
+        "id", "digest", "outcome", "reason_codes", "receipt",
+      ]) &&
       isNormalizedNonblankString(authority.id) &&
       typeof authority.digest === "string" &&
       /^[0-9a-f]{64}$/.test(authority.digest) &&
+      isObject(authority.receipt) &&
+      hasOnlyKeys(authority.receipt, ["namespace", "idempotency_key"]) &&
+      authority.receipt.namespace === "evaluate_pre_trade_risk" &&
+      isNormalizedNonblankString(authority.receipt.idempotency_key) &&
       authority.outcome === outcome &&
       JSON.stringify(authority.reason_codes) === JSON.stringify(reasonCodes)
     )

@@ -1379,13 +1379,41 @@ def _descriptor_payload(
             "trading_session_id": strategy_order_journey.trading_session_id,
             "instrument_id": strategy_order_journey.instrument_id,
             "runtime": strategy_order_journey.runtime.model_dump(),
-            "signal": strategy_order_journey.expected.signal.model_dump(),
-            "intent": strategy_order_journey.expected.intent.model_dump(),
+            "signal": {
+                **strategy_order_journey.expected.signal.model_dump(),
+                "receipt": {
+                    "namespace": COMMAND_NAMESPACE_EVALUATE_SIGNAL,
+                    "idempotency_key": strategy_order_journey.signal.idempotency_key,
+                },
+            },
+            "intent": {
+                **strategy_order_journey.expected.intent.model_dump(),
+                "receipt": {
+                    "namespace": COMMAND_NAMESPACE_DERIVE_INTENT,
+                    "idempotency_key": strategy_order_journey.intent.idempotency_key,
+                },
+            },
             "allow_decision": (
-                strategy_order_journey.expected.allow_decision.model_dump()
+                {
+                    **strategy_order_journey.expected.allow_decision.model_dump(),
+                    "receipt": {
+                        "namespace": COMMAND_NAMESPACE_EVALUATE_RISK,
+                        "idempotency_key": (
+                            strategy_order_journey.allow_risk.idempotency_key
+                        ),
+                    },
+                }
             ),
             "reject_decision": (
-                strategy_order_journey.expected.reject_decision.model_dump()
+                {
+                    **strategy_order_journey.expected.reject_decision.model_dump(),
+                    "receipt": {
+                        "namespace": COMMAND_NAMESPACE_EVALUATE_RISK,
+                        "idempotency_key": (
+                            strategy_order_journey.reject_risk.idempotency_key
+                        ),
+                    },
+                }
             ),
         },
     }
@@ -1852,7 +1880,7 @@ def _validate_descriptor_payload(payload: object) -> None:
     ):
         authority = _exact_object(
             strategy_order[name],
-            {"id", "digest", "outcome", "reason_codes"},
+            {"id", "digest", "outcome", "reason_codes", "receipt"},
         )
         if authority["outcome"] != outcome or authority["reason_codes"] != reasons:
             raise DemoWorkspaceSourceInvalidError(
@@ -1862,10 +1890,33 @@ def _validate_descriptor_payload(payload: object) -> None:
         _digest(authority["digest"])
     for name in ("signal", "intent"):
         authority = _exact_object(
-            strategy_order[name], {"id", "digest"}
+            strategy_order[name], {"id", "digest", "receipt"}
         )
         _normalized_text(authority["id"])
         _digest(authority["digest"])
+    expected_namespaces = {
+        "signal": COMMAND_NAMESPACE_EVALUATE_SIGNAL,
+        "intent": COMMAND_NAMESPACE_DERIVE_INTENT,
+        "allow_decision": COMMAND_NAMESPACE_EVALUATE_RISK,
+        "reject_decision": COMMAND_NAMESPACE_EVALUATE_RISK,
+    }
+    receipt_keys: set[tuple[str, str]] = set()
+    for name, namespace in expected_namespaces.items():
+        receipt = _exact_object(
+            strategy_order[name]["receipt"],
+            {"namespace", "idempotency_key"},
+        )
+        if receipt["namespace"] != namespace:
+            raise DemoWorkspaceSourceInvalidError(
+                "demo descriptor strategy-to-risk receipt is invalid"
+            )
+        key = _normalized_text(receipt["idempotency_key"])
+        identity = (namespace, key)
+        if identity in receipt_keys:
+            raise DemoWorkspaceSourceInvalidError(
+                "demo descriptor strategy-to-risk receipt is invalid"
+            )
+        receipt_keys.add(identity)
 
 
 @contextmanager
@@ -2471,37 +2522,48 @@ def _seed_demo_strategy_order(
         engine.dispose()
 
 
-def _validate_seeded_demo_strategy_order(
+def _validate_descriptor_strategy_order(
     *,
     paths: DemoWorkspacePaths,
-    source: _ValidatedDemoSource,
+    strategy_order: dict[str, Any],
 ) -> None:
-    """Read and strictly reconstruct Demo M33 authority without rerunning it."""
+    """Strictly reconstruct descriptor-owned M33 authority without writes."""
     engine = create_product_database_engine(
         config=resolve_product_database_config(database_path=paths.database_path)
     )
     factory = create_product_session_factory(engine=engine)
-    journey = source.strategy_order_journey
-    expected = journey.expected
     service = StrategyOrderApplicationService(session_factory=factory)
     try:
-        signal = service.get_strategy_signal(signal_id=expected.signal.id)
-        intent = service.get_order_intent(intent_id=expected.intent.id)
+        signal_metadata = strategy_order["signal"]
+        intent_metadata = strategy_order["intent"]
+        allow_metadata = strategy_order["allow_decision"]
+        reject_metadata = strategy_order["reject_decision"]
+        signal = service.get_strategy_signal(signal_id=signal_metadata["id"])
+        intent = service.get_order_intent(intent_id=intent_metadata["id"])
         allow = service.get_pre_trade_risk_decision(
-            decision_id=expected.allow_decision.id
+            decision_id=allow_metadata["id"]
         )
         reject = service.get_pre_trade_risk_decision(
-            decision_id=expected.reject_decision.id
+            decision_id=reject_metadata["id"]
         )
         if (
-            signal.signal_digest != expected.signal.digest
-            or intent.intent_digest != expected.intent.digest
-            or allow.decision_digest != expected.allow_decision.digest
-            or allow.outcome != expected.allow_decision.outcome
-            or allow.reason_codes != expected.allow_decision.reason_codes
-            or reject.decision_digest != expected.reject_decision.digest
-            or reject.outcome != expected.reject_decision.outcome
-            or reject.reason_codes != expected.reject_decision.reason_codes
+            signal.signal_digest != signal_metadata["digest"]
+            or intent.intent_digest != intent_metadata["digest"]
+            or intent.signal_reference.signal_id != signal.signal_id
+            or intent.signal_reference.signal_digest != signal.signal_digest
+            or allow.decision_digest != allow_metadata["digest"]
+            or allow.outcome != allow_metadata["outcome"]
+            or list(allow.reason_codes) != allow_metadata["reason_codes"]
+            or allow.input_snapshot.intent_reference.intent_id != intent.intent_id
+            or allow.input_snapshot.intent_reference.intent_digest
+            != intent.intent_digest
+            or reject.decision_digest != reject_metadata["digest"]
+            or reject.outcome != reject_metadata["outcome"]
+            or list(reject.reason_codes) != reject_metadata["reason_codes"]
+            or reject.input_snapshot.intent_reference.intent_id
+            != intent.intent_id
+            or reject.input_snapshot.intent_reference.intent_digest
+            != intent.intent_digest
             or service.list_strategy_signals(limit=10).items != (signal,)
             or service.list_order_intents(limit=10).items != (intent,)
             or service.list_pre_trade_risk_decisions(limit=10).items
@@ -2511,35 +2573,19 @@ def _validate_seeded_demo_strategy_order(
                 "demo strategy-to-risk authority is inconsistent"
             )
         receipts = (
-            (
-                COMMAND_NAMESPACE_EVALUATE_SIGNAL,
-                journey.signal.idempotency_key,
-                signal,
-            ),
-            (
-                COMMAND_NAMESPACE_DERIVE_INTENT,
-                journey.intent.idempotency_key,
-                intent,
-            ),
-            (
-                COMMAND_NAMESPACE_EVALUATE_RISK,
-                journey.allow_risk.idempotency_key,
-                allow,
-            ),
-            (
-                COMMAND_NAMESPACE_EVALUATE_RISK,
-                journey.reject_risk.idempotency_key,
-                reject,
-            ),
+            (signal_metadata["receipt"], signal),
+            (intent_metadata["receipt"], intent),
+            (allow_metadata["receipt"], allow),
+            (reject_metadata["receipt"], reject),
         )
         with factory() as session:
             repository = SqlAlchemyStrategyOrderCommandReceiptRepository(
                 session=session
             )
-            for namespace, key, result in receipts:
+            for metadata, result in receipts:
                 receipt = repository.get(
-                    namespace=namespace,
-                    command_idempotency_key=key,
+                    namespace=metadata["namespace"],
+                    command_idempotency_key=metadata["idempotency_key"],
                 )
                 if receipt is None or repository.resolve(receipt=receipt) != result:
                     raise DemoWorkspaceUnavailableError(
@@ -2547,6 +2593,17 @@ def _validate_seeded_demo_strategy_order(
                     )
     finally:
         engine.dispose()
+
+
+def _validate_seeded_demo_strategy_order(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+) -> None:
+    _validate_descriptor_strategy_order(
+        paths=paths,
+        strategy_order=source.descriptor.to_dict()["strategy_order"],
+    )
 
 
 def _validate_seeded_portfolio_review(
@@ -2905,6 +2962,8 @@ def install_demo_workspace(
         _upgrade_database(paths.database_path, config_path)
         if prior_revision == "0004_paper_job_recovery_audit":
             _populate_upgraded_demo_result_references(paths=paths, source=source)
+        if prior_revision == "0009_market_time_runtime":
+            _seed_demo_strategy_order(paths=paths, source=source)
         _validate_installed_workspace(paths=paths, source=source)
         return DemoWorkspaceInstallResult(
             dataset_id=source.manifest.dataset_id,
@@ -3182,6 +3241,10 @@ def validate_installed_demo_workspace(
                 raise DemoWorkspaceUnavailableError(
                     "demo market time recovery is inconsistent"
                 )
+            _validate_descriptor_strategy_order(
+                paths=paths,
+                strategy_order=payload["strategy_order"],
+            )
         finally:
             engine.dispose()
         return descriptor

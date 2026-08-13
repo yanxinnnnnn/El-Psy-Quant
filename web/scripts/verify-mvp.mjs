@@ -394,10 +394,18 @@ async function verifyDemoJourney(
     descriptor.strategy_order?.workspace_path !== "/strategy-to-risk" ||
     typeof descriptor.strategy_order?.signal?.id !== "string" ||
     !/^[0-9a-f]{64}$/.test(descriptor.strategy_order?.signal?.digest ?? "") ||
+    descriptor.strategy_order?.signal?.receipt?.namespace !==
+      "evaluate_strategy_signal" ||
     typeof descriptor.strategy_order?.intent?.id !== "string" ||
+    descriptor.strategy_order?.intent?.receipt?.namespace !==
+      "derive_order_intent" ||
     descriptor.strategy_order?.allow_decision?.outcome !== "allow" ||
+    descriptor.strategy_order?.allow_decision?.receipt?.namespace !==
+      "evaluate_pre_trade_risk" ||
     descriptor.strategy_order?.allow_decision?.reason_codes?.length !== 0 ||
     descriptor.strategy_order?.reject_decision?.outcome !== "reject" ||
+    descriptor.strategy_order?.reject_decision?.receipt?.namespace !==
+      "evaluate_pre_trade_risk" ||
     descriptor.strategy_order?.reject_decision?.reason_codes?.join(",") !==
       "maximum_order_quantity_exceeded"
   ) {

@@ -151,10 +151,10 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
     trading_session_id: "session-from-api-a",
     instrument_id: "XNYS:AAPL",
     runtime: { fast_window: 2, slow_window: 3, target_position_quantity: "10" },
-    signal: { id: `sig_${"1".repeat(64)}`, digest: "1".repeat(64) },
-    intent: { id: `oi_${"2".repeat(64)}`, digest: "2".repeat(64) },
-    allow_decision: { id: `risk_decision_${"3".repeat(64)}`, digest: "3".repeat(64), outcome: "allow", reason_codes: [] },
-    reject_decision: { id: `risk_decision_${"4".repeat(64)}`, digest: "4".repeat(64), outcome: "reject", reason_codes: ["maximum_order_quantity_exceeded"] },
+    signal: { id: `sig_${"1".repeat(64)}`, digest: "1".repeat(64), receipt: { namespace: "evaluate_strategy_signal", idempotency_key: "demo-signal" } },
+    intent: { id: `oi_${"2".repeat(64)}`, digest: "2".repeat(64), receipt: { namespace: "derive_order_intent", idempotency_key: "demo-intent" } },
+    allow_decision: { id: `risk_decision_${"3".repeat(64)}`, digest: "3".repeat(64), outcome: "allow", reason_codes: [], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-allow" } },
+    reject_decision: { id: `risk_decision_${"4".repeat(64)}`, digest: "4".repeat(64), outcome: "reject", reason_codes: ["maximum_order_quantity_exceeded"], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-reject" } },
   },
 };
 

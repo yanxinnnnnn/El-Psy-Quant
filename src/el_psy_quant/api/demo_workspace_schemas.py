@@ -88,9 +88,19 @@ class DemoStrategyRuntimeResponse(BaseModel):
     target_position_quantity: str
 
 
+class DemoStrategyReceiptReferenceResponse(BaseModel):
+    namespace: Literal[
+        "evaluate_strategy_signal",
+        "derive_order_intent",
+        "evaluate_pre_trade_risk",
+    ]
+    idempotency_key: str
+
+
 class DemoStrategyAuthorityResponse(BaseModel):
     id: str
     digest: str
+    receipt: DemoStrategyReceiptReferenceResponse
 
 
 class DemoStrategyDecisionResponse(DemoStrategyAuthorityResponse):

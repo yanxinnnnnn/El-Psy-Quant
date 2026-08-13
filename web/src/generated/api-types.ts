@@ -970,6 +970,7 @@ export interface components {
             digest: string;
             /** Id */
             id: string;
+            receipt: components["schemas"]["DemoStrategyReceiptReferenceResponse"];
         };
         /** DemoStrategyDecisionResponse */
         DemoStrategyDecisionResponse: {
@@ -984,6 +985,7 @@ export interface components {
             outcome: "allow" | "reject";
             /** Reason Codes */
             reason_codes: string[];
+            receipt: components["schemas"]["DemoStrategyReceiptReferenceResponse"];
         };
         /** DemoStrategyOrderReferenceResponse */
         DemoStrategyOrderReferenceResponse: {
@@ -1003,6 +1005,16 @@ export interface components {
              * @constant
              */
             workspace_path: "/strategy-to-risk";
+        };
+        /** DemoStrategyReceiptReferenceResponse */
+        DemoStrategyReceiptReferenceResponse: {
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Namespace
+             * @enum {string}
+             */
+            namespace: "evaluate_strategy_signal" | "derive_order_intent" | "evaluate_pre_trade_risk";
         };
         /** DemoStrategyRuntimeResponse */
         DemoStrategyRuntimeResponse: {

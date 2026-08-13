@@ -41,6 +41,10 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
   const marketTimeExpected = marketTime.expected as Record<string, unknown>;
   const strategyOrder = demoSourceJson("strategy_order/strategy-to-risk-journey.json");
   const strategyOrderExpected = strategyOrder.expected as Record<string, unknown>;
+  const signalCommand = strategyOrder.signal as Record<string, unknown>;
+  const intentCommand = strategyOrder.intent as Record<string, unknown>;
+  const allowCommand = strategyOrder.allow_risk as Record<string, unknown>;
+  const rejectCommand = strategyOrder.reject_risk as Record<string, unknown>;
   return {
     schema_version: manifest.schema_version,
     dataset_id: manifest.dataset_id,
@@ -95,10 +99,10 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
       trading_session_id: strategyOrder.trading_session_id,
       instrument_id: strategyOrder.instrument_id,
       runtime: strategyOrder.runtime,
-      signal: strategyOrderExpected.signal,
-      intent: strategyOrderExpected.intent,
-      allow_decision: strategyOrderExpected.allow_decision,
-      reject_decision: strategyOrderExpected.reject_decision,
+      signal: { ...(strategyOrderExpected.signal as object), receipt: { namespace: "evaluate_strategy_signal", idempotency_key: signalCommand.idempotency_key } },
+      intent: { ...(strategyOrderExpected.intent as object), receipt: { namespace: "derive_order_intent", idempotency_key: intentCommand.idempotency_key } },
+      allow_decision: { ...(strategyOrderExpected.allow_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: allowCommand.idempotency_key } },
+      reject_decision: { ...(strategyOrderExpected.reject_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: rejectCommand.idempotency_key } },
     },
   };
 }

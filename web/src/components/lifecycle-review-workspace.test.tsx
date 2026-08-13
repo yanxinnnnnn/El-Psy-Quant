@@ -33,6 +33,10 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
   const marketTimeExpected = marketTime.expected as Record<string, unknown>;
   const strategyOrder = demoSourceJson("strategy_order/strategy-to-risk-journey.json");
   const strategyOrderExpected = strategyOrder.expected as Record<string, unknown>;
+  const signalCommand = strategyOrder.signal as Record<string, unknown>;
+  const intentCommand = strategyOrder.intent as Record<string, unknown>;
+  const allowCommand = strategyOrder.allow_risk as Record<string, unknown>;
+  const rejectCommand = strategyOrder.reject_risk as Record<string, unknown>;
   return {
     schema_version: manifest.schema_version as 5,
     dataset_id: manifest.dataset_id as string,
@@ -87,10 +91,10 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
       trading_session_id: strategyOrder.trading_session_id as string,
       instrument_id: strategyOrder.instrument_id as string,
       runtime: strategyOrder.runtime as DemoWorkspaceDescriptorResponse["strategy_order"]["runtime"],
-      signal: strategyOrderExpected.signal as DemoWorkspaceDescriptorResponse["strategy_order"]["signal"],
-      intent: strategyOrderExpected.intent as DemoWorkspaceDescriptorResponse["strategy_order"]["intent"],
-      allow_decision: strategyOrderExpected.allow_decision as DemoWorkspaceDescriptorResponse["strategy_order"]["allow_decision"],
-      reject_decision: strategyOrderExpected.reject_decision as DemoWorkspaceDescriptorResponse["strategy_order"]["reject_decision"],
+      signal: { ...(strategyOrderExpected.signal as object), receipt: { namespace: "evaluate_strategy_signal", idempotency_key: signalCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["signal"],
+      intent: { ...(strategyOrderExpected.intent as object), receipt: { namespace: "derive_order_intent", idempotency_key: intentCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["intent"],
+      allow_decision: { ...(strategyOrderExpected.allow_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: allowCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["allow_decision"],
+      reject_decision: { ...(strategyOrderExpected.reject_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: rejectCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["reject_decision"],
     },
   };
 }
