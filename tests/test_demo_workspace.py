@@ -6,6 +6,7 @@ import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Barrier
 
 import pytest
 import el_psy_quant.demo_workspace as demo_workspace_module
@@ -455,6 +456,152 @@ def test_demo_v5_restart_exact_replay_conflict_and_concurrent_convergence(
             for table in ("order_intents", "strategy_order_command_receipts")
         ) == after_duplicate
     reopened.dispose()
+
+
+def test_demo_v5_duplicate_signal_race_creates_one_absent_authority(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "demo-workspace"
+    _install(DEMO_SOURCE, target)
+    paths = DemoWorkspacePaths.from_root(target)
+    descriptor = load_demo_workspace_descriptor(target).to_dict()
+    journey = descriptor["strategy_order"]
+    market = descriptor["market_time"]
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    factory = create_product_session_factory(engine=engine)
+    account_service = PaperAccountApplicationService(session_factory=factory)
+    signal_service = StrategyOrderApplicationService(session_factory=factory)
+    account_before = account_service.get_account_detail(
+        account_id=journey["account_id"]
+    )
+    history_before = account_service.get_account_history(
+        account_id=journey["account_id"]
+    )
+    with factory() as session:
+        replay_before = SqlAlchemyMarketTimeRepository(session=session).get_replay(
+            replay_id=market["replay_id"]
+        )
+    assert replay_before is not None
+
+    runtime = create_moving_average_crossover_runtime_reference(
+        fast_window=2,
+        slow_window=3,
+        target_position_quantity=PaperQuantity.parse("11"),
+    )
+    command_key = "demo-m33-signal-absent-duplicate-race"
+    actor = "demo-absent-signal-race"
+    created_at = datetime(2030, 1, 11, tzinfo=timezone.utc)
+    signals_before = signal_service.list_strategy_signals(limit=10).items
+    assert len(signals_before) == 1
+    assert signals_before[0].signal_id == journey["signal"]["id"]
+    assert signals_before[0].strategy_runtime_reference != runtime
+    with engine.connect() as connection:
+        counts_before = tuple(
+            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+            for table in (
+                "strategy_signals",
+                "order_intents",
+                "pre_trade_risk_decisions",
+                "strategy_order_command_receipts",
+            )
+        )
+        scoped_receipts_before = connection.exec_driver_sql(
+            "SELECT COUNT(*) FROM strategy_order_command_receipts "
+            "WHERE namespace = ? AND command_idempotency_key = ?",
+            ("evaluate_strategy_signal", command_key),
+        ).scalar_one()
+    assert scoped_receipts_before == 0
+
+    start = Barrier(2)
+
+    def create_signal():
+        start.wait()
+        return StrategyOrderApplicationService(
+            session_factory=factory
+        ).evaluate_and_store_strategy_signal(
+            strategy_runtime_reference=runtime,
+            calendar_id=market["calendar_id"],
+            expected_calendar_version=1,
+            trading_session_id=journey["trading_session_id"],
+            replay_id=market["replay_id"],
+            expected_event_stream_digest=market["event_stream_digest"],
+            expected_cursor_position=market["checkpoint"]["position"],
+            expected_signal_event_id=market["checkpoint"]["last_event_id"],
+            instrument_id=journey["instrument_id"],
+            command_idempotency_key=command_key,
+            actor=actor,
+            created_at=created_at,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = tuple(pool.map(lambda _: create_signal(), (1, 2)))
+
+    assert {result.replayed for result in results} == {False, True}
+    assert len({result.result.signal_id for result in results}) == 1
+    assert len({result.result.signal_digest for result in results}) == 1
+    created = results[0].result
+    assert created.strategy_runtime_reference == runtime
+    assert created.signal_id != journey["signal"]["id"]
+    assert signal_service.get_strategy_signal(signal_id=created.signal_id) == created
+    assert signal_service.list_strategy_signals(limit=10).items == (
+        created,
+        signals_before[0],
+    )
+
+    with engine.connect() as connection:
+        counts_after = tuple(
+            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+            for table in (
+                "strategy_signals",
+                "order_intents",
+                "pre_trade_risk_decisions",
+                "strategy_order_command_receipts",
+            )
+        )
+        scoped_receipts_after = connection.exec_driver_sql(
+            "SELECT COUNT(*) FROM strategy_order_command_receipts "
+            "WHERE namespace = ? AND command_idempotency_key = ?",
+            ("evaluate_strategy_signal", command_key),
+        ).scalar_one()
+        duplicate_authority = connection.exec_driver_sql(
+            "SELECT COUNT(*) FROM strategy_signals WHERE signal_id = ?",
+            (created.signal_id,),
+        ).scalar_one()
+        orphan_receipts = connection.exec_driver_sql(
+            "SELECT COUNT(*) FROM strategy_order_command_receipts AS receipt "
+            "LEFT JOIN strategy_signals AS signal "
+            "ON receipt.result_id = signal.signal_id "
+            "WHERE receipt.namespace = ? "
+            "AND receipt.command_idempotency_key = ? "
+            "AND signal.signal_id IS NULL",
+            ("evaluate_strategy_signal", command_key),
+        ).scalar_one()
+    assert counts_after == (
+        counts_before[0] + 1,
+        counts_before[1],
+        counts_before[2],
+        counts_before[3] + 1,
+    )
+    assert scoped_receipts_after == 1
+    assert duplicate_authority == 1
+    assert orphan_receipts == 0
+
+    account_after = account_service.get_account_detail(
+        account_id=journey["account_id"]
+    )
+    history_after = account_service.get_account_history(
+        account_id=journey["account_id"]
+    )
+    with factory() as session:
+        replay_after = SqlAlchemyMarketTimeRepository(session=session).get_replay(
+            replay_id=market["replay_id"]
+        )
+    assert account_after == account_before
+    assert history_after == history_before
+    assert replay_after == replay_before
+    engine.dispose()
 
 
 def test_demo_v5_stale_authority_and_corruption_fail_closed_without_repair(
