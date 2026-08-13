@@ -3394,6 +3394,52 @@ textarea[aria-invalid="true"] {
   font-size: clamp(1.15rem, 2vw, 1.35rem);
 }
 
+.strategy-risk-workflow {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.strategy-risk-workflow > .content-panel,
+.strategy-risk-workflow > .boundary-note {
+  margin: 0;
+}
+
+.strategy-risk-selection-grid {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+.strategy-risk-selection-grid .form-section,
+.strategy-risk-policy {
+  box-shadow: none;
+}
+
+.strategy-risk-policy {
+  margin-top: var(--space-5);
+}
+
+.strategy-risk-rules {
+  display: grid;
+  gap: var(--space-4);
+  padding: 0;
+  margin: var(--space-4) 0 0;
+  list-style-position: inside;
+}
+
+.strategy-risk-rules > li {
+  min-width: 0;
+  padding: var(--space-3);
+  background: var(--surface);
+  border: var(--border-subtle);
+  border-radius: var(--radius-medium);
+}
+
+.strategy-risk-decision-note {
+  margin-top: var(--space-5);
+  margin-bottom: 0;
+}
+
 .replay-lifecycle {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

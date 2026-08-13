@@ -97,6 +97,46 @@ describe("error surface and audit presentation", () => {
     expect(screen.queryByText("Server request ID")).not.toBeInTheDocument();
   });
 
+  it.each([
+    [
+      "en" as const,
+      "Strategy-to-Risk schema is incompatible",
+      "The local product database or durable storage schema is incompatible with the current Strategy-to-Risk evidence contract.",
+      /documented local upgrade or repair procedure/,
+    ],
+    [
+      "zh-CN" as const,
+      "策略到风控架构不兼容",
+      "本地产品数据库或持久化存储架构与当前策略到风控证据契约不兼容。",
+      /按文档执行本地升级或修复/,
+    ],
+  ])(
+    "renders known bilingual schema-incompatible guidance in %s with raw audit values",
+    (locale, title, explanation, recovery) => {
+      render(
+        <ErrorState
+          code="strategy_order_schema_incompatible"
+          title="Context title"
+          message="Safe schema detail"
+          requestId="schema-request-raw"
+          operation="strategy_to_risk.risk"
+          httpStatus={503}
+        />,
+        { locale },
+      );
+
+      expect(screen.getByRole("heading", { name: title })).toBeVisible();
+      expect(screen.getByText(explanation)).toBeVisible();
+      expect(screen.getByText(recovery)).toBeVisible();
+      const audit = screen.getByRole("region", {
+        name: locale === "en" ? "Technical audit details" : "技术审计详情",
+      });
+      expect(audit).toHaveTextContent("strategy_order_schema_incompatible");
+      expect(audit).toHaveTextContent("503");
+      expect(audit).toHaveTextContent("schema-request-raw");
+    },
+  );
+
   it("defines bilingual label, meaning, and recovery for every attempt code", () => {
     const english = loadMessages("en").paperJobs.attemptErrors;
     const chinese = loadMessages("zh-CN").paperJobs.attemptErrors;

@@ -243,10 +243,9 @@ continuous scheduling.
 ### Status
 
 **In Progress through S197–S206.** Issue #389 is the authoritative M33
-architecture source. Sprints 197–202 are Complete. Sprint 203 is the current
-implementation sprint and adds exactly nine versioned API operations, strict
-schemas, stable errors, request correlation, bounded audit events, opaque
-pagination, and generated contracts over exact S198–S202 authority.
+architecture source. Sprints 197–203 are Complete. Sprint 204 is the current
+implementation sprint and adds one bilingual generated-contract Founder
+workspace over exact S198–S203 authority.
 
 ### User-visible outcome
 
@@ -298,7 +297,13 @@ versioned operations, strict schemas, stable errors, request correlation,
 bounded command audit events, collection-bound opaque pagination, canonical
 OpenAPI, and generated TypeScript. It adds no Web workflow, Demo, migration,
 worker, reservation, execution, fill, replay progression, or account mutation.
-S204–S206 remain planned.
+
+Sprint 204 consumes those generated contracts in one bilingual
+`/strategy-to-risk` guided workflow. Explicit Founder actions produce and
+inspect Signal, Intent or no-action, and Risk evidence while selected M31/M32
+anchors, raw values, step idempotency, stale conflicts, and valid rejects remain
+visible and unchanged. The browser performs no authority calculation and adds
+no account/replay mutation or execution control. S205–S206 remain planned.
 
 ## M34 — Paper Execution Simulator and First True Paper Trading
 

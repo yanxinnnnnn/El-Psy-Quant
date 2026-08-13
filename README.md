@@ -20,14 +20,12 @@ approved S197–S206 sequence.
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–202 are
-Complete. Sprint 203 is the current implementation sprint and exposes the
-durable M33 authority through exactly nine founder-authenticated versioned API
-operations, strict schemas, stable sanitized errors, server request IDs,
-bounded command audit events, opaque keyset cursors, canonical OpenAPI, and
-generated TypeScript contracts. The API remains presentation/orchestration and
-adds no Web workflow, Demo, worker, reservation, account mutation, replay
-progression, or execution.
+Issue #389 is the authoritative M33 architecture source. Sprints 197–203 are
+Complete. Sprint 204 is the current implementation sprint and adds one
+bilingual `/strategy-to-risk` Founder workspace over the generated S203
+contracts. The Web explicitly orchestrates and inspects Signal → Intent or
+no-action → Risk evidence without calculating authority or mutating Paper
+Account, replay, or execution state.
 
 Current migration head:
 
@@ -238,6 +236,9 @@ M33 owns strategy signals, order intent, and pre-trade risk through S197–S206.
 Sprint 202 stores and orchestrates the immutable S198–S201 authority chain.
 Sprint 203 exposes that authority through exactly nine thin versioned routes
 without recalculating Signal, Intent, no-action, price, notional, or risk truth.
+Sprint 204 consumes those generated contracts in one bilingual guided Founder
+workspace while preserving exact raw IDs, digests, codes, decimals, timestamps,
+stale anchors, and idempotent replay evidence.
 M33 consumes M31 account authority and M32 market-time authority, but
 persistence and application services must not redefine ledger, calendar, event,
 cursor, or replay truth.

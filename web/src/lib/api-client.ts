@@ -28,6 +28,17 @@ import {
   isTradingCalendarDetailResponse,
   isTradingCalendarListResponse,
 } from "@/lib/market-time-validators";
+import {
+  isOrderIntentCommandResponse,
+  isOrderIntentListResponse,
+  isOrderIntentResponse,
+  isPreTradeRiskDecisionCommandResponse,
+  isPreTradeRiskDecisionListResponse,
+  isPreTradeRiskDecisionResponse,
+  isStrategySignalCommandResponse,
+  isStrategySignalListResponse,
+  isStrategySignalResponse,
+} from "@/lib/strategy-order-validators";
 
 const API_BASE_PATH = "/api/backend";
 const HEALTH_PATH = "/api/v1/health";
@@ -78,6 +89,14 @@ const PAPER_ACCOUNT_SNAPSHOTS_PATH =
   "/api/v1/paper-accounts/{account_id}/snapshots";
 const PAPER_ACCOUNT_RECONCILIATIONS_PATH =
   "/api/v1/paper-accounts/{account_id}/reconciliations";
+const STRATEGY_SIGNALS_PATH = "/api/v1/strategy-signals";
+const STRATEGY_SIGNAL_EVALUATE_PATH = "/api/v1/strategy-signals/evaluate";
+const STRATEGY_SIGNAL_DETAIL_PATH = "/api/v1/strategy-signals/{signal_id}";
+const ORDER_INTENTS_PATH = "/api/v1/order-intents";
+const ORDER_INTENT_DETAIL_PATH = "/api/v1/order-intents/{intent_id}";
+const PRE_TRADE_RISK_DECISIONS_PATH = "/api/v1/pre-trade-risk-decisions";
+const PRE_TRADE_RISK_DECISION_DETAIL_PATH =
+  "/api/v1/pre-trade-risk-decisions/{decision_id}";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -101,6 +120,12 @@ type PostRequestBody<Path extends keyof paths> = paths[Path]["post"] extends {
   requestBody: { content: { "application/json": infer Request } };
 }
   ? Request
+  : never;
+
+type GetQueryParameters<Path extends keyof paths> = paths[Path]["get"] extends {
+  parameters: { query?: infer Query };
+}
+  ? NonNullable<Query>
   : never;
 
 export type HealthResponse = SuccessResponse<typeof HEALTH_PATH>;
@@ -233,6 +258,46 @@ export type PaperAccountSnapshotCommandResponse = PostSuccessResponse<
 export type PaperAccountReconciliationCommandResponse = PostSuccessResponse<
   typeof PAPER_ACCOUNT_RECONCILIATIONS_PATH,
   201
+>;
+export type StrategySignalListResponse = SuccessResponse<
+  typeof STRATEGY_SIGNALS_PATH
+>;
+export type StrategySignalResponse = SuccessResponse<
+  typeof STRATEGY_SIGNAL_DETAIL_PATH
+>;
+export type StrategySignalEvaluateRequest = PostRequestBody<
+  typeof STRATEGY_SIGNAL_EVALUATE_PATH
+>;
+export type StrategySignalCommandResponse = PostSuccessResponse<
+  typeof STRATEGY_SIGNAL_EVALUATE_PATH,
+  200
+>;
+export type StrategySignalListFilters = GetQueryParameters<
+  typeof STRATEGY_SIGNALS_PATH
+>;
+export type OrderIntentListResponse = SuccessResponse<typeof ORDER_INTENTS_PATH>;
+export type OrderIntentResponse = SuccessResponse<typeof ORDER_INTENT_DETAIL_PATH>;
+export type OrderIntentCreateRequest = PostRequestBody<typeof ORDER_INTENTS_PATH>;
+export type OrderIntentCommandResponse = PostSuccessResponse<
+  typeof ORDER_INTENTS_PATH,
+  200
+>;
+export type OrderIntentListFilters = GetQueryParameters<typeof ORDER_INTENTS_PATH>;
+export type PreTradeRiskDecisionListResponse = SuccessResponse<
+  typeof PRE_TRADE_RISK_DECISIONS_PATH
+>;
+export type PreTradeRiskDecisionResponse = SuccessResponse<
+  typeof PRE_TRADE_RISK_DECISION_DETAIL_PATH
+>;
+export type PreTradeRiskDecisionCreateRequest = PostRequestBody<
+  typeof PRE_TRADE_RISK_DECISIONS_PATH
+>;
+export type PreTradeRiskDecisionCommandResponse = PostSuccessResponse<
+  typeof PRE_TRADE_RISK_DECISIONS_PATH,
+  200
+>;
+export type PreTradeRiskDecisionListFilters = GetQueryParameters<
+  typeof PRE_TRADE_RISK_DECISIONS_PATH
 >;
 
 export type ApiResult<Response> = {
@@ -1669,6 +1734,213 @@ export function fetchMarketDataReplayDetail(
   });
 }
 
+function strategyOrderPath(
+  template: string,
+  parameter: string,
+  identity: string,
+): string {
+  return template.replace(`{${parameter}}`, encodeURIComponent(identity));
+}
+
+function validateStrategyOrderListPaging(
+  limit: number | undefined,
+  cursor: string | null | undefined,
+): void {
+  if (
+    limit !== undefined &&
+    (!Number.isInteger(limit) || limit < 1 || limit > 200)
+  ) {
+    throw new TypeError(
+      "Strategy-to-risk limit must be an integer between 1 and 200.",
+    );
+  }
+  if (
+    cursor !== undefined &&
+    cursor !== null &&
+    (cursor.length === 0 || cursor.length > 2048 || cursor !== cursor.trim())
+  ) {
+    throw new TypeError("Strategy-to-risk cursor is invalid.");
+  }
+}
+
+function setBoundedStrategyOrderFilter(
+  query: URLSearchParams,
+  key: string,
+  value: string | null | undefined,
+  maximumLength = 512,
+): void {
+  if (value === undefined || value === null) return;
+  if (
+    value.length === 0 ||
+    value.length > maximumLength ||
+    value !== value.trim()
+  ) {
+    throw new TypeError(`Strategy-to-risk ${key} filter is invalid.`);
+  }
+  query.set(key, value);
+}
+
+export function fetchStrategySignals(
+  filters: StrategySignalListFilters = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<StrategySignalListResponse>> {
+  validateStrategyOrderListPaging(filters.limit, filters.cursor);
+  const query = new URLSearchParams();
+  setBoundedStrategyOrderFilter(
+    query,
+    "strategy_name",
+    filters.strategy_name,
+    128,
+  );
+  setBoundedStrategyOrderFilter(query, "instrument_id", filters.instrument_id);
+  if (filters.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters.cursor) query.set("cursor", filters.cursor);
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${STRATEGY_SIGNALS_PATH}${suffix}`,
+    validate: isStrategySignalListResponse,
+    fetchImplementation,
+  });
+}
+
+export function evaluateStrategySignal(
+  request: StrategySignalEvaluateRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<StrategySignalCommandResponse>> {
+  return requestJson({
+    path: STRATEGY_SIGNAL_EVALUATE_PATH,
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isStrategySignalCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchStrategySignalDetail(
+  signalId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<StrategySignalResponse>> {
+  return requestJson({
+    path: strategyOrderPath(
+      STRATEGY_SIGNAL_DETAIL_PATH,
+      "signal_id",
+      signalId,
+    ),
+    validate: isStrategySignalResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchOrderIntents(
+  filters: OrderIntentListFilters = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<OrderIntentListResponse>> {
+  validateStrategyOrderListPaging(filters.limit, filters.cursor);
+  const query = new URLSearchParams();
+  setBoundedStrategyOrderFilter(query, "signal_id", filters.signal_id, 68);
+  setBoundedStrategyOrderFilter(query, "account_id", filters.account_id);
+  setBoundedStrategyOrderFilter(query, "instrument_id", filters.instrument_id);
+  if (filters.side !== undefined && filters.side !== null) {
+    if (filters.side !== "buy" && filters.side !== "sell") {
+      throw new TypeError("Strategy-to-risk side filter is invalid.");
+    }
+    query.set("side", filters.side);
+  }
+  if (filters.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters.cursor) query.set("cursor", filters.cursor);
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${ORDER_INTENTS_PATH}${suffix}`,
+    validate: isOrderIntentListResponse,
+    fetchImplementation,
+  });
+}
+
+export function createOrderIntent(
+  request: OrderIntentCreateRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<OrderIntentCommandResponse>> {
+  return requestJson({
+    path: ORDER_INTENTS_PATH,
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isOrderIntentCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchOrderIntentDetail(
+  intentId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<OrderIntentResponse>> {
+  return requestJson({
+    path: strategyOrderPath(ORDER_INTENT_DETAIL_PATH, "intent_id", intentId),
+    validate: isOrderIntentResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPreTradeRiskDecisions(
+  filters: PreTradeRiskDecisionListFilters = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PreTradeRiskDecisionListResponse>> {
+  validateStrategyOrderListPaging(filters.limit, filters.cursor);
+  const query = new URLSearchParams();
+  setBoundedStrategyOrderFilter(query, "intent_id", filters.intent_id, 67);
+  setBoundedStrategyOrderFilter(query, "account_id", filters.account_id);
+  if (filters.outcome !== undefined && filters.outcome !== null) {
+    if (filters.outcome !== "allow" && filters.outcome !== "reject") {
+      throw new TypeError("Strategy-to-risk outcome filter is invalid.");
+    }
+    query.set("outcome", filters.outcome);
+  }
+  if (filters.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters.cursor) query.set("cursor", filters.cursor);
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${PRE_TRADE_RISK_DECISIONS_PATH}${suffix}`,
+    validate: isPreTradeRiskDecisionListResponse,
+    fetchImplementation,
+  });
+}
+
+export function createPreTradeRiskDecision(
+  request: PreTradeRiskDecisionCreateRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PreTradeRiskDecisionCommandResponse>> {
+  return requestJson({
+    path: PRE_TRADE_RISK_DECISIONS_PATH,
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isPreTradeRiskDecisionCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPreTradeRiskDecisionDetail(
+  decisionId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PreTradeRiskDecisionResponse>> {
+  return requestJson({
+    path: strategyOrderPath(
+      PRE_TRADE_RISK_DECISION_DETAIL_PATH,
+      "decision_id",
+      decisionId,
+    ),
+    validate: isPreTradeRiskDecisionResponse,
+    fetchImplementation,
+  });
+}
+
 export function fetchPortfolioReviews(
   filters: { status: PortfolioReviewStatus | null; limit: number },
   fetchImplementation: typeof fetch = fetch,
@@ -1713,8 +1985,14 @@ export function fetchPortfolioReviewDetail(
 }
 
 function requireIdempotencyKey(idempotencyKey: string): Record<string, string> {
-  if (idempotencyKey.trim().length === 0) {
-    throw new TypeError("An explicit nonblank Idempotency-Key is required.");
+  if (
+    idempotencyKey.length === 0 ||
+    idempotencyKey.length > 128 ||
+    idempotencyKey !== idempotencyKey.trim()
+  ) {
+    throw new TypeError(
+      "An explicit nonblank normalized Idempotency-Key of at most 128 characters is required.",
+    );
   }
   return { "Idempotency-Key": idempotencyKey };
 }

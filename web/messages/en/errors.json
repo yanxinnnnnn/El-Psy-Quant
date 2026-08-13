@@ -303,6 +303,76 @@
     "explanation": "The backend rejected one or more read-only market-time inspection filters.",
     "recovery": "Correct the inspection filters and retry; no replay or calendar state was changed."
   },
+  "strategy_signal_not_found": {
+    "title": "Strategy Signal not found",
+    "explanation": "The exact immutable Signal ID is not present in durable Strategy-to-Risk authority.",
+    "recovery": "Preserve the current draft and explicitly evaluate or select an available Signal."
+  },
+  "order_intent_not_found": {
+    "title": "Order Intent not found",
+    "explanation": "The exact immutable Intent ID is not present in durable Strategy-to-Risk authority.",
+    "recovery": "Preserve upstream evidence and explicitly derive a current Intent before continuing."
+  },
+  "pre_trade_risk_decision_not_found": {
+    "title": "Pre-Trade Risk Decision not found",
+    "explanation": "The exact immutable Decision ID is not present in durable Strategy-to-Risk authority.",
+    "recovery": "Inspect the Intent and explicitly evaluate Risk when its anchors remain current."
+  },
+  "strategy_order_idempotency_conflict": {
+    "title": "Strategy-to-Risk idempotency conflict",
+    "explanation": "The same step key is already bound to different canonical command input.",
+    "recovery": "Preserve the draft. Retry only the unchanged command or materially change the draft to receive a new key; nothing runs automatically."
+  },
+  "strategy_order_stale_authority": {
+    "title": "Strategy-to-Risk authority is stale",
+    "explanation": "One or more expected account or market anchors no longer match current durable authority.",
+    "recovery": "Keep all evidence and the complete draft. Explicitly reload and reselect anchors, then decide whether to issue a new command."
+  },
+  "strategy_order_reconciliation_required": {
+    "title": "Paper Account reconciliation is required",
+    "explanation": "The selected account projection cannot be used as verified current authority.",
+    "recovery": "Preserve the workflow evidence and inspect reconciliation through the Paper Account workspace; this page will not repair or retry automatically."
+  },
+  "strategy_order_invalid_runtime_configuration": {
+    "title": "Runtime configuration is invalid",
+    "explanation": "The selected moving-average runtime parameters do not satisfy the closed server contract.",
+    "recovery": "Correct the exact window and target quantity inputs, then submit a new explicit Signal command."
+  },
+  "strategy_order_invalid_risk_policy": {
+    "title": "Risk policy configuration is invalid",
+    "explanation": "The closed risk policy rejected one or more exact configuration strings.",
+    "recovery": "Correct the optional canonical limit strings and explicitly evaluate Risk again."
+  },
+  "strategy_order_invalid_decimal": {
+    "title": "Strategy-to-Risk decimal is invalid",
+    "explanation": "A quantity, money, price, or notional input is not an accepted canonical fixed-point string.",
+    "recovery": "Correct the exact string without rounding, exponent notation, or browser normalization."
+  },
+  "strategy_order_invalid_cursor": {
+    "title": "Strategy-to-Risk cursor is invalid",
+    "explanation": "The opaque collection cursor is malformed or belongs to a different evidence collection.",
+    "recovery": "Restart the bounded list inspection from its first page; do not reinterpret the cursor."
+  },
+  "strategy_order_authority_unavailable": {
+    "title": "Strategy-to-Risk authority is unavailable",
+    "explanation": "Required M31, M32, or M33 authority is missing, corrupt, incomplete, or cannot be safely reopened.",
+    "recovery": "Preserve all visible evidence, record the request ID, and inspect local storage authority before an explicit retry."
+  },
+  "strategy_order_storage_busy": {
+    "title": "Strategy-to-Risk storage is busy",
+    "explanation": "The backend could not safely acquire the local durable write transaction.",
+    "recovery": "Keep the unchanged draft and retry manually after the competing local operation completes."
+  },
+  "strategy_order_storage_failure": {
+    "title": "Strategy-to-Risk storage failed",
+    "explanation": "The backend could not safely persist or reopen immutable Strategy-to-Risk evidence.",
+    "recovery": "Preserve upstream evidence, record the request ID, and verify local durable storage before retrying."
+  },
+  "strategy_order_schema_incompatible": {
+    "title": "Strategy-to-Risk schema is incompatible",
+    "explanation": "The local product database or durable storage schema is incompatible with the current Strategy-to-Risk evidence contract.",
+    "recovery": "Preserve all visible evidence and record the request ID. Follow the documented local upgrade or repair procedure before an explicit retry; this workspace will not reinterpret stored evidence."
+  },
   "request_validation_error": {
     "title": "Command structure is invalid",
     "explanation": "The submitted request does not match the generated API contract.",

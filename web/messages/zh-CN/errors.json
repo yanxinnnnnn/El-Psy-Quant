@@ -303,6 +303,76 @@
     "explanation": "后端拒绝了一个或多个只读市场时间检查筛选器。",
     "recovery": "请修正检查筛选器后重试；重放或日历状态未发生更改。"
   },
+  "strategy_signal_not_found": {
+    "title": "未找到策略信号",
+    "explanation": "持久化策略到风控权威中不存在该精确的不可变信号 ID。",
+    "recovery": "保留当前草稿，并显式评估或选择一个可用信号。"
+  },
+  "order_intent_not_found": {
+    "title": "未找到订单意图",
+    "explanation": "持久化策略到风控权威中不存在该精确的不可变意图 ID。",
+    "recovery": "保留上游证据，并在继续之前显式派生当前意图。"
+  },
+  "pre_trade_risk_decision_not_found": {
+    "title": "未找到交易前风控决策",
+    "explanation": "持久化策略到风控权威中不存在该精确的不可变决策 ID。",
+    "recovery": "检查意图，并在其锚点仍为当前状态时显式评估风控。"
+  },
+  "strategy_order_idempotency_conflict": {
+    "title": "策略到风控幂等冲突",
+    "explanation": "同一步骤密钥已经绑定到不同的规范命令输入。",
+    "recovery": "保留草稿。只能重试未变更的命令，或实质修改草稿以获得新密钥；系统不会自动运行。"
+  },
+  "strategy_order_stale_authority": {
+    "title": "策略到风控权威已过期",
+    "explanation": "一个或多个预期账户或市场锚点不再匹配当前持久化权威。",
+    "recovery": "保留全部证据和完整草稿。显式重新加载并选择锚点，然后决定是否发出新命令。"
+  },
+  "strategy_order_reconciliation_required": {
+    "title": "模拟账户需要对账",
+    "explanation": "所选账户投影不能作为已验证的当前权威使用。",
+    "recovery": "保留工作流证据，并通过模拟账户工作区检查对账；本页面不会自动修复或重试。"
+  },
+  "strategy_order_invalid_runtime_configuration": {
+    "title": "运行时配置无效",
+    "explanation": "所选移动平均运行时参数不满足封闭的服务端契约。",
+    "recovery": "更正精确的窗口和目标数量输入，然后提交新的显式信号命令。"
+  },
+  "strategy_order_invalid_risk_policy": {
+    "title": "风控策略配置无效",
+    "explanation": "封闭风控策略拒绝了一个或多个精确配置字符串。",
+    "recovery": "更正可选的规范限制字符串，然后再次显式评估风控。"
+  },
+  "strategy_order_invalid_decimal": {
+    "title": "策略到风控小数无效",
+    "explanation": "数量、金额、价格或名义金额输入不是可接受的规范定点字符串。",
+    "recovery": "更正精确字符串，不得舍入、使用指数表示或在浏览器中规范化。"
+  },
+  "strategy_order_invalid_cursor": {
+    "title": "策略到风控游标无效",
+    "explanation": "不透明集合游标格式错误，或属于另一个证据集合。",
+    "recovery": "从第一页重新开始有界列表检查；不要解释或改写游标。"
+  },
+  "strategy_order_authority_unavailable": {
+    "title": "策略到风控权威不可用",
+    "explanation": "所需的 M31、M32 或 M33 权威缺失、损坏、不完整或无法安全重新打开。",
+    "recovery": "保留所有可见证据，记录请求 ID，并在显式重试前检查本地存储权威。"
+  },
+  "strategy_order_storage_busy": {
+    "title": "策略到风控存储繁忙",
+    "explanation": "后端无法安全获取本地持久化写事务。",
+    "recovery": "保留未变更的草稿，并在竞争的本地操作完成后手动重试。"
+  },
+  "strategy_order_storage_failure": {
+    "title": "策略到风控存储失败",
+    "explanation": "后端无法安全持久化或重新打开不可变的策略到风控证据。",
+    "recovery": "保留上游证据，记录请求 ID，并在重试前验证本地持久化存储。"
+  },
+  "strategy_order_schema_incompatible": {
+    "title": "策略到风控架构不兼容",
+    "explanation": "本地产品数据库或持久化存储架构与当前策略到风控证据契约不兼容。",
+    "recovery": "保留全部可见证据并记录请求 ID。请先按文档执行本地升级或修复，再显式重试；本工作区不会重新解释已存储的证据。"
+  },
   "request_validation_error": {
     "title": "命令结构无效",
     "explanation": "提交的请求与生成的 API 契约不一致。",
