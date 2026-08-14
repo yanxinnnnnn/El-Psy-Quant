@@ -112,6 +112,116 @@
         "title": "DemoEvidenceManifestReferenceResponse",
         "type": "object"
       },
+      "DemoMarketTimeCheckpointResponse": {
+        "properties": {
+          "current_time": {
+            "title": "Current Time",
+            "type": "string"
+          },
+          "last_event_id": {
+            "title": "Last Event Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "status": {
+            "const": "paused",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "position",
+          "last_event_id",
+          "current_time"
+        ],
+        "title": "DemoMarketTimeCheckpointResponse",
+        "type": "object"
+      },
+      "DemoMarketTimeRecoveryResponse": {
+        "properties": {
+          "current_time": {
+            "title": "Current Time",
+            "type": "string"
+          },
+          "final_position": {
+            "title": "Final Position",
+            "type": "integer"
+          },
+          "final_status": {
+            "const": "completed",
+            "title": "Final Status",
+            "type": "string"
+          },
+          "last_event_id": {
+            "title": "Last Event Id",
+            "type": "string"
+          },
+          "remaining_event_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Remaining Event Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "remaining_event_ids",
+          "final_status",
+          "final_position",
+          "last_event_id",
+          "current_time"
+        ],
+        "title": "DemoMarketTimeRecoveryResponse",
+        "type": "object"
+      },
+      "DemoMarketTimeReferenceResponse": {
+        "properties": {
+          "calendar_id": {
+            "title": "Calendar Id",
+            "type": "string"
+          },
+          "checkpoint": {
+            "$ref": "#/components/schemas/DemoMarketTimeCheckpointResponse"
+          },
+          "event_count": {
+            "title": "Event Count",
+            "type": "integer"
+          },
+          "event_stream_digest": {
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "recovery": {
+            "$ref": "#/components/schemas/DemoMarketTimeRecoveryResponse"
+          },
+          "replay_id": {
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "session_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Session Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "calendar_id",
+          "session_ids",
+          "replay_id",
+          "event_count",
+          "event_stream_digest",
+          "checkpoint",
+          "recovery"
+        ],
+        "title": "DemoMarketTimeReferenceResponse",
+        "type": "object"
+      },
       "DemoPaperAccountReferenceResponse": {
         "properties": {
           "account_id": {
@@ -225,6 +335,162 @@
         "title": "DemoResearchRunReferenceResponse",
         "type": "object"
       },
+      "DemoStrategyAuthorityResponse": {
+        "properties": {
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/DemoStrategyReceiptReferenceResponse"
+          }
+        },
+        "required": [
+          "id",
+          "digest",
+          "receipt"
+        ],
+        "title": "DemoStrategyAuthorityResponse",
+        "type": "object"
+      },
+      "DemoStrategyDecisionResponse": {
+        "properties": {
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "allow",
+              "reject"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/DemoStrategyReceiptReferenceResponse"
+          }
+        },
+        "required": [
+          "id",
+          "digest",
+          "receipt",
+          "outcome",
+          "reason_codes"
+        ],
+        "title": "DemoStrategyDecisionResponse",
+        "type": "object"
+      },
+      "DemoStrategyOrderReferenceResponse": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "allow_decision": {
+            "$ref": "#/components/schemas/DemoStrategyDecisionResponse"
+          },
+          "instrument_id": {
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/DemoStrategyAuthorityResponse"
+          },
+          "reject_decision": {
+            "$ref": "#/components/schemas/DemoStrategyDecisionResponse"
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/DemoStrategyRuntimeResponse"
+          },
+          "signal": {
+            "$ref": "#/components/schemas/DemoStrategyAuthorityResponse"
+          },
+          "trading_session_id": {
+            "title": "Trading Session Id",
+            "type": "string"
+          },
+          "workspace_path": {
+            "const": "/strategy-to-risk",
+            "title": "Workspace Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_path",
+          "account_id",
+          "trading_session_id",
+          "instrument_id",
+          "runtime",
+          "signal",
+          "intent",
+          "allow_decision",
+          "reject_decision"
+        ],
+        "title": "DemoStrategyOrderReferenceResponse",
+        "type": "object"
+      },
+      "DemoStrategyReceiptReferenceResponse": {
+        "properties": {
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "namespace": {
+            "enum": [
+              "evaluate_strategy_signal",
+              "derive_order_intent",
+              "evaluate_pre_trade_risk"
+            ],
+            "title": "Namespace",
+            "type": "string"
+          }
+        },
+        "required": [
+          "namespace",
+          "idempotency_key"
+        ],
+        "title": "DemoStrategyReceiptReferenceResponse",
+        "type": "object"
+      },
+      "DemoStrategyRuntimeResponse": {
+        "properties": {
+          "fast_window": {
+            "title": "Fast Window",
+            "type": "integer"
+          },
+          "slow_window": {
+            "title": "Slow Window",
+            "type": "integer"
+          },
+          "target_position_quantity": {
+            "title": "Target Position Quantity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fast_window",
+          "slow_window",
+          "target_position_quantity"
+        ],
+        "title": "DemoStrategyRuntimeResponse",
+        "type": "object"
+      },
       "DemoWorkspaceDescriptorResponse": {
         "properties": {
           "canonical_strategy_name": {
@@ -263,6 +529,9 @@
           "lifecycle_review_example": {
             "$ref": "#/components/schemas/LifecycleTransitionReviewCommandRequest"
           },
+          "market_time": {
+            "$ref": "#/components/schemas/DemoMarketTimeReferenceResponse"
+          },
           "paper_account": {
             "$ref": "#/components/schemas/DemoPaperAccountReferenceResponse"
           },
@@ -283,9 +552,12 @@
             "$ref": "#/components/schemas/DemoResearchRunReferenceResponse"
           },
           "schema_version": {
-            "const": 3,
+            "const": 5,
             "title": "Schema Version",
             "type": "integer"
+          },
+          "strategy_order": {
+            "$ref": "#/components/schemas/DemoStrategyOrderReferenceResponse"
           },
           "warning": {
             "title": "Warning",
@@ -307,7 +579,9 @@
           "lifecycle_review_example",
           "paper_job_submission_example",
           "portfolio_review_example",
-          "paper_account"
+          "paper_account",
+          "market_time",
+          "strategy_order"
         ],
         "title": "DemoWorkspaceDescriptorResponse",
         "type": "object"

@@ -137,9 +137,9 @@ sources, normalize weights, calculate financial evidence, or preselect an
 outcome. Research/evidence composition always requires explicit selection and
 leaves aligned returns manual.
 
-## Demo v3 Paper Account and Portfolio Review Tour
+## Demo v5 Strategy-to-Risk, Market-Time, Paper Account, and Portfolio Review Tour
 
-Demo dataset/descriptor v3 adds one deterministic isolated portfolio review to
+Demo dataset/descriptor v5 adds one deterministic isolated portfolio review to
 the Dashboard after Comparison and before Lifecycle Review. On the create page,
 the visibly Demo-only load action requires explicit draft-replacement
 confirmation. Loading is prefill only: it never auto-loads on page open,
@@ -153,8 +153,21 @@ identity. The Demo descriptor is only a navigation and verification surface;
 events/postings and deterministic replay remain financial and state authority.
 The opening position is an explicit adjustment, not an order or fill.
 
-Any earlier installed Demo dataset conflicts with v3 by design. Stop both
+The same descriptor links to one deterministic paused market-time replay.
+Inspect its immutable calendar, two sessions, five canonical events, exact
+stream digest, and cursor at position 4. Restart verification completes the
+final event only on an in-memory copy and confirms the durable paused checkpoint
+remains unchanged.
+
+The Strategy to Risk workspace exposes the deterministic advisory Signal,
+derived Intent, allow decision, and reject decision created through the existing
+application/domain/repository path from the exact M31 account and M32 replay
+authority. The descriptor only locates and verifies those records; it is not
+Signal, Intent, Decision, receipt, account, or replay authority. This is
+inspection and recovery evidence, not execution or Paper Account mutation.
+
+Any earlier installed Demo dataset conflicts with v5 by design. Stop both
 projects and use only the documented Founder-owned Demo reset before starting
-v3. Standard
+v5. Standard
 and Demo retain separate Compose projects, databases, artifact roots, and named
 volumes; never substitute or remove Standard storage during a Demo reset.

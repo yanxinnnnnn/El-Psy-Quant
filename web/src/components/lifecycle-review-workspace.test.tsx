@@ -27,8 +27,18 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
   };
   const paperAccount = demoSourceJson("paper_accounts/account-journey.json");
   const paperAccountExpected = paperAccount.expected as Record<string, unknown>;
+  const marketTime = demoSourceJson("market_time/replay-journey.json");
+  const marketTimeCalendar = marketTime.calendar as Record<string, unknown>;
+  const marketTimeSessions = marketTime.sessions as Array<Record<string, unknown>>;
+  const marketTimeExpected = marketTime.expected as Record<string, unknown>;
+  const strategyOrder = demoSourceJson("strategy_order/strategy-to-risk-journey.json");
+  const strategyOrderExpected = strategyOrder.expected as Record<string, unknown>;
+  const signalCommand = strategyOrder.signal as Record<string, unknown>;
+  const intentCommand = strategyOrder.intent as Record<string, unknown>;
+  const allowCommand = strategyOrder.allow_risk as Record<string, unknown>;
+  const rejectCommand = strategyOrder.reject_risk as Record<string, unknown>;
   return {
-    schema_version: manifest.schema_version as 3,
+    schema_version: manifest.schema_version as 5,
     dataset_id: manifest.dataset_id as string,
     dataset_version: manifest.dataset_version as number,
     display_name: manifest.display_name as string,
@@ -54,6 +64,37 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
       event_types: paperAccountExpected.event_types as DemoWorkspaceDescriptorResponse["paper_account"]["event_types"],
       snapshot_id: paperAccountExpected.snapshot_id as string,
       reconciliation_id: paperAccountExpected.reconciliation_id as string,
+    },
+    market_time: {
+      calendar_id: marketTimeCalendar.id as string,
+      session_ids: marketTimeSessions.map(({ id }) => id as string),
+      replay_id: marketTime.replay_id as string,
+      event_count: (marketTime.events as unknown[]).length,
+      event_stream_digest: marketTimeExpected.event_stream_digest as string,
+      checkpoint: {
+        status: marketTimeExpected.checkpoint_status as "paused",
+        position: marketTimeExpected.checkpoint_position as number,
+        last_event_id: marketTimeExpected.checkpoint_last_event_id as string,
+        current_time: marketTimeExpected.checkpoint_current_time as string,
+      },
+      recovery: {
+        remaining_event_ids: marketTimeExpected.recovery_remaining_event_ids as string[],
+        final_status: marketTimeExpected.recovery_final_status as "completed",
+        final_position: marketTimeExpected.recovery_final_position as number,
+        last_event_id: marketTimeExpected.recovery_last_event_id as string,
+        current_time: marketTimeExpected.recovery_current_time as string,
+      },
+    },
+    strategy_order: {
+      workspace_path: "/strategy-to-risk",
+      account_id: strategyOrder.account_id as string,
+      trading_session_id: strategyOrder.trading_session_id as string,
+      instrument_id: strategyOrder.instrument_id as string,
+      runtime: strategyOrder.runtime as DemoWorkspaceDescriptorResponse["strategy_order"]["runtime"],
+      signal: { ...(strategyOrderExpected.signal as object), receipt: { namespace: "evaluate_strategy_signal", idempotency_key: signalCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["signal"],
+      intent: { ...(strategyOrderExpected.intent as object), receipt: { namespace: "derive_order_intent", idempotency_key: intentCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["intent"],
+      allow_decision: { ...(strategyOrderExpected.allow_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: allowCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["allow_decision"],
+      reject_decision: { ...(strategyOrderExpected.reject_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: rejectCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["reject_decision"],
     },
   };
 }

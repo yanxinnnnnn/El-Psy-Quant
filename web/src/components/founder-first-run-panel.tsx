@@ -89,6 +89,11 @@ function GuidedDemoJourney({ descriptor }: { descriptor: DemoWorkspaceDescriptor
             {t("paperAccountStep", { step: paperStep + 4 })}
           </Link>
         </li>
+        <li>
+          <Link href={`/market-time/replays/${encodeURIComponent(descriptor.market_time.replay_id)}`}>
+            {t("marketTimeStep", { step: paperStep + 5 })}
+          </Link>
+        </li>
       </ol>
       <p className="neutral-note">{t("demoBoundary")}</p>
     </section>

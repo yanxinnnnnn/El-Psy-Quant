@@ -164,6 +164,36 @@ function standardFetchRecorder(demoDescriptor = null) {
           },
         });
       }
+      if (
+        url.pathname ===
+        "/api/backend/api/v1/market-time/calendars/demo-calendar"
+      ) {
+        return response({
+          calendar: { id: "demo-calendar" },
+          sessions: demoDescriptor.market_time.session_ids.map((id) => ({ id })),
+        });
+      }
+      if (
+        url.pathname ===
+        "/api/backend/api/v1/market-time/replays/demo-replay"
+      ) {
+        return response({
+          event_count: 4,
+          session: {
+            replay_id: "demo-replay",
+            cursor: {
+              event_stream_digest:
+                demoDescriptor.market_time.event_stream_digest,
+              status: "paused",
+              position: 2,
+              last_event_id: "demo-event-b",
+              current_event_time: "2026-07-28T13:30:30+00:00",
+            },
+          },
+          events: ["demo-event-a", "demo-event-b", "demo-event-c", "demo-event-d"]
+            .map((event_id) => ({ event_id })),
+        });
+      }
     }
     if (
       url.pathname === "/api/backend/api/v1/paper-jobs" &&
@@ -231,11 +261,11 @@ describe("non-mutating bilingual MVP verifier", () => {
     ).rejects.not.toThrow(secretBody);
   });
 
-  it("verifies Demo descriptor v3, seeded review, and Paper Account without product mutation", async () => {
+  it("verifies Demo descriptor v5 and integrated authority without product mutation", async () => {
     const descriptor = {
-      schema_version: 3,
+      schema_version: 5,
       dataset_id: "demo-dataset",
-      dataset_version: 3,
+      dataset_version: 5,
       canonical_strategy_name: "moving_average_crossover",
       research_run: { experiment_slug: "demo-experiment", run_id: "demo-run" },
       evidence_manifests: [{
@@ -268,6 +298,37 @@ describe("non-mutating bilingual MVP verifier", () => {
         snapshot_id: "demo-snapshot",
         reconciliation_id: "demo-reconciliation",
       },
+      market_time: {
+        calendar_id: "demo-calendar",
+        session_ids: ["demo-session-a", "demo-session-b"],
+        replay_id: "demo-replay",
+        event_count: 4,
+        event_stream_digest: "d".repeat(64),
+        checkpoint: {
+          status: "paused",
+          position: 2,
+          last_event_id: "demo-event-b",
+          current_time: "2026-07-28T13:30:30+00:00",
+        },
+        recovery: {
+          remaining_event_ids: ["demo-event-c", "demo-event-d"],
+          final_status: "completed",
+          final_position: 4,
+          last_event_id: "demo-event-d",
+          current_time: "2026-07-28T13:31:30+00:00",
+        },
+      },
+      strategy_order: {
+        workspace_path: "/strategy-to-risk",
+        account_id: "demo-paper-account",
+        trading_session_id: "demo-session-a",
+        instrument_id: "XNYS:AAPL",
+        runtime: { fast_window: 2, slow_window: 3, target_position_quantity: "10" },
+        signal: { id: `sig_${"1".repeat(64)}`, digest: "1".repeat(64), receipt: { namespace: "evaluate_strategy_signal", idempotency_key: "demo-signal" } },
+        intent: { id: `oi_${"2".repeat(64)}`, digest: "2".repeat(64), receipt: { namespace: "derive_order_intent", idempotency_key: "demo-intent" } },
+        allow_decision: { id: `risk_decision_${"3".repeat(64)}`, digest: "3".repeat(64), outcome: "allow", reason_codes: [], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-allow" } },
+        reject_decision: { id: `risk_decision_${"4".repeat(64)}`, digest: "4".repeat(64), outcome: "reject", reason_codes: ["maximum_order_quantity_exceeded"], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-reject" } },
+      },
     };
     const { calls, fetcher } = standardFetchRecorder(descriptor);
 
@@ -285,6 +346,12 @@ describe("non-mutating bilingual MVP verifier", () => {
     expect(calls.some(({ path }) =>
       path ===
       "/api/backend/api/v1/paper-accounts/demo-paper-account/ledger?after_sequence_number=0&limit=200"
+    )).toBe(true);
+    expect(calls.some(({ path }) =>
+      path === "/api/backend/api/v1/market-time/calendars/demo-calendar"
+    )).toBe(true);
+    expect(calls.some(({ path }) =>
+      path === "/api/backend/api/v1/market-time/replays/demo-replay"
     )).toBe(true);
     expect(calls.filter(({ options }) => options.method === "POST").map(({ path }) =>
       path

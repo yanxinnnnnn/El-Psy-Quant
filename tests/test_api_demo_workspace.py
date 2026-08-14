@@ -52,8 +52,8 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
 
     assert response.status_code == 200
     descriptor = DemoWorkspaceDescriptorResponse.model_validate(response.json())
-    assert descriptor.schema_version == 3
-    assert descriptor.dataset_version == 3
+    assert descriptor.schema_version == 5
+    assert descriptor.dataset_version == 5
     assert descriptor.dataset_id == "founder-demo-workspace"
     assert descriptor.comparison_candidate_job_ids == [
         "16000000-0000-4000-8000-000000000001",
@@ -92,8 +92,86 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
         descriptor.paper_account.reconciliation_id
         == "demo-paper-account-reconciliation-001"
     )
+    assert descriptor.market_time.calendar_id == "demo-xnys-2026-v1"
+    assert descriptor.market_time.session_ids == [
+        "demo-xnys-2026-07-28-regular",
+        "demo-xnys-2026-07-29-regular",
+    ]
+    assert descriptor.market_time.replay_id == "demo-market-replay-001"
+    assert descriptor.market_time.event_count == 5
+    assert descriptor.market_time.checkpoint.status == "paused"
+    assert descriptor.market_time.checkpoint.position == 4
+    assert descriptor.market_time.recovery.remaining_event_ids == [
+        "demo-market-event-005",
+    ]
+    assert descriptor.market_time.recovery.final_status == "completed"
+    assert descriptor.market_time.recovery.final_position == 5
+    assert descriptor.strategy_order.workspace_path == "/strategy-to-risk"
+    assert descriptor.strategy_order.signal.id.startswith("sig_")
+    assert descriptor.strategy_order.intent.id.startswith("oi_")
+    assert descriptor.strategy_order.allow_decision.outcome == "allow"
+    assert descriptor.strategy_order.reject_decision.reason_codes == [
+        "maximum_order_quantity_exceeded"
+    ]
+    assert descriptor.strategy_order.signal.receipt.namespace == (
+        "evaluate_strategy_signal"
+    )
+    assert descriptor.strategy_order.intent.receipt.namespace == (
+        "derive_order_intent"
+    )
     assert str(installed_demo) not in response.text
     assert "paper_run_artifact.json" not in response.text
+
+
+def test_fresh_demo_s203_reads_return_exact_seeded_m33_evidence(
+    installed_demo: Path,
+) -> None:
+    descriptor_response = TestClient(
+        create_app(workspace_mode="demo", demo_workspace_root=installed_demo)
+    ).get("/api/v1/demo-workspace")
+    descriptor = descriptor_response.json()["strategy_order"]
+    database = installed_demo / "product.sqlite3"
+    with TestClient(create_app(product_database_path=database)) as client:
+        signal_list = client.get("/api/v1/strategy-signals")
+        intent_list = client.get("/api/v1/order-intents")
+        decision_list = client.get("/api/v1/pre-trade-risk-decisions")
+        signal_detail = client.get(
+            f"/api/v1/strategy-signals/{descriptor['signal']['id']}"
+        )
+        intent_detail = client.get(
+            f"/api/v1/order-intents/{descriptor['intent']['id']}"
+        )
+        decision_details = {
+            name: client.get(
+                "/api/v1/pre-trade-risk-decisions/"
+                + descriptor[name]["id"]
+            )
+            for name in ("allow_decision", "reject_decision")
+        }
+
+    assert signal_list.status_code == 200
+    assert intent_list.status_code == 200
+    assert decision_list.status_code == 200
+    assert signal_detail.json()["signal_id"] == descriptor["signal"]["id"]
+    assert signal_detail.json()["signal_digest"] == descriptor["signal"]["digest"]
+    assert intent_detail.json()["intent_id"] == descriptor["intent"]["id"]
+    assert intent_detail.json()["intent_digest"] == descriptor["intent"]["digest"]
+    assert [item["signal_id"] for item in signal_list.json()["items"]] == [
+        descriptor["signal"]["id"]
+    ]
+    assert [item["intent_id"] for item in intent_list.json()["items"]] == [
+        descriptor["intent"]["id"]
+    ]
+    assert [item["decision_id"] for item in decision_list.json()["items"]] == [
+        descriptor["reject_decision"]["id"],
+        descriptor["allow_decision"]["id"],
+    ]
+    for name, response in decision_details.items():
+        assert response.status_code == 200
+        assert response.json()["decision_id"] == descriptor[name]["id"]
+        assert response.json()["decision_digest"] == descriptor[name]["digest"]
+        assert response.json()["outcome"] == descriptor[name]["outcome"]
+        assert response.json()["reason_codes"] == descriptor[name]["reason_codes"]
 
 
 def test_enabled_but_invalid_workspace_is_bounded_503(tmp_path: Path) -> None:

@@ -880,6 +880,51 @@ export interface components {
              */
             manifest_type: "strategy_decision_manifest" | "report_artifact_manifest" | "strategy_review_workflow_manifest";
         };
+        /** DemoMarketTimeCheckpointResponse */
+        DemoMarketTimeCheckpointResponse: {
+            /** Current Time */
+            current_time: string;
+            /** Last Event Id */
+            last_event_id: string;
+            /** Position */
+            position: number;
+            /**
+             * Status
+             * @constant
+             */
+            status: "paused";
+        };
+        /** DemoMarketTimeRecoveryResponse */
+        DemoMarketTimeRecoveryResponse: {
+            /** Current Time */
+            current_time: string;
+            /** Final Position */
+            final_position: number;
+            /**
+             * Final Status
+             * @constant
+             */
+            final_status: "completed";
+            /** Last Event Id */
+            last_event_id: string;
+            /** Remaining Event Ids */
+            remaining_event_ids: string[];
+        };
+        /** DemoMarketTimeReferenceResponse */
+        DemoMarketTimeReferenceResponse: {
+            /** Calendar Id */
+            calendar_id: string;
+            checkpoint: components["schemas"]["DemoMarketTimeCheckpointResponse"];
+            /** Event Count */
+            event_count: number;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            recovery: components["schemas"]["DemoMarketTimeRecoveryResponse"];
+            /** Replay Id */
+            replay_id: string;
+            /** Session Ids */
+            session_ids: string[];
+        };
         /** DemoPaperAccountReferenceResponse */
         DemoPaperAccountReferenceResponse: {
             /** Account Id */
@@ -919,6 +964,67 @@ export interface components {
             /** Run Id */
             run_id: string;
         };
+        /** DemoStrategyAuthorityResponse */
+        DemoStrategyAuthorityResponse: {
+            /** Digest */
+            digest: string;
+            /** Id */
+            id: string;
+            receipt: components["schemas"]["DemoStrategyReceiptReferenceResponse"];
+        };
+        /** DemoStrategyDecisionResponse */
+        DemoStrategyDecisionResponse: {
+            /** Digest */
+            digest: string;
+            /** Id */
+            id: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "allow" | "reject";
+            /** Reason Codes */
+            reason_codes: string[];
+            receipt: components["schemas"]["DemoStrategyReceiptReferenceResponse"];
+        };
+        /** DemoStrategyOrderReferenceResponse */
+        DemoStrategyOrderReferenceResponse: {
+            /** Account Id */
+            account_id: string;
+            allow_decision: components["schemas"]["DemoStrategyDecisionResponse"];
+            /** Instrument Id */
+            instrument_id: string;
+            intent: components["schemas"]["DemoStrategyAuthorityResponse"];
+            reject_decision: components["schemas"]["DemoStrategyDecisionResponse"];
+            runtime: components["schemas"]["DemoStrategyRuntimeResponse"];
+            signal: components["schemas"]["DemoStrategyAuthorityResponse"];
+            /** Trading Session Id */
+            trading_session_id: string;
+            /**
+             * Workspace Path
+             * @constant
+             */
+            workspace_path: "/strategy-to-risk";
+        };
+        /** DemoStrategyReceiptReferenceResponse */
+        DemoStrategyReceiptReferenceResponse: {
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Namespace
+             * @enum {string}
+             */
+            namespace: "evaluate_strategy_signal" | "derive_order_intent" | "evaluate_pre_trade_risk";
+        };
+        /** DemoStrategyRuntimeResponse */
+        DemoStrategyRuntimeResponse: {
+            /** Fast Window */
+            fast_window: number;
+            /** Slow Window */
+            slow_window: number;
+            /** Target Position Quantity */
+            target_position_quantity: string;
+        };
         /** DemoWorkspaceDescriptorResponse */
         DemoWorkspaceDescriptorResponse: {
             /** Canonical Strategy Name */
@@ -935,6 +1041,7 @@ export interface components {
             evidence_manifests: components["schemas"]["DemoEvidenceManifestReferenceResponse"][];
             lifecycle_proposal_example: components["schemas"]["LifecycleTransitionProposalCommandRequest"];
             lifecycle_review_example: components["schemas"]["LifecycleTransitionReviewCommandRequest"];
+            market_time: components["schemas"]["DemoMarketTimeReferenceResponse"];
             paper_account: components["schemas"]["DemoPaperAccountReferenceResponse"];
             paper_job_submission_example: components["schemas"]["DemoPaperJobSubmissionExampleResponse"];
             /** Paper Jobs */
@@ -945,7 +1052,8 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: 3;
+            schema_version: 5;
+            strategy_order: components["schemas"]["DemoStrategyOrderReferenceResponse"];
             /** Warning */
             warning: string;
         };

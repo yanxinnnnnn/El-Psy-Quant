@@ -20,12 +20,11 @@ approved S197–S206 sequence.
 M33 — Strategy-to-Order and Pre-Trade Risk Pipeline
 ```
 
-Issue #389 is the authoritative M33 architecture source. Sprints 197–203 are
-Complete. Sprint 204 is the current implementation sprint and adds one
-bilingual `/strategy-to-risk` Founder workspace over the generated S203
-contracts. The Web explicitly orchestrates and inspects Signal → Intent or
-no-action → Risk evidence without calculating authority or mutating Paper
-Account, replay, or execution state.
+Issue #389 is the authoritative M33 architecture source. Sprints 197–204 are
+Complete. Sprint 205 is the current implementation sprint and adds isolated
+Demo v5 integration, restart, recovery, upgrade, concurrency, stale-authority,
+corruption/no-repair, and Standard/Demo-isolation evidence over the complete
+M31 + M32 → Signal → Intent → Risk chain.
 
 Current migration head:
 

@@ -46,9 +46,9 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 3,
+  schema_version: 5,
   dataset_id: "dataset-from-api",
-  dataset_version: 3,
+  dataset_version: 5,
   display_name: "Founder Demo Workspace",
   warning: "Disposable example evidence, not real user data.",
   canonical_strategy_name: "strategy-from-api",
@@ -125,6 +125,37 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
     snapshot_id: "snapshot-from-api",
     reconciliation_id: "reconciliation-from-api",
   },
+  market_time: {
+    calendar_id: "calendar-from-api",
+    session_ids: ["session-from-api-a", "session-from-api-b"],
+    replay_id: "replay-from-api",
+    event_count: 4,
+    event_stream_digest: "b".repeat(64),
+    checkpoint: {
+      status: "paused",
+      position: 2,
+      last_event_id: "event-from-api-b",
+      current_time: "2026-07-28T13:30:30+00:00",
+    },
+    recovery: {
+      remaining_event_ids: ["event-from-api-c", "event-from-api-d"],
+      final_status: "completed",
+      final_position: 4,
+      last_event_id: "event-from-api-d",
+      current_time: "2026-07-28T13:31:30+00:00",
+    },
+  },
+  strategy_order: {
+    workspace_path: "/strategy-to-risk",
+    account_id: "paper-account-from-api",
+    trading_session_id: "session-from-api-a",
+    instrument_id: "XNYS:AAPL",
+    runtime: { fast_window: 2, slow_window: 3, target_position_quantity: "10" },
+    signal: { id: `sig_${"1".repeat(64)}`, digest: "1".repeat(64), receipt: { namespace: "evaluate_strategy_signal", idempotency_key: "demo-signal" } },
+    intent: { id: `oi_${"2".repeat(64)}`, digest: "2".repeat(64), receipt: { namespace: "derive_order_intent", idempotency_key: "demo-intent" } },
+    allow_decision: { id: `risk_decision_${"3".repeat(64)}`, digest: "3".repeat(64), outcome: "allow", reason_codes: [], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-allow" } },
+    reject_decision: { id: `risk_decision_${"4".repeat(64)}`, digest: "4".repeat(64), outcome: "reject", reason_codes: ["maximum_order_quantity_exceeded"], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-reject" } },
+  },
 };
 
 function notConfigured() {
@@ -183,6 +214,10 @@ describe("FounderFirstRunPanel", () => {
       "href",
       "/paper-accounts/paper-account-from-api",
     );
+    expect(screen.getByRole("link", { name: /Inspect the deterministic paused replay/ })).toHaveAttribute(
+      "href",
+      "/market-time/replays/replay-from-api",
+    );
     expect(apiMocks.fetchResearchRuns).not.toHaveBeenCalled();
   });
 
@@ -215,6 +250,10 @@ describe("FounderFirstRunPanel", () => {
     expect(screen.getByRole("link", { name: /对比两个有序演示结果/ })).toHaveAttribute(
       "href",
       "/comparisons?job_id=job-from-api-a&job_id=job-from-api-b",
+    );
+    expect(screen.getByRole("link", { name: /检查确定性的暂停重放/ })).toHaveAttribute(
+      "href",
+      "/market-time/replays/replay-from-api",
     );
     expect(screen.getByText("每个链接都来自经过验证的后端描述符。浏览器中没有硬编码演示身份或证据载荷。")).toBeVisible();
     expect(screen.queryByText(/固件身份/)).not.toBeInTheDocument();

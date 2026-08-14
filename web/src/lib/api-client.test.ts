@@ -35,6 +35,16 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
   const portfolioReview = manifest.portfolio_review_example as Record<string, unknown>;
   const paperAccount = demoSourceJson("paper_accounts/account-journey.json");
   const paperAccountExpected = paperAccount.expected as Record<string, unknown>;
+  const marketTime = demoSourceJson("market_time/replay-journey.json");
+  const marketTimeCalendar = marketTime.calendar as Record<string, unknown>;
+  const marketTimeSessions = marketTime.sessions as Array<Record<string, unknown>>;
+  const marketTimeExpected = marketTime.expected as Record<string, unknown>;
+  const strategyOrder = demoSourceJson("strategy_order/strategy-to-risk-journey.json");
+  const strategyOrderExpected = strategyOrder.expected as Record<string, unknown>;
+  const signalCommand = strategyOrder.signal as Record<string, unknown>;
+  const intentCommand = strategyOrder.intent as Record<string, unknown>;
+  const allowCommand = strategyOrder.allow_risk as Record<string, unknown>;
+  const rejectCommand = strategyOrder.reject_risk as Record<string, unknown>;
   return {
     schema_version: manifest.schema_version,
     dataset_id: manifest.dataset_id,
@@ -62,6 +72,37 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
       event_types: paperAccountExpected.event_types,
       snapshot_id: paperAccountExpected.snapshot_id,
       reconciliation_id: paperAccountExpected.reconciliation_id,
+    },
+    market_time: {
+      calendar_id: marketTimeCalendar.id,
+      session_ids: marketTimeSessions.map(({ id }) => id),
+      replay_id: marketTime.replay_id,
+      event_count: (marketTime.events as unknown[]).length,
+      event_stream_digest: marketTimeExpected.event_stream_digest,
+      checkpoint: {
+        status: marketTimeExpected.checkpoint_status,
+        position: marketTimeExpected.checkpoint_position,
+        last_event_id: marketTimeExpected.checkpoint_last_event_id,
+        current_time: marketTimeExpected.checkpoint_current_time,
+      },
+      recovery: {
+        remaining_event_ids: marketTimeExpected.recovery_remaining_event_ids,
+        final_status: marketTimeExpected.recovery_final_status,
+        final_position: marketTimeExpected.recovery_final_position,
+        last_event_id: marketTimeExpected.recovery_last_event_id,
+        current_time: marketTimeExpected.recovery_current_time,
+      },
+    },
+    strategy_order: {
+      workspace_path: "/strategy-to-risk",
+      account_id: strategyOrder.account_id,
+      trading_session_id: strategyOrder.trading_session_id,
+      instrument_id: strategyOrder.instrument_id,
+      runtime: strategyOrder.runtime,
+      signal: { ...(strategyOrderExpected.signal as object), receipt: { namespace: "evaluate_strategy_signal", idempotency_key: signalCommand.idempotency_key } },
+      intent: { ...(strategyOrderExpected.intent as object), receipt: { namespace: "derive_order_intent", idempotency_key: intentCommand.idempotency_key } },
+      allow_decision: { ...(strategyOrderExpected.allow_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: allowCommand.idempotency_key } },
+      reject_decision: { ...(strategyOrderExpected.reject_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: rejectCommand.idempotency_key } },
     },
   };
 }
@@ -246,8 +287,8 @@ describe("fetchDemoWorkspace", () => {
     const result = await fetchDemoWorkspace(fetcher);
 
     expect(result.data.dataset_id).toBe(descriptor.dataset_id);
-    expect(result.data.schema_version).toBe(3);
-    expect(result.data.dataset_version).toBe(3);
+    expect(result.data.schema_version).toBe(5);
+    expect(result.data.dataset_version).toBe(5);
     expect(result.data.comparison_candidate_job_ids).toHaveLength(2);
     expect(result.data.portfolio_review_example.request.review_id).toBe(
       "demo-portfolio-review-001",
@@ -257,6 +298,23 @@ describe("fetchDemoWorkspace", () => {
       head_version: 5,
       snapshot_id: "demo-paper-account-snapshot-001",
       reconciliation_id: "demo-paper-account-reconciliation-001",
+    });
+    expect(result.data.market_time).toMatchObject({
+      calendar_id: "demo-xnys-2026-v1",
+      replay_id: "demo-market-replay-001",
+      event_count: 5,
+      checkpoint: { status: "paused", position: 4 },
+      recovery: { final_status: "completed", final_position: 5 },
+    });
+    expect(result.data.strategy_order).toMatchObject({
+      workspace_path: "/strategy-to-risk",
+      account_id: "demo-paper-account-001",
+      instrument_id: "XNYS:AAPL",
+      allow_decision: { outcome: "allow", reason_codes: [] },
+      reject_decision: {
+        outcome: "reject",
+        reason_codes: ["maximum_order_quantity_exceeded"],
+      },
     });
     expect(fetcher).toHaveBeenCalledWith("/api/backend/api/v1/demo-workspace", {
       method: "GET",
@@ -291,6 +349,27 @@ describe("fetchDemoWorkspace", () => {
       descriptor.paper_account.snapshot_id = "   ";
     }],
   ])("rejects malformed Demo Paper Account identity: %s", async (_name, mutate) => {
+    const descriptor = mutableDemoDescriptor();
+    mutate(descriptor);
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(descriptor));
+
+    await expect(fetchDemoWorkspace(fetcher)).rejects.toMatchObject({
+      status: 200,
+      code: "api_response_invalid",
+    });
+  });
+
+  it.each([
+    ["wrong digest", (descriptor: DemoWorkspaceDescriptorResponse) => {
+      descriptor.market_time.event_stream_digest = "not-a-digest";
+    }],
+    ["completed checkpoint", (descriptor: DemoWorkspaceDescriptorResponse) => {
+      descriptor.market_time.checkpoint.status = "completed" as "paused";
+    }],
+    ["incomplete recovery", (descriptor: DemoWorkspaceDescriptorResponse) => {
+      descriptor.market_time.recovery.remaining_event_ids.pop();
+    }],
+  ])("rejects malformed Demo market-time evidence: %s", async (_name, mutate) => {
     const descriptor = mutableDemoDescriptor();
     mutate(descriptor);
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(descriptor));

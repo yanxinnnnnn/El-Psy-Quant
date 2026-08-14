@@ -54,7 +54,7 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 3,
+  schema_version: 5,
   dataset_id: "dataset-from-descriptor",
   dataset_version: 7,
   display_name: "Descriptor Demo Name",
@@ -164,6 +164,40 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
     ],
     snapshot_id: "paper-account-snapshot-from-descriptor",
     reconciliation_id: "paper-account-reconciliation-from-descriptor",
+  },
+  market_time: {
+    calendar_id: "calendar-from-descriptor",
+    session_ids: ["session-from-descriptor-a", "session-from-descriptor-b"],
+    replay_id: "replay-from-descriptor",
+    event_count: 4,
+    event_stream_digest: "c".repeat(64),
+    checkpoint: {
+      status: "paused",
+      position: 2,
+      last_event_id: "event-from-descriptor-b",
+      current_time: "2026-07-28T13:30:30+00:00",
+    },
+    recovery: {
+      remaining_event_ids: [
+        "event-from-descriptor-c",
+        "event-from-descriptor-d",
+      ],
+      final_status: "completed",
+      final_position: 4,
+      last_event_id: "event-from-descriptor-d",
+      current_time: "2026-07-28T13:31:30+00:00",
+    },
+  },
+  strategy_order: {
+    workspace_path: "/strategy-to-risk",
+    account_id: "paper-account-from-descriptor",
+    trading_session_id: "session-from-descriptor-a",
+    instrument_id: "XNYS:AAPL",
+    runtime: { fast_window: 2, slow_window: 3, target_position_quantity: "10" },
+    signal: { id: `sig_${"1".repeat(64)}`, digest: "1".repeat(64), receipt: { namespace: "evaluate_strategy_signal", idempotency_key: "demo-signal" } },
+    intent: { id: `oi_${"2".repeat(64)}`, digest: "2".repeat(64), receipt: { namespace: "derive_order_intent", idempotency_key: "demo-intent" } },
+    allow_decision: { id: `risk_decision_${"3".repeat(64)}`, digest: "3".repeat(64), outcome: "allow", reason_codes: [], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-allow" } },
+    reject_decision: { id: `risk_decision_${"4".repeat(64)}`, digest: "4".repeat(64), outcome: "reject", reason_codes: ["maximum_order_quantity_exceeded"], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-reject" } },
   },
 };
 
@@ -1078,6 +1112,13 @@ describe("FounderDashboard", () => {
       "href",
       "/portfolio-reviews/review-from-descriptor",
     );
+    expect(
+      screen.getByRole("link", { name: /检查确定性的演示市场时间重放/ }),
+    ).toHaveAttribute(
+      "href",
+      "/market-time/replays/replay-from-descriptor",
+    );
+    expect(screen.getByText("completed")).toBeInTheDocument();
     expect(apiMocks.fetchDemoWorkspace).toHaveBeenCalledTimes(1);
   });
 

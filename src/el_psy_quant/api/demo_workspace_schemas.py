@@ -57,8 +57,71 @@ class DemoPaperAccountReferenceResponse(BaseModel):
     reconciliation_id: str
 
 
+class DemoMarketTimeCheckpointResponse(BaseModel):
+    status: Literal["paused"]
+    position: int
+    last_event_id: str
+    current_time: str
+
+
+class DemoMarketTimeRecoveryResponse(BaseModel):
+    remaining_event_ids: list[str]
+    final_status: Literal["completed"]
+    final_position: int
+    last_event_id: str
+    current_time: str
+
+
+class DemoMarketTimeReferenceResponse(BaseModel):
+    calendar_id: str
+    session_ids: list[str]
+    replay_id: str
+    event_count: int
+    event_stream_digest: str
+    checkpoint: DemoMarketTimeCheckpointResponse
+    recovery: DemoMarketTimeRecoveryResponse
+
+
+class DemoStrategyRuntimeResponse(BaseModel):
+    fast_window: int
+    slow_window: int
+    target_position_quantity: str
+
+
+class DemoStrategyReceiptReferenceResponse(BaseModel):
+    namespace: Literal[
+        "evaluate_strategy_signal",
+        "derive_order_intent",
+        "evaluate_pre_trade_risk",
+    ]
+    idempotency_key: str
+
+
+class DemoStrategyAuthorityResponse(BaseModel):
+    id: str
+    digest: str
+    receipt: DemoStrategyReceiptReferenceResponse
+
+
+class DemoStrategyDecisionResponse(DemoStrategyAuthorityResponse):
+    outcome: Literal["allow", "reject"]
+    reason_codes: list[str]
+
+
+class DemoStrategyOrderReferenceResponse(BaseModel):
+    workspace_path: Literal["/strategy-to-risk"]
+    account_id: str
+    trading_session_id: str
+    instrument_id: str
+    runtime: DemoStrategyRuntimeResponse
+    signal: DemoStrategyAuthorityResponse
+    intent: DemoStrategyAuthorityResponse
+    allow_decision: DemoStrategyDecisionResponse
+    reject_decision: DemoStrategyDecisionResponse
+
+
 class DemoWorkspaceDescriptorResponse(BaseModel):
-    schema_version: Literal[3]
+    schema_version: Literal[5]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -73,3 +136,5 @@ class DemoWorkspaceDescriptorResponse(BaseModel):
     paper_job_submission_example: DemoPaperJobSubmissionExampleResponse
     portfolio_review_example: DemoPortfolioReviewExampleResponse
     paper_account: DemoPaperAccountReferenceResponse
+    market_time: DemoMarketTimeReferenceResponse
+    strategy_order: DemoStrategyOrderReferenceResponse

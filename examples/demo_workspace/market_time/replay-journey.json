@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "calendar": {
+    "schema_version": 1,
+    "id": "demo-xnys-2026-v1",
+    "market": "XNYS",
+    "timezone": "America/New_York",
+    "calendar_version": 1,
+    "created_at": "2026-07-28T08:00:00Z"
+  },
+  "sessions": [
+    {
+      "schema_version": 1,
+      "id": "demo-xnys-2026-07-28-regular",
+      "calendar_id": "demo-xnys-2026-v1",
+      "trading_date": "2026-07-28",
+      "open_time": "2026-07-28T13:30:00Z",
+      "close_time": "2026-07-28T20:00:00Z",
+      "session_type": "regular"
+    },
+    {
+      "schema_version": 1,
+      "id": "demo-xnys-2026-07-29-regular",
+      "calendar_id": "demo-xnys-2026-v1",
+      "trading_date": "2026-07-29",
+      "open_time": "2026-07-29T13:30:00Z",
+      "close_time": "2026-07-29T20:00:00Z",
+      "session_type": "regular"
+    }
+  ],
+  "replay_id": "demo-market-replay-001",
+  "events": [
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-001",
+      "instrument_id": "XNYS:AAPL",
+      "event_time": "2026-07-28T13:30:00Z",
+      "event_type": "trade",
+      "payload": {
+        "price": 3,
+        "size": 100
+      },
+      "source": "fixture:demo"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-002",
+      "instrument_id": "XNYS:AAPL",
+      "event_time": "2026-07-28T13:30:30Z",
+      "event_type": "trade",
+      "payload": {
+        "price": 2,
+        "size": 100
+      },
+      "source": "fixture:demo"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-003",
+      "instrument_id": "XNYS:AAPL",
+      "event_time": "2026-07-28T13:31:00Z",
+      "event_type": "trade",
+      "payload": {
+        "price": 1,
+        "size": 100
+      },
+      "source": "fixture:demo"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-004",
+      "instrument_id": "XNYS:AAPL",
+      "event_time": "2026-07-28T13:31:30Z",
+      "event_type": "trade",
+      "payload": {
+        "price": 4,
+        "size": 50
+      },
+      "source": "fixture:demo"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "demo-market-event-005",
+      "instrument_id": "XNYS:MSFT",
+      "event_time": "2026-07-28T13:32:00Z",
+      "event_type": "trade",
+      "payload": {
+        "price": 488.2,
+        "size": 50
+      },
+      "source": "fixture:demo"
+    }
+  ],
+  "checkpoint_after_event_count": 4,
+  "expected": {
+    "event_stream_digest": "f529dc98893820bbbffc79c9fa740b808967ddd13e0e7da9ba21b78c1c8ec78f",
+    "checkpoint_status": "paused",
+    "checkpoint_position": 4,
+    "checkpoint_last_event_id": "demo-market-event-004",
+    "checkpoint_current_time": "2026-07-28T13:31:30Z",
+    "recovery_remaining_event_ids": [
+      "demo-market-event-005"
+    ],
+    "recovery_final_status": "completed",
+    "recovery_final_position": 5,
+    "recovery_last_event_id": "demo-market-event-005",
+    "recovery_current_time": "2026-07-28T13:32:00Z"
+  }
+}

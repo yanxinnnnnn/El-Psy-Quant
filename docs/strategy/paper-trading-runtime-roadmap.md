@@ -243,9 +243,9 @@ continuous scheduling.
 ### Status
 
 **In Progress through S197–S206.** Issue #389 is the authoritative M33
-architecture source. Sprints 197–203 are Complete. Sprint 204 is the current
-implementation sprint and adds one bilingual generated-contract Founder
-workspace over exact S198–S203 authority.
+architecture source. Sprints 197–204 are Complete. Sprint 205 is the current
+implementation sprint and adds deterministic Demo v5 integration and recovery
+evidence over exact S198–S204 authority.
 
 ### User-visible outcome
 
