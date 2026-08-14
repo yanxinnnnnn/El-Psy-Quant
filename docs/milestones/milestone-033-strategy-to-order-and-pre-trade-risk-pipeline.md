@@ -2,10 +2,18 @@
 
 ## Status
 
-**In Progress** through Sprints 197–206.
+**Complete** through Sprints 197–206.
 
-Issue #389 is the authoritative M33 architecture and planning source. Each
-implementation sprint remains governed by its own Issue body.
+Issue #389 is the authoritative M33 architecture and planning source. The
+canonical closeout record is:
+
+```text
+docs/closeouts/milestone-033-strategy-to-order-and-pre-trade-risk-pipeline-closeout.md
+```
+
+Milestone 34 — Paper Execution Simulator and First True Paper Trading — is the
+exact next milestone and requires a CTO-owned architecture/planning Sprint before
+runtime implementation.
 
 ## Goal
 
@@ -19,9 +27,9 @@ Strategy Signal
   -> future M34 execution candidate
 ```
 
-M33 must reproduce the same identities, digests, outcomes, and reason codes from
-the same exact strategy, configuration, account head, market prefix, and risk
-policy across restart.
+M33 reproduces the same identities, digests, outcomes, and reason codes from the
+same exact strategy, configuration, account head, market prefix, and risk policy
+across restart.
 
 ## Authority Model
 
@@ -32,13 +40,14 @@ M33 introduces exactly three new authorities:
 3. Immutable Pre-Trade Risk Decision evidence.
 
 A signal is not an order. An intent is not execution. An allow decision is not
-a fill or ledger mutation. Persistence, API, Web, Demo, and logs cannot replace
-domain authority.
+a fill, reservation, or ledger mutation and is not automatically fresh after
+account or replay progression. Persistence, API, Web, Demo, and logs cannot
+replace domain authority.
 
 M31 financial/account authority and M32 market-time/replay authority remain
 frozen and separate.
 
-## Approved Sprint Sequence
+## Completed Sprint Sequence
 
 | Sprint | Deliverable | Status |
 |---:|---|---|
@@ -50,8 +59,8 @@ frozen and separate.
 | S202 | Durable M33 Persistence, Migration, Concurrency, and Application Service | Complete |
 | S203 | Versioned Strategy-to-Risk API, Errors, Audit, and Generated Contracts | Complete |
 | S204 | Bilingual Founder Strategy-to-Risk Workspace | Complete |
-| S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | In Progress |
-| S206 | Milestone 33 Closeout and M34 Handoff | Planned |
+| S205 | Demo v5, Integration, Upgrade, Restart, Recovery, and Acceptance Hardening | Complete |
+| S206 | Milestone 33 Closeout and M34 Handoff | Complete after merge |
 
 ## Sprint 198 Result
 
@@ -67,7 +76,7 @@ Sprint 198 adds the pure `el_psy_quant.strategy_order` contract package:
 Sprint 198 does not evaluate a strategy or interpret market payloads. It adds no
 Order Intent, no-action result, risk policy, persistence, migration, application
 service, API, Web, localization, Demo, account mutation, replay progression, or
-execution behavior. The migration head remains `0009_market_time_runtime`.
+execution behavior.
 
 ## Sprint 199 Result
 
@@ -135,8 +144,7 @@ unchanged.
 
 The price reference is risk evidence only, and a decision is not a reservation,
 execution authorization, fill, valuation, ledger posting, or account/replay
-mutation. Sprint 201 adds no persistence, migration, application service, API,
-Web, Demo, worker, scheduler, broker, or execution behavior.
+mutation.
 
 ## Sprint 202 Result
 
@@ -171,8 +179,8 @@ opaque keyset cursors. Central sanitized translation exposes stable not-found,
 conflict, invalid-input, schema, authority, busy, and storage errors through the
 existing request-ID envelope. Successful commands emit bounded correlation
 events without actors, keys, financial values, payloads, SQL, or paths.
-Canonical OpenAPI and generated TypeScript now include the nine stable
-operation IDs and strict unions.
+Canonical OpenAPI and generated TypeScript include the nine stable operation IDs
+and strict unions.
 
 Sprint 203 adds no Web workflow, Demo, migration, worker, reservation,
 execution, fill, replay progression, or ledger/account mutation.
@@ -193,22 +201,85 @@ storage failure, and sanitized unexpected failures remain distinct. Raw IDs,
 digests, codes, canonical decimals, and timestamps remain unchanged across
 locales.
 
-Sprint 204 adds no domain, persistence, API, OpenAPI, generated-contract, Demo,
-migration, worker, reservation, Paper Account/replay mutation, execution order,
-fill, broker, or live behavior. S204 is Complete. Sprint 205 is the current
-implementation sprint, S206 remains Planned, and the migration head is
-`0010_strategy_order_risk`.
+The browser performs no financial or authority calculation and adds no
+Paper Account/replay mutation, reservation, execution order, fill, broker, or
+live behavior.
+
+## Sprint 205 Result
+
+Sprint 205 extends the isolated Demo system to deterministic descriptor/dataset
+v5 and proves the complete merged M31 + M32 -> Signal -> Intent -> Risk chain
+across realistic installation and recovery boundaries.
+
+Delivered evidence includes:
+
+- one deterministic non-zero Signal, buy Intent, allow Decision, and explicit
+  maximum-order-quantity reject Decision;
+- M33 creation only through `StrategyOrderApplicationService`, never direct SQL
+  or ORM authority seeding;
+- strict read-only M33 authority/receipt verification with no repair;
+- exact restart replay for Signal, Intent, and both Risk decisions;
+- idempotency conflict and alternate-key convergence;
+- a same-command creation race where one previously absent Signal authority and
+  one scoped receipt win durably;
+- stale M31/M32 rejection without partial writes;
+- representative corruption fail-closed without repair;
+- populated `0009 -> 0010` upgrade preservation followed by explicit Demo v5
+  install and verification; and
+- Standard/Demo storage isolation.
+
+The final reviewed S205 CI baseline was Python `3061 passed` and Web
+`449 passed / 47 files`. Ruff/import/CLI/messages/contracts/lint/typecheck/
+production build passed. Codex did not run Docker or Founder runtime acceptance.
+
+## Sprint 206 Result
+
+Sprint 206 is documentation-only. It adds the canonical M33 closeout, reconciles
+S197–S205 delivery, resolves stale M31/M32/M33 status text, preserves migration
+head `0010_strategy_order_risk`, and freezes the M34 planning handoff without
+adding runtime behavior.
+
+## Final Migration State
+
+The M33 migration evolution is:
+
+```text
+0009_market_time_runtime
+  -> 0010_strategy_order_risk
+```
+
+The final current head is exactly:
+
+```text
+0010_strategy_order_risk
+```
+
+No `0011` belongs to M33.
 
 ## Exit Criteria
 
-M33 is Complete only when:
+M33 is Complete because:
 
-- one exact runtime and replay prefix produce a deterministic signal;
-- one exact M31 account head produces a deterministic intent or no-action result;
-- one exact risk snapshot produces a deterministic allow/reject decision;
+- one exact runtime and replay prefix produce a deterministic Signal;
+- one exact M31 account head produces a deterministic Intent or no-action result;
+- one exact risk snapshot produces a deterministic allow/reject Decision;
 - retries, concurrency, persistence, and recovery preserve exact authority;
 - API, Web, and Demo expose rather than calculate authority;
-- stale account and replay anchors fail closed; and
-- no M34 execution, fill, or account-mutation behavior is pre-implemented.
+- stale account and replay anchors fail closed;
+- corruption is not silently repaired or recomputed;
+- Standard and Demo remain isolated; and
+- no M34 execution, fill, reservation, or account-mutation behavior is
+  pre-implemented.
 
-M34 remains the first execution/fill/account-mutation milestone.
+## M34 Handoff
+
+M34 is the first execution/fill/account-mutation milestone. It may consume only
+an M33 Intent with a matching `allow` Decision and exact verified account/market
+anchors, and it must revalidate freshness at execution time.
+
+M34 must separately define execution command identity, execution-order
+lifecycle, fill timing and price authority, rejection/partial-fill behavior,
+fees/commission/tax treatment, atomic fill-to-M31-ledger postings, execution
+idempotency/reconciliation, and execution-time account/market freshness.
+
+M34 requires a CTO-owned architecture/planning Sprint before implementation.

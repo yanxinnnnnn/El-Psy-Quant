@@ -6,10 +6,16 @@ GitHub Issue #355 is the authoritative Milestone 31 architecture specification.
 This document records the approved repository-level architecture. If this
 summary and Issue #355 differ, Issue #355 controls.
 
-Milestone 31 is **In Progress** through Sprints 179–188. Sprints 179–185 are
-Complete after PR #367 merged. Sprint 186 is implementation-complete and
-pending Founder review; it presents the durable authority through a bilingual
-generated-contract-only Founder Web without changing financial authority.
+Milestone 31 is **Complete** through Sprints 179–188. Its durable ledger,
+projection, snapshot/reconciliation, API, bilingual Founder Web, Demo/recovery,
+and closeout boundaries are frozen upstream authority for M32 and M33.
+
+Canonical closeout records include:
+
+```text
+docs/closeouts/milestone-031-stateful-paper-account-and-ledger-foundation-closeout.md
+docs/closeouts/milestone-031-stateful-paper-account-and-ledger-foundation-closeout-clean.md
+```
 
 ## Product goal
 
@@ -46,7 +52,7 @@ fill record.
 ## Exact numeric boundary
 
 M31 financial values use `Decimal` in Python and canonical fixed-point strings
-at JSON and future SQLite boundaries. Inputs reject floating point, booleans,
+at JSON and SQLite boundaries. Inputs reject floating point, booleans,
 non-finite values, exponent notation, locale formatting, signed zero, implicit
 rounding, unnecessary leading zeroes, and trailing fractional zeroes.
 
@@ -77,10 +83,10 @@ cost basis. Accounts are never deleted.
 
 ## Event, posting, and replay direction
 
-Each accepted mutation will create one immutable ordered event. Per-account
+Each accepted mutation creates one immutable ordered event. Per-account
 sequence starts at 1, is contiguous, and equals the resulting account version.
-Commands will be protected by explicit idempotency keys, canonical command
-digests, expected versions, and one-winner optimistic concurrency.
+Commands are protected by explicit idempotency keys, canonical command digests,
+expected versions, and one-winner optimistic concurrency.
 
 Sprint 181 added:
 
@@ -90,7 +96,7 @@ Sprint 181 added:
 - exact cash-only state with `available_cash == cash_balance`; and
 - no negative cash.
 
-Sprint 182 adds:
+Sprint 182 added:
 
 - append-only position and aggregate-cost-basis postings;
 - no negative quantity or aggregate cost basis;
@@ -168,7 +174,7 @@ Sprint 180 adds only:
 
 Sprint 180 adds no event, posting, replay, balance, position, persistence,
 migration, API, Web, Demo, Docker, order, fill, execution, market, worker,
-broker, private-edge, or live behavior. Migration head remains
+broker, private-edge, or live behavior. Its historical migration head was
 `0006_portfolio_reviews`.
 
 ## Sprint 181 boundary
@@ -242,8 +248,8 @@ evidence-link, event-digest, or chain-digest authority.
 
 No persistence, migration, filesystem artifact, application service, API, Web,
 localization, Demo, Docker, order/fill, market, execution, worker, broker, or
-usable durable Founder account workflow was added in S183. S184 now owns
-durable SQLite and internal application transaction authority.
+usable durable Founder account workflow was added in S183. S184 owns durable
+SQLite and internal application transaction authority.
 
 ## Sprint 184 boundary
 
@@ -275,7 +281,7 @@ projection, digest, snapshot, reconciliation, or financial authority.
 It adds no migration, Founder Web, localization catalog, Demo data, filesystem
 evidence artifact, Docker runtime acceptance, market data, order/fill,
 execution, worker, scheduler, broker, private-edge, live, or real-money
-behavior. Migration head remains `0007_paper_account_ledger`.
+behavior. Its historical migration head was `0007_paper_account_ledger`.
 
 ## Sprint 186 boundary
 
@@ -295,21 +301,24 @@ reconciliation outcomes and never repairs a projection.
 Sprint 186 adds no Python, API/OpenAPI, migration, persistence, Demo/runtime,
 Docker acceptance, filesystem evidence artifact, market data, order/fill,
 strategy runtime, PnL/equity, execution, worker, scheduler, broker,
-private-edge, live, or real-money behavior. Migration head remains
+private-edge, live, or real-money behavior. Its historical migration head was
 `0007_paper_account_ledger`.
 
-## Explicit deferrals
+## Downstream status and preserved boundary
 
-M32–M36 retain their approved sequence but no sprint ranges:
+The approved Paper Trading sequence has advanced beyond the historical M31
+planning state:
 
 ```text
-M32 Market Data Replay, Trading Calendar, and Session Clock
-M33 Strategy-to-Order and Pre-Trade Risk Pipeline
-M34 Paper Execution Simulator and First True Paper Trading
-M35 Durable Paper Runtime and Recovery
-M36 Multi-day Paper Operations and Acceptance
+M31 Stateful Paper Account and Ledger Foundation — Complete
+M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
+M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Complete
+M34 Paper Execution Simulator and First True Paper Trading — next planning milestone
+M35 Durable Paper Runtime and Recovery — future
+M36 Multi-day Paper Operations and Acceptance — future
 ```
 
-M34 remains the first genuine market/strategy-driven Paper Trading gate. M36
-remains the continuous multi-day Paper Trading gate. M31 does not implement
-either capability.
+M31 remains frozen upstream financial/account authority. M32 and M33 consume or
+reference M31 truth but do not redefine it. M34 remains the first milestone that
+may own execution orders, fills, execution pricing/fees, and fill-caused account
+or ledger mutation, subject to its own architecture/planning approval.
