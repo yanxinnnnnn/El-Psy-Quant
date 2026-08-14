@@ -24,7 +24,7 @@ flowchart LR
     M30 --> M31["M31<br/>Stateful Account & Ledger ✅"]
     M31 --> M32["M32<br/>Market Time & Replay ✅"]
     M32 --> M33["M33<br/>Strategy-to-Order & Risk ✅"]
-    M33 --> M34["M34<br/>First True Paper Trading — Next Planning"]
+    M33 --> M34["M34<br/>First True Paper Trading — In Progress"]
     M34 --> M35["M35-M36<br/>Durable Multi-day Operations"]
     M35 --> FUTURE["Future<br/>Execution Readiness & Broker Adapter"]
 ```
@@ -66,13 +66,14 @@ flowchart LR
 | M31 — Stateful Paper Account and Ledger Foundation | S179-188 | Complete | Durable account truth | One auditable ledger owns cash, positions, adjustments, and account-derived state across sessions. |
 | M32 — Market Data Replay, Trading Calendar, and Session Clock | S189-196 | Complete | Deterministic market-time inputs | Validated calendars, sessions, canonical market events, replay state, persistence, recovery, API, Web, and Demo evidence are complete. |
 | M33 — Strategy-to-Order and Pre-Trade Risk Pipeline | S197-206 | Complete | Account-aware strategy-to-risk authority | Exact strategy and market evidence become deterministic Signal, account-bound Intent, and pre-trade Risk authority without execution. |
-| M34 — Paper Execution Simulator and First True Paper Trading | TBD | Next planning milestone | Market/strategy-driven Paper Trading | The platform creates its own simulated execution/fill authority and atomically posts fill effects to the durable account. |
+| M34 — Paper Execution Simulator and First True Paper Trading | S207-216 | In Progress | Market/strategy-driven Paper Trading | The platform creates its own simulated execution/fill authority and atomically posts fill effects to the durable account. |
 | M35 — Durable Paper Runtime and Recovery | TBD | Planned | Reliable session execution | Durable claims, checkpoints, controls, duplicate prevention, and interruption recovery exist. |
 | M36 — Multi-day Paper Operations and Acceptance | TBD | Planned | Continuous multi-session Paper Trading | One account runs safely across sessions and trading days with reconciliation and Founder acceptance. |
 
-M33 used the approved S197–S206 sequence from Issue #389. M34–M36 retain
-intentionally unassigned sprint ranges. M34 is now the exact next milestone and
-must receive a CTO-owned architecture-and-planning Issue before implementation.
+M33 used the approved S197–S206 sequence from Issue #389. M34 uses the approved
+S207–S216 sequence from authoritative architecture Issue #408. S207 is Complete
+and S208 is current under authoritative implementation Issue #409. M35–M36
+retain intentionally unassigned sprint ranges.
 
 ## Completed Milestone 30
 
@@ -217,34 +218,40 @@ M33 closes with no execution order, fill, reservation, execution pricing/fees,
 fill-caused account mutation, worker, scheduler, broker, live, or real-money
 behavior.
 
-## Next Milestone — M34 Planning
+## Current Milestone — M34 In Progress
 
 ```text
 M34 — Paper Execution Simulator and First True Paper Trading
 ```
 
-M34 is the first genuine execution/fill/account-mutation milestone. Before any
-runtime implementation, its CTO-owned planning Sprint must define a separate
-execution authority boundary.
+M34 is the first genuine execution/fill/account-mutation milestone. S207 froze
+its separate execution authority boundary in Issue #408. S208 now implements
+the pure execution Order, policy, handoff, command, and lifecycle contracts
+under Issue #409.
 
 M34 may consume only an M33 Intent with a matching `allow` Decision and exact
 verified M31/M32 anchors. It must revalidate account and market freshness at
 execution time.
 
-The M34 plan must explicitly decide:
-
-- execution command identity;
-- execution order lifecycle;
-- fill timing and execution-price authority;
-- rejection and partial-fill behavior;
-- fees/commission/tax treatment;
-- atomic fill-to-M31-ledger postings;
-- execution idempotency and reconciliation;
-- persistence/migration;
-- API/Web/Demo;
-- recovery and Founder acceptance.
-
+S208 does not add Attempt, Fill, pricing/cost arithmetic, M31 settlement,
+replay progression, persistence, migration, API/Web/Demo, or worker behavior.
+The migration head remains `0010_strategy_order_risk`. S209–S216 remain planned.
 M34 must not mutate M33 Signal, Intent, or Decision records.
+
+Approved M34 sequence:
+
+| Sprint | Deliverable | Status |
+|---:|---|---|
+| S207 | Milestone 34 Architecture and Planning | Complete |
+| S208 | Paper Execution Order, Policy, and Lifecycle Contract Foundation | In Progress |
+| S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | Planned |
+| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | Planned |
+| S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Planned |
+| S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Planned |
+| S213 | Bilingual Founder Paper Execution Workspace | Planned |
+| S214 | Demo v6 and End-to-End First True Paper Trading Evidence | Planned |
+| S215 | M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening | Planned |
+| S216 | Milestone 34 Closeout and M35 Handoff | Planned |
 
 ## Approved Paper Trading Runtime Sequence
 
@@ -253,7 +260,7 @@ M30 Portfolio-Level Decision Review Foundation — Complete
   -> M31 Stateful Paper Account and Ledger Foundation — Complete
   -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Complete
-  -> M34 Paper Execution Simulator and First True Paper Trading — next planning milestone
+  -> M34 Paper Execution Simulator and First True Paper Trading — In Progress
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
 ```
