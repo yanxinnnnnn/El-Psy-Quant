@@ -40,10 +40,13 @@ from el_psy_quant.paper_execution import (
     PAPER_EXECUTION_RISK_REASON_INSUFFICIENT_CASH,
     PAPER_EXECUTION_RISK_REASON_INSUFFICIENT_POSITION,
     PAPER_EXECUTION_RISK_REASON_MAXIMUM_ORDER_NOTIONAL,
+    PAPER_EXECUTION_RISK_REASON_MAXIMUM_ORDER_QUANTITY,
     PAPER_EXECUTION_RISK_REASON_NEGATIVE_SELL_PROCEEDS,
+    PAPER_EXECUTION_TERMINAL_REASON_EXECUTION_RISK_REJECTED,
     PAPER_EXECUTION_TERMINAL_REASON_REPLAY_EXHAUSTED,
     PAPER_EXECUTION_TERMINAL_REASON_SESSION_EXHAUSTED,
     PaperExecutionBasisPoints,
+    create_paper_execution_cost_evidence,
     create_paper_execution_order,
     create_paper_execution_order_command,
     create_paper_execution_order_reference,
@@ -59,6 +62,18 @@ from el_psy_quant.paper_execution import (
     validate_paper_execution_risk_revalidation,
     validate_paper_execution_step_result,
 )
+from el_psy_quant.paper_execution.attempts import _build_attempt
+from el_psy_quant.paper_execution.costs import _build as _build_cost_evidence
+from el_psy_quant.paper_execution.execution_risk import (
+    _derive as _derive_execution_risk,
+)
+from el_psy_quant.paper_execution.fills import (
+    _build_fill,
+    _create_paper_execution_fill,
+)
+from el_psy_quant.paper_execution.orders import _build_order
+from el_psy_quant.paper_execution.pricing import _build as _build_price_evidence
+from el_psy_quant.paper_execution.upstream_references import _build_market_handoff
 from el_psy_quant.strategy_order import (
     create_derive_order_intent_command,
     create_evaluate_pre_trade_risk_command,
@@ -177,9 +192,17 @@ def _scenario(
         payload={"price": 100},
         source="fixture:s209",
     )
-    specs = future_events or [
-        {"instrument_id": INSTRUMENT, "event_type": "trade", "price": 101}
-    ]
+    specs = (
+        [
+            {
+                "instrument_id": INSTRUMENT,
+                "event_type": "trade",
+                "price": 101,
+            }
+        ]
+        if future_events is None
+        else future_events
+    )
     events = [current_event]
     for index, spec in enumerate(specs, 1):
         payload = spec.get("payload", {"price": spec.get("price")})
@@ -313,6 +336,51 @@ def _step(data, version: int, *, attempts=(), fills=(), account_state=None):
         created_at=CREATED + timedelta(hours=5, minutes=version),
         attempts=attempts,
         fills=fills,
+    )
+
+
+def _rebuild_risk(risk, **changes: object):
+    values: dict[str, object] = {
+        "order_reference": risk.execution_order_reference,
+        "execution_version": risk.execution_version,
+        "account_id": risk.account_id,
+        "account_head_version": risk.account_head_version,
+        "account_head_event_id": risk.account_head_event_id,
+        "account_head_chain_digest": risk.account_head_chain_digest,
+        "available_cash": risk.available_cash,
+        "current_instrument_quantity": risk.current_instrument_quantity,
+        "side": risk.execution_price_evidence.side,
+        "risk_policy_reference": risk.risk_policy_reference,
+        "execution_price_evidence": risk.execution_price_evidence,
+        "cost_evidence": risk.cost_evidence,
+        "requested_quantity": risk.requested_quantity,
+        "remaining_quantity_before_step": risk.remaining_quantity_before_step,
+        "candidate_fill_quantity": risk.candidate_fill_quantity,
+        "cumulative_filled_gross_notional": (
+            risk.cumulative_filled_gross_notional
+        ),
+    }
+    values.update(changes)
+    return _derive_execution_risk(**values)  # type: ignore[arg-type]
+
+
+def _rebuild_attempt(attempt, *, risk, result: str | None = None):
+    attempt_result = result or attempt.attempt_result
+    return _build_attempt(
+        execution_order_reference=attempt.execution_order_reference,
+        prior_order_state=attempt.prior_order_state,
+        pre_step_cursor=attempt.pre_step_cursor,
+        post_step_cursor=attempt.post_step_cursor,
+        consumed_event_reference=attempt.consumed_event_reference,
+        attempt_result=attempt_result,
+        no_fill_reason_code=None,
+        terminal_reason_code=(
+            PAPER_EXECUTION_TERMINAL_REASON_EXECUTION_RISK_REJECTED
+            if attempt_result == PAPER_EXECUTION_ATTEMPT_RESULT_RISK_REJECTED
+            else attempt.terminal_reason_code
+        ),
+        risk_revalidation=risk,
+        created_at=attempt.created_at,
     )
 
 
@@ -457,6 +525,61 @@ def test_session_boundary_rejects_without_consuming_close_event() -> None:
         PAPER_EXECUTION_TERMINAL_REASON_SESSION_EXHAUSTED
     )
     assert result.attempt.consumed_event_reference is None
+    assert data["engine"].cursor == before
+    assert result.order_state.status == PAPER_EXECUTION_ORDER_STATUS_REJECTED
+
+
+def test_replay_exhausted_boundary_without_next_event_does_not_consume(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = _scenario(future_events=[{"price": 101}])
+    assert data["engine"].next_event() == data["engine"].events[-1]
+    original_order = data["order"]
+    exhausted_handoff = _build_market_handoff(
+        calendar=data["calendar"],
+        session=data["session"],
+        replay_engine=data["engine"],
+    )
+    data["order"] = _build_order(
+        order_intent_reference=original_order.order_intent_reference,
+        risk_handoff_reference=original_order.risk_handoff_reference,
+        account_handoff_reference=original_order.account_handoff_reference,
+        market_handoff_reference=exhausted_handoff,
+        execution_policy_reference=original_order.execution_policy_reference,
+        account_id=original_order.account_id,
+        instrument_id=original_order.instrument_id,
+        side=original_order.side,
+        requested_quantity=original_order.requested_quantity,
+        origin_command_idempotency_key=(
+            original_order.origin_command_idempotency_key
+        ),
+        origin_command_digest=original_order.origin_command_digest,
+        origin_actor=original_order.origin_actor,
+        created_at=original_order.created_at,
+    )
+    before = data["engine"].cursor
+    assert before.status == "completed"
+
+    def forbidden_next_event(_engine: MarketDataReplayEngine):
+        pytest.fail("boundary exhaustion must not call next_event")
+
+    monkeypatch.setattr(
+        MarketDataReplayEngine,
+        "next_event",
+        forbidden_next_event,
+    )
+
+    result = _step(data, 0)
+
+    assert result.attempt.attempt_result == (
+        PAPER_EXECUTION_ATTEMPT_RESULT_BOUNDARY_REJECTED
+    )
+    assert result.attempt.terminal_reason_code == (
+        PAPER_EXECUTION_TERMINAL_REASON_REPLAY_EXHAUSTED
+    )
+    assert result.attempt.consumed_event_reference is None
+    assert result.attempt.pre_step_cursor == before
+    assert result.attempt.post_step_cursor == before
     assert data["engine"].cursor == before
     assert result.order_state.status == PAPER_EXECUTION_ORDER_STATUS_REJECTED
 
@@ -638,6 +761,60 @@ def test_execution_risk_rejections_consume_once_without_fill(
     assert data["engine"].cursor.position == before_position + 1
 
 
+def test_maximum_notional_uses_prior_fill_gross_plus_remaining_at_current_price(
+) -> None:
+    data = _scenario(
+        cash="2000",
+        current_quantity="4",
+        target_quantity="10",
+        future_events=[{"price": 10}, {"price": 200}],
+        execution_policy=_policy(
+            max_fill_quantity_per_trade_event=PaperQuantity.parse("2"),
+            slippage_bps=PaperExecutionBasisPoints.parse("0"),
+            commission_bps=PaperExecutionBasisPoints.parse("0"),
+        ),
+        maximum_order_notional="650",
+    )
+    first = _step(data, 0)
+    assert first.fill is not None
+    assert first.fill.cost_evidence.gross_notional.to_json_value() == "20"
+
+    second = _step(
+        data,
+        1,
+        attempts=(first.attempt,),
+        fills=(first.fill,),
+    )
+
+    assert second.fill is None
+    assert second.attempt.attempt_result == (
+        PAPER_EXECUTION_ATTEMPT_RESULT_RISK_REJECTED
+    )
+    assert second.attempt.risk_revalidation is not None
+    risk = second.attempt.risk_revalidation
+    assert risk.cumulative_filled_gross_notional.to_json_value() == "20"
+    assert risk.remaining_quantity_before_step.to_json_value() == "4"
+    assert risk.projected_order_gross_notional.to_json_value() == "820"
+    assert PAPER_EXECUTION_RISK_REASON_MAXIMUM_ORDER_NOTIONAL in risk.reason_codes
+    assert reconstruct_paper_execution_order_state(
+        data["order"],
+        attempts=(first.attempt, second.attempt),
+        fills=(first.fill,),
+    ) == second.order_state
+
+    corrupt_risk = _rebuild_risk(
+        risk,
+        cumulative_filled_gross_notional=PaperMoney.parse("0"),
+    )
+    corrupt_attempt = _rebuild_attempt(second.attempt, risk=corrupt_risk)
+    with pytest.raises(ValueError, match="Order/prior state"):
+        reconstruct_paper_execution_order_state(
+            data["order"],
+            attempts=(first.attempt, corrupt_attempt),
+            fills=(first.fill,),
+        )
+
+
 def test_history_corruption_duplicate_fill_and_attempt_after_terminal_fail_closed() -> None:
     data = _scenario()
     result = _step(data, 0)
@@ -651,6 +828,212 @@ def test_history_corruption_duplicate_fill_and_attempt_after_terminal_fail_close
     object.__setattr__(result.attempt, "execution_version_after", 3)
     with pytest.raises(ValueError):
         validate_paper_execution_attempt(result.attempt)
+
+
+def test_history_rebinds_fill_quantity_price_and_cost_to_attempt_risk() -> None:
+    data = _scenario()
+    result = _step(data, 0)
+    assert result.fill is not None
+    fill = result.fill
+    policy = data["order"].execution_policy_reference
+
+    smaller_quantity = PaperQuantity.parse("1")
+    smaller_costs = create_paper_execution_cost_evidence(
+        execution_price_evidence=fill.execution_price_evidence,
+        fill_quantity=smaller_quantity,
+        execution_policy_reference=policy,
+    )
+    quantity_mismatch = _build_fill(
+        execution_order_reference=fill.execution_order_reference,
+        attempt_reference=fill.attempt_reference,
+        execution_event_reference=fill.execution_event_reference,
+        side=fill.side,
+        fill_quantity=smaller_quantity,
+        execution_price_evidence=fill.execution_price_evidence,
+        cost_evidence=smaller_costs,
+        created_at=fill.created_at,
+    )
+    alternate_price = _build_price_evidence(
+        execution_event_reference=fill.execution_event_reference,
+        side=fill.side,
+        base_trade_price=PaperMoney.parse("99"),
+        slippage_bps=policy.slippage_bps,
+    )
+    alternate_price_costs = create_paper_execution_cost_evidence(
+        execution_price_evidence=alternate_price,
+        fill_quantity=fill.fill_quantity,
+        execution_policy_reference=policy,
+    )
+    price_mismatch = _build_fill(
+        execution_order_reference=fill.execution_order_reference,
+        attempt_reference=fill.attempt_reference,
+        execution_event_reference=fill.execution_event_reference,
+        side=fill.side,
+        fill_quantity=fill.fill_quantity,
+        execution_price_evidence=alternate_price,
+        cost_evidence=alternate_price_costs,
+        created_at=fill.created_at,
+    )
+    alternate_costs = _build_cost_evidence(
+        execution_price_evidence=fill.execution_price_evidence,
+        fill_quantity=fill.fill_quantity,
+        commission_bps=PaperExecutionBasisPoints.parse("2"),
+        fee_bps=policy.fee_bps,
+        side_tax_bps=policy.buy_tax_bps,
+    )
+    cost_mismatch = _build_fill(
+        execution_order_reference=fill.execution_order_reference,
+        attempt_reference=fill.attempt_reference,
+        execution_event_reference=fill.execution_event_reference,
+        side=fill.side,
+        fill_quantity=fill.fill_quantity,
+        execution_price_evidence=fill.execution_price_evidence,
+        cost_evidence=alternate_costs,
+        created_at=fill.created_at,
+    )
+
+    for corrupt_fill in (quantity_mismatch, price_mismatch, cost_mismatch):
+        assert validate_paper_execution_fill(corrupt_fill) is corrupt_fill
+        with pytest.raises(ValueError, match="Fill economics"):
+            reconstruct_paper_execution_order_state(
+                data["order"],
+                attempts=(result.attempt,),
+                fills=(corrupt_fill,),
+            )
+
+
+def test_history_rebinds_risk_order_state_policy_price_and_cost_authority() -> None:
+    data = _scenario()
+    result = _step(data, 0)
+    assert result.attempt.risk_revalidation is not None
+    original = result.attempt.risk_revalidation
+    policy = data["order"].execution_policy_reference
+
+    alternate_risk_policy = create_long_only_cash_risk_policy_reference(
+        maximum_order_quantity=PaperQuantity.parse("100"),
+        maximum_order_notional=None,
+    )
+    alternate_price = _build_price_evidence(
+        execution_event_reference=original.execution_price_evidence.execution_event_reference,
+        side=original.execution_price_evidence.side,
+        base_trade_price=original.execution_price_evidence.base_trade_price,
+        slippage_bps=PaperExecutionBasisPoints.parse("2"),
+    )
+    alternate_price_costs = create_paper_execution_cost_evidence(
+        execution_price_evidence=alternate_price,
+        fill_quantity=original.candidate_fill_quantity,
+        execution_policy_reference=policy,
+    )
+    alternate_costs = _build_cost_evidence(
+        execution_price_evidence=original.execution_price_evidence,
+        fill_quantity=original.candidate_fill_quantity,
+        commission_bps=PaperExecutionBasisPoints.parse("2"),
+        fee_bps=policy.fee_bps,
+        side_tax_bps=policy.buy_tax_bps,
+    )
+    corrupt_risks = (
+        _rebuild_risk(
+            original,
+            requested_quantity=PaperQuantity.parse("5"),
+        ),
+        _rebuild_risk(
+            original,
+            remaining_quantity_before_step=PaperQuantity.parse("5"),
+        ),
+        _rebuild_risk(
+            original,
+            cumulative_filled_gross_notional=PaperMoney.parse("1"),
+        ),
+        _rebuild_risk(
+            original,
+            risk_policy_reference=alternate_risk_policy,
+        ),
+        _rebuild_risk(
+            original,
+            execution_price_evidence=alternate_price,
+            cost_evidence=alternate_price_costs,
+        ),
+        _rebuild_risk(original, cost_evidence=alternate_costs),
+    )
+
+    for corrupt_risk in corrupt_risks:
+        corrupt_attempt = _rebuild_attempt(result.attempt, risk=corrupt_risk)
+        corrupt_fill = _create_paper_execution_fill(
+            attempt=corrupt_attempt,
+            fill_quantity=corrupt_risk.candidate_fill_quantity,
+            created_at=result.fill.created_at,  # type: ignore[union-attr]
+        )
+        with pytest.raises(ValueError):
+            reconstruct_paper_execution_order_state(
+                data["order"],
+                attempts=(corrupt_attempt,),
+                fills=(corrupt_fill,),
+            )
+
+
+def test_history_enforces_exact_frozen_per_event_cap() -> None:
+    data = _scenario(
+        execution_policy=_policy(
+            max_fill_quantity_per_trade_event=PaperQuantity.parse("2")
+        )
+    )
+    result = _step(data, 0)
+    assert result.attempt.risk_revalidation is not None
+    original = result.attempt.risk_revalidation
+    quantity = PaperQuantity.parse("1")
+    costs = create_paper_execution_cost_evidence(
+        execution_price_evidence=original.execution_price_evidence,
+        fill_quantity=quantity,
+        execution_policy_reference=data["order"].execution_policy_reference,
+    )
+    risk = _rebuild_risk(
+        original,
+        candidate_fill_quantity=quantity,
+        cost_evidence=costs,
+    )
+    attempt = _rebuild_attempt(result.attempt, risk=risk)
+    fill = _create_paper_execution_fill(
+        attempt=attempt,
+        fill_quantity=quantity,
+        created_at=result.fill.created_at,  # type: ignore[union-attr]
+    )
+
+    with pytest.raises(ValueError, match="per-event cap"):
+        reconstruct_paper_execution_order_state(
+            data["order"],
+            attempts=(attempt,),
+            fills=(fill,),
+        )
+
+
+def test_maximum_original_quantity_reject_is_unreachable_from_allow_handoff(
+) -> None:
+    data = _scenario()
+    result = _step(data, 0)
+    assert result.attempt.risk_revalidation is not None
+    lower_policy = create_long_only_cash_risk_policy_reference(
+        maximum_order_quantity=PaperQuantity.parse("5"),
+        maximum_order_notional=None,
+    )
+    risk = _rebuild_risk(
+        result.attempt.risk_revalidation,
+        risk_policy_reference=lower_policy,
+    )
+    assert risk.outcome == "reject"
+    assert PAPER_EXECUTION_RISK_REASON_MAXIMUM_ORDER_QUANTITY in risk.reason_codes
+    attempt = _rebuild_attempt(
+        result.attempt,
+        risk=risk,
+        result=PAPER_EXECUTION_ATTEMPT_RESULT_RISK_REJECTED,
+    )
+
+    # A valid frozen M33 allow handoff cannot have requested quantity above its
+    # maximum. Reconstruction therefore rejects a self-consistent M34 risk
+    # record that tries to substitute such a lower policy after Order creation.
+    with pytest.raises(ValueError, match="frozen Order policy"):
+        reconstruct_paper_execution_order_state(
+            data["order"], attempts=(attempt,), fills=()
+        )
 
 
 def test_new_authority_is_stable_strict_json_and_tamper_safe() -> None:

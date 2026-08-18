@@ -212,6 +212,13 @@ def _history_values(
         has_fill = valid_attempt.attempt_result == PAPER_EXECUTION_ATTEMPT_RESULT_FILL
         if has_fill != (fill is not None):
             raise ValueError("Fill/Attempt relationship is incomplete")
+        _validate_history_risk_authority(
+            order=valid_order,
+            prior_state=state,
+            attempt=valid_attempt,
+            fill=fill,
+            cumulative_filled_gross_notional=cumulative_gross,
+        )
         cumulative_decimal = state.cumulative_filled_quantity.decimal_value
         if fill is not None:
             if not (
@@ -266,6 +273,86 @@ def _history_values(
     if fill_by_attempt:
         raise ValueError("execution history contains orphan Fill evidence")
     return state, cumulative_gross
+
+
+def _validate_history_risk_authority(
+    *,
+    order: PaperExecutionOrder,
+    prior_state: PaperExecutionOrderState,
+    attempt: PaperExecutionAttempt,
+    fill: PaperExecutionFill | None,
+    cumulative_filled_gross_notional: PaperMoney,
+) -> None:
+    """Re-bind canonical risk/Fill records to frozen Order and prior history."""
+    risk = attempt.risk_revalidation
+    if risk is None:
+        return
+    event = attempt.consumed_event_reference
+    if event is None:
+        raise ValueError("execution risk Attempt must consume one event")
+    order_reference = create_paper_execution_order_reference(order)
+    if not (
+        risk.execution_order_reference == order_reference
+        and risk.execution_version == prior_state.execution_version
+        and risk.requested_quantity == order.requested_quantity
+        and risk.remaining_quantity_before_step == prior_state.remaining_quantity
+        and risk.cumulative_filled_gross_notional
+        == cumulative_filled_gross_notional
+    ):
+        raise ValueError(
+            "execution risk history is incompatible with Order/prior state"
+        )
+    if (
+        risk.risk_policy_reference
+        != order.risk_handoff_reference.risk_policy_reference
+    ):
+        raise ValueError(
+            "execution risk policy does not match frozen Order policy"
+        )
+    execution_policy = order.execution_policy_reference
+    price = risk.execution_price_evidence
+    costs = risk.cost_evidence
+    expected_tax = (
+        execution_policy.buy_tax_bps
+        if order.side == "buy"
+        else execution_policy.sell_tax_bps
+    )
+    if not (
+        event.instrument_id == order.instrument_id
+        and event.event_type == "trade"
+        and price.execution_event_reference == event
+        and price.side == order.side
+        and price.execution_price_policy_id
+        == execution_policy.execution_price_policy_id
+        and price.slippage_policy_id == execution_policy.slippage_policy_id
+        and price.slippage_bps == execution_policy.slippage_bps
+        and costs.execution_price_evidence == price
+        and costs.transaction_cost_policy_id
+        == execution_policy.transaction_cost_policy_id
+        and costs.commission_bps == execution_policy.commission_bps
+        and costs.fee_bps == execution_policy.fee_bps
+        and costs.side_tax_bps == expected_tax
+        and costs.fill_quantity == risk.candidate_fill_quantity
+    ):
+        raise ValueError(
+            "execution evidence does not match frozen Order policy"
+        )
+    expected_quantity = prior_state.remaining_quantity.decimal_value
+    cap = execution_policy.max_fill_quantity_per_trade_event
+    if cap is not None:
+        expected_quantity = min(expected_quantity, cap.decimal_value)
+    if risk.candidate_fill_quantity != PaperQuantity.parse(
+        canonical_decimal(expected_quantity)
+    ):
+        raise ValueError(
+            "execution candidate quantity does not match frozen per-event cap"
+        )
+    if fill is not None and not (
+        fill.fill_quantity == risk.candidate_fill_quantity
+        and fill.execution_price_evidence == price
+        and fill.cost_evidence == costs
+    ):
+        raise ValueError("Fill economics do not match Attempt risk authority")
 
 
 def reconstruct_paper_execution_order_state(
