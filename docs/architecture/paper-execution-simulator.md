@@ -6,8 +6,8 @@ GitHub Issue #408 is the authoritative Milestone 34 architecture source. This
 record summarizes that approved boundary; it does not replace or broaden the
 Issue.
 
-Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S208
-are Complete. Sprint 209 is current, with Issue #411 as its authoritative
+Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S209
+are Complete. Sprint 210 is current, with Issue #413 as its authoritative
 implementation specification.
 
 ## Authority chain
@@ -18,8 +18,9 @@ M31 immutable ledger events/postings and deterministic replay
   + immutable M33 OrderIntent and matching allow PreTradeRiskDecision
     -> immutable M34 PaperExecutionOrder
       -> S209 PaperExecutionAttempt
-        -> unsettled S209 PaperExecutionFill
-          -> future S210/S211 atomic M31 execution settlement
+        -> S209 PaperExecutionFill
+          -> S210 pure M31 execution event and postings
+          -> S210 ExecutionSettlementLink
 ```
 
 Each layer remains separate. M34 does not repurpose the M15
@@ -28,7 +29,7 @@ Each layer remains separate. M34 does not repurpose the M15
 Decision is historical evidence over one exact snapshot, not permanent
 execution authorization.
 
-## Delivered S208–S209 boundary
+## Delivered S208–S210 boundary
 
 Sprint 208 added the pure `el_psy_quant.paper_execution` domain-contract
 foundation:
@@ -73,10 +74,21 @@ In-session progression uses M32 `MarketDataReplayEngine.next_event()` exactly
 once. Boundary attempts do not consume an event. No durable replay checkpoint
 exists yet.
 
+Sprint 210 adds pure/in-memory settlement semantics:
+
+- one Fill creates one `execution_fill_posted` M31 event;
+- that event owns exactly one `execution_settlement` cash posting and one
+  `execution_fill` position posting;
+- buy debits and capitalized costs and sell proportional average-cost removal
+  are exact and fail closed;
+- M31 replay remains financial/account authority; and
+- one deterministic `ExecutionSettlementLink` provides non-financial
+  one-to-one Fill/event/posting reconciliation evidence.
+
 ## Deferred authority
 
-An S209 Fill is execution authority only; it is not proof of M31 settlement.
-S210 owns pure M31 execution-ledger settlement semantics. S211 owns durable
+S210 settlement is pure evidence and does not itself provide durable atomic
+commit. S211 owns durable
 persistence, migration, transactions, idempotency, concurrency, replay
 checkpoint handling, and Fill-to-ledger reconciliation. Reservation, API,
 generated contract, Web, Demo v6, worker, scheduler, broker, live, and
@@ -87,6 +99,6 @@ The migration head remains exactly `0010_strategy_order_risk`. The planned
 
 ## Preserved runtime boundary
 
-M34 remains a manual synchronous simulator. S210–S216 remain planned. M35
+M34 remains a manual synchronous simulator. S211–S216 remain planned. M35
 owns durable runtime and recovery; M36 owns multi-session and multi-day
 operation. Neither later milestone is implemented here.

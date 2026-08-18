@@ -16,14 +16,14 @@ M30 — Complete
 M31 — Complete
 M32 — Complete
 M33 — Complete through S197–S206
-M34 — In Progress through approved S207–S216; S209 current
+M34 — In Progress through approved S207–S216; S210 current
 M35–M36 — Planned future milestones
 ```
 
 M31 used S179–S188, M32 used S189–S196, and M33 used S197–S206. Issue #389
 remains the authoritative M33 architecture source for the completed boundary.
-M34 uses S207–S216 under authoritative architecture Issue #408. S207–S208 are
-Complete and S209 is current under Issue #411. M35–M36 retain intentionally
+M34 uses S207–S216 under authoritative architecture Issue #408. S207–S209 are
+Complete and S210 is current under Issue #413. M35–M36 retain intentionally
 unassigned sprint ranges until each milestone is planned.
 
 The current migration head is exactly:
@@ -228,7 +228,7 @@ scheduler, broker, or live behavior.
 
 ### Status
 
-**In Progress through S207–S216. S207–S208 are Complete; Sprint 209 is current.**
+**In Progress through S207–S216. S207–S209 are Complete; Sprint 210 is current.**
 
 M34 is the first genuine market/strategy-driven Paper Trading milestone.
 
@@ -272,8 +272,13 @@ S209 posts no M31 settlement/account mutation and adds no durable replay
 checkpoint, persistence, migration, API, Web, Demo, or worker. An S209 Fill is
 not proof of M31 settlement.
 
+Sprint 210 adds pure Fill-to-M31 settlement: exactly one combined execution
+event, one cash posting, one position posting, exact buy/sell average-cost
+effects, and deterministic one-to-one settlement-link reconciliation. M31
+replay remains account authority.
+
 The migration head remains `0010_strategy_order_risk`; the planned
-`0011_paper_execution` belongs to S211. S210–S216 remain planned.
+`0011_paper_execution` belongs to S211. S211–S216 remain planned.
 
 ### User-visible outcome
 
@@ -399,8 +404,8 @@ Only one milestone is planned and implemented at a time.
 The current implementation action is:
 
 ```text
-implement Sprint 209 pure one-event execution under Issue #411
+implement Sprint 210 pure Fill-to-M31 settlement under Issue #413
 ```
 
-Do not pre-implement S210+ settlement/persistence semantics during S209. M35–M36 remain
+Do not pre-implement S211+ persistence/transaction semantics during S210. M35–M36 remain
 future milestones until their predecessors are complete and explicitly planned.

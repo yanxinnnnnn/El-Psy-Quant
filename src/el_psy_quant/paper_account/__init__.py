@@ -77,6 +77,12 @@ from el_psy_quant.paper_account.events import (
     PaperAccountEvent,
     PaperAccountEventType,
 )
+from el_psy_quant.paper_account.execution_settlement import (
+    PAPER_ACCOUNT_EXECUTION_SETTLEMENT_MONEY_QUANTUM,
+    PAPER_ACCOUNT_EXECUTION_SETTLEMENT_ROUNDING_MODE,
+    apply_paper_execution_fill_settlement,
+    validate_paper_execution_fill_settlement_bundle,
+)
 from el_psy_quant.paper_account.evidence_operations import (
     PAPER_ACCOUNT_EVIDENCE_OPERATION_COMMAND_SCHEMA_VERSION,
     CreatePaperAccountSnapshotCommand,
@@ -101,6 +107,7 @@ from el_psy_quant.paper_account.references import (
 from el_psy_quant.paper_account.position_commands import (
     MAX_PAPER_POSITION_SYMBOL_LENGTH,
     SUPPORTED_PAPER_POSITION_ADJUSTMENT_CATEGORIES,
+    SUPPORTED_POST_PAPER_POSITION_ADJUSTMENT_CATEGORIES,
     PaperPositionAdjustmentCategory,
     PostPaperPositionAdjustmentCommand,
     create_post_paper_position_adjustment_command,
@@ -161,6 +168,8 @@ __all__ = [
     "PAPER_ACCOUNT_COMMAND_SCHEMA_VERSION",
     "PAPER_ACCOUNT_EVENT_BUNDLE_SCHEMA_VERSION",
     "PAPER_ACCOUNT_EVENT_SCHEMA_VERSION",
+    "PAPER_ACCOUNT_EXECUTION_SETTLEMENT_MONEY_QUANTUM",
+    "PAPER_ACCOUNT_EXECUTION_SETTLEMENT_ROUNDING_MODE",
     "PAPER_ACCOUNT_EVIDENCE_OPERATION_COMMAND_SCHEMA_VERSION",
     "PAPER_ACCOUNT_GENESIS_CHAIN_DIGEST",
     "PAPER_ACCOUNT_IDENTITY_SCHEMA_VERSION",
@@ -185,6 +194,7 @@ __all__ = [
     "SUPPORTED_PAPER_CASH_LEDGER_MOVEMENT_TYPES",
     "SUPPORTED_POST_PAPER_CASH_MOVEMENT_TYPES",
     "SUPPORTED_PAPER_POSITION_ADJUSTMENT_CATEGORIES",
+    "SUPPORTED_POST_PAPER_POSITION_ADJUSTMENT_CATEGORIES",
     "ApprovedPortfolioReviewOutcome",
     "ApprovedPortfolioReviewReference",
     "ClosePaperAccountCommand",
@@ -227,6 +237,7 @@ __all__ = [
     "apply_paper_account_lifecycle_command",
     "apply_paper_cash_movement",
     "apply_paper_position_adjustment",
+    "apply_paper_execution_fill_settlement",
     "create_approved_portfolio_review_reference",
     "create_close_paper_account_command",
     "create_freeze_paper_account_command",
@@ -247,5 +258,6 @@ __all__ = [
     "replay_paper_account_ledger",
     "verify_paper_account_projection",
     "validate_paper_account_ledger_state",
+    "validate_paper_execution_fill_settlement_bundle",
     "validate_paper_account_lifecycle_transition",
 ]

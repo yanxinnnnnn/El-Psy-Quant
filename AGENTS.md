@@ -218,24 +218,24 @@ M34 — Paper Execution Simulator and First True Paper Trading
 ```
 
 M34 is **In Progress** through the approved S207–S216 sequence. Issue #408 is
-the authoritative M34 architecture source. S207–S208 are Complete. Sprint 209
-is the current implementation Sprint under authoritative Issue #411.
+the authoritative M34 architecture source. S207–S209 are Complete. Sprint 210
+is the current implementation Sprint under authoritative Issue #413.
 
 M34 may consume only an M33 OrderIntent with a matching `allow`
 PreTradeRiskDecision and exact verified M31/M32 anchors. It must revalidate
 account and market freshness at execution time; an M33 allow result is not
 automatically fresh execution authorization.
 
-Sprint 209 adds pure/in-memory one-event execution: immutable Attempt and
-unsettled Fill authority, exact M32 `next_event()` progression, deterministic
-price/slippage/cost evidence, execution-time risk revalidation, and strict
-derived lifecycle reconstruction. It adds no M31 settlement/account mutation,
-durable replay checkpoint, persistence, migration, API, Web, Demo, or worker.
+Sprint 210 adds pure Fill-to-M31 settlement: one immutable execution event with
+exactly one cash and one position posting, deterministic buy/sell average-cost
+semantics, and one-to-one `ExecutionSettlementLink` reconciliation evidence.
+It adds no persistence, migration, durable transaction/idempotency/concurrency,
+checkpoint, application service, API, Web, Demo, or worker.
 
-The migration head remains `0010_strategy_order_risk`. S210–S216 remain
-planned. An S209 Fill is execution authority only and is not yet M31 settlement.
-M34 execution/fill/ledger effects remain separate authority and must not mutate
-M33 Signal, Intent, or Decision records.
+The migration head remains `0010_strategy_order_risk`. S211–S216 remain
+planned. S210 settlement is pure/in-memory; durable atomic commit belongs to
+S211. M34 execution/fill/ledger effects remain separate authority and must not
+mutate M33 Signal, Intent, or Decision records.
 
 ## Approved Route to Genuine Paper Trading
 

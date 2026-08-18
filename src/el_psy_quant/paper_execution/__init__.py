@@ -77,6 +77,16 @@ from el_psy_quant.paper_execution.lifecycle import (
     create_initial_paper_execution_order_state,
     validate_paper_execution_order_state,
 )
+from el_psy_quant.paper_execution.settlement import (
+    EXECUTION_SETTLEMENT_LINK_SCHEMA_VERSION,
+    PAPER_EXECUTION_SETTLEMENT_RESULT_SCHEMA_VERSION,
+    ExecutionSettlementLink,
+    PaperExecutionSettlementResult,
+    reconcile_paper_execution_settlement,
+    settle_paper_execution_fill,
+    validate_execution_settlement_link,
+    validate_paper_execution_settlement_result,
+)
 from el_psy_quant.paper_execution.market_events import (
     PAPER_EXECUTION_EVENT_REFERENCE_SCHEMA_VERSION,
     PaperExecutionEventReference,
@@ -136,6 +146,7 @@ from el_psy_quant.paper_execution.upstream_references import (
 __all__ = [
     "CREATE_PAPER_EXECUTION_ORDER_COMMAND_SCHEMA_VERSION",
     "EXECUTION_PRICE_POLICY_ID",
+    "EXECUTION_SETTLEMENT_LINK_SCHEMA_VERSION",
     "PAPER_EXECUTION_ATTEMPT_REFERENCE_SCHEMA_VERSION",
     "PAPER_EXECUTION_ATTEMPT_RESULT_BOUNDARY_REJECTED",
     "PAPER_EXECUTION_ATTEMPT_RESULT_FILL",
@@ -172,6 +183,7 @@ __all__ = [
     "PAPER_EXECUTION_RISK_REASON_NEGATIVE_SELL_PROCEEDS",
     "PAPER_EXECUTION_RISK_REVALIDATION_SCHEMA_VERSION",
     "PAPER_EXECUTION_RISK_HANDOFF_REFERENCE_SCHEMA_VERSION",
+    "PAPER_EXECUTION_SETTLEMENT_RESULT_SCHEMA_VERSION",
     "SLIPPAGE_POLICY_ID",
     "STEP_PAPER_EXECUTION_ORDER_COMMAND_SCHEMA_VERSION",
     "PAPER_EXECUTION_STEP_RESULT_SCHEMA_VERSION",
@@ -184,6 +196,7 @@ __all__ = [
     "SUPPORTED_PAPER_EXECUTION_ORDER_STATUSES",
     "TRANSACTION_COST_POLICY_ID",
     "CreatePaperExecutionOrderCommand",
+    "ExecutionSettlementLink",
     "PaperExecutionAttempt",
     "PaperExecutionAttemptReference",
     "PaperExecutionAttemptResult",
@@ -205,6 +218,7 @@ __all__ = [
     "PaperExecutionRiskRevalidation",
     "PaperExecutionRiskRuleEvidence",
     "PaperExecutionStepResult",
+    "PaperExecutionSettlementResult",
     "StepPaperExecutionOrderCommand",
     "create_initial_paper_execution_order_state",
     "create_paper_execution_attempt_reference",
@@ -222,8 +236,11 @@ __all__ = [
     "create_paper_execution_risk_revalidation",
     "create_step_paper_execution_order_command",
     "reconstruct_paper_execution_order_state",
+    "reconcile_paper_execution_settlement",
+    "settle_paper_execution_fill",
     "step_paper_execution_order",
     "validate_create_paper_execution_order_command",
+    "validate_execution_settlement_link",
     "validate_paper_execution_attempt",
     "validate_paper_execution_attempt_reference",
     "validate_paper_execution_account_handoff_reference",
@@ -239,6 +256,7 @@ __all__ = [
     "validate_paper_execution_price_evidence",
     "validate_paper_execution_risk_handoff_reference",
     "validate_paper_execution_risk_revalidation",
+    "validate_paper_execution_settlement_result",
     "validate_paper_execution_step_result",
     "validate_step_paper_execution_order_command",
 ]
