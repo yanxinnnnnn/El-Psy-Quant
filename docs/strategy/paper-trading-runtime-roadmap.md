@@ -16,14 +16,14 @@ M30 — Complete
 M31 — Complete
 M32 — Complete
 M33 — Complete through S197–S206
-M34 — In Progress through approved S207–S216; S208 current
+M34 — In Progress through approved S207–S216; S209 current
 M35–M36 — Planned future milestones
 ```
 
 M31 used S179–S188, M32 used S189–S196, and M33 used S197–S206. Issue #389
 remains the authoritative M33 architecture source for the completed boundary.
-M34 uses S207–S216 under authoritative architecture Issue #408. S207 is
-Complete and S208 is current under Issue #409. M35–M36 retain intentionally
+M34 uses S207–S216 under authoritative architecture Issue #408. S207–S208 are
+Complete and S209 is current under Issue #411. M35–M36 retain intentionally
 unassigned sprint ranges until each milestone is planned.
 
 The current migration head is exactly:
@@ -228,7 +228,7 @@ scheduler, broker, or live behavior.
 
 ### Status
 
-**In Progress through S207–S216. Sprint 207 is Complete; Sprint 208 is current.**
+**In Progress through S207–S216. S207–S208 are Complete; Sprint 209 is current.**
 
 M34 is the first genuine market/strategy-driven Paper Trading milestone.
 
@@ -258,14 +258,22 @@ Issue #408 defines M34 authority for:
 M34 must own execution/fill/ledger effects atomically and must not mutate M33
 Signal, Intent, or Decision records.
 
-Sprint 208 implements only the pure `paper_execution` Order, policy, exact
-M31/M32/M33 handoff, create/step command identity, compact reference, and
-derived lifecycle/state contracts. It creates no Attempt or Fill, performs no
-execution price/slippage/cost arithmetic, posts no M31 settlement, advances no
-M32 replay, and adds no persistence, migration, API, Web, Demo, or worker.
+Sprint 208 completed the pure `paper_execution` Order, policy, exact M31/M32/M33
+handoff, create/step command identity, compact reference, and derived lifecycle
+contracts.
+
+Sprint 209 adds pure/in-memory one-event execution: exact M32 `next_event()`
+progression, immutable Attempt and unsettled Fill authority, deterministic
+price/slippage/cost evidence, execution-time risk revalidation, and strict
+history-derived lifecycle progression. Boundary attempts leave M32 untouched;
+valid in-session outcomes consume exactly one event.
+
+S209 posts no M31 settlement/account mutation and adds no durable replay
+checkpoint, persistence, migration, API, Web, Demo, or worker. An S209 Fill is
+not proof of M31 settlement.
 
 The migration head remains `0010_strategy_order_risk`; the planned
-`0011_paper_execution` belongs to S211. S209–S216 remain planned.
+`0011_paper_execution` belongs to S211. S210–S216 remain planned.
 
 ### User-visible outcome
 
@@ -391,8 +399,8 @@ Only one milestone is planned and implemented at a time.
 The current implementation action is:
 
 ```text
-implement Sprint 208 pure execution contracts under Issue #409
+implement Sprint 209 pure one-event execution under Issue #411
 ```
 
-Do not pre-implement S209+ execution semantics during S208. M35–M36 remain
+Do not pre-implement S210+ settlement/persistence semantics during S209. M35–M36 remain
 future milestones until their predecessors are complete and explicitly planned.
