@@ -263,3 +263,20 @@ def validate_paper_execution_order_state(
     if expected != value or expected.to_dict() != value.to_dict():
         raise ValueError("paper execution order state is invalid")
     return value
+
+
+def _clone_order_state(
+    value: PaperExecutionOrderState,
+) -> PaperExecutionOrderState:
+    validate_paper_execution_order_state(value)
+    return _build_state(
+        execution_order_reference=value.execution_order_reference,
+        execution_version=value.execution_version,
+        requested_quantity=value.requested_quantity,
+        cumulative_filled_quantity=value.cumulative_filled_quantity,
+        terminal_rejected=value.status
+        in {
+            PAPER_EXECUTION_ORDER_STATUS_REJECTED,
+            PAPER_EXECUTION_ORDER_STATUS_PARTIALLY_FILLED_REJECTED,
+        },
+    )

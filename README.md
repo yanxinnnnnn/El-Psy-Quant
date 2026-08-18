@@ -21,11 +21,12 @@ The current milestone and Sprint are:
 ```text
 M34 — Paper Execution Simulator and First True Paper Trading
 S207 — Complete
-S208 — Paper Execution Order, Policy, and Lifecycle Contract Foundation
+S208 — Complete
+S209 — Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics
 ```
 
-Issue #408 is the authoritative M34 architecture source. Issue #409 is the
-authoritative S208 implementation specification. M35–M36 remain future
+Issue #408 is the authoritative M34 architecture source. Issue #411 is the
+authoritative S209 implementation specification. M35–M36 remain future
 milestones.
 
 Current migration head:
@@ -177,17 +178,22 @@ M33 closes without execution order, fill, execution pricing, fee calculation,
 reservation, fill-caused account mutation, replay progression, runtime worker,
 broker, live, or real-money behavior.
 
-### M34 — Current S208 Contract Foundation
+### M34 — Current S209 One-Event Execution Foundation
 
-S208 introduces a separate pure `el_psy_quant.paper_execution` authority
+S208 introduced a separate pure `el_psy_quant.paper_execution` authority
 boundary with exact execution-policy values, strict M31/M32/M33 handoff
 references, create/step command identities, immutable deterministic
 `PaperExecutionOrder`, a compact Order reference, and derived lifecycle state.
 
-The initial state is version `0`, `working`, zero filled, and full remaining
-quantity. Order creation reserves nothing, mutates no M31 account, and advances
-no M32 replay cursor. Attempt, Fill, execution pricing/costs, settlement,
-persistence, API/Web/Demo, and worker behavior remain planned for S209–S216.
+S209 adds pure/in-memory one-event execution with immutable Attempt and
+unsettled Fill authority, exact M32 `next_event()` progression, deterministic
+execution price/slippage/cost evidence, execution-time risk revalidation, and
+strict full/partial/no-fill/rejection lifecycle reconstruction.
+
+An S209 Fill is not M31 settlement. S209 creates no account mutation, durable
+replay checkpoint, persistence, or migration. S210–S216 retain those later
+approved responsibilities, and the migration head remains
+`0010_strategy_order_risk`.
 
 ## Current Founder Journey
 
@@ -222,11 +228,9 @@ it is not yet true end-to-end simulated execution.
 
 It does not yet provide:
 
-- execution stepping, Attempt, and Fill authority;
-- execution-time price/fill authority;
-- rejection/partial-fill semantics owned by an execution simulator;
-- automatic slippage/commission/fee/tax treatment for simulated fills;
 - atomic fill-caused M31 ledger postings and execution reconciliation;
+- durable Attempt/Fill/replay-checkpoint persistence and transactions;
+- versioned execution API, Founder Web workflow, or Demo v6 evidence;
 - a durable worker/claim/checkpoint/recovery loop for session execution;
 - continuous multi-day Paper Trading;
 - broker, QMT, MiniQMT, private-edge, live, or real-money behavior; or
@@ -249,9 +253,10 @@ PreTradeRiskDecision and exact verified account/market anchors. At execution
 handoff it must revalidate freshness; M33 risk allowance is not automatically
 fresh execution authorization.
 
-S207 froze the M34 architecture in Issue #408. S208 implements only the pure
-Order, policy, handoff, command, and lifecycle contract foundation from Issue
-#409. S209–S216 remain planned.
+S207 froze the M34 architecture in Issue #408. S208 completed the pure Order,
+policy, handoff, command, and lifecycle foundation. S209 implements the pure
+one-event Attempt/Fill/pricing/cost/risk layer under Issue #411. S210–S216
+remain planned.
 
 Authoritative runtime roadmap:
 

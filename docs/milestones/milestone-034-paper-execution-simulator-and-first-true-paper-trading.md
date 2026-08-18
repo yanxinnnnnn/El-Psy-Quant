@@ -3,7 +3,7 @@
 ## Status
 
 **In Progress.** GitHub Issue #408 is the authoritative M34 architecture source.
-Sprint 207 is Complete. Sprint 208 is current under authoritative Issue #409.
+S207–S208 are Complete. Sprint 209 is current under authoritative Issue #411.
 
 ## Goal
 
@@ -18,8 +18,8 @@ atomic durable Paper Account effects.
 | Sprint | Deliverable | Status |
 |---:|---|---|
 | S207 | Milestone 34 Architecture and Planning | Complete |
-| S208 | Paper Execution Order, Policy, and Lifecycle Contract Foundation | In Progress |
-| S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | Planned |
+| S208 | Paper Execution Order, Policy, and Lifecycle Contract Foundation | Complete |
+| S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | In Progress |
 | S210 | Atomic Execution Fill to M31 Ledger Domain Integration | Planned |
 | S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Planned |
 | S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Planned |
@@ -30,11 +30,15 @@ atomic durable Paper Account effects.
 
 ## Current delivered boundary
 
-S208 establishes only the pure execution Order, policy, handoff, command, and
-derived lifecycle contracts. It preserves M31 financial authority, M32 replay
-authority, and immutable M33 strategy/risk authority. It does not yet execute a
-future event or produce an Attempt, Fill, settlement, account mutation, replay
-progression, persistence, API, Web, Demo, or runtime worker.
+S208 established the pure execution Order, policy, handoff, command, and
+derived lifecycle contracts. S209 adds pure/in-memory one-event execution with
+immutable Attempt and unsettled Fill authority, exact M32 progression,
+deterministic price/slippage/cost/risk evidence, and strict lifecycle history
+reconstruction.
+
+S209 creates no M31 settlement or account mutation and no durable replay
+checkpoint. Persistence, migration, transaction/idempotency/concurrency, API,
+Web, Demo, and runtime-worker behavior remain deferred to S210+ as approved.
 
 Current migration head remains `0010_strategy_order_risk`. S211 is the only
 planned M34 migration Sprint and may add `0011_paper_execution`.
