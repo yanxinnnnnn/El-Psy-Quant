@@ -16,14 +16,15 @@ M30 — Complete
 M31 — Complete
 M32 — Complete
 M33 — Complete through S197–S206
-M34 — exact next milestone; architecture/planning required before implementation
+M34 — In Progress through approved S207–S216; S208 current
 M35–M36 — Planned future milestones
 ```
 
 M31 used S179–S188, M32 used S189–S196, and M33 used S197–S206. Issue #389
 remains the authoritative M33 architecture source for the completed boundary.
-M34–M36 retain intentionally unassigned sprint ranges until each milestone is
-planned.
+M34 uses S207–S216 under authoritative architecture Issue #408. S207 is
+Complete and S208 is current under Issue #409. M35–M36 retain intentionally
+unassigned sprint ranges until each milestone is planned.
 
 The current migration head is exactly:
 
@@ -58,7 +59,7 @@ M30 Portfolio-Level Decision Review Foundation — Complete
   -> M31 Stateful Paper Account and Ledger Foundation — Complete
   -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Complete
-  -> M34 Paper Execution Simulator and First True Paper Trading — next planning milestone
+  -> M34 Paper Execution Simulator and First True Paper Trading — In Progress
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
 ```
@@ -227,7 +228,7 @@ scheduler, broker, or live behavior.
 
 ### Status
 
-**Exact next milestone; planning required before implementation.**
+**In Progress through S207–S216. Sprint 207 is Complete; Sprint 208 is current.**
 
 M34 is the first genuine market/strategy-driven Paper Trading milestone.
 
@@ -238,9 +239,9 @@ PreTradeRiskDecision and exact verified M31/M32 anchors. Execution handoff must
 revalidate account and market freshness; an earlier M33 allow result is not
 automatically fresh execution authorization.
 
-### Required planning decisions
+### Approved architecture and current implementation
 
-Before implementation, M34 must explicitly define its own authority for:
+Issue #408 defines M34 authority for:
 
 - execution command identity;
 - execution order lifecycle;
@@ -256,6 +257,15 @@ Before implementation, M34 must explicitly define its own authority for:
 
 M34 must own execution/fill/ledger effects atomically and must not mutate M33
 Signal, Intent, or Decision records.
+
+Sprint 208 implements only the pure `paper_execution` Order, policy, exact
+M31/M32/M33 handoff, create/step command identity, compact reference, and
+derived lifecycle/state contracts. It creates no Attempt or Fill, performs no
+execution price/slippage/cost arithmetic, posts no M31 settlement, advances no
+M32 replay, and adds no persistence, migration, API, Web, Demo, or worker.
+
+The migration head remains `0010_strategy_order_risk`; the planned
+`0011_paper_execution` belongs to S211. S209–S216 remain planned.
 
 ### User-visible outcome
 
@@ -378,11 +388,11 @@ No browser-to-QMT direct connection is allowed.
 
 Only one milestone is planned and implemented at a time.
 
-The next action after M33 closeout is:
+The current implementation action is:
 
 ```text
-plan Milestone 34 architecture before writing execution runtime code
+implement Sprint 208 pure execution contracts under Issue #409
 ```
 
-Do not pre-implement M34 execution semantics during M33 closeout. M35–M36 remain
+Do not pre-implement S209+ execution semantics during S208. M35–M36 remain
 future milestones until their predecessors are complete and explicitly planned.

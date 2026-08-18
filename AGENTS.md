@@ -211,34 +211,29 @@ docs/closeouts/milestone-033-strategy-to-order-and-pre-trade-risk-pipeline-close
 
 ## Current Focus
 
-The exact next milestone is:
+The current milestone is:
 
 ```text
 M34 — Paper Execution Simulator and First True Paper Trading
 ```
 
-**Do not begin M34 runtime implementation until a CTO-owned architecture and
-planning Sprint has frozen the execution boundary.**
+M34 is **In Progress** through the approved S207–S216 sequence. Issue #408 is
+the authoritative M34 architecture source. S207 is Complete. Sprint 208 is the
+current implementation Sprint under authoritative Issue #409.
 
 M34 may consume only an M33 OrderIntent with a matching `allow`
 PreTradeRiskDecision and exact verified M31/M32 anchors. It must revalidate
 account and market freshness at execution time; an M33 allow result is not
 automatically fresh execution authorization.
 
-The M34 planning Sprint must explicitly decide:
+Sprint 208 adds only the pure Paper execution Order, policy, exact M31/M32/M33
+handoff, command identity, and derived lifecycle/state contracts. It adds no
+Attempt, Fill, execution arithmetic, execution settlement, account mutation,
+replay progression, persistence, migration, API, Web, Demo, or worker.
 
-- execution command identity;
-- execution order lifecycle;
-- fill timing and execution-price authority;
-- rejection and partial-fill semantics;
-- slippage, fees, commission, and tax treatment;
-- atomic fill-to-M31-ledger postings;
-- execution idempotency and reconciliation;
-- persistence and migration;
-- API, Web, Demo, recovery, and Founder acceptance.
-
-M34 must own execution/fill/ledger effects separately and must not mutate M33
-Signal, Intent, or Decision records.
+The migration head remains `0010_strategy_order_risk`. S209–S216 remain
+planned. M34 execution/fill/ledger effects remain separate authority and must
+not mutate M33 Signal, Intent, or Decision records.
 
 ## Approved Route to Genuine Paper Trading
 
@@ -247,13 +242,13 @@ M30 Portfolio-Level Decision Review Foundation — Complete
   -> M31 Stateful Paper Account and Ledger Foundation — Complete
   -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Complete
-  -> M34 Paper Execution Simulator and First True Paper Trading — next planning milestone
+  -> M34 Paper Execution Simulator and First True Paper Trading — In Progress
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
 ```
 
-M34–M36 retain no sprint ranges until each receives its own CTO-owned planning
-Issue.
+M34 uses the approved S207–S216 sequence. M35–M36 retain no sprint ranges until
+each receives its own CTO-owned planning Issue.
 
 ### M34 product gate
 

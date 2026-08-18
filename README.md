@@ -13,16 +13,20 @@ operate, and improve trading ideas before real capital is deployed.
 
 ## Current Status
 
-Milestones 1–33 are **Complete** through Sprint 206.
+Milestones 1–33 are **Complete**. Milestone 34 is **In Progress** through the
+approved S207–S216 sequence.
 
-The exact next milestone is:
+The current milestone and Sprint are:
 
 ```text
 M34 — Paper Execution Simulator and First True Paper Trading
+S207 — Complete
+S208 — Paper Execution Order, Policy, and Lifecycle Contract Foundation
 ```
 
-M34 requires a CTO-owned architecture/planning Sprint before any execution
-runtime implementation begins. M35–M36 remain future milestones.
+Issue #408 is the authoritative M34 architecture source. Issue #409 is the
+authoritative S208 implementation specification. M35–M36 remain future
+milestones.
 
 Current migration head:
 
@@ -173,6 +177,18 @@ M33 closes without execution order, fill, execution pricing, fee calculation,
 reservation, fill-caused account mutation, replay progression, runtime worker,
 broker, live, or real-money behavior.
 
+### M34 — Current S208 Contract Foundation
+
+S208 introduces a separate pure `el_psy_quant.paper_execution` authority
+boundary with exact execution-policy values, strict M31/M32/M33 handoff
+references, create/step command identities, immutable deterministic
+`PaperExecutionOrder`, a compact Order reference, and derived lifecycle state.
+
+The initial state is version `0`, `working`, zero filled, and full remaining
+quantity. Order creation reserves nothing, mutates no M31 account, and advances
+no M32 replay cursor. Attempt, Fill, execution pricing/costs, settlement,
+persistence, API/Web/Demo, and worker behavior remain planned for S209–S216.
+
 ## Current Founder Journey
 
 The existing Founder product supports explicit inspection and controlled
@@ -206,7 +222,7 @@ it is not yet true end-to-end simulated execution.
 
 It does not yet provide:
 
-- a separate simulated execution-order lifecycle;
+- execution stepping, Attempt, and Fill authority;
 - execution-time price/fill authority;
 - rejection/partial-fill semantics owned by an execution simulator;
 - automatic slippage/commission/fee/tax treatment for simulated fills;
@@ -223,7 +239,7 @@ M30 Portfolio-Level Decision Review Foundation — Complete
   -> M31 Stateful Paper Account and Ledger Foundation — Complete
   -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Complete
-  -> M34 Paper Execution Simulator and First True Paper Trading — next planning milestone
+  -> M34 Paper Execution Simulator and First True Paper Trading — In Progress (S207–S216)
   -> M35 Durable Paper Runtime and Recovery
   -> M36 Multi-day Paper Operations and Acceptance
 ```
@@ -233,11 +249,9 @@ PreTradeRiskDecision and exact verified account/market anchors. At execution
 handoff it must revalidate freshness; M33 risk allowance is not automatically
 fresh execution authorization.
 
-Before M34 implementation, its planning Sprint must define execution command
-identity, execution-order lifecycle, fill timing and execution-price authority,
-rejection/partial-fill behavior, fees/commission/tax treatment, atomic fill-to-
-M31-ledger postings, execution idempotency/reconciliation, persistence,
-API/Web/Demo, recovery, migration, and Founder acceptance.
+S207 froze the M34 architecture in Issue #408. S208 implements only the pure
+Order, policy, handoff, command, and lifecycle contract foundation from Issue
+#409. S209–S216 remain planned.
 
 Authoritative runtime roadmap:
 
