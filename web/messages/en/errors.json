@@ -373,6 +373,86 @@
     "explanation": "The local product database or durable storage schema is incompatible with the current Strategy-to-Risk evidence contract.",
     "recovery": "Preserve all visible evidence and record the request ID. Follow the documented local upgrade or repair procedure before an explicit retry; this workspace will not reinterpret stored evidence."
   },
+  "paper_execution_upstream_authority_not_found": {
+    "title": "Paper Execution upstream authority not found",
+    "explanation": "An exact M31, M32, or M33 handoff reference is absent from durable authority.",
+    "recovery": "Preserve the draft and historical evidence, then inspect the exact upstream records before issuing a new explicit command."
+  },
+  "paper_execution_order_not_found": {
+    "title": "Execution Order not found",
+    "explanation": "The exact immutable M34 Order ID is not present in durable authority.",
+    "recovery": "Reload the bounded Order list and select an existing exact Order ID."
+  },
+  "paper_execution_attempt_not_found": {
+    "title": "Execution Attempt not found",
+    "explanation": "The exact immutable Attempt ID is not present for inspection.",
+    "recovery": "Preserve the selected Order and reload its bounded Attempt evidence."
+  },
+  "paper_execution_fill_not_found": {
+    "title": "Execution Fill not found",
+    "explanation": "The exact immutable Fill ID is not present for inspection.",
+    "recovery": "Preserve the selected Order and reload its bounded Fill evidence."
+  },
+  "paper_execution_idempotency_conflict": {
+    "title": "Paper Execution idempotency conflict",
+    "explanation": "The hidden exact-retry key is already bound to different canonical command input.",
+    "recovery": "Keep the draft unchanged for an exact retry, or materially change it to receive a new key. Nothing runs automatically."
+  },
+  "paper_execution_stale_authority": {
+    "title": "Paper Execution authority is stale",
+    "explanation": "Current M31 or M32 authority no longer matches the Order's exact continuation anchors.",
+    "recovery": "Keep all historical evidence. Do not repair or rebase this Order; inspect current authority and decide whether to create a new Order."
+  },
+  "paper_execution_operation_conflict": {
+    "title": "Paper Execution operation conflict",
+    "explanation": "The requested command is incompatible with the current backend Order state.",
+    "recovery": "Preserve evidence and inspect the exact backend state before choosing another explicit action."
+  },
+  "paper_execution_concurrency_conflict": {
+    "title": "Paper Execution concurrency conflict",
+    "explanation": "Another local command won the exact state transition transaction.",
+    "recovery": "Preserve the current evidence and explicitly reload durable Order state; do not auto-retry or rebase."
+  },
+  "paper_execution_reconciliation_required": {
+    "title": "Paper Execution reconciliation is required",
+    "explanation": "The server found an execution, Fill, settlement, account, or replay evidence mismatch. Historical data remains inspectable.",
+    "recovery": "Record the request ID and inspect retained evidence. Do not Step, repair, or mutate upstream authority automatically."
+  },
+  "paper_execution_invalid_policy": {
+    "title": "Execution policy is invalid",
+    "explanation": "One or more exact policy strings do not satisfy the server's v1 execution policy contract.",
+    "recovery": "Keep the selected evidence, correct the visible draft strings, and submit a new explicit create command."
+  },
+  "paper_execution_invalid_decimal": {
+    "title": "Paper Execution decimal is invalid",
+    "explanation": "A quantity, basis-point, price, or cost input is not an accepted canonical string.",
+    "recovery": "Correct the exact string without browser rounding, arithmetic, or locale normalization."
+  },
+  "paper_execution_invalid_cursor": {
+    "title": "Paper Execution cursor is invalid",
+    "explanation": "The opaque pagination cursor is malformed or belongs to a different collection.",
+    "recovery": "Restart that bounded list from its first page; do not decode or reinterpret the cursor."
+  },
+  "paper_execution_authority_unavailable": {
+    "title": "Paper Execution authority is unavailable",
+    "explanation": "Required execution or upstream authority is missing, corrupt, incomplete, or cannot be safely reconstructed.",
+    "recovery": "Preserve visible evidence, record the request ID, and inspect local durable authority before an explicit retry."
+  },
+  "paper_execution_schema_incompatible": {
+    "title": "Paper Execution schema is incompatible",
+    "explanation": "Local durable storage is incompatible with the current M34 evidence contract.",
+    "recovery": "Preserve evidence and follow the documented upgrade or recovery procedure; this workspace will not reinterpret or repair records."
+  },
+  "paper_execution_storage_busy": {
+    "title": "Paper Execution storage is busy",
+    "explanation": "The backend could not safely acquire the local durable transaction.",
+    "recovery": "Keep the unchanged command draft and retry manually after the competing operation completes."
+  },
+  "paper_execution_storage_failure": {
+    "title": "Paper Execution storage failed",
+    "explanation": "The backend could not safely persist or reopen immutable M34 authority.",
+    "recovery": "Preserve evidence, record the request ID, and verify local storage before retrying."
+  },
   "request_validation_error": {
     "title": "Command structure is invalid",
     "explanation": "The submitted request does not match the generated API contract.",

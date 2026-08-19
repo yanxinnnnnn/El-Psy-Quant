@@ -25,11 +25,12 @@ S208 — Complete
 S209 — Complete
 S210 — Complete
 S211 — Complete
-S212 — Versioned Paper Execution API, Errors, Audit, and Generated Contracts
+S212 — Complete
+S213 — Bilingual Founder Paper Execution Workspace
 ```
 
-Issue #408 is the authoritative M34 architecture source. Issue #417 is the
-authoritative S212 implementation specification. M35–M36 remain future
+Issue #408 is the authoritative M34 architecture source. Issue #419 is the
+authoritative S213 implementation specification. M35–M36 remain future
 milestones.
 
 Current migration head:
@@ -181,7 +182,7 @@ M33 closes without execution order, fill, execution pricing, fee calculation,
 reservation, fill-caused account mutation, replay progression, runtime worker,
 broker, live, or real-money behavior.
 
-### M34 — Current S212 Versioned API Foundation
+### M34 — Current S213 Founder Workspace
 
 S208 introduced a separate pure `el_psy_quant.paper_execution` authority
 boundary with exact execution-policy values, strict M31/M32/M33 handoff
@@ -205,7 +206,10 @@ checkpoint CAS authority.
 S212 adds exactly nine Founder-authenticated Paper Execution operations, strict
 public schemas, bounded keyset pagination, stable sanitized errors, request-ID
 and audit correlation, canonical OpenAPI, and generated TypeScript contracts.
-The migration head remains `0011_paper_execution`; S213–S216 remain planned.
+S213 adds one bilingual `/paper-execution` workspace for historical M33 allow
+selection, explicit policy input, manual Order creation, one-event Step,
+immutable Attempt/Fill/risk/settlement inspection, and explicit reconciliation.
+The migration head remains `0011_paper_execution`; S214–S216 remain planned.
 
 ## Current Founder Journey
 
@@ -225,13 +229,14 @@ Strategy
   -> StrategySignal
   -> OrderIntent or no-action
   -> PreTradeRiskDecision
+  -> Paper Execution Order / one-event Step / immutable evidence inspection
   -> Lifecycle / Human Decision Evidence
 ```
 
 The browser remains a presentation and command surface. It does not duplicate
 financial calculations, infer market-time truth, calculate Signal/Intent/Risk
-authority, silently repair state, select a strategy automatically, execute a
-trade, or directly mutate SQLite.
+or Paper Execution authority, silently repair state, select a strategy
+automatically, or directly mutate M31/M32/SQLite.
 
 ## What the Current Product Is Not Yet
 
@@ -240,7 +245,7 @@ it is not yet true end-to-end simulated execution.
 
 It does not yet provide:
 
-- a Founder Web execution workflow or Demo v6 evidence;
+- Demo v6 end-to-end execution evidence;
 - a durable worker/claim/checkpoint/recovery loop for session execution;
 - continuous multi-day Paper Trading;
 - broker, QMT, MiniQMT, private-edge, live, or real-money behavior; or
@@ -268,7 +273,8 @@ policy, handoff, command, and lifecycle foundation. S209 completed the pure
 one-event Attempt/Fill/pricing/cost/risk layer. S210 completed pure Fill-to-M31
 settlement and link reconciliation. S211 adds durable atomic authority under
 Issue #415. S212 adds the versioned API/error/audit/generated-contract boundary
-under Issue #417. S213–S216 remain planned.
+under Issue #417. S213 adds the bilingual Founder workspace under Issue #419.
+S214–S216 remain planned.
 
 Authoritative runtime roadmap:
 

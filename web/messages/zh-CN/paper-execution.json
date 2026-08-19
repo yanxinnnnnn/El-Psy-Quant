@@ -1,0 +1,117 @@
+{
+  "eyebrow": "冲刺 213 · 手动模拟执行",
+  "title": "模拟执行",
+  "description": "逐个市场事件创建、推进并检查持久化的模拟执行权威证据。",
+  "boundary": {
+    "title": "仅负责展示与命令编排",
+    "description": "服务器负责时效性、执行资格、价格、成交数量、费用、风控、结算、账户影响、生命周期状态、重放推进和对账。此处展示的历史证据并不表示当前可执行。"
+  },
+  "candidate": {
+    "eyebrow": "M33 历史证据",
+    "title": "选择已允许的意图与决策",
+    "description": "仅提供与持久化意图精确匹配的持久化 allow 决策用于交接。",
+    "loading": "正在加载有界的历史意图和 allow 决策证据。",
+    "errorTitle": "M33 历史证据不可用",
+    "label": "历史 allow 决策及其匹配意图",
+    "choose": "选择精确的持久化证据",
+    "historicalWarning": "allow 只表示历史 M33 风控检查已通过，并不证明当前 M31/M32 仍然新鲜，也不授权执行；创建订单 API 将决定当前交接。",
+    "evidenceTitle": "已选不可变交接证据",
+    "evidenceEyebrow": "精确 ID 与摘要"
+  },
+  "policy": {
+    "eyebrow": "显式草稿输入",
+    "title": "执行策略编辑器",
+    "description": "将每个 v1 策略值作为精确字符串输入。后端仍是验证与执行权威。",
+    "legend": "创始人命令草稿",
+    "draftWarning": "所有可见值都是可编辑草稿输入，并非后端事实或建议。",
+    "actor": "操作者来源",
+    "maxFill": "每个成交事件的最大成交数量",
+    "maxFillNull": "仅在要显式提交空流动性上限时留空。",
+    "slippage": "滑点（基点字符串）",
+    "commission": "佣金（基点字符串）",
+    "fee": "费用（基点字符串）",
+    "buyTax": "买入税费（基点字符串）",
+    "sellTax": "卖出税费（基点字符串）"
+  },
+  "create": {
+    "action": "创建执行订单",
+    "pending": "正在创建一个订单…",
+    "guidance": "命令仅发送所选 M33 引用、显式策略字符串或 null、操作者以及隐藏的精确重试键。",
+    "errorTitle": "未创建执行订单",
+    "createdTitle": "新的执行订单权威",
+    "createdEyebrow": "201 · 新建",
+    "replayedTitle": "精确创建命令已收敛",
+    "replayedEyebrow": "200 · 幂等重放"
+  },
+  "orders": {
+    "eyebrow": "持久化 M34 权威",
+    "title": "执行订单",
+    "description": "有界后端列表可在浏览器重载后恢复历史订单，并与创建草稿相互独立。",
+    "loading": "正在加载持久化模拟执行订单。",
+    "errorTitle": "执行订单不可用",
+    "caption": "按后端顺序排列的持久化模拟执行订单",
+    "id": "订单 ID / 摘要",
+    "account": "账户",
+    "instrument": "标的",
+    "side": "方向",
+    "requested": "请求数量",
+    "version": "执行版本",
+    "status": "后端状态",
+    "filled": "累计成交数量",
+    "remaining": "剩余数量",
+    "terminal": "终态",
+    "createdAt": "创建时间",
+    "inspect": "检查"
+  },
+  "detail": {
+    "loading": "正在加载所选订单、尝试和成交权威。",
+    "errorTitle": "所选执行订单不可用",
+    "eyebrow": "历史检查",
+    "title": "所选执行订单",
+    "historical": "即使后续 Step 因过期而被拒绝，此不可变历史详情仍可检查。",
+    "authorityTitle": "订单、状态及精确 M31/M32/M33 交接",
+    "authorityEyebrow": "后端权威"
+  },
+  "step": {
+    "action": "处理下一个事件",
+    "pending": "正在处理一个事件…",
+    "guidance": "一次操作最多提交一个 Step 请求。浏览器既不选择事件，也不计算或修改执行、账户或重放权威。",
+    "terminal": "此后端订单状态已是终态，不提供 Step 操作。",
+    "errorTitle": "单事件 Step 被拒绝",
+    "resultEyebrow": "精确 Step 响应",
+    "committedTitle": "已提交的单事件 Step 权威",
+    "replayedTitle": "精确 Step 命令已收敛"
+  },
+  "attempts": {
+    "eyebrow": "M32 事件推进与风控",
+    "title": "执行尝试",
+    "description": "后端提供的有序不可变尝试、游标、已消费事件、终止原因和执行时风控证据。",
+    "errorTitle": "执行尝试不可用",
+    "itemTitle": "尝试权威",
+    "empty": "此订单尚无已提交的执行尝试。"
+  },
+  "fills": {
+    "eyebrow": "定价与交易成本",
+    "title": "执行成交",
+    "description": "精确展示成交、事件、价格、舍入、名义金额、佣金、费用、税费和总费用字符串，不进行浏览器计算。",
+    "errorTitle": "执行成交不可用",
+    "itemTitle": "成交权威",
+    "empty": "此订单没有成交。缺失不会被展示为零。"
+  },
+  "reconciliation": {
+    "eyebrow": "显式只读检查",
+    "title": "对账",
+    "description": "显式运行此服务器检查。历史订单、尝试和成交检查不依赖成功对账。",
+    "action": "运行对账检查",
+    "pending": "正在检查对账…",
+    "errorTitle": "对账未通过",
+    "successTitle": "已验证的对账响应",
+    "successEyebrow": "200 · 服务器检查通过",
+    "previousEyebrow": "保留此前已验证证据"
+  },
+  "actions": {
+    "retryExact": "精确重试请求",
+    "loadMore": "加载下一有界页",
+    "loadingMore": "正在加载下一页…"
+  }
+}

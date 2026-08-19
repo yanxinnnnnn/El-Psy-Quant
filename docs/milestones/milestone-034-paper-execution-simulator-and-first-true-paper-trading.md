@@ -3,7 +3,7 @@
 ## Status
 
 **In Progress.** GitHub Issue #408 is the authoritative M34 architecture source.
-S207–S211 are Complete. Sprint 212 is current under authoritative Issue #417.
+S207–S212 are Complete. Sprint 213 is current under authoritative Issue #419.
 
 ## Goal
 
@@ -22,8 +22,8 @@ atomic durable Paper Account effects.
 | S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | Complete |
 | S210 | Atomic Execution Fill to M31 Ledger Domain Integration | Complete |
 | S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Complete |
-| S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | In Progress |
-| S213 | Bilingual Founder Paper Execution Workspace | Planned |
+| S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Complete |
+| S213 | Bilingual Founder Paper Execution Workspace | In Progress |
 | S214 | Demo v6 and End-to-End First True Paper Trading Evidence | Planned |
 | S215 | M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening | Planned |
 | S216 | Milestone 34 Closeout and M35 Handoff | Planned |
@@ -44,9 +44,11 @@ S211 adds durable Order/Attempt/Fill/SettlementLink/receipt persistence and one
 atomic create/step transaction across M34, M31 CAS settlement, and M32
 checkpoint CAS. S212 adds exactly nine versioned Paper Execution operations,
 strict public schemas, stable errors/audit, canonical OpenAPI, and generated
-TypeScript contracts.
+TypeScript contracts. S213 adds one bilingual generated-contract-only Founder
+workspace for explicit manual Order creation, one-event Step, historical
+evidence inspection, and reconciliation without browser financial math.
 
-Current migration head is `0011_paper_execution`. S213–S216 remain planned.
+Current migration head is `0011_paper_execution`. S214–S216 remain planned.
 
 ## Exit gate
 

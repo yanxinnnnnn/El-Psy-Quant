@@ -6,8 +6,8 @@ GitHub Issue #408 is the authoritative Milestone 34 architecture source. This
 record summarizes that approved boundary; it does not replace or broaden the
 Issue.
 
-Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S211
-are Complete. Sprint 212 is current, with Issue #417 as its authoritative
+Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S212
+are Complete. Sprint 213 is current, with Issue #419 as its authoritative
 implementation specification.
 
 ## Authority chain
@@ -29,7 +29,7 @@ Each layer remains separate. M34 does not repurpose the M15
 Decision is historical evidence over one exact snapshot, not permanent
 execution authorization.
 
-## Delivered S208–S211 boundary
+## Delivered S208–S212 boundary
 
 Sprint 208 added the pure `el_psy_quant.paper_execution` domain-contract
 foundation:
@@ -95,13 +95,15 @@ one atomic durable commit.
 S211 durably commits the pure S209/S210 evidence without duplicating its math.
 S212 exposes that authority through exactly nine authenticated versioned
 operations, strict generated contracts, stable public errors, and bounded
-audit correlation. Reservation, Web, Demo v6, worker, scheduler, broker, live,
-and real-money behavior remain deferred.
+audit correlation. S213 adds one bilingual generated-contract-only Founder
+workspace for explicit manual Order creation, one-event Step, historical
+inspection, and reconciliation. Reservation, Demo v6, worker, scheduler,
+broker, live, and real-money behavior remain deferred.
 
 The migration head is exactly `0011_paper_execution`.
 
 ## Preserved runtime boundary
 
-M34 remains a manual synchronous simulator. S213–S216 remain planned. M35
+M34 remains a manual synchronous simulator. S214–S216 remain planned. M35
 owns durable runtime and recovery; M36 owns multi-session and multi-day
 operation. Neither later milestone is implemented here.

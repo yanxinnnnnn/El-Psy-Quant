@@ -8,6 +8,7 @@ import navigationEn from "../../messages/en/navigation.json";
 import overviewEn from "../../messages/en/overview.json";
 import paperAccountsEn from "../../messages/en/paper-accounts.json";
 import paperJobsEn from "../../messages/en/paper-jobs.json";
+import paperExecutionEn from "../../messages/en/paper-execution.json";
 import portfolioRecordsEn from "../../messages/en/portfolio-records.json";
 import portfolioReviewsEn from "../../messages/en/portfolio-reviews.json";
 import researchEn from "../../messages/en/research.json";
@@ -23,6 +24,7 @@ import navigationZhCn from "../../messages/zh-CN/navigation.json";
 import overviewZhCn from "../../messages/zh-CN/overview.json";
 import paperAccountsZhCn from "../../messages/zh-CN/paper-accounts.json";
 import paperJobsZhCn from "../../messages/zh-CN/paper-jobs.json";
+import paperExecutionZhCn from "../../messages/zh-CN/paper-execution.json";
 import portfolioRecordsZhCn from "../../messages/zh-CN/portfolio-records.json";
 import portfolioReviewsZhCn from "../../messages/zh-CN/portfolio-reviews.json";
 import researchZhCn from "../../messages/zh-CN/research.json";
@@ -45,6 +47,7 @@ const EN_MESSAGES = {
   paperAccounts: paperAccountsEn,
   marketTime: marketTimeEn,
   strategyToRisk: strategyToRiskEn,
+  paperExecution: paperExecutionEn,
   lifecycle: lifecycleEn,
   errors: errorsEn,
 } as const;
@@ -63,6 +66,7 @@ const ZH_CN_MESSAGES: typeof EN_MESSAGES = {
   paperAccounts: paperAccountsZhCn,
   marketTime: marketTimeZhCn,
   strategyToRisk: strategyToRiskZhCn,
+  paperExecution: paperExecutionZhCn,
   lifecycle: lifecycleZhCn,
   errors: errorsZhCn,
 };

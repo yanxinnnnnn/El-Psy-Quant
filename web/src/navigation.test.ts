@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { isDestinationActive, workspaceDestinations } from "./navigation";
 
 describe("workspace navigation", () => {
-  it("enables the eleven delivered destinations", () => {
+  it("enables the twelve delivered destinations", () => {
     expect(workspaceDestinations.filter((item) => item.available)).toEqual([
       { labelKey: "overview", sprint: "S152", href: "/", available: true },
       {
@@ -61,6 +61,12 @@ describe("workspace navigation", () => {
         available: true,
       },
       {
+        labelKey: "paperExecution",
+        sprint: "S213",
+        href: "/paper-execution",
+        available: true,
+      },
+      {
         labelKey: "lifecycleReview",
         sprint: "S158",
         href: "/lifecycle-review",
@@ -97,6 +103,7 @@ describe("workspace navigation", () => {
     ["/market-time/replays/replay-194", "marketTime"],
     ["/market-time/calendars/xnys-2026-v1", "marketTime"],
     ["/strategy-to-risk", "strategyToRisk"],
+    ["/paper-execution", "paperExecution"],
     ["/lifecycle-review", "lifecycleReview"],
   ])("marks only the matching route family active for %s", (pathname, labelKey) => {
     expect(
@@ -118,6 +125,14 @@ describe("workspace navigation", () => {
     expect(
       workspaceDestinations.filter((destination) =>
         isDestinationActive(destination, "/lifecycle-review/history"),
+      ),
+    ).toEqual([]);
+  });
+
+  it("does not invent nested Paper Execution routes", () => {
+    expect(
+      workspaceDestinations.filter((destination) =>
+        isDestinationActive(destination, "/paper-execution/orders/order-1"),
       ),
     ).toEqual([]);
   });
