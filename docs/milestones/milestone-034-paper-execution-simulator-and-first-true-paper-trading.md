@@ -3,7 +3,7 @@
 ## Status
 
 **In Progress.** GitHub Issue #408 is the authoritative M34 architecture source.
-S207–S208 are Complete. Sprint 209 is current under authoritative Issue #411.
+S207–S209 are Complete. Sprint 210 is current under authoritative Issue #413.
 
 ## Goal
 
@@ -19,8 +19,8 @@ atomic durable Paper Account effects.
 |---:|---|---|
 | S207 | Milestone 34 Architecture and Planning | Complete |
 | S208 | Paper Execution Order, Policy, and Lifecycle Contract Foundation | Complete |
-| S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | In Progress |
-| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | Planned |
+| S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | Complete |
+| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | In Progress |
 | S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Planned |
 | S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Planned |
 | S213 | Bilingual Founder Paper Execution Workspace | Planned |
@@ -36,9 +36,11 @@ immutable Attempt and unsettled Fill authority, exact M32 progression,
 deterministic price/slippage/cost/risk evidence, and strict lifecycle history
 reconstruction.
 
-S209 creates no M31 settlement or account mutation and no durable replay
-checkpoint. Persistence, migration, transaction/idempotency/concurrency, API,
-Web, Demo, and runtime-worker behavior remain deferred to S210+ as approved.
+S210 adds pure Fill-to-M31 settlement with one combined execution event, one
+cash posting, one position posting, exact buy/sell average-cost semantics, and
+one-to-one link reconciliation. Persistence, migration, durable transaction/
+idempotency/concurrency, checkpoint, API, Web, Demo, and runtime-worker behavior
+remain deferred to S211+ as approved.
 
 Current migration head remains `0010_strategy_order_risk`. S211 is the only
 planned M34 migration Sprint and may add `0011_paper_execution`.

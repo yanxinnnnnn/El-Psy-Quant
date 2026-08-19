@@ -30,9 +30,18 @@ PaperPositionAdjustmentCategory = Literal[
     "manual_correction",
     "corporate_action",
     "other",
+    "execution_fill",
 ]
 
 SUPPORTED_PAPER_POSITION_ADJUSTMENT_CATEGORIES = (
+    "opening_balance",
+    "manual_correction",
+    "corporate_action",
+    "other",
+    "execution_fill",
+)
+
+SUPPORTED_POST_PAPER_POSITION_ADJUSTMENT_CATEGORIES = (
     "opening_balance",
     "manual_correction",
     "corporate_action",
@@ -43,9 +52,9 @@ SUPPORTED_PAPER_POSITION_ADJUSTMENT_CATEGORIES = (
 def _normalize_adjustment_category(
     value: object,
 ) -> PaperPositionAdjustmentCategory:
-    if value not in SUPPORTED_PAPER_POSITION_ADJUSTMENT_CATEGORIES:
+    if value not in SUPPORTED_POST_PAPER_POSITION_ADJUSTMENT_CATEGORIES:
         supported = ", ".join(
-            SUPPORTED_PAPER_POSITION_ADJUSTMENT_CATEGORIES
+            SUPPORTED_POST_PAPER_POSITION_ADJUSTMENT_CATEGORIES
         )
         raise ValueError(f"adjustment_category must be one of: {supported}")
     return value  # type: ignore[return-value]

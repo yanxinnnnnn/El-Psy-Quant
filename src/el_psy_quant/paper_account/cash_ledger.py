@@ -23,6 +23,7 @@ PaperCashMovementType = Literal[
     "fee",
     "commission",
     "tax",
+    "execution_settlement",
 ]
 
 SUPPORTED_PAPER_CASH_LEDGER_MOVEMENT_TYPES = (
@@ -33,6 +34,7 @@ SUPPORTED_PAPER_CASH_LEDGER_MOVEMENT_TYPES = (
     "fee",
     "commission",
     "tax",
+    "execution_settlement",
 )
 
 

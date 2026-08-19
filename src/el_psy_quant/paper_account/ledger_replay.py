@@ -24,6 +24,9 @@ from el_psy_quant.paper_account.events import (
     _PositionAdjustmentPostedDetails,
     _event_digest_payload,
 )
+from el_psy_quant.paper_account.execution_settlement import (
+    validate_paper_execution_fill_settlement_bundle,
+)
 from el_psy_quant.paper_account.identity import PaperAccountIdentity
 from el_psy_quant.paper_account.ledger_state import (
     PaperAccountLedgerEventBundle,
@@ -394,6 +397,28 @@ def replay_paper_account_ledger(
                         quantity=quantity,
                         aggregate_cost_basis=cost,
                     )
+            elif event.event_type == "execution_fill_posted":
+                if lifecycle_status != "active":
+                    raise ValueError(
+                        "execution settlements require an active account"
+                    )
+                if type(raw_bundle) is not PaperAccountLedgerEventBundle:
+                    raise ValueError(
+                        "execution settlement requires a complete ledger bundle"
+                    )
+                if rebuilt_state is None:
+                    raise ValueError(
+                        "execution settlement requires a prior account head"
+                    )
+                validated_bundle = validate_paper_execution_fill_settlement_bundle(
+                    rebuilt_state,
+                    raw_bundle,
+                )
+                cash_balance = validated_bundle.resulting_state.cash_balance
+                positions = {
+                    position.symbol: position
+                    for position in validated_bundle.resulting_state.positions
+                }
             elif event.event_type == "portfolio_review_evidence_linked":
                 if cash_entries or position_entries:
                     raise ValueError(

@@ -275,15 +275,14 @@ def _history_values(
     return state, cumulative_gross
 
 
-def _validate_history_risk_authority(
+def _validate_static_execution_authority(
     *,
     order: PaperExecutionOrder,
     prior_state: PaperExecutionOrderState,
     attempt: PaperExecutionAttempt,
     fill: PaperExecutionFill | None,
-    cumulative_filled_gross_notional: PaperMoney,
 ) -> None:
-    """Re-bind canonical risk/Fill records to frozen Order and prior history."""
+    """Re-bind one canonical risk/Fill record to its frozen Order authority."""
     risk = attempt.risk_revalidation
     if risk is None:
         return
@@ -292,12 +291,14 @@ def _validate_history_risk_authority(
         raise ValueError("execution risk Attempt must consume one event")
     order_reference = create_paper_execution_order_reference(order)
     if not (
-        risk.execution_order_reference == order_reference
+        attempt.execution_order_reference == order_reference
+        and attempt.prior_order_state == prior_state
+        and prior_state.execution_order_reference == order_reference
+        and prior_state.requested_quantity == order.requested_quantity
+        and risk.execution_order_reference == order_reference
         and risk.execution_version == prior_state.execution_version
         and risk.requested_quantity == order.requested_quantity
         and risk.remaining_quantity_before_step == prior_state.remaining_quantity
-        and risk.cumulative_filled_gross_notional
-        == cumulative_filled_gross_notional
     ):
         raise ValueError(
             "execution risk history is incompatible with Order/prior state"
@@ -353,6 +354,31 @@ def _validate_history_risk_authority(
         and fill.cost_evidence == costs
     ):
         raise ValueError("Fill economics do not match Attempt risk authority")
+
+
+def _validate_history_risk_authority(
+    *,
+    order: PaperExecutionOrder,
+    prior_state: PaperExecutionOrderState,
+    attempt: PaperExecutionAttempt,
+    fill: PaperExecutionFill | None,
+    cumulative_filled_gross_notional: PaperMoney,
+) -> None:
+    """Re-bind canonical risk/Fill records to frozen Order and prior history."""
+    _validate_static_execution_authority(
+        order=order,
+        prior_state=prior_state,
+        attempt=attempt,
+        fill=fill,
+    )
+    risk = attempt.risk_revalidation
+    if risk is not None and (
+        risk.cumulative_filled_gross_notional
+        != cumulative_filled_gross_notional
+    ):
+        raise ValueError(
+            "execution risk history is incompatible with Order/prior state"
+        )
 
 
 def reconstruct_paper_execution_order_state(

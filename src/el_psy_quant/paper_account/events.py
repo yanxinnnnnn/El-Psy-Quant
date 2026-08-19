@@ -46,6 +46,7 @@ PaperAccountEventType = Literal[
     "account_created",
     "cash_movement_posted",
     "position_adjustment_posted",
+    "execution_fill_posted",
     "portfolio_review_evidence_linked",
     "account_frozen",
     "account_reactivated",
@@ -56,6 +57,7 @@ SUPPORTED_PAPER_ACCOUNT_EVENT_TYPES = (
     "account_created",
     "cash_movement_posted",
     "position_adjustment_posted",
+    "execution_fill_posted",
     "portfolio_review_evidence_linked",
     "account_frozen",
     "account_reactivated",
@@ -123,6 +125,49 @@ class _PositionAdjustmentPostedDetails:
 
 
 @dataclass(frozen=True, init=False)
+class _ExecutionFillPostedDetails:
+    execution_order_id: str
+    execution_order_digest: str
+    execution_attempt_id: str
+    execution_attempt_digest: str
+    execution_fill_id: str
+    execution_fill_digest: str
+    instrument_id: str
+    side: str
+    fill_quantity: PaperQuantity
+    gross_notional: PaperMoney
+    total_charges: PaperMoney
+    signed_cash_delta: PaperMoney
+    signed_position_quantity_delta: PaperQuantity
+    signed_position_cost_basis_delta: PaperMoney
+
+    __init__ = _reject_public_construction
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "details_type": "execution_fill_posted",
+            "execution_order_id": self.execution_order_id,
+            "execution_order_digest": self.execution_order_digest,
+            "execution_attempt_id": self.execution_attempt_id,
+            "execution_attempt_digest": self.execution_attempt_digest,
+            "execution_fill_id": self.execution_fill_id,
+            "execution_fill_digest": self.execution_fill_digest,
+            "instrument_id": self.instrument_id,
+            "side": self.side,
+            "fill_quantity": self.fill_quantity.to_json_value(),
+            "gross_notional": self.gross_notional.to_json_value(),
+            "total_charges": self.total_charges.to_json_value(),
+            "signed_cash_delta": self.signed_cash_delta.to_json_value(),
+            "signed_position_quantity_delta": (
+                self.signed_position_quantity_delta.to_json_value()
+            ),
+            "signed_position_cost_basis_delta": (
+                self.signed_position_cost_basis_delta.to_json_value()
+            ),
+        }
+
+
+@dataclass(frozen=True, init=False)
 class _PortfolioReviewEvidenceLinkedDetails:
     approved_portfolio_review: ApprovedPortfolioReviewReference
 
@@ -156,6 +201,7 @@ _PaperAccountEventDetails: TypeAlias = (
     _AccountCreatedDetails
     | _CashMovementPostedDetails
     | _PositionAdjustmentPostedDetails
+    | _ExecutionFillPostedDetails
     | _PortfolioReviewEvidenceLinkedDetails
     | _LifecycleChangedDetails
 )
@@ -272,6 +318,30 @@ def _position_adjustment_details(
     return result
 
 
+def _execution_fill_posted_details(
+    *,
+    execution_order_id: str,
+    execution_order_digest: str,
+    execution_attempt_id: str,
+    execution_attempt_digest: str,
+    execution_fill_id: str,
+    execution_fill_digest: str,
+    instrument_id: str,
+    side: str,
+    fill_quantity: PaperQuantity,
+    gross_notional: PaperMoney,
+    total_charges: PaperMoney,
+    signed_cash_delta: PaperMoney,
+    signed_position_quantity_delta: PaperQuantity,
+    signed_position_cost_basis_delta: PaperMoney,
+) -> _ExecutionFillPostedDetails:
+    result = object.__new__(_ExecutionFillPostedDetails)
+    for field_name, value in locals().items():
+        if field_name != "result":
+            object.__setattr__(result, field_name, value)
+    return result
+
+
 def _lifecycle_changed_details(
     source_status: PaperAccountLifecycleStatus,
     target_status: PaperAccountLifecycleStatus,
@@ -292,7 +362,10 @@ def _event_digest_payload(
         "event_details": event.details.to_dict(),
         "cash_entries": [entry.to_dict() for entry in cash_entries],
     }
-    if event.event_type == "position_adjustment_posted":
+    if event.event_type in {
+        "position_adjustment_posted",
+        "execution_fill_posted",
+    }:
         payload["position_entries"] = [
             entry.to_dict() for entry in position_entries
         ]

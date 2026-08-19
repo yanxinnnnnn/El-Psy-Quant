@@ -233,9 +233,10 @@ M34 may consume only an M33 Intent with a matching `allow` Decision and exact
 verified M31/M32 anchors. It must revalidate account and market freshness at
 execution time.
 
-S208 does not add Attempt, Fill, pricing/cost arithmetic, M31 settlement,
-replay progression, persistence, migration, API/Web/Demo, or worker behavior.
-The migration head remains `0010_strategy_order_risk`. S209–S216 remain planned.
+S209 completed pure one-event Attempt/Fill/pricing/cost/risk authority. S210
+adds pure Fill-to-M31 combined-event settlement and one-to-one link
+reconciliation. The migration head remains `0010_strategy_order_risk`;
+S211–S216 remain planned.
 M34 must not mutate M33 Signal, Intent, or Decision records.
 
 Approved M34 sequence:
@@ -243,9 +244,9 @@ Approved M34 sequence:
 | Sprint | Deliverable | Status |
 |---:|---|---|
 | S207 | Milestone 34 Architecture and Planning | Complete |
-| S208 | Paper Execution Order, Policy, and Lifecycle Contract Foundation | In Progress |
-| S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | Planned |
-| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | Planned |
+| S208 | Paper Execution Order, Policy, and Lifecycle Contract Foundation | Complete |
+| S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | Complete |
+| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | In Progress |
 | S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Planned |
 | S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Planned |
 | S213 | Bilingual Founder Paper Execution Workspace | Planned |

@@ -22,11 +22,12 @@ The current milestone and Sprint are:
 M34 — Paper Execution Simulator and First True Paper Trading
 S207 — Complete
 S208 — Complete
-S209 — Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics
+S209 — Complete
+S210 — Atomic Execution Fill to M31 Ledger Domain Integration
 ```
 
-Issue #408 is the authoritative M34 architecture source. Issue #411 is the
-authoritative S209 implementation specification. M35–M36 remain future
+Issue #408 is the authoritative M34 architecture source. Issue #413 is the
+authoritative S210 implementation specification. M35–M36 remain future
 milestones.
 
 Current migration head:
@@ -178,7 +179,7 @@ M33 closes without execution order, fill, execution pricing, fee calculation,
 reservation, fill-caused account mutation, replay progression, runtime worker,
 broker, live, or real-money behavior.
 
-### M34 — Current S209 One-Event Execution Foundation
+### M34 — Current S210 Pure Settlement Foundation
 
 S208 introduced a separate pure `el_psy_quant.paper_execution` authority
 boundary with exact execution-policy values, strict M31/M32/M33 handoff
@@ -190,10 +191,14 @@ unsettled Fill authority, exact M32 `next_event()` progression, deterministic
 execution price/slippage/cost evidence, execution-time risk revalidation, and
 strict full/partial/no-fill/rejection lifecycle reconstruction.
 
-An S209 Fill is not M31 settlement. S209 creates no account mutation, durable
-replay checkpoint, persistence, or migration. S210–S216 retain those later
-approved responsibilities, and the migration head remains
-`0010_strategy_order_risk`.
+S210 maps one validated Fill to one M31 `execution_fill_posted` event containing
+exactly one cash and one position posting. Buy costs are capitalized; sell cost
+basis uses deterministic proportional average cost with exact full-exit cleanup.
+One immutable `ExecutionSettlementLink` binds the Fill to that M31 authority.
+
+This remains pure/in-memory. Durable persistence, atomic SQLite transaction,
+idempotency/concurrency, checkpoint, API, Web, Demo, and runtime work remain
+S211+, and the migration head remains `0010_strategy_order_risk`.
 
 ## Current Founder Journey
 
@@ -254,9 +259,9 @@ handoff it must revalidate freshness; M33 risk allowance is not automatically
 fresh execution authorization.
 
 S207 froze the M34 architecture in Issue #408. S208 completed the pure Order,
-policy, handoff, command, and lifecycle foundation. S209 implements the pure
-one-event Attempt/Fill/pricing/cost/risk layer under Issue #411. S210–S216
-remain planned.
+policy, handoff, command, and lifecycle foundation. S209 completed the pure
+one-event Attempt/Fill/pricing/cost/risk layer. S210 implements pure Fill-to-M31
+settlement and link reconciliation under Issue #413. S211–S216 remain planned.
 
 Authoritative runtime roadmap:
 
