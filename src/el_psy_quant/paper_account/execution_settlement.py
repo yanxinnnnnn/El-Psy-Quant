@@ -274,7 +274,7 @@ def _resulting_state(
     )
 
 
-def apply_paper_execution_fill_settlement(
+def _apply_paper_execution_fill_settlement(
     state: PaperAccountLedgerState,
     *,
     execution_order_id: str,
@@ -452,7 +452,7 @@ def validate_paper_execution_fill_settlement_bundle(
         ):
             raise ValueError("execution settlement bundle shape is invalid")
         details = event.details
-        expected = apply_paper_execution_fill_settlement(
+        expected = _apply_paper_execution_fill_settlement(
             current,
             execution_order_id=details.execution_order_id,
             execution_order_digest=details.execution_order_digest,

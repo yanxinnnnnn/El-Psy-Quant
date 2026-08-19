@@ -9,6 +9,7 @@ from decimal import Decimal
 
 import pytest
 
+import el_psy_quant.paper_account as paper_account
 from el_psy_quant.paper_account import (
     SUPPORTED_PAPER_ACCOUNT_EVENT_TYPES,
     SUPPORTED_PAPER_CASH_LEDGER_MOVEMENT_TYPES,
@@ -18,13 +19,15 @@ from el_psy_quant.paper_account import (
     PaperQuantity,
     PostPaperCashMovementCommand,
     PostPaperPositionAdjustmentCommand,
-    apply_paper_execution_fill_settlement,
     apply_paper_position_adjustment,
     create_paper_account_command,
     create_paper_account_event_bundle,
     create_post_paper_position_adjustment_command,
     replay_paper_account_ledger,
     validate_paper_execution_fill_settlement_bundle,
+)
+from el_psy_quant.paper_account.execution_settlement import (
+    _apply_paper_execution_fill_settlement,
 )
 from el_psy_quant.paper_execution import (
     ExecutionSettlementLink,
@@ -34,10 +37,23 @@ from el_psy_quant.paper_execution import (
     validate_execution_settlement_link,
     validate_paper_execution_settlement_result,
 )
+from el_psy_quant.paper_execution.attempts import (
+    _build_attempt,
+    create_paper_execution_attempt_reference,
+)
+from el_psy_quant.paper_execution.costs import _build as _build_cost_evidence
+from el_psy_quant.paper_execution.fills import _build_fill
+from el_psy_quant.paper_execution.lifecycle import _build_state
+from el_psy_quant.paper_execution.policies import PaperExecutionBasisPoints
+from el_psy_quant.paper_execution.pricing import _build as _build_price_evidence
+from el_psy_quant.strategy_order import (
+    create_long_only_cash_risk_policy_reference,
+)
 from test_paper_execution_stepping import (  # type: ignore[import-not-found]
     CREATED,
     INSTRUMENT,
     _policy,
+    _rebuild_risk,
     _scenario,
     _step,
 )
@@ -109,7 +125,7 @@ def _m31_settlement(
     charges: str = "5",
     recorded: datetime = RECORDED,
 ):
-    return apply_paper_execution_fill_settlement(
+    return _apply_paper_execution_fill_settlement(
         state,
         execution_order_id=f"peo_{ORDER_DIGEST}",
         execution_order_digest=ORDER_DIGEST,
@@ -125,6 +141,41 @@ def _m31_settlement(
         effective_timestamp_utc=CREATED + timedelta(hours=6),
         recorded_timestamp_utc=recorded,
     )
+
+
+def _rebuild_attempt_and_fill(
+    step,
+    *,
+    prior_order_state=None,
+    risk_revalidation=None,
+):
+    assert step.fill is not None
+    prior = prior_order_state or step.attempt.prior_order_state
+    risk = risk_revalidation or step.attempt.risk_revalidation
+    assert risk is not None
+    attempt = _build_attempt(
+        execution_order_reference=step.attempt.execution_order_reference,
+        prior_order_state=prior,
+        pre_step_cursor=step.attempt.pre_step_cursor,
+        post_step_cursor=step.attempt.post_step_cursor,
+        consumed_event_reference=step.attempt.consumed_event_reference,
+        attempt_result=step.attempt.attempt_result,
+        no_fill_reason_code=step.attempt.no_fill_reason_code,
+        terminal_reason_code=step.attempt.terminal_reason_code,
+        risk_revalidation=risk,
+        created_at=step.attempt.created_at,
+    )
+    fill = _build_fill(
+        execution_order_reference=step.fill.execution_order_reference,
+        attempt_reference=create_paper_execution_attempt_reference(attempt),
+        execution_event_reference=step.fill.execution_event_reference,
+        side=risk.execution_price_evidence.side,
+        fill_quantity=risk.candidate_fill_quantity,
+        execution_price_evidence=risk.execution_price_evidence,
+        cost_evidence=risk.cost_evidence,
+        created_at=step.fill.created_at,
+    )
+    return attempt, fill
 
 
 def _settled_scenario(**scenario_changes):
@@ -167,6 +218,14 @@ def test_additive_vocabulary_does_not_expand_generic_commands() -> None:
             signed_quantity_delta=PaperQuantity.parse("1"),
             signed_cost_basis_delta=PaperMoney.parse("1"),
         )
+
+
+def test_public_m31_package_has_no_execution_settlement_constructor() -> None:
+    assert not hasattr(
+        paper_account,
+        "apply_paper_execution_fill_settlement",
+    )
+    assert "apply_paper_execution_fill_settlement" not in paper_account.__all__
 
 
 @pytest.mark.parametrize(
@@ -370,6 +429,12 @@ def test_settlement_link_is_deterministic_one_to_one_and_audit_time_stable() -> 
     assert first.settlement_link.settlement_link_id == (
         second.settlement_link.settlement_link_id
     )
+    assert first.settlement_link.settlement_link_digest == (
+        second.settlement_link.settlement_link_digest
+    )
+    assert first.settlement_link.settlement_link_evidence_digest != (
+        second.settlement_link.settlement_link_evidence_digest
+    )
     assert first.ledger_bundle.event.event_digest != (
         second.ledger_bundle.event.event_digest
     )
@@ -416,6 +481,20 @@ def test_wrong_link_event_posting_or_digest_fails_closed(field_name: str) -> Non
             fill=step.fill,
             result=changed,
         )
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    ["account_event_digest", "account_chain_digest"],
+)
+def test_standalone_link_validation_binds_event_and_chain_digests(
+    field_name: str,
+) -> None:
+    _, _, result = _settled_scenario()
+    link = copy.deepcopy(result.settlement_link)
+    object.__setattr__(link, field_name, "a" * 64)
+    with pytest.raises(ValueError, match="invalid"):
+        validate_execution_settlement_link(link)
 
 
 def test_stale_reapplication_and_account_anchors_fail_before_evidence() -> None:
@@ -470,6 +549,151 @@ def test_order_attempt_fill_mismatch_and_non_fill_attempt_fail_closed() -> None:
             attempt=no_fill.attempt,
             fill=step.fill,
             account_state=no_fill_data["state"],
+            recorded_timestamp_utc=RECORDED,
+        )
+
+
+@pytest.mark.parametrize(
+    "corruption",
+    ["prior_requested", "risk_requested", "risk_remaining"],
+)
+def test_settlement_rebinds_internally_valid_quantity_authority(
+    corruption: str,
+) -> None:
+    data = _scenario()
+    step = _step(data, 0)
+    risk = step.attempt.risk_revalidation
+    assert risk is not None
+    prior = step.attempt.prior_order_state
+    if corruption == "prior_requested":
+        prior = _build_state(
+            execution_order_reference=prior.execution_order_reference,
+            execution_version=prior.execution_version,
+            requested_quantity=PaperQuantity.parse("7"),
+            cumulative_filled_quantity=PaperQuantity.parse("0"),
+            terminal_rejected=False,
+        )
+    elif corruption == "risk_requested":
+        risk = _rebuild_risk(
+            risk,
+            requested_quantity=PaperQuantity.parse("7"),
+        )
+    else:
+        risk = _rebuild_risk(
+            risk,
+            remaining_quantity_before_step=PaperQuantity.parse("7"),
+        )
+    attempt, fill = _rebuild_attempt_and_fill(
+        step,
+        prior_order_state=prior,
+        risk_revalidation=risk,
+    )
+    with pytest.raises(ValueError, match="Order/prior state"):
+        settle_paper_execution_fill(
+            order=data["order"],
+            attempt=attempt,
+            fill=fill,
+            account_state=data["state"],
+            recorded_timestamp_utc=RECORDED,
+        )
+
+
+def test_settlement_rebinds_internally_valid_frozen_risk_policy() -> None:
+    data = _scenario()
+    step = _step(data, 0)
+    risk = step.attempt.risk_revalidation
+    assert risk is not None
+    changed_risk = _rebuild_risk(
+        risk,
+        risk_policy_reference=create_long_only_cash_risk_policy_reference(
+            maximum_order_quantity=PaperQuantity.parse("100"),
+            maximum_order_notional=None,
+        ),
+    )
+    attempt, fill = _rebuild_attempt_and_fill(
+        step,
+        risk_revalidation=changed_risk,
+    )
+    with pytest.raises(ValueError, match="frozen Order policy"):
+        settle_paper_execution_fill(
+            order=data["order"],
+            attempt=attempt,
+            fill=fill,
+            account_state=data["state"],
+            recorded_timestamp_utc=RECORDED,
+        )
+
+
+def test_settlement_rebinds_internally_valid_execution_policy_evidence() -> None:
+    data = _scenario()
+    step = _step(data, 0)
+    risk = step.attempt.risk_revalidation
+    assert risk is not None
+    original_price = risk.execution_price_evidence
+    original_cost = risk.cost_evidence
+    changed_price = _build_price_evidence(
+        execution_event_reference=original_price.execution_event_reference,
+        side=original_price.side,
+        base_trade_price=original_price.base_trade_price,
+        slippage_bps=PaperExecutionBasisPoints.parse("2"),
+    )
+    changed_cost = _build_cost_evidence(
+        execution_price_evidence=changed_price,
+        fill_quantity=risk.candidate_fill_quantity,
+        commission_bps=original_cost.commission_bps,
+        fee_bps=original_cost.fee_bps,
+        side_tax_bps=original_cost.side_tax_bps,
+    )
+    changed_risk = _rebuild_risk(
+        risk,
+        execution_price_evidence=changed_price,
+        cost_evidence=changed_cost,
+    )
+    attempt, fill = _rebuild_attempt_and_fill(
+        step,
+        risk_revalidation=changed_risk,
+    )
+    with pytest.raises(ValueError, match="frozen Order policy"):
+        settle_paper_execution_fill(
+            order=data["order"],
+            attempt=attempt,
+            fill=fill,
+            account_state=data["state"],
+            recorded_timestamp_utc=RECORDED,
+        )
+
+
+def test_settlement_rebinds_internally_valid_per_event_fill_cap() -> None:
+    policy = _policy(
+        max_fill_quantity_per_trade_event=PaperQuantity.parse("2")
+    )
+    data = _scenario(execution_policy=policy)
+    step = _step(data, 0)
+    risk = step.attempt.risk_revalidation
+    assert risk is not None
+    changed_quantity = PaperQuantity.parse("1")
+    changed_cost = _build_cost_evidence(
+        execution_price_evidence=risk.execution_price_evidence,
+        fill_quantity=changed_quantity,
+        commission_bps=risk.cost_evidence.commission_bps,
+        fee_bps=risk.cost_evidence.fee_bps,
+        side_tax_bps=risk.cost_evidence.side_tax_bps,
+    )
+    changed_risk = _rebuild_risk(
+        risk,
+        cost_evidence=changed_cost,
+        candidate_fill_quantity=changed_quantity,
+    )
+    attempt, fill = _rebuild_attempt_and_fill(
+        step,
+        risk_revalidation=changed_risk,
+    )
+    with pytest.raises(ValueError, match="per-event cap"):
+        settle_paper_execution_fill(
+            order=data["order"],
+            attempt=attempt,
+            fill=fill,
+            account_state=data["state"],
             recorded_timestamp_utc=RECORDED,
         )
 

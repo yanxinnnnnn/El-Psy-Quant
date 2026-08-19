@@ -9,9 +9,11 @@ from el_psy_quant.paper_account import (
     PaperAccountLedgerEventBundle,
     PaperAccountLedgerState,
     PaperQuantity,
-    apply_paper_execution_fill_settlement,
     validate_paper_account_ledger_state,
     validate_paper_execution_fill_settlement_bundle,
+)
+from el_psy_quant.paper_account.execution_settlement import (
+    _apply_paper_execution_fill_settlement,
 )
 from el_psy_quant.paper_execution._canonical import (
     canonical_digest,
@@ -42,6 +44,9 @@ from el_psy_quant.paper_execution.orders import (
     validate_paper_execution_order,
     validate_paper_execution_order_reference,
 )
+from el_psy_quant.paper_execution.stepping import (
+    _validate_static_execution_authority,
+)
 
 EXECUTION_SETTLEMENT_LINK_SCHEMA_VERSION = 1
 PAPER_EXECUTION_SETTLEMENT_RESULT_SCHEMA_VERSION = 1
@@ -54,6 +59,7 @@ class ExecutionSettlementLink:
     schema_version: int
     settlement_link_id: str
     settlement_link_digest: str
+    settlement_link_evidence_digest: str
     execution_order_reference: PaperExecutionOrderReference
     execution_attempt_reference: PaperExecutionAttemptReference
     execution_fill_reference: PaperExecutionFillReference
@@ -74,6 +80,9 @@ class ExecutionSettlementLink:
             "schema_version": self.schema_version,
             "settlement_link_id": self.settlement_link_id,
             "settlement_link_digest": self.settlement_link_digest,
+            "settlement_link_evidence_digest": (
+                self.settlement_link_evidence_digest
+            ),
             "execution_order_reference": (self.execution_order_reference.to_dict()),
             "execution_attempt_reference": (self.execution_attempt_reference.to_dict()),
             "execution_fill_reference": self.execution_fill_reference.to_dict(),
@@ -131,6 +140,43 @@ def _link_identity_payload(
     }
 
 
+def _link_evidence_payload(
+    *,
+    settlement_link_id: str,
+    settlement_link_digest: str,
+    order_reference: PaperExecutionOrderReference,
+    attempt_reference: PaperExecutionAttemptReference,
+    fill_reference: PaperExecutionFillReference,
+    account_id: str,
+    account_event_id: str,
+    account_event_digest: str,
+    account_chain_digest: str,
+    account_version: int,
+    cash_entry_id: str,
+    cash_entry_digest: str,
+    position_entry_id: str,
+    position_entry_digest: str,
+) -> dict[str, object]:
+    """Commit every serialized authority field while keeping ID audit-stable."""
+    return {
+        "schema_version": EXECUTION_SETTLEMENT_LINK_SCHEMA_VERSION,
+        "settlement_link_id": settlement_link_id,
+        "settlement_link_digest": settlement_link_digest,
+        "execution_order_reference": order_reference.to_dict(),
+        "execution_attempt_reference": attempt_reference.to_dict(),
+        "execution_fill_reference": fill_reference.to_dict(),
+        "account_id": account_id,
+        "account_event_id": account_event_id,
+        "account_event_digest": account_event_digest,
+        "account_chain_digest": account_chain_digest,
+        "account_version": account_version,
+        "cash_entry_id": cash_entry_id,
+        "cash_entry_digest": cash_entry_digest,
+        "position_entry_id": position_entry_id,
+        "position_entry_digest": position_entry_digest,
+    }
+
+
 def _create_link(
     *,
     order_reference: PaperExecutionOrderReference,
@@ -164,11 +210,31 @@ def _create_link(
         position_entry_digest=position.entry_digest,
     )
     digest = canonical_digest(payload)
+    link_id = f"pes_{digest}"
+    evidence_digest = canonical_digest(
+        _link_evidence_payload(
+            settlement_link_id=link_id,
+            settlement_link_digest=digest,
+            order_reference=order_ref,
+            attempt_reference=attempt_ref,
+            fill_reference=fill_ref,
+            account_id=event.account_id,
+            account_event_id=event.event_id,
+            account_event_digest=event.event_digest,
+            account_chain_digest=event.chain_digest,
+            account_version=event.account_version,
+            cash_entry_id=cash.cash_entry_id,
+            cash_entry_digest=cash.entry_digest,
+            position_entry_id=position.position_entry_id,
+            position_entry_digest=position.entry_digest,
+        )
+    )
     result = object.__new__(ExecutionSettlementLink)
     values = {
         "schema_version": EXECUTION_SETTLEMENT_LINK_SCHEMA_VERSION,
-        "settlement_link_id": f"pes_{digest}",
+        "settlement_link_id": link_id,
         "settlement_link_digest": digest,
+        "settlement_link_evidence_digest": evidence_digest,
         "execution_order_reference": order_ref,
         "execution_attempt_reference": attempt_ref,
         "execution_fill_reference": fill_ref,
@@ -215,6 +281,7 @@ def validate_execution_settlement_link(
             "cash_entry_digest",
             "position_entry_digest",
             "settlement_link_digest",
+            "settlement_link_evidence_digest",
         ):
             validate_digest(getattr(value, field_name), field_name=field_name)
         for field_name in (
@@ -244,6 +311,26 @@ def validate_execution_settlement_link(
             or value.settlement_link_id != f"pes_{digest}"
         ):
             raise ValueError("settlement link identity is invalid")
+        evidence_digest = canonical_digest(
+            _link_evidence_payload(
+                settlement_link_id=value.settlement_link_id,
+                settlement_link_digest=value.settlement_link_digest,
+                order_reference=order_ref,
+                attempt_reference=attempt_ref,
+                fill_reference=fill_ref,
+                account_id=value.account_id,
+                account_event_id=value.account_event_id,
+                account_event_digest=value.account_event_digest,
+                account_chain_digest=value.account_chain_digest,
+                account_version=value.account_version,
+                cash_entry_id=value.cash_entry_id,
+                cash_entry_digest=value.cash_entry_digest,
+                position_entry_id=value.position_entry_id,
+                position_entry_digest=value.position_entry_digest,
+            )
+        )
+        if evidence_digest != value.settlement_link_evidence_digest:
+            raise ValueError("settlement link evidence digest is invalid")
     except (AttributeError, TypeError, ValueError) as exc:
         raise ValueError("execution settlement link is invalid") from exc
     return value
@@ -322,6 +409,12 @@ def _preflight(
         == valid_order.instrument_id
     ):
         raise ValueError("Fill, Attempt, and Order authority is incompatible")
+    _validate_static_execution_authority(
+        order=valid_order,
+        prior_state=valid_attempt.prior_order_state,
+        attempt=valid_attempt,
+        fill=valid_fill,
+    )
     if not (
         state.lifecycle_status == "active"
         and state.account_identity.account_id == valid_order.account_id
@@ -371,7 +464,7 @@ def settle_paper_execution_fill(
         account_state=account_state,
     )
     costs = valid_fill.cost_evidence
-    bundle = apply_paper_execution_fill_settlement(
+    bundle = _apply_paper_execution_fill_settlement(
         state,
         execution_order_id=order_ref.execution_order_id,
         execution_order_digest=order_ref.execution_order_digest,

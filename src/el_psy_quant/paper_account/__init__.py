@@ -80,7 +80,6 @@ from el_psy_quant.paper_account.events import (
 from el_psy_quant.paper_account.execution_settlement import (
     PAPER_ACCOUNT_EXECUTION_SETTLEMENT_MONEY_QUANTUM,
     PAPER_ACCOUNT_EXECUTION_SETTLEMENT_ROUNDING_MODE,
-    apply_paper_execution_fill_settlement,
     validate_paper_execution_fill_settlement_bundle,
 )
 from el_psy_quant.paper_account.evidence_operations import (
@@ -237,7 +236,6 @@ __all__ = [
     "apply_paper_account_lifecycle_command",
     "apply_paper_cash_movement",
     "apply_paper_position_adjustment",
-    "apply_paper_execution_fill_settlement",
     "create_approved_portfolio_review_reference",
     "create_close_paper_account_command",
     "create_freeze_paper_account_command",
