@@ -10,7 +10,7 @@ from typing import Callable, Iterator
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
-from el_psy_quant.market_time import MarketDataReplayEngine
+from el_psy_quant.market_time import MarketDataReplayEngine, ReplayCursor
 from el_psy_quant.paper_account import (
     PaperAccountLedgerState,
     rebuild_paper_account_projection,
@@ -235,9 +235,10 @@ class PaperExecutionApplicationService:
             raise PaperExecutionStaleAuthorityError()
         return intent, decision
 
-    @staticmethod
     def _receipt_for_order(
-        command: CreatePaperExecutionOrderCommand, order: PaperExecutionOrder
+        self,
+        command: CreatePaperExecutionOrderCommand,
+        order: PaperExecutionOrder,
     ) -> PaperExecutionCommandReceipt:
         return PaperExecutionCommandReceipt(
             namespace=COMMAND_NAMESPACE_CREATE_ORDER,
@@ -254,11 +255,11 @@ class PaperExecutionApplicationService:
             settlement_link_id=None,
             settlement_link_evidence_digest=None,
             account_event_id=None,
-            created_at=order.created_at,
+            created_at=self._now(),
         )
 
-    @staticmethod
     def _receipt_for_step(
+        self,
         command: StepPaperExecutionOrderCommand,
         order: PaperExecutionOrder,
         commit: PaperExecutionStepCommit,
@@ -283,7 +284,7 @@ class PaperExecutionApplicationService:
                 None if link is None else link.settlement_link_evidence_digest
             ),
             account_event_id=commit.account_event_id,
-            created_at=attempt.created_at,
+            created_at=self._now(),
         )
 
     @staticmethod
@@ -325,7 +326,7 @@ class PaperExecutionApplicationService:
 
             converged = repository.find_create_convergence(command=valid_command)
             if converged is not None:
-                converged = repository.load_history(
+                converged = repository.load_historical_history(
                     execution_order_id=converged.execution_order_id
                 ).order
                 repository.append_receipt(
@@ -359,7 +360,7 @@ class PaperExecutionApplicationService:
                 replay_id=order.market_handoff_reference.replay_id,
                 trading_session_id=order.market_handoff_reference.trading_session_id,
             ):
-                if not repository.load_history(
+                if not repository.load_historical_history(
                     execution_order_id=existing.execution_order_id
                 ).state.terminal:
                     raise PaperExecutionOperationConflictError()
@@ -405,7 +406,7 @@ class PaperExecutionApplicationService:
             ):
                 raise PaperExecutionStaleAuthorityError()
 
-            history = repository.load_history(
+            history = repository.load_historical_history(
                 execution_order_id=order.execution_order_id
             )
             converged_attempt = next(
@@ -460,6 +461,24 @@ class PaperExecutionApplicationService:
                 session, order_or_intent=order
             )
             pre_cursor = replay_engine.cursor
+            expected_cursor = (
+                history.attempts[-1].post_step_cursor
+                if history.attempts
+                else ReplayCursor(
+                    replay_id=order.market_handoff_reference.replay_id,
+                    event_stream_digest=(
+                        order.market_handoff_reference.event_stream_digest
+                    ),
+                    position=order.market_handoff_reference.cursor_position,
+                    last_event_id=order.market_handoff_reference.last_event_id,
+                    current_event_time=(
+                        order.market_handoff_reference.current_event_time
+                    ),
+                    status=order.market_handoff_reference.handoff_replay_status,
+                )
+            )
+            if pre_cursor != expected_cursor:
+                raise PaperExecutionStaleAuthorityError()
             try:
                 step_result = step_paper_execution_order(
                     valid_command,

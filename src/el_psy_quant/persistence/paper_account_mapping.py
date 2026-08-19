@@ -352,6 +352,7 @@ def reconstruct_history_page_items(
     position_rows: tuple[PaperPositionLedgerEntryRow, ...],
     expected_first_sequence: int,
     previous_chain_digest: str,
+    validated_execution_bundles: tuple[PaperAccountLedgerEventBundle, ...] = (),
 ) -> tuple[PaperAccountLedgerPageItem, ...]:
     """Validate one bounded page without replaying an unbounded prefix."""
     try:
@@ -363,6 +364,15 @@ def reconstruct_history_page_items(
         positions_by_event: dict[str, list[PaperPositionLedgerEntryRow]] = {}
         for row in position_rows:
             positions_by_event.setdefault(row.event_id, []).append(row)
+        validated_execution_by_event: dict[str, PaperAccountLedgerEventBundle] = {}
+        for bundle in validated_execution_bundles:
+            if (
+                type(bundle) is not PaperAccountLedgerEventBundle
+                or bundle.event.event_type != "execution_fill_posted"
+                or bundle.event.event_id in validated_execution_by_event
+            ):
+                raise ValueError("validated execution bundles are invalid")
+            validated_execution_by_event[bundle.event.event_id] = bundle
 
         result: list[PaperAccountLedgerPageItem] = []
         prior_chain = previous_chain_digest
@@ -716,28 +726,36 @@ def reconstruct_history_page_items(
                     cast(object, target_status),  # type: ignore[arg-type]
                 )
 
-            if (
-                row.event_type != "execution_fill_posted"
-                and command.command_digest != row.command_digest
-            ):
-                raise ValueError("event command digest is invalid")
-            event = _create_event(
-                event_id=row.event_id,
-                account_id=row.account_id,
-                sequence_number=row.sequence_number,
-                event_type=cast(object, row.event_type),  # type: ignore[arg-type]
-                command_idempotency_key=row.command_idempotency_key,
-                command_digest=row.command_digest,
-                expected_account_version=row.expected_account_version,
-                actor=row.actor,
-                reason=row.reason,
-                recorded_timestamp_utc=recorded,
-                effective_timestamp_utc=effective,
-                previous_chain_digest=row.previous_chain_digest,
-                details=event_details,
-                cash_entries=mapped_cash,
-                position_entries=mapped_positions,
-            )
+            if row.event_type == "execution_fill_posted":
+                verified = validated_execution_by_event.get(row.event_id)
+                if (
+                    verified is None
+                    or verified.event.details != event_details
+                    or verified.cash_entries != mapped_cash
+                    or verified.position_entries != mapped_positions
+                ):
+                    raise ValueError("execution settlement page is not verified")
+                event = verified.event
+            else:
+                if command.command_digest != row.command_digest:
+                    raise ValueError("event command digest is invalid")
+                event = _create_event(
+                    event_id=row.event_id,
+                    account_id=row.account_id,
+                    sequence_number=row.sequence_number,
+                    event_type=cast(object, row.event_type),  # type: ignore[arg-type]
+                    command_idempotency_key=row.command_idempotency_key,
+                    command_digest=row.command_digest,
+                    expected_account_version=row.expected_account_version,
+                    actor=row.actor,
+                    reason=row.reason,
+                    recorded_timestamp_utc=recorded,
+                    effective_timestamp_utc=effective,
+                    previous_chain_digest=row.previous_chain_digest,
+                    details=event_details,
+                    cash_entries=mapped_cash,
+                    position_entries=mapped_positions,
+                )
             if event.to_dict() != _event_export(row, details):
                 raise ValueError("persisted event page does not match domain event")
             result.append(

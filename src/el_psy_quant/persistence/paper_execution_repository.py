@@ -8,6 +8,7 @@ from typing import Protocol
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from el_psy_quant.market_time import MarketDataReplayEngine, ReplayCursor
 from el_psy_quant.paper_execution import (
     CreatePaperExecutionOrderCommand,
     ExecutionSettlementLink,
@@ -17,6 +18,7 @@ from el_psy_quant.paper_execution import (
     PaperExecutionSettlementResult,
     PaperExecutionStepResult,
     create_paper_execution_event_reference,
+    create_paper_execution_order,
     create_paper_execution_order_command,
     create_paper_execution_order_reference,
     create_step_paper_execution_order_command,
@@ -74,6 +76,9 @@ from el_psy_quant.persistence.strategy_order_repository import (
 class PaperExecutionRepository(Protocol):
     def get_order(self, *, execution_order_id: str) -> PaperExecutionOrder | None: ...
     def append_order(self, *, order: PaperExecutionOrder) -> PaperExecutionOrder: ...
+    def load_historical_history(
+        self, *, execution_order_id: str
+    ) -> PaperExecutionHistory: ...
     def load_history(self, *, execution_order_id: str) -> PaperExecutionHistory: ...
 
 
@@ -413,7 +418,9 @@ class SqlAlchemyPaperExecutionRepository:
                 command_idempotency_key=receipt.command_idempotency_key,
                 actor=receipt.command_actor,
             ).command_digest
-            history = self.load_history(execution_order_id=order.execution_order_id)
+            history = self.load_historical_history(
+                execution_order_id=order.execution_order_id
+            )
             result: PaperExecutionOrder | PaperExecutionStepCommit = history.order
         elif receipt.result_kind == RESULT_KIND_STEP and receipt.attempt_id is not None:
             attempt = self.get_attempt(attempt_id=receipt.attempt_id)
@@ -426,7 +433,9 @@ class SqlAlchemyPaperExecutionRepository:
                 actor=receipt.command_actor,
             ).command_digest
             result = self._step_commit(order=order, attempt=attempt)
-            history = self.load_history(execution_order_id=order.execution_order_id)
+            history = self.load_historical_history(
+                execution_order_id=order.execution_order_id
+            )
             if attempt not in history.attempts:
                 raise PaperExecutionCorruptAuthorityError()
             step = result.step_result
@@ -450,7 +459,10 @@ class SqlAlchemyPaperExecutionRepository:
             raise PaperExecutionCorruptAuthorityError()
         return result
 
-    def load_history(self, *, execution_order_id: str) -> PaperExecutionHistory:
+    def load_historical_history(
+        self, *, execution_order_id: str
+    ) -> PaperExecutionHistory:
+        """Reconstruct committed authority without requiring live upstream heads."""
         order = self.get_order(execution_order_id=execution_order_id)
         if order is None:
             raise PaperExecutionCorruptAuthorityError()
@@ -472,17 +484,7 @@ class SqlAlchemyPaperExecutionRepository:
             ).get(decision_id=order.risk_handoff_reference.risk_decision_id)
         except StrategyOrderCorruptAuthorityError as exc:
             raise PaperExecutionCorruptAuthorityError() from exc
-        if (
-            intent is None
-            or decision is None
-            or intent.intent_digest != order.order_intent_reference.intent_digest
-            or decision.decision_digest
-            != order.risk_handoff_reference.risk_decision_digest
-            or decision.input_snapshot.snapshot_id
-            != order.risk_handoff_reference.risk_snapshot_id
-            or decision.input_snapshot.snapshot_digest
-            != order.risk_handoff_reference.risk_snapshot_digest
-        ):
+        if intent is None or decision is None:
             raise PaperExecutionCorruptAuthorityError()
 
         market = SqlAlchemyMarketTimeRepository(session=self._session)
@@ -499,14 +501,6 @@ class SqlAlchemyPaperExecutionRepository:
         except ValueError as exc:
             raise PaperExecutionCorruptAuthorityError() from exc
         if replay is None or calendar is None or session is None:
-            raise PaperExecutionCorruptAuthorityError()
-        if (
-            replay.session.cursor.event_stream_digest
-            != order.market_handoff_reference.event_stream_digest
-            or calendar.calendar_version
-            != order.market_handoff_reference.calendar_version
-            or session.calendar_id != calendar.id
-        ):
             raise PaperExecutionCorruptAuthorityError()
         for attempt in attempts:
             event_ref = attempt.consumed_event_reference
@@ -539,12 +533,41 @@ class SqlAlchemyPaperExecutionRepository:
         if handoff_version < 1 or handoff_version > len(account_history):
             raise PaperExecutionCorruptAuthorityError()
         handoff_state = account_history[handoff_version - 1].resulting_state
-        if (
-            handoff_state.head_event_id
-            != order.account_handoff_reference.account_head_event_id
-            or handoff_state.head_chain_digest
-            != order.account_handoff_reference.account_head_chain_digest
-        ):
+
+        try:
+            handoff = order.market_handoff_reference
+            historical_replay = MarketDataReplayEngine(
+                replay_id=handoff.replay_id,
+                events=replay.events,
+                cursor=ReplayCursor(
+                    replay_id=handoff.replay_id,
+                    event_stream_digest=handoff.event_stream_digest,
+                    position=handoff.cursor_position,
+                    last_event_id=handoff.last_event_id,
+                    current_event_time=handoff.current_event_time,
+                    status=handoff.handoff_replay_status,
+                ),
+            )
+            origin_command = create_paper_execution_order_command(
+                order_intent_reference=order.order_intent_reference,
+                risk_handoff_reference=order.risk_handoff_reference,
+                execution_policy_reference=order.execution_policy_reference,
+                command_idempotency_key=order.origin_command_idempotency_key,
+                actor=order.origin_actor,
+            )
+            expected_order = create_paper_execution_order(
+                origin_command,
+                intent=intent,
+                decision=decision,
+                account_state=handoff_state,
+                calendar=calendar,
+                session=session,
+                replay_engine=historical_replay,
+                created_at=order.created_at,
+            )
+        except ValueError as exc:
+            raise PaperExecutionCorruptAuthorityError() from exc
+        if expected_order != order or expected_order.to_dict() != order.to_dict():
             raise PaperExecutionCorruptAuthorityError()
 
         links: list[ExecutionSettlementLink] = []
@@ -588,39 +611,6 @@ class SqlAlchemyPaperExecutionRepository:
         }:
             raise PaperExecutionCorruptAuthorityError()
 
-        if not state.terminal:
-            expected_account_event_id = (
-                order.account_handoff_reference.account_head_event_id
-                if not links
-                else links[-1].account_event_id
-            )
-            expected_account_chain_digest = (
-                order.account_handoff_reference.account_head_chain_digest
-                if not links
-                else links[-1].account_chain_digest
-            )
-            if (
-                account.head_version != previous_version
-                or account.head_event_id != expected_account_event_id
-                or account.head_chain_digest != expected_account_chain_digest
-            ):
-                raise PaperExecutionCorruptAuthorityError()
-            cursor = replay.session.cursor
-            if attempts:
-                if cursor != attempts[-1].post_step_cursor:
-                    raise PaperExecutionCorruptAuthorityError()
-            elif not (
-                cursor.replay_id == order.market_handoff_reference.replay_id
-                and cursor.event_stream_digest
-                == order.market_handoff_reference.event_stream_digest
-                and cursor.position == order.market_handoff_reference.cursor_position
-                and cursor.last_event_id == order.market_handoff_reference.last_event_id
-                and cursor.current_event_time
-                == order.market_handoff_reference.current_event_time
-                and cursor.status
-                == order.market_handoff_reference.handoff_replay_status
-            ):
-                raise PaperExecutionCorruptAuthorityError()
         return PaperExecutionHistory(
             order=order,
             attempts=attempts,
@@ -628,6 +618,78 @@ class SqlAlchemyPaperExecutionRepository:
             settlement_links=tuple(links),
             state=state,
         )
+
+    def validate_current_working_authority(
+        self, *, history: PaperExecutionHistory
+    ) -> PaperExecutionHistory:
+        """Require live M31/M32 freshness only for a working Order."""
+        if type(history) is not PaperExecutionHistory:
+            raise TypeError("history must be PaperExecutionHistory")
+        if history.state.terminal:
+            return history
+
+        order = history.order
+        try:
+            account = SqlAlchemyPaperAccountRepository(
+                session=self._session
+            ).get_account(account_id=order.account_id)
+            replay = SqlAlchemyMarketTimeRepository(session=self._session).get_replay(
+                replay_id=order.market_handoff_reference.replay_id
+            )
+        except (PaperAccountPersistenceCorruptionError, ValueError) as exc:
+            raise PaperExecutionCorruptAuthorityError() from exc
+        if account is None or replay is None:
+            raise PaperExecutionCorruptAuthorityError()
+
+        links = history.settlement_links
+        expected_account_version = (
+            order.account_handoff_reference.account_head_version
+            if not links
+            else links[-1].account_version
+        )
+        expected_account_event_id = (
+            order.account_handoff_reference.account_head_event_id
+            if not links
+            else links[-1].account_event_id
+        )
+        expected_account_chain_digest = (
+            order.account_handoff_reference.account_head_chain_digest
+            if not links
+            else links[-1].account_chain_digest
+        )
+        if (
+            account.head_version != expected_account_version
+            or account.head_event_id != expected_account_event_id
+            or account.head_chain_digest != expected_account_chain_digest
+        ):
+            raise PaperExecutionCorruptAuthorityError()
+
+        expected_cursor = (
+            history.attempts[-1].post_step_cursor
+            if history.attempts
+            else ReplayCursor(
+                replay_id=order.market_handoff_reference.replay_id,
+                event_stream_digest=(
+                    order.market_handoff_reference.event_stream_digest
+                ),
+                position=order.market_handoff_reference.cursor_position,
+                last_event_id=order.market_handoff_reference.last_event_id,
+                current_event_time=(
+                    order.market_handoff_reference.current_event_time
+                ),
+                status=order.market_handoff_reference.handoff_replay_status,
+            )
+        )
+        if replay.session.cursor != expected_cursor:
+            raise PaperExecutionCorruptAuthorityError()
+        return history
+
+    def load_history(self, *, execution_order_id: str) -> PaperExecutionHistory:
+        """Reconstruct authority and require a working Order's live freshness."""
+        history = self.load_historical_history(
+            execution_order_id=execution_order_id
+        )
+        return self.validate_current_working_authority(history=history)
 
 
 __all__ = ["PaperExecutionRepository", "SqlAlchemyPaperExecutionRepository"]

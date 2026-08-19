@@ -19,11 +19,13 @@ from el_psy_quant.application import (
 )
 from el_psy_quant.market_time import (
     MarketDataReplayEngine,
+    ReplayCursor,
     create_market_data_event,
     create_trading_calendar,
     create_trading_session,
 )
 from el_psy_quant.paper_account import PaperMoney, PaperQuantity
+from el_psy_quant.paper_account.events import _create_event
 from el_psy_quant.paper_execution import (
     PaperExecutionBasisPoints,
     create_paper_execution_order_command,
@@ -47,6 +49,9 @@ from el_psy_quant.persistence import (
 from el_psy_quant.persistence.paper_account_repository import (
     SqlAlchemyPaperAccountRepository,
 )
+from el_psy_quant.persistence.paper_accounts import (
+    PaperAccountPersistenceCorruptionError,
+)
 from el_psy_quant.persistence.config import PRODUCT_DATABASE_PATH_ENV
 from el_psy_quant.persistence.schema import (
     CURRENT_PRODUCT_SCHEMA_REVISION,
@@ -58,6 +63,12 @@ from el_psy_quant.strategy_order import (
     create_long_only_cash_risk_policy_reference,
     create_moving_average_crossover_runtime_reference,
     create_order_intent_reference,
+)
+from el_psy_quant.paper_execution.orders import _build_order
+from el_psy_quant.paper_execution.upstream_references import (
+    _build_account_handoff,
+    _build_market_handoff,
+    _build_risk_handoff,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -826,4 +837,298 @@ def test_partial_then_full_buy_and_sell_settlement_reconcile_after_reload(
     counts = _authority_counts(engine)
     assert counts["attempts"] == counts["fills"] == counts["links"] == 3
     assert counts["account_events"] == counts["cash"] == counts["positions"] == 3
+    engine.dispose()
+
+
+def test_historical_receipts_and_alternate_keys_survive_later_valid_progression(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "product-historical-replay.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine, factory, create_command = _fixture(
+        path,
+        extra_events=(
+            (INSTRUMENT, "trade", {"price": 5}, 5),
+            (INSTRUMENT, "trade", {"price": 6}, 6),
+        ),
+        max_fill_quantity="4",
+    )
+    service = PaperExecutionApplicationService(
+        session_factory=factory, clock=lambda: AUDIT
+    )
+    order = service.create_order(create_command).result
+    step_command = _step_command(order, version=0, key="historical-fill")
+    original_step = service.step_order(step_command).result
+    assert original_step.step_result.fill is not None
+    assert not original_step.step_result.order_state.terminal
+
+    with factory() as session:
+        account_repo = SqlAlchemyPaperAccountRepository(session=session)
+        account = account_repo.get_account(account_id=order.account_id)
+        assert account is not None
+    PaperAccountApplicationService(
+        session_factory=factory, clock=lambda: AUDIT + timedelta(hours=1)
+    ).post_cash_movement(
+        account_id=order.account_id,
+        expected_account_version=account.head_version,
+        command_idempotency_key="later-valid-deposit",
+        actor="founder",
+        reason="valid progression after committed execution result",
+        movement_type="deposit",
+        requested_amount=PaperMoney.parse("1"),
+    )
+    with factory.begin() as session:
+        market = SqlAlchemyMarketTimeRepository(session=session)
+        replay = market.get_replay(replay_id="replay-s211")
+        assert replay is not None
+        replay_engine = MarketDataReplayEngine(
+            replay_id=replay.session.replay_id,
+            events=replay.events,
+            cursor=replay.session.cursor,
+        )
+        expected_cursor = replay_engine.cursor
+        assert replay_engine.next_event() is not None
+        assert market.replace_replay_checkpoint(
+            expected_cursor=expected_cursor,
+            session=replay_engine.session,
+        )
+
+    progressed = _authority_counts(engine)
+    assert service.create_order(create_command).result == order
+    assert service.step_order(step_command).result == original_step
+    assert _authority_counts(engine) == progressed
+
+    alternate_time = AUDIT + timedelta(hours=2)
+    alternate_service = PaperExecutionApplicationService(
+        session_factory=factory, clock=lambda: alternate_time
+    )
+    alternate_create = create_paper_execution_order_command(
+        order_intent_reference=create_command.order_intent_reference,
+        risk_handoff_reference=create_command.risk_handoff_reference,
+        execution_policy_reference=create_command.execution_policy_reference,
+        command_idempotency_key="historical-alternate-create",
+        actor="second-founder",
+    )
+    alternate_step = _step_command(
+        order,
+        version=0,
+        key="historical-alternate-step",
+        actor="second-founder",
+    )
+    assert alternate_service.create_order(alternate_create).result == order
+    assert alternate_service.step_order(alternate_step).result == original_step
+    after_alternates = _authority_counts(engine)
+    assert after_alternates == {**progressed, "receipts": progressed["receipts"] + 2}
+
+    with factory() as session:
+        repository = SqlAlchemyPaperExecutionRepository(session=session)
+        create_receipt = repository.get_receipt(
+            namespace="create_paper_execution_order",
+            command_idempotency_key="historical-alternate-create",
+        )
+        step_receipt = repository.get_receipt(
+            namespace="step_paper_execution_order",
+            command_idempotency_key="historical-alternate-step",
+        )
+        assert create_receipt is not None and step_receipt is not None
+        assert create_receipt.created_at == alternate_time
+        assert step_receipt.created_at == alternate_time
+
+    assert after_alternates["attempts"] == 1
+    assert after_alternates["fills"] == after_alternates["links"] == 1
+    assert after_alternates["account_events"] == 1
+    assert after_alternates["cursor"] == 6
+    with pytest.raises(PaperExecutionStaleAuthorityError):
+        service.step_order(_step_command(order, version=1, key="genuinely-new-step"))
+    assert _authority_counts(engine) == after_alternates
+    engine.dispose()
+
+
+@pytest.mark.parametrize("forged_authority", ["m31", "m32", "m33"])
+def test_historical_reconstruction_rejects_self_consistent_forged_handoff(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    forged_authority: str,
+) -> None:
+    path = tmp_path / f"product-forged-{forged_authority}.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine, factory, create_command = _fixture(path)
+    order = PaperExecutionApplicationService(
+        session_factory=factory, clock=lambda: AUDIT
+    ).create_order(create_command).result
+
+    account_handoff = order.account_handoff_reference
+    market_handoff = order.market_handoff_reference
+    risk_handoff = order.risk_handoff_reference
+    origin_digest = order.origin_command_digest
+    with factory.begin() as session:
+        if forged_authority == "m31":
+            account_handoff = _build_account_handoff(
+                account_id=account_handoff.account_id,
+                base_currency=account_handoff.base_currency,
+                lifecycle_status=account_handoff.lifecycle_status,
+                account_head_version=account_handoff.account_head_version,
+                account_head_event_id=account_handoff.account_head_event_id,
+                account_head_chain_digest=account_handoff.account_head_chain_digest,
+                cash_balance=PaperMoney.parse("1999"),
+                available_cash=PaperMoney.parse("1999"),
+                instrument_id=account_handoff.instrument_id,
+                current_instrument_quantity=(
+                    account_handoff.current_instrument_quantity
+                ),
+            )
+        elif forged_authority == "m32":
+            market = SqlAlchemyMarketTimeRepository(session=session)
+            calendar = market.get_calendar(calendar_id=market_handoff.calendar_id)
+            replay = market.get_replay(replay_id=market_handoff.replay_id)
+            assert calendar is not None and replay is not None
+            wrong_session = create_trading_session(
+                id=market_handoff.trading_session_id,
+                calendar_id=market_handoff.calendar_id,
+                trading_date=market_handoff.trading_date,
+                open_time=market_handoff.session_open_time,
+                close_time=market_handoff.session_close_time + timedelta(minutes=1),
+                session_type=market_handoff.session_type,
+            )
+            historical_replay = MarketDataReplayEngine(
+                replay_id=market_handoff.replay_id,
+                events=replay.events,
+                cursor=ReplayCursor(
+                    replay_id=market_handoff.replay_id,
+                    event_stream_digest=market_handoff.event_stream_digest,
+                    position=market_handoff.cursor_position,
+                    last_event_id=market_handoff.last_event_id,
+                    current_event_time=market_handoff.current_event_time,
+                    status=market_handoff.handoff_replay_status,
+                ),
+            )
+            market_handoff = _build_market_handoff(
+                calendar=calendar,
+                session=wrong_session,
+                replay_engine=historical_replay,
+            )
+        else:
+            risk_handoff = _build_risk_handoff(
+                order_intent_reference=risk_handoff.order_intent_reference,
+                risk_decision_id=risk_handoff.risk_decision_id,
+                risk_decision_digest=risk_handoff.risk_decision_digest,
+                risk_snapshot_id=risk_handoff.risk_snapshot_id,
+                risk_snapshot_digest=risk_handoff.risk_snapshot_digest,
+                risk_policy_reference=create_long_only_cash_risk_policy_reference(
+                    maximum_order_quantity=PaperQuantity.parse("9")
+                ),
+            )
+            origin_digest = create_paper_execution_order_command(
+                order_intent_reference=order.order_intent_reference,
+                risk_handoff_reference=risk_handoff,
+                execution_policy_reference=order.execution_policy_reference,
+                command_idempotency_key=order.origin_command_idempotency_key,
+                actor=order.origin_actor,
+            ).command_digest
+
+        forged = _build_order(
+            order_intent_reference=order.order_intent_reference,
+            risk_handoff_reference=risk_handoff,
+            account_handoff_reference=account_handoff,
+            market_handoff_reference=market_handoff,
+            execution_policy_reference=order.execution_policy_reference,
+            account_id=order.account_id,
+            instrument_id=order.instrument_id,
+            side=order.side,
+            requested_quantity=order.requested_quantity,
+            origin_command_idempotency_key=order.origin_command_idempotency_key,
+            origin_command_digest=origin_digest,
+            origin_actor=order.origin_actor,
+            created_at=order.created_at,
+        )
+        repository = SqlAlchemyPaperExecutionRepository(session=session)
+        repository.append_order(order=forged)
+        with pytest.raises(PaperExecutionCorruptAuthorityError):
+            repository.load_historical_history(
+                execution_order_id=forged.execution_order_id
+            )
+    engine.dispose()
+
+
+def test_paged_m31_history_rejects_rehashed_execution_settlement_forgery(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "product-forged-paged-settlement.sqlite3"
+    _migrate(path, monkeypatch, "head")
+    engine, factory, create_command = _fixture(
+        path,
+        extra_events=((INSTRUMENT, "trade", {"price": 5}, 5),),
+    )
+    service = PaperExecutionApplicationService(
+        session_factory=factory, clock=lambda: AUDIT
+    )
+    order = service.create_order(create_command).result
+    service.step_order(_step_command(order, version=0, key="fill-for-page-forgery"))
+
+    with factory() as session:
+        account_repo = SqlAlchemyPaperAccountRepository(session=session)
+        account = account_repo.get_account(account_id=order.account_id)
+        assert account is not None
+        history = account_repo.get_history(account=account)
+        settlement = next(
+            bundle
+            for bundle in history
+            if bundle.event.event_type == "execution_fill_posted"
+        )
+    event = settlement.event
+    forged = _create_event(
+        event_id=event.event_id,
+        account_id=event.account_id,
+        sequence_number=event.sequence_number,
+        event_type=event.event_type,
+        command_idempotency_key=event.command_idempotency_key,
+        command_digest="0" * 64,
+        expected_account_version=event.expected_account_version,
+        actor=event.actor,
+        reason=event.reason,
+        recorded_timestamp_utc=event.recorded_timestamp_utc,
+        effective_timestamp_utc=event.effective_timestamp_utc,
+        previous_chain_digest=event.previous_chain_digest,
+        details=event.details,
+        cash_entries=settlement.cash_entries,
+        position_entries=settlement.position_entries,
+    )
+    with engine.begin() as connection:
+        connection.execute(
+            text("DROP TRIGGER trg_paper_account_events_no_update")
+        )
+        connection.execute(
+            text(
+                "UPDATE paper_account_events SET command_digest = :command_digest, "
+                "event_digest = :event_digest, chain_digest = :chain_digest "
+                "WHERE event_id = :event_id"
+            ),
+            {
+                "command_digest": forged.command_digest,
+                "event_digest": forged.event_digest,
+                "chain_digest": forged.chain_digest,
+                "event_id": forged.event_id,
+            },
+        )
+        connection.execute(
+            text(
+                "UPDATE paper_accounts SET head_chain_digest = :chain_digest "
+                "WHERE account_id = :account_id"
+            ),
+            {
+                "chain_digest": forged.chain_digest,
+                "account_id": forged.account_id,
+            },
+        )
+
+    with factory() as session:
+        account_repo = SqlAlchemyPaperAccountRepository(session=session)
+        account = account_repo.get_account(account_id=order.account_id)
+        assert account is not None
+        with pytest.raises(PaperAccountPersistenceCorruptionError):
+            account_repo.get_history_page(
+                account=account,
+                after_sequence_number=1,
+                limit=1,
+            )
     engine.dispose()

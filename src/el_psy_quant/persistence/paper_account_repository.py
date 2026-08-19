@@ -301,6 +301,21 @@ class SqlAlchemyPaperAccountRepository:
                 )
             ).all()
         )
+        execution_event_ids = {
+            row.event_id
+            for row in selected
+            if row.event_type == "execution_fill_posted"
+        }
+        validated_execution_bundles: tuple[PaperAccountLedgerEventBundle, ...] = ()
+        if execution_event_ids:
+            fully_reconstructed = self.get_history(account=account)
+            validated_execution_bundles = tuple(
+                bundle
+                for bundle in fully_reconstructed
+                if bundle.event.event_id in execution_event_ids
+            )
+            if len(validated_execution_bundles) != len(execution_event_ids):
+                raise PaperAccountPersistenceCorruptionError()
         previous_chain_digest = PAPER_ACCOUNT_GENESIS_CHAIN_DIGEST
         if after_sequence_number > 0:
             previous_chain_digest = cast(
@@ -322,6 +337,7 @@ class SqlAlchemyPaperAccountRepository:
             position_rows=positions,
             expected_first_sequence=after_sequence_number + 1,
             previous_chain_digest=previous_chain_digest,
+            validated_execution_bundles=validated_execution_bundles,
         )
         last = items[-1].event
         if last.sequence_number == account.head_version and (
