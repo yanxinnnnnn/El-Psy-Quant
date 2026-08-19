@@ -23,6 +23,7 @@ MIGRATION_CHAIN = (
     "0007_paper_account_ledger",
     "0008_market_time_foundation",
     "0009_market_time_runtime",
+    "0010_strategy_order_risk",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 REQUIRED_MIGRATION_RESOURCE_PATHS = (
@@ -38,6 +39,7 @@ REQUIRED_MIGRATION_RESOURCE_PATHS = (
     "versions/0008_market_time_foundation.py",
     "versions/0009_market_time_runtime.py",
     "versions/0010_strategy_order_risk.py",
+    "versions/0011_paper_execution.py",
 )
 _REQUIRED_VERSION_FILES = tuple(
     PurePosixPath(path).name

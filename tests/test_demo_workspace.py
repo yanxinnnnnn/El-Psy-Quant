@@ -747,7 +747,7 @@ def test_populated_0009_upgrade_then_explicit_demo_v5_install_and_verify(
         with sqlite3.connect(paths.database_path) as connection:
             assert connection.execute(
                 "SELECT version_num FROM alembic_version"
-            ).fetchone() == ("0010_strategy_order_risk",)
+            ).fetchone() == ("0011_paper_execution",)
             observed_migration_counts.append(
                 tuple(
                     connection.execute(

@@ -195,16 +195,17 @@ Final M33 authority:
   remain transport/presentation/verification surfaces; and
 - M31/M32 authority remains frozen and unmodified.
 
-Migration evolution through M33:
+Migration evolution through current M34:
 
 ```text
 0007_paper_account_ledger
   -> 0008_market_time_foundation
   -> 0009_market_time_runtime
   -> 0010_strategy_order_risk
+  -> 0011_paper_execution
 ```
 
-The current migration head is exactly `0010_strategy_order_risk`.
+The current migration head is exactly `0011_paper_execution`.
 
 Canonical M33 records:
 
@@ -234,9 +235,10 @@ verified M31/M32 anchors. It must revalidate account and market freshness at
 execution time.
 
 S209 completed pure one-event Attempt/Fill/pricing/cost/risk authority. S210
-adds pure Fill-to-M31 combined-event settlement and one-to-one link
-reconciliation. The migration head remains `0010_strategy_order_risk`;
-S211–S216 remain planned.
+completed pure Fill-to-M31 combined-event settlement and one-to-one link
+reconciliation. S211 adds durable immutable M34 records and atomic M31/M32 CAS
+transactions under Issue #415. The migration head is `0011_paper_execution`;
+S212–S216 remain planned.
 M34 must not mutate M33 Signal, Intent, or Decision records.
 
 Approved M34 sequence:
@@ -246,8 +248,8 @@ Approved M34 sequence:
 | S207 | Milestone 34 Architecture and Planning | Complete |
 | S208 | Paper Execution Order, Policy, and Lifecycle Contract Foundation | Complete |
 | S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | Complete |
-| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | In Progress |
-| S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Planned |
+| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | Complete |
+| S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | In Progress |
 | S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Planned |
 | S213 | Bilingual Founder Paper Execution Workspace | Planned |
 | S214 | Demo v6 and End-to-End First True Paper Trading Evidence | Planned |

@@ -40,12 +40,16 @@ from el_psy_quant.paper_account import (
     validate_paper_account_lifecycle_transition,
 )
 from el_psy_quant.paper_account.cash_state import _signed_cash_movement
+from el_psy_quant.paper_account.execution_settlement import (
+    _apply_paper_execution_fill_settlement,
+)
 from el_psy_quant.paper_account.cash_ledger import _create_cash_ledger_entry
 from el_psy_quant.paper_account.events import (
     _account_created_details,
     _cash_movement_details,
     _create_event,
     _evidence_linked_details,
+    _execution_fill_posted_details,
     _lifecycle_changed_details,
     _position_adjustment_details,
 )
@@ -348,6 +352,7 @@ def reconstruct_history_page_items(
     position_rows: tuple[PaperPositionLedgerEntryRow, ...],
     expected_first_sequence: int,
     previous_chain_digest: str,
+    validated_execution_bundles: tuple[PaperAccountLedgerEventBundle, ...] = (),
 ) -> tuple[PaperAccountLedgerPageItem, ...]:
     """Validate one bounded page without replaying an unbounded prefix."""
     try:
@@ -359,6 +364,15 @@ def reconstruct_history_page_items(
         positions_by_event: dict[str, list[PaperPositionLedgerEntryRow]] = {}
         for row in position_rows:
             positions_by_event.setdefault(row.event_id, []).append(row)
+        validated_execution_by_event: dict[str, PaperAccountLedgerEventBundle] = {}
+        for bundle in validated_execution_bundles:
+            if (
+                type(bundle) is not PaperAccountLedgerEventBundle
+                or bundle.event.event_type != "execution_fill_posted"
+                or bundle.event.event_id in validated_execution_by_event
+            ):
+                raise ValueError("validated execution bundles are invalid")
+            validated_execution_by_event[bundle.event.event_id] = bundle
 
         result: list[PaperAccountLedgerPageItem] = []
         prior_chain = previous_chain_digest
@@ -584,6 +598,71 @@ def reconstruct_history_page_items(
                 ):
                     raise ValueError("evidence event page shape is invalid")
                 event_details = _evidence_linked_details(reference)
+            elif row.event_type == "execution_fill_posted":
+                root = exact_dict(
+                    details,
+                    fields=(
+                        "details_type",
+                        "execution_order_id",
+                        "execution_order_digest",
+                        "execution_attempt_id",
+                        "execution_attempt_digest",
+                        "execution_fill_id",
+                        "execution_fill_digest",
+                        "instrument_id",
+                        "side",
+                        "fill_quantity",
+                        "gross_notional",
+                        "total_charges",
+                        "signed_cash_delta",
+                        "signed_position_quantity_delta",
+                        "signed_position_cost_basis_delta",
+                    ),
+                )
+                event_details = _execution_fill_posted_details(
+                    execution_order_id=cast(str, root["execution_order_id"]),
+                    execution_order_digest=cast(str, root["execution_order_digest"]),
+                    execution_attempt_id=cast(str, root["execution_attempt_id"]),
+                    execution_attempt_digest=cast(
+                        str, root["execution_attempt_digest"]
+                    ),
+                    execution_fill_id=cast(str, root["execution_fill_id"]),
+                    execution_fill_digest=cast(str, root["execution_fill_digest"]),
+                    instrument_id=cast(str, root["instrument_id"]),
+                    side=cast(str, root["side"]),
+                    fill_quantity=PaperQuantity.parse(cast(str, root["fill_quantity"])),
+                    gross_notional=PaperMoney.parse(cast(str, root["gross_notional"])),
+                    total_charges=PaperMoney.parse(cast(str, root["total_charges"])),
+                    signed_cash_delta=PaperMoney.parse(
+                        cast(str, root["signed_cash_delta"])
+                    ),
+                    signed_position_quantity_delta=PaperQuantity.parse(
+                        cast(str, root["signed_position_quantity_delta"])
+                    ),
+                    signed_position_cost_basis_delta=PaperMoney.parse(
+                        cast(str, root["signed_position_cost_basis_delta"])
+                    ),
+                )
+                if (
+                    root["details_type"] != "execution_fill_posted"
+                    or row.command_idempotency_key
+                    != f"paper-execution-fill:{event_details.execution_fill_id}"
+                    or row.actor != "paper_execution"
+                    or row.reason is not None
+                    or effective is None
+                    or len(mapped_cash) != 1
+                    or len(mapped_positions) != 1
+                    or mapped_cash[0].movement_type != "execution_settlement"
+                    or mapped_cash[0].currency != account.account_identity.base_currency
+                    or mapped_cash[0].signed_amount != event_details.signed_cash_delta
+                    or mapped_positions[0].symbol != event_details.instrument_id
+                    or mapped_positions[0].adjustment_category != "execution_fill"
+                    or mapped_positions[0].signed_quantity_delta
+                    != event_details.signed_position_quantity_delta
+                    or mapped_positions[0].signed_cost_basis_delta
+                    != event_details.signed_position_cost_basis_delta
+                ):
+                    raise ValueError("execution settlement event page shape is invalid")
             else:
                 root = exact_dict(
                     details,
@@ -647,25 +726,36 @@ def reconstruct_history_page_items(
                     cast(object, target_status),  # type: ignore[arg-type]
                 )
 
-            if command.command_digest != row.command_digest:
-                raise ValueError("event command digest is invalid")
-            event = _create_event(
-                event_id=row.event_id,
-                account_id=row.account_id,
-                sequence_number=row.sequence_number,
-                event_type=cast(object, row.event_type),  # type: ignore[arg-type]
-                command_idempotency_key=row.command_idempotency_key,
-                command_digest=row.command_digest,
-                expected_account_version=row.expected_account_version,
-                actor=row.actor,
-                reason=row.reason,
-                recorded_timestamp_utc=recorded,
-                effective_timestamp_utc=effective,
-                previous_chain_digest=row.previous_chain_digest,
-                details=event_details,
-                cash_entries=mapped_cash,
-                position_entries=mapped_positions,
-            )
+            if row.event_type == "execution_fill_posted":
+                verified = validated_execution_by_event.get(row.event_id)
+                if (
+                    verified is None
+                    or verified.event.details != event_details
+                    or verified.cash_entries != mapped_cash
+                    or verified.position_entries != mapped_positions
+                ):
+                    raise ValueError("execution settlement page is not verified")
+                event = verified.event
+            else:
+                if command.command_digest != row.command_digest:
+                    raise ValueError("event command digest is invalid")
+                event = _create_event(
+                    event_id=row.event_id,
+                    account_id=row.account_id,
+                    sequence_number=row.sequence_number,
+                    event_type=cast(object, row.event_type),  # type: ignore[arg-type]
+                    command_idempotency_key=row.command_idempotency_key,
+                    command_digest=row.command_digest,
+                    expected_account_version=row.expected_account_version,
+                    actor=row.actor,
+                    reason=row.reason,
+                    recorded_timestamp_utc=recorded,
+                    effective_timestamp_utc=effective,
+                    previous_chain_digest=row.previous_chain_digest,
+                    details=event_details,
+                    cash_entries=mapped_cash,
+                    position_entries=mapped_positions,
+                )
             if event.to_dict() != _event_export(row, details):
                 raise ValueError("persisted event page does not match domain event")
             result.append(
@@ -923,6 +1013,53 @@ def reconstruct_history(
                     recorded_timestamp_utc=recorded,
                 )
                 bundle = _ledger_bundle_from_cash(raw, state.positions)
+            elif row.event_type == "execution_fill_posted":
+                root = exact_dict(
+                    details,
+                    fields=(
+                        "details_type",
+                        "execution_order_id",
+                        "execution_order_digest",
+                        "execution_attempt_id",
+                        "execution_attempt_digest",
+                        "execution_fill_id",
+                        "execution_fill_digest",
+                        "instrument_id",
+                        "side",
+                        "fill_quantity",
+                        "gross_notional",
+                        "total_charges",
+                        "signed_cash_delta",
+                        "signed_position_quantity_delta",
+                        "signed_position_cost_basis_delta",
+                    ),
+                )
+                if (
+                    root["details_type"] != "execution_fill_posted"
+                    or row.reason is not None
+                    or effective is None
+                    or len(cash_group) != 1
+                    or len(position_group) != 1
+                ):
+                    raise ValueError("execution settlement event shape is invalid")
+                bundle = _apply_paper_execution_fill_settlement(
+                    state,
+                    execution_order_id=cast(str, root["execution_order_id"]),
+                    execution_order_digest=cast(str, root["execution_order_digest"]),
+                    execution_attempt_id=cast(str, root["execution_attempt_id"]),
+                    execution_attempt_digest=cast(
+                        str, root["execution_attempt_digest"]
+                    ),
+                    execution_fill_id=cast(str, root["execution_fill_id"]),
+                    execution_fill_digest=cast(str, root["execution_fill_digest"]),
+                    instrument_id=cast(str, root["instrument_id"]),
+                    side=cast(str, root["side"]),
+                    fill_quantity=PaperQuantity.parse(cast(str, root["fill_quantity"])),
+                    gross_notional=PaperMoney.parse(cast(str, root["gross_notional"])),
+                    total_charges=PaperMoney.parse(cast(str, root["total_charges"])),
+                    effective_timestamp_utc=effective,
+                    recorded_timestamp_utc=recorded,
+                )
             else:
                 root = exact_dict(
                     details,

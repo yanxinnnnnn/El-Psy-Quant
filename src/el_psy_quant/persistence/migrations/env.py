@@ -13,6 +13,7 @@ import el_psy_quant.persistence.paper_job_attempt_model  # noqa: F401
 import el_psy_quant.persistence.paper_job_model  # noqa: F401
 import el_psy_quant.persistence.paper_job_submission_key_model  # noqa: F401
 import el_psy_quant.persistence.paper_account_model  # noqa: F401
+import el_psy_quant.persistence.paper_execution_model  # noqa: F401
 import el_psy_quant.persistence.portfolio_review_model  # noqa: F401
 import el_psy_quant.persistence.strategy_order_model  # noqa: F401
 from el_psy_quant.persistence import (

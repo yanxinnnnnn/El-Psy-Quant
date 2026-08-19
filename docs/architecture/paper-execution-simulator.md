@@ -6,8 +6,8 @@ GitHub Issue #408 is the authoritative Milestone 34 architecture source. This
 record summarizes that approved boundary; it does not replace or broaden the
 Issue.
 
-Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S209
-are Complete. Sprint 210 is current, with Issue #413 as its authoritative
+Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S210
+are Complete. Sprint 211 is current, with Issue #415 as its authoritative
 implementation specification.
 
 ## Authority chain
@@ -29,7 +29,7 @@ Each layer remains separate. M34 does not repurpose the M15
 Decision is historical evidence over one exact snapshot, not permanent
 execution authorization.
 
-## Delivered S208–S210 boundary
+## Delivered S208–S211 boundary
 
 Sprint 208 added the pure `el_psy_quant.paper_execution` domain-contract
 foundation:
@@ -85,20 +85,22 @@ Sprint 210 adds pure/in-memory settlement semantics:
 - one deterministic `ExecutionSettlementLink` provides non-financial
   one-to-one Fill/event/posting reconciliation evidence.
 
+Sprint 211 adds five append-only M34 tables, strict reconstruction, scoped
+command receipts, one-winner SQLite create/step transactions, M31/M32 CAS
+integration, and read-only whole-order reconciliation. One successful step is
+one atomic durable commit.
+
 ## Deferred authority
 
-S210 settlement is pure evidence and does not itself provide durable atomic
-commit. S211 owns durable
-persistence, migration, transactions, idempotency, concurrency, replay
-checkpoint handling, and Fill-to-ledger reconciliation. Reservation, API,
+S211 durably commits the pure S209/S210 evidence without duplicating its math.
+Reservation, API,
 generated contract, Web, Demo v6, worker, scheduler, broker, live, and
 real-money behavior remain deferred.
 
-The migration head remains exactly `0010_strategy_order_risk`. The planned
-`0011_paper_execution` migration belongs to S211.
+The migration head is exactly `0011_paper_execution`.
 
 ## Preserved runtime boundary
 
-M34 remains a manual synchronous simulator. S211–S216 remain planned. M35
+M34 remains a manual synchronous simulator. S212–S216 remain planned. M35
 owns durable runtime and recovery; M36 owns multi-session and multi-day
 operation. Neither later milestone is implemented here.

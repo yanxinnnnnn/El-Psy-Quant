@@ -58,7 +58,6 @@ from el_psy_quant.persistence.schema import (
     REQUIRED_PRODUCT_INDEXES,
     REQUIRED_PRODUCT_TABLE_COLUMNS,
     REQUIRED_PRODUCT_TRIGGERS,
-    verify_product_schema,
 )
 from el_psy_quant.strategy_order import (
     PRE_TRADE_RISK_OUTCOME_ALLOW,
@@ -297,9 +296,9 @@ def test_0010_is_additive_linear_append_only_and_current(
 ) -> None:
     path = tmp_path / "product.sqlite3"
     scripts = ScriptDirectory.from_config(_config())
-    assert scripts.get_heads() == [REVISION]
+    assert scripts.get_heads() == ["0011_paper_execution"]
     assert scripts.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert CURRENT_PRODUCT_SCHEMA_REVISION == REVISION
+    assert CURRENT_PRODUCT_SCHEMA_REVISION == "0011_paper_execution"
 
     _migrate(path, monkeypatch, PREVIOUS_REVISION)
     engine = _engine(path)
@@ -403,7 +402,11 @@ def test_0010_is_additive_linear_append_only_and_current(
             or "order_intents" in trigger
             or "pre_trade" in trigger
         }.issubset(triggers)
-        assert verify_product_schema(path) == REVISION
+        with engine.connect() as connection:
+            assert (
+                connection.scalar(text("SELECT version_num FROM alembic_version"))
+                == REVISION
+            )
     finally:
         engine.dispose()
 
