@@ -39,7 +39,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PREVIOUS_REVISION = "0007_paper_account_ledger"
 REVISION = "0008_market_time_foundation"
 RUNTIME_REVISION = "0009_market_time_runtime"
-CURRENT_REVISION = "0010_strategy_order_risk"
+STRATEGY_ORDER_REVISION = "0010_strategy_order_risk"
+CURRENT_REVISION = "0011_paper_execution"
 NEW_TABLES = {"trading_calendars", "trading_sessions"}
 
 
@@ -121,8 +122,9 @@ def test_migration_is_one_additive_linear_head_without_seed_data(
     assert scripts.get_heads() == [CURRENT_REVISION]
     assert (
         scripts.get_revision(CURRENT_REVISION).down_revision
-        == RUNTIME_REVISION
+        == STRATEGY_ORDER_REVISION
     )
+    assert scripts.get_revision(STRATEGY_ORDER_REVISION).down_revision == RUNTIME_REVISION
     assert scripts.get_revision(RUNTIME_REVISION).down_revision == REVISION
     assert scripts.get_revision(REVISION).down_revision == PREVIOUS_REVISION
     assert CURRENT_PRODUCT_SCHEMA_REVISION == CURRENT_REVISION

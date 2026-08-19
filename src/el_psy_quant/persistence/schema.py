@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-CURRENT_PRODUCT_SCHEMA_REVISION = "0010_strategy_order_risk"
+CURRENT_PRODUCT_SCHEMA_REVISION = "0011_paper_execution"
 APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0001_product_baseline",
     "0002_artifact_index",
@@ -16,6 +16,7 @@ APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0007_paper_account_ledger",
     "0008_market_time_foundation",
     "0009_market_time_runtime",
+    "0010_strategy_order_risk",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -359,6 +360,102 @@ REQUIRED_PRODUCT_TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
         "result_payload_json",
         "created_at",
     ),
+    "paper_execution_orders": (
+        "record_schema_version",
+        "order_schema_version",
+        "execution_order_id",
+        "execution_order_digest",
+        "payload_json",
+        "intent_id",
+        "intent_digest",
+        "risk_decision_id",
+        "risk_decision_digest",
+        "risk_snapshot_id",
+        "risk_snapshot_digest",
+        "account_id",
+        "account_handoff_version",
+        "account_handoff_event_id",
+        "account_handoff_chain_digest",
+        "calendar_id",
+        "calendar_version",
+        "trading_session_id",
+        "replay_id",
+        "event_stream_digest",
+        "handoff_cursor_position",
+        "handoff_event_id",
+        "instrument_id",
+        "side",
+        "requested_quantity",
+        "policy_id",
+        "policy_configuration_digest",
+        "policy_reference_digest",
+        "origin_command_digest",
+        "created_at",
+    ),
+    "paper_execution_attempts": (
+        "record_schema_version",
+        "attempt_schema_version",
+        "attempt_id",
+        "attempt_digest",
+        "execution_order_id",
+        "execution_version_before",
+        "execution_version_after",
+        "attempt_result",
+        "consumed_event_id",
+        "consumed_event_position",
+        "pre_cursor_position",
+        "pre_cursor_last_event_id",
+        "post_cursor_position",
+        "post_cursor_last_event_id",
+        "payload_json",
+        "created_at",
+    ),
+    "paper_execution_fills": (
+        "record_schema_version",
+        "fill_schema_version",
+        "fill_id",
+        "fill_digest",
+        "execution_order_id",
+        "attempt_id",
+        "consumed_event_id",
+        "consumed_event_position",
+        "payload_json",
+        "created_at",
+    ),
+    "paper_execution_settlement_links": (
+        "record_schema_version",
+        "settlement_link_schema_version",
+        "settlement_link_id",
+        "settlement_link_digest",
+        "settlement_link_evidence_digest",
+        "execution_order_id",
+        "attempt_id",
+        "fill_id",
+        "account_id",
+        "account_event_id",
+        "cash_entry_id",
+        "position_entry_id",
+        "payload_json",
+        "recorded_at",
+    ),
+    "paper_execution_command_receipts": (
+        "record_schema_version",
+        "namespace",
+        "command_idempotency_key",
+        "command_digest",
+        "command_actor",
+        "result_kind",
+        "execution_order_id",
+        "execution_order_digest",
+        "attempt_id",
+        "attempt_digest",
+        "fill_id",
+        "fill_digest",
+        "settlement_link_id",
+        "settlement_link_evidence_digest",
+        "account_event_id",
+        "created_at",
+    ),
 }
 
 REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
@@ -420,6 +517,25 @@ REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
     "strategy_order_command_receipts": (
         "ix_strategy_order_command_receipts_result",
     ),
+    "paper_execution_orders": (
+        "ix_paper_execution_orders_created_id",
+        "ix_paper_execution_orders_intent_policy",
+        "ix_paper_execution_orders_working_tuple",
+    ),
+    "paper_execution_attempts": (
+        "ix_paper_execution_attempts_event",
+        "ix_paper_execution_attempts_order_version",
+    ),
+    "paper_execution_fills": (
+        "ix_paper_execution_fills_event",
+        "ix_paper_execution_fills_order_created",
+    ),
+    "paper_execution_settlement_links": (
+        "ix_paper_execution_settlement_links_order",
+    ),
+    "paper_execution_command_receipts": (
+        "ix_paper_execution_receipts_result",
+    ),
 }
 
 REQUIRED_PRODUCT_TRIGGERS = (
@@ -455,6 +571,16 @@ REQUIRED_PRODUCT_TRIGGERS = (
     "trg_pre_trade_risk_decisions_no_delete",
     "trg_strategy_order_command_receipts_no_update",
     "trg_strategy_order_command_receipts_no_delete",
+    "trg_paper_execution_orders_no_update",
+    "trg_paper_execution_orders_no_delete",
+    "trg_paper_execution_attempts_no_update",
+    "trg_paper_execution_attempts_no_delete",
+    "trg_paper_execution_fills_no_update",
+    "trg_paper_execution_fills_no_delete",
+    "trg_paper_execution_settlement_links_no_update",
+    "trg_paper_execution_settlement_links_no_delete",
+    "trg_paper_execution_command_receipts_no_update",
+    "trg_paper_execution_command_receipts_no_delete",
 )
 
 

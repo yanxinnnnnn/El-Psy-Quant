@@ -3,7 +3,7 @@
 ## Status
 
 **In Progress.** GitHub Issue #408 is the authoritative M34 architecture source.
-S207–S209 are Complete. Sprint 210 is current under authoritative Issue #413.
+S207–S210 are Complete. Sprint 211 is current under authoritative Issue #415.
 
 ## Goal
 
@@ -20,8 +20,8 @@ atomic durable Paper Account effects.
 | S207 | Milestone 34 Architecture and Planning | Complete |
 | S208 | Paper Execution Order, Policy, and Lifecycle Contract Foundation | Complete |
 | S209 | Deterministic One-Event Execution, Pricing, Costs, and Fill Semantics | Complete |
-| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | In Progress |
-| S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Planned |
+| S210 | Atomic Execution Fill to M31 Ledger Domain Integration | Complete |
+| S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | In Progress |
 | S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Planned |
 | S213 | Bilingual Founder Paper Execution Workspace | Planned |
 | S214 | Demo v6 and End-to-End First True Paper Trading Evidence | Planned |
@@ -36,14 +36,15 @@ immutable Attempt and unsettled Fill authority, exact M32 progression,
 deterministic price/slippage/cost/risk evidence, and strict lifecycle history
 reconstruction.
 
-S210 adds pure Fill-to-M31 settlement with one combined execution event, one
+S210 added pure Fill-to-M31 settlement with one combined execution event, one
 cash posting, one position posting, exact buy/sell average-cost semantics, and
 one-to-one link reconciliation. Persistence, migration, durable transaction/
 idempotency/concurrency, checkpoint, API, Web, Demo, and runtime-worker behavior
-remain deferred to S211+ as approved.
+S211 adds durable Order/Attempt/Fill/SettlementLink/receipt persistence and one
+atomic create/step transaction across M34, M31 CAS settlement, and M32
+checkpoint CAS. API/error/audit/generated contracts remain S212 scope.
 
-Current migration head remains `0010_strategy_order_risk`. S211 is the only
-planned M34 migration Sprint and may add `0011_paper_execution`.
+Current migration head is `0011_paper_execution`. S212–S216 remain planned.
 
 ## Exit gate
 

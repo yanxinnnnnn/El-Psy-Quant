@@ -126,6 +126,10 @@ from el_psy_quant.application.paper_accounts import (
     PaperAccountClock,
     PaperAccountIdFactory,
 )
+from el_psy_quant.application.paper_execution import (
+    PaperExecutionApplicationService,
+    PaperExecutionClock,
+)
 from el_psy_quant.application.portfolio_reviews import (
     PortfolioReviewArtifactConflictError,
     PortfolioReviewArtifactInvalidError,
@@ -191,6 +195,8 @@ __all__ = [
     "PaperAccountApplicationService",
     "PaperAccountClock",
     "PaperAccountIdFactory",
+    "PaperExecutionApplicationService",
+    "PaperExecutionClock",
     "PaperAccountStateCommandInput",
     "PaperAccountStateView",
     "PaperFillCommandInput",
