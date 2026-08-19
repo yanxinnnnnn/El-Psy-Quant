@@ -218,24 +218,22 @@ M34 — Paper Execution Simulator and First True Paper Trading
 ```
 
 M34 is **In Progress** through the approved S207–S216 sequence. Issue #408 is
-the authoritative M34 architecture source. S207–S209 are Complete. Sprint 210
-is the current implementation Sprint under authoritative Issue #413.
+the authoritative M34 architecture source. S207–S211 are Complete. Sprint 212
+is the current implementation Sprint under authoritative Issue #417.
 
 M34 may consume only an M33 OrderIntent with a matching `allow`
 PreTradeRiskDecision and exact verified M31/M32 anchors. It must revalidate
 account and market freshness at execution time; an M33 allow result is not
 automatically fresh execution authorization.
 
-Sprint 210 adds pure Fill-to-M31 settlement: one immutable execution event with
-exactly one cash and one position posting, deterministic buy/sell average-cost
-semantics, and one-to-one `ExecutionSettlementLink` reconciliation evidence.
-It adds no persistence, migration, durable transaction/idempotency/concurrency,
-checkpoint, application service, API, Web, Demo, or worker.
+Sprint 212 exposes the merged S208–S211 authority through exactly nine thin,
+authenticated versioned operations with stable sanitized errors, bounded audit
+correlation, canonical OpenAPI, and generated TypeScript contracts. It adds no
+Web workspace, Demo v6, worker/runtime, broker, or new migration.
 
-The migration head remains `0010_strategy_order_risk`. S211–S216 remain
-planned. S210 settlement is pure/in-memory; durable atomic commit belongs to
-S211. M34 execution/fill/ledger effects remain separate authority and must not
-mutate M33 Signal, Intent, or Decision records.
+The migration head remains `0011_paper_execution`. S213–S216 remain planned.
+M34 execution/fill/ledger effects remain separate authority and must not mutate
+M33 Signal, Intent, or Decision records.
 
 ## Approved Route to Genuine Paper Trading
 

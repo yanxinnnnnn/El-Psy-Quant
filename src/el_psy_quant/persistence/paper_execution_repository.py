@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import timezone
+from datetime import datetime, timezone
 from typing import Protocol
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from el_psy_quant.market_time import MarketDataReplayEngine, ReplayCursor
@@ -61,6 +61,8 @@ from el_psy_quant.persistence.paper_execution_records import (
     PaperExecutionCommandReceipt,
     PaperExecutionCorruptAuthorityError,
     PaperExecutionHistory,
+    PaperExecutionPage,
+    PaperExecutionReconciliationRequiredError,
     PaperExecutionStepCommit,
     bounded_string,
 )
@@ -172,6 +174,78 @@ class SqlAlchemyPaperExecutionRepository:
         ).all()
         return tuple(order_from_row(row) for row in rows)
 
+    def list_orders_page(
+        self,
+        *,
+        limit: int,
+        cursor_created_at: datetime | None = None,
+        cursor_execution_order_id: str | None = None,
+        account_id: str | None = None,
+        replay_id: str | None = None,
+        trading_session_id: str | None = None,
+        instrument_id: str | None = None,
+        side: str | None = None,
+    ) -> PaperExecutionPage[PaperExecutionOrder]:
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise ValueError("limit must be from 1 to 200")
+        if (cursor_created_at is None) is not (
+            cursor_execution_order_id is None
+        ):
+            raise ValueError("order cursor anchor is incomplete")
+        statement = select(PaperExecutionOrderRow)
+        for column, value, name in (
+            (PaperExecutionOrderRow.account_id, account_id, "account_id"),
+            (PaperExecutionOrderRow.replay_id, replay_id, "replay_id"),
+            (
+                PaperExecutionOrderRow.trading_session_id,
+                trading_session_id,
+                "trading_session_id",
+            ),
+            (
+                PaperExecutionOrderRow.instrument_id,
+                instrument_id,
+                "instrument_id",
+            ),
+        ):
+            if value is not None:
+                statement = statement.where(column == bounded_string(value, name))
+        if side is not None:
+            if side not in {"buy", "sell"}:
+                raise ValueError("unsupported side")
+            statement = statement.where(PaperExecutionOrderRow.side == side)
+        if cursor_created_at is not None:
+            if (
+                type(cursor_created_at) is not datetime
+                or cursor_created_at.tzinfo is None
+                or cursor_created_at.utcoffset() is None
+                or cursor_created_at.utcoffset().total_seconds() != 0
+            ):
+                raise ValueError("order cursor timestamp is invalid")
+            identity = bounded_string(
+                cursor_execution_order_id, "cursor_execution_order_id", 96
+            )
+            statement = statement.where(
+                or_(
+                    PaperExecutionOrderRow.created_at < cursor_created_at,
+                    and_(
+                        PaperExecutionOrderRow.created_at == cursor_created_at,
+                        PaperExecutionOrderRow.execution_order_id > identity,
+                    ),
+                )
+            )
+        rows = tuple(
+            self._session.scalars(
+                statement.order_by(
+                    PaperExecutionOrderRow.created_at.desc(),
+                    PaperExecutionOrderRow.execution_order_id.asc(),
+                ).limit(limit + 1)
+            ).all()
+        )
+        return PaperExecutionPage(
+            items=tuple(order_from_row(row) for row in rows[:limit]),
+            has_more=len(rows) > limit,
+        )
+
     def append_order(self, *, order: PaperExecutionOrder) -> PaperExecutionOrder:
         candidate = order_row(order)
         by_id = self.get_order(execution_order_id=order.execution_order_id)
@@ -270,6 +344,55 @@ class SqlAlchemyPaperExecutionRepository:
             )
         ).all()
         return tuple(fill_from_row(row) for row in rows)
+
+    def list_fills_page(
+        self,
+        *,
+        limit: int,
+        cursor_created_at: datetime | None = None,
+        cursor_fill_id: str | None = None,
+        execution_order_id: str | None = None,
+    ) -> PaperExecutionPage[PaperExecutionFill]:
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise ValueError("limit must be from 1 to 200")
+        if (cursor_created_at is None) is not (cursor_fill_id is None):
+            raise ValueError("Fill cursor anchor is incomplete")
+        statement = select(PaperExecutionFillRow)
+        if execution_order_id is not None:
+            statement = statement.where(
+                PaperExecutionFillRow.execution_order_id
+                == bounded_string(execution_order_id, "execution_order_id", 96)
+            )
+        if cursor_created_at is not None:
+            if (
+                type(cursor_created_at) is not datetime
+                or cursor_created_at.tzinfo is None
+                or cursor_created_at.utcoffset() is None
+                or cursor_created_at.utcoffset().total_seconds() != 0
+            ):
+                raise ValueError("Fill cursor timestamp is invalid")
+            identity = bounded_string(cursor_fill_id, "cursor_fill_id", 96)
+            statement = statement.where(
+                or_(
+                    PaperExecutionFillRow.created_at < cursor_created_at,
+                    and_(
+                        PaperExecutionFillRow.created_at == cursor_created_at,
+                        PaperExecutionFillRow.fill_id > identity,
+                    ),
+                )
+            )
+        rows = tuple(
+            self._session.scalars(
+                statement.order_by(
+                    PaperExecutionFillRow.created_at.desc(),
+                    PaperExecutionFillRow.fill_id.asc(),
+                ).limit(limit + 1)
+            ).all()
+        )
+        return PaperExecutionPage(
+            items=tuple(fill_from_row(row) for row in rows[:limit]),
+            has_more=len(rows) > limit,
+        )
 
     def append_fill(self, *, fill: PaperExecutionFill) -> PaperExecutionFill:
         existing = self.get_fill(fill_id=fill.fill_id)
@@ -662,7 +785,7 @@ class SqlAlchemyPaperExecutionRepository:
             or account.head_event_id != expected_account_event_id
             or account.head_chain_digest != expected_account_chain_digest
         ):
-            raise PaperExecutionCorruptAuthorityError()
+            raise PaperExecutionReconciliationRequiredError()
 
         expected_cursor = (
             history.attempts[-1].post_step_cursor
@@ -681,7 +804,7 @@ class SqlAlchemyPaperExecutionRepository:
             )
         )
         if replay.session.cursor != expected_cursor:
-            raise PaperExecutionCorruptAuthorityError()
+            raise PaperExecutionReconciliationRequiredError()
         return history
 
     def load_history(self, *, execution_order_id: str) -> PaperExecutionHistory:

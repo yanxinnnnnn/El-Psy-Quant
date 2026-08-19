@@ -19,9 +19,16 @@ from el_psy_quant.paper_account import (
 )
 from el_psy_quant.paper_execution import (
     CreatePaperExecutionOrderCommand,
+    PaperExecutionAttempt,
+    PaperExecutionFill,
     PaperExecutionOrder,
+    PaperExecutionPolicyReference,
     StepPaperExecutionOrderCommand,
     create_paper_execution_order,
+    create_paper_execution_order_command,
+    create_paper_execution_order_reference,
+    create_paper_execution_risk_handoff_reference,
+    create_step_paper_execution_order_command,
     settle_paper_execution_fill,
     step_paper_execution_order,
     validate_create_paper_execution_order_command,
@@ -49,6 +56,7 @@ from el_psy_quant.persistence.paper_execution_records import (
     PaperExecutionIdempotencyConflictError,
     PaperExecutionNotFoundError,
     PaperExecutionOperationConflictError,
+    PaperExecutionPage,
     PaperExecutionReconciliationRequiredError,
     PaperExecutionStaleAuthorityError,
     PaperExecutionStepCommit,
@@ -66,6 +74,7 @@ from el_psy_quant.persistence.strategy_order_repository import (
     SqlAlchemyOrderIntentRepository,
     SqlAlchemyPreTradeRiskDecisionRepository,
 )
+from el_psy_quant.strategy_order import create_order_intent_reference
 
 PaperExecutionClock = Callable[[], datetime]
 
@@ -304,71 +313,131 @@ class PaperExecutionApplicationService:
             raise PaperExecutionIdempotencyConflictError()
         return repository.resolve_receipt(receipt=receipt)
 
-    def create_order(
-        self, command: CreatePaperExecutionOrderCommand
+    def _create_order_in_session(
+        self,
+        session: Session,
+        command: CreatePaperExecutionOrderCommand,
     ) -> PaperExecutionStoredResult[PaperExecutionOrder]:
+        """Share the exact S211 create sequence inside one caller transaction."""
         try:
             valid_command = validate_create_paper_execution_order_command(command)
         except (TypeError, ValueError) as exc:
             raise PaperExecutionCorruptAuthorityError() from exc
-        with self._write() as session:
-            repository = SqlAlchemyPaperExecutionRepository(session=session)
-            replay = self._same_key(
-                repository,
-                namespace=COMMAND_NAMESPACE_CREATE_ORDER,
-                command_key=valid_command.command_idempotency_key,
-                command_digest=valid_command.command_digest,
-            )
-            if replay is not None:
-                if type(replay) is not PaperExecutionOrder:
-                    raise PaperExecutionCorruptAuthorityError()
-                return PaperExecutionStoredResult(result=replay, replayed=True)
+        repository = SqlAlchemyPaperExecutionRepository(session=session)
+        replay = self._same_key(
+            repository,
+            namespace=COMMAND_NAMESPACE_CREATE_ORDER,
+            command_key=valid_command.command_idempotency_key,
+            command_digest=valid_command.command_digest,
+        )
+        if replay is not None:
+            if type(replay) is not PaperExecutionOrder:
+                raise PaperExecutionCorruptAuthorityError()
+            return PaperExecutionStoredResult(result=replay, replayed=True)
 
-            converged = repository.find_create_convergence(command=valid_command)
-            if converged is not None:
-                converged = repository.load_historical_history(
-                    execution_order_id=converged.execution_order_id
-                ).order
-                repository.append_receipt(
-                    receipt=self._receipt_for_order(valid_command, converged)
-                )
-                return PaperExecutionStoredResult(result=converged, replayed=True)
-
-            intent, decision = self._upstream(session, valid_command)
-            account, _history, account_state = self._account(
-                session, account_id=intent.account_reference.account_id
-            )
-            calendar, trading_session, replay_engine = self._market(
-                session, order_or_intent=intent
-            )
-            try:
-                order = create_paper_execution_order(
-                    valid_command,
-                    intent=intent,
-                    decision=decision,
-                    account_state=account_state,
-                    calendar=calendar,
-                    session=trading_session,
-                    replay_engine=replay_engine,
-                    created_at=self._now(),
-                )
-            except ValueError as exc:
-                raise PaperExecutionStaleAuthorityError() from exc
-
-            for existing in repository.list_orders(
-                account_id=order.account_id,
-                replay_id=order.market_handoff_reference.replay_id,
-                trading_session_id=order.market_handoff_reference.trading_session_id,
-            ):
-                if not repository.load_historical_history(
-                    execution_order_id=existing.execution_order_id
-                ).state.terminal:
-                    raise PaperExecutionOperationConflictError()
-            repository.append_order(order=order)
+        converged = repository.find_create_convergence(command=valid_command)
+        if converged is not None:
+            converged = repository.load_historical_history(
+                execution_order_id=converged.execution_order_id
+            ).order
             repository.append_receipt(
-                receipt=self._receipt_for_order(valid_command, order)
+                receipt=self._receipt_for_order(valid_command, converged)
             )
-            return PaperExecutionStoredResult(result=order, replayed=False)
+            return PaperExecutionStoredResult(result=converged, replayed=True)
+
+        intent, decision = self._upstream(session, valid_command)
+        account, _history, account_state = self._account(
+            session, account_id=intent.account_reference.account_id
+        )
+        calendar, trading_session, replay_engine = self._market(
+            session, order_or_intent=intent
+        )
+        try:
+            order = create_paper_execution_order(
+                valid_command,
+                intent=intent,
+                decision=decision,
+                account_state=account_state,
+                calendar=calendar,
+                session=trading_session,
+                replay_engine=replay_engine,
+                created_at=self._now(),
+            )
+        except ValueError as exc:
+            raise PaperExecutionStaleAuthorityError() from exc
+
+        for existing in repository.list_orders(
+            account_id=order.account_id,
+            replay_id=order.market_handoff_reference.replay_id,
+            trading_session_id=order.market_handoff_reference.trading_session_id,
+        ):
+            if not repository.load_historical_history(
+                execution_order_id=existing.execution_order_id
+            ).state.terminal:
+                raise PaperExecutionOperationConflictError()
+        repository.append_order(order=order)
+        repository.append_receipt(receipt=self._receipt_for_order(valid_command, order))
+        return PaperExecutionStoredResult(result=order, replayed=False)
+
+    def create_order(
+        self, command: CreatePaperExecutionOrderCommand
+    ) -> PaperExecutionStoredResult[PaperExecutionOrder]:
+        with self._write() as session:
+            return self._create_order_in_session(session, command)
+
+    def create_order_from_references(
+        self,
+        *,
+        intent_id: str,
+        intent_digest: str,
+        decision_id: str,
+        decision_digest: str,
+        execution_policy_reference: PaperExecutionPolicyReference,
+        command_idempotency_key: str,
+        actor: str,
+    ) -> PaperExecutionStoredResult[PaperExecutionHistory]:
+        """Compose trusted M33 references and create within one S211 transaction."""
+        with self._write() as session:
+            try:
+                intent = SqlAlchemyOrderIntentRepository(session=session).get(
+                    intent_id=intent_id
+                )
+                decision = SqlAlchemyPreTradeRiskDecisionRepository(
+                    session=session
+                ).get(decision_id=decision_id)
+            except (StrategyOrderCorruptAuthorityError, TypeError, ValueError) as exc:
+                raise PaperExecutionCorruptAuthorityError() from exc
+            if intent is None or decision is None:
+                raise PaperExecutionNotFoundError()
+            if (
+                intent.intent_digest != intent_digest
+                or decision.decision_digest != decision_digest
+            ):
+                raise PaperExecutionStaleAuthorityError()
+            try:
+                command = create_paper_execution_order_command(
+                    order_intent_reference=create_order_intent_reference(intent),
+                    risk_handoff_reference=(
+                        create_paper_execution_risk_handoff_reference(
+                            decision=decision, intent=intent
+                        )
+                    ),
+                    execution_policy_reference=execution_policy_reference,
+                    command_idempotency_key=command_idempotency_key,
+                    actor=actor,
+                )
+            except (TypeError, ValueError) as exc:
+                raise PaperExecutionStaleAuthorityError() from exc
+            stored = self._create_order_in_session(session, command)
+            history = SqlAlchemyPaperExecutionRepository(
+                session=session
+            ).load_historical_history(
+                execution_order_id=stored.result.execution_order_id
+            )
+            return PaperExecutionStoredResult(
+                result=history,
+                replayed=stored.replayed,
+            )
 
     def create_paper_execution_order(
         self, command: CreatePaperExecutionOrderCommand
@@ -567,15 +636,199 @@ class PaperExecutionApplicationService:
     ) -> PaperExecutionStoredResult[PaperExecutionStepCommit]:
         return self.step_order(command)
 
+    def step_order_from_reference(
+        self,
+        *,
+        execution_order_id: str,
+        execution_order_digest: str,
+        expected_execution_version: int,
+        command_idempotency_key: str,
+        actor: str,
+    ) -> PaperExecutionStoredResult[PaperExecutionStepCommit]:
+        """Compose the exact domain command; S211 still owns the atomic step."""
+        history = self.get_history(execution_order_id=execution_order_id)
+        if history.order.execution_order_digest != execution_order_digest:
+            raise PaperExecutionStaleAuthorityError()
+        try:
+            command = create_step_paper_execution_order_command(
+                execution_order_reference=create_paper_execution_order_reference(
+                    history.order
+                ),
+                expected_execution_version=expected_execution_version,
+                command_idempotency_key=command_idempotency_key,
+                actor=actor,
+            )
+        except (TypeError, ValueError) as exc:
+            raise PaperExecutionStaleAuthorityError() from exc
+        return self.step_order(command)
+
     def get_history(self, *, execution_order_id: str) -> PaperExecutionHistory:
+        """Return strictly reconstructed historical authority without live freshness."""
+        with self._read() as session:
+            repository = SqlAlchemyPaperExecutionRepository(session=session)
+            if repository.get_order(execution_order_id=execution_order_id) is None:
+                raise PaperExecutionNotFoundError()
+            return repository.load_historical_history(
+                execution_order_id=execution_order_id
+            )
+
+    def list_order_histories(
+        self,
+        *,
+        limit: int,
+        cursor_created_at: datetime | None = None,
+        cursor_execution_order_id: str | None = None,
+        account_id: str | None = None,
+        replay_id: str | None = None,
+        trading_session_id: str | None = None,
+        instrument_id: str | None = None,
+        side: str | None = None,
+    ) -> PaperExecutionPage[PaperExecutionHistory]:
+        with self._read() as session:
+            repository = SqlAlchemyPaperExecutionRepository(session=session)
+            try:
+                page = repository.list_orders_page(
+                    limit=limit,
+                    cursor_created_at=cursor_created_at,
+                    cursor_execution_order_id=cursor_execution_order_id,
+                    account_id=account_id,
+                    replay_id=replay_id,
+                    trading_session_id=trading_session_id,
+                    instrument_id=instrument_id,
+                    side=side,
+                )
+            except (TypeError, ValueError) as exc:
+                raise PaperExecutionCorruptAuthorityError() from exc
+            return PaperExecutionPage(
+                items=tuple(
+                    repository.load_historical_history(
+                        execution_order_id=order.execution_order_id
+                    )
+                    for order in page.items
+                ),
+                has_more=page.has_more,
+            )
+
+    def get_attempt(self, *, attempt_id: str) -> PaperExecutionAttempt:
+        with self._read() as session:
+            repository = SqlAlchemyPaperExecutionRepository(session=session)
+            attempt = repository.get_attempt(attempt_id=attempt_id)
+            if attempt is None:
+                raise PaperExecutionNotFoundError()
+            history = repository.load_historical_history(
+                execution_order_id=(
+                    attempt.execution_order_reference.execution_order_id
+                )
+            )
+            if attempt not in history.attempts:
+                raise PaperExecutionCorruptAuthorityError()
+            return attempt
+
+    def list_attempts(
+        self,
+        *,
+        execution_order_id: str,
+        limit: int,
+        cursor_execution_version_before: int | None = None,
+        cursor_attempt_id: str | None = None,
+        version_anchor: int | None = None,
+    ) -> PaperExecutionPage[PaperExecutionAttempt]:
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise PaperExecutionCorruptAuthorityError()
+        if (cursor_execution_version_before is None) is not (
+            cursor_attempt_id is None
+        ):
+            raise PaperExecutionCorruptAuthorityError()
+        with self._read() as session:
+            repository = SqlAlchemyPaperExecutionRepository(session=session)
+            if repository.get_order(execution_order_id=execution_order_id) is None:
+                raise PaperExecutionNotFoundError()
+            history = repository.load_historical_history(
+                execution_order_id=execution_order_id
+            )
+            anchor = (
+                history.state.execution_version
+                if version_anchor is None
+                else version_anchor
+            )
+            if type(anchor) is not int or not 0 <= anchor <= history.state.execution_version:
+                raise PaperExecutionCorruptAuthorityError()
+            candidates = tuple(
+                attempt
+                for attempt in history.attempts
+                if attempt.execution_version_before < anchor
+            )
+            if cursor_execution_version_before is not None:
+                cursor_key = (
+                    cursor_execution_version_before,
+                    cursor_attempt_id,
+                )
+                candidates = tuple(
+                    attempt
+                    for attempt in candidates
+                    if (
+                        attempt.execution_version_before,
+                        attempt.attempt_id,
+                    )
+                    > cursor_key
+                )
+            return PaperExecutionPage(
+                items=candidates[:limit],
+                has_more=len(candidates) > limit,
+                version_anchor=anchor,
+            )
+
+    def get_fill(self, *, fill_id: str) -> PaperExecutionFill:
+        with self._read() as session:
+            repository = SqlAlchemyPaperExecutionRepository(session=session)
+            fill = repository.get_fill(fill_id=fill_id)
+            if fill is None:
+                raise PaperExecutionNotFoundError()
+            history = repository.load_historical_history(
+                execution_order_id=fill.execution_order_reference.execution_order_id
+            )
+            if fill not in history.fills:
+                raise PaperExecutionCorruptAuthorityError()
+            return fill
+
+    def list_fills(
+        self,
+        *,
+        limit: int,
+        cursor_created_at: datetime | None = None,
+        cursor_fill_id: str | None = None,
+        execution_order_id: str | None = None,
+    ) -> PaperExecutionPage[PaperExecutionFill]:
+        with self._read() as session:
+            repository = SqlAlchemyPaperExecutionRepository(session=session)
+            try:
+                page = repository.list_fills_page(
+                    limit=limit,
+                    cursor_created_at=cursor_created_at,
+                    cursor_fill_id=cursor_fill_id,
+                    execution_order_id=execution_order_id,
+                )
+            except (TypeError, ValueError) as exc:
+                raise PaperExecutionCorruptAuthorityError() from exc
+            histories: dict[str, PaperExecutionHistory] = {}
+            for fill in page.items:
+                order_id = fill.execution_order_reference.execution_order_id
+                history = histories.setdefault(
+                    order_id,
+                    repository.load_historical_history(
+                        execution_order_id=order_id
+                    ),
+                )
+                if fill not in history.fills:
+                    raise PaperExecutionCorruptAuthorityError()
+            return page
+
+    def reconcile_order(self, *, execution_order_id: str) -> PaperExecutionHistory:
         with self._read() as session:
             repository = SqlAlchemyPaperExecutionRepository(session=session)
             if repository.get_order(execution_order_id=execution_order_id) is None:
                 raise PaperExecutionNotFoundError()
             return repository.load_history(execution_order_id=execution_order_id)
-
-    def reconcile_order(self, *, execution_order_id: str) -> PaperExecutionHistory:
-        return self.get_history(execution_order_id=execution_order_id)
 
 
 __all__ = ["PaperExecutionApplicationService"]
