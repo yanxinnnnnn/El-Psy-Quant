@@ -29,6 +29,18 @@ MAX_DURATION_MS = 2_147_483_647
 PaperJobCommand: TypeAlias = Literal["submit", "run", "cancel", "retry", "recover"]
 SubmissionOutcome: TypeAlias = Literal["created", "replayed"]
 RecoveryOutcome: TypeAlias = Literal["requeued", "succeeded", "failed"]
+PaperExecutionEvent: TypeAlias = Literal[
+    "paper_execution_order_created",
+    "paper_execution_step_no_fill",
+    "paper_execution_fill_created",
+    "paper_execution_order_filled",
+    "paper_execution_order_rejected",
+    "paper_execution_order_partially_filled_rejected",
+    "paper_execution_idempotent_replay",
+    "paper_execution_stale_authority_refused",
+    "paper_execution_corruption_refused",
+    "paper_execution_reconciliation_checked",
+]
 
 
 @dataclass(frozen=True)
@@ -177,6 +189,45 @@ API_OPERATIONS: tuple[ApiOperation, ...] = (
         "GET",
         "/api/v1/pre-trade-risk-decisions/{decision_id}",
         "pre_trade_risk_decision.detail",
+    ),
+    ApiOperation(
+        "POST", "/api/v1/paper-execution/orders", "paper_execution.order_create"
+    ),
+    ApiOperation(
+        "GET", "/api/v1/paper-execution/orders", "paper_execution.order_list"
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-execution/orders/{execution_order_id}",
+        "paper_execution.order_detail",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-execution/orders/{execution_order_id}/steps",
+        "paper_execution.order_step",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-execution/orders/{execution_order_id}/attempts",
+        "paper_execution.attempt_list",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-execution/attempts/{attempt_id}",
+        "paper_execution.attempt_detail",
+    ),
+    ApiOperation(
+        "GET", "/api/v1/paper-execution/fills", "paper_execution.fill_list"
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-execution/fills/{fill_id}",
+        "paper_execution.fill_detail",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-execution/orders/{execution_order_id}/reconciliation",
+        "paper_execution.reconciliation",
     ),
 )
 
@@ -686,6 +737,81 @@ def log_pre_trade_risk_evaluation_completed(
     )
 
 
+def log_paper_execution_event(
+    *,
+    event: PaperExecutionEvent,
+    request_id: str,
+    operation: str,
+    http_status: int,
+    execution_order_id: str | None = None,
+    execution_order_digest: str | None = None,
+    attempt_id: str | None = None,
+    attempt_digest: str | None = None,
+    fill_id: str | None = None,
+    fill_digest: str | None = None,
+    account_id: str | None = None,
+    replay_id: str | None = None,
+    instrument_id: str | None = None,
+    execution_version: int | None = None,
+    attempt_result: str | None = None,
+    terminal_reason: str | None = None,
+    no_fill_reason: str | None = None,
+    replayed: bool | None = None,
+) -> None:
+    """Emit bounded M34 correlation metadata without financial/request payloads."""
+    level = (
+        logging.WARNING
+        if event
+        in {
+            "paper_execution_stale_authority_refused",
+            "paper_execution_corruption_refused",
+        }
+        else logging.INFO
+    )
+    values = {
+        "event": event,
+        "request_id": request_id,
+        "operation": operation,
+        "http_status": http_status,
+        "execution_order_id": execution_order_id,
+        "execution_order_digest": execution_order_digest,
+        "attempt_id": attempt_id,
+        "attempt_digest": attempt_digest,
+        "fill_id": fill_id,
+        "fill_digest": fill_digest,
+        "account_id": account_id,
+        "replay_id": replay_id,
+        "instrument_id": instrument_id,
+        "execution_version": execution_version,
+        "attempt_result": attempt_result,
+        "terminal_reason": terminal_reason,
+        "no_fill_reason": no_fill_reason,
+        "replayed": replayed,
+    }
+    PRODUCT_LOGGER.log(
+        level,
+        (
+            "%s request_id=%s operation=%s http_status=%s "
+            "execution_order_id=%s attempt_id=%s fill_id=%s "
+            "execution_version=%s attempt_result=%s terminal_reason=%s "
+            "no_fill_reason=%s replayed=%s"
+        ),
+        event,
+        request_id,
+        operation,
+        http_status,
+        execution_order_id,
+        attempt_id,
+        fill_id,
+        execution_version,
+        attempt_result,
+        terminal_reason,
+        no_fill_reason,
+        replayed,
+        extra=values,
+    )
+
+
 __all__ = [
     "API_OPERATIONS",
     "MAX_DURATION_MS",
@@ -703,6 +829,7 @@ __all__ = [
     "log_order_intent_derivation_completed",
     "log_paper_job_command_completed",
     "log_paper_job_execution_terminal",
+    "log_paper_execution_event",
     "log_portfolio_review_command_completed",
     "log_pre_trade_risk_evaluation_completed",
     "log_strategy_signal_evaluation_completed",

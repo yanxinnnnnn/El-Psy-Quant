@@ -97,6 +97,54 @@ def test_m33_generated_contracts_are_strict_and_operation_ids_are_stable() -> No
     assert "PreTradeRiskDecisionResponse" in generated
 
 
+def test_m34_generated_contracts_have_exact_nine_operations_and_string_decimals() -> None:
+    snapshot_path = REPOSITORY_ROOT / "web/src/generated/openapi.json"
+    types_path = REPOSITORY_ROOT / "web/src/generated/api-types.ts"
+    document = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    expected = {
+        "create_paper_execution_order_v1",
+        "list_paper_execution_orders_v1",
+        "get_paper_execution_order_v1",
+        "step_paper_execution_order_v1",
+        "list_paper_execution_attempts_v1",
+        "get_paper_execution_attempt_v1",
+        "list_paper_execution_fills_v1",
+        "get_paper_execution_fill_v1",
+        "get_paper_execution_reconciliation_v1",
+    }
+    observed = {
+        operation["operationId"]
+        for path, methods in document["paths"].items()
+        if path.startswith("/api/v1/paper-execution")
+        for operation in methods.values()
+    }
+    assert observed == expected
+    schemas = document["components"]["schemas"]
+    assert (
+        schemas["PaperExecutionPolicyRequest"]["properties"]["slippage_bps"][
+            "type"
+        ]
+        == "string"
+    )
+    assert (
+        schemas["PaperExecutionFillResponse"]["properties"]["fill_quantity"][
+            "type"
+        ]
+        == "string"
+    )
+    assert (
+        schemas["PaperExecutionStepResultResponse"]["properties"]["fill"][
+            "anyOf"
+        ][1]["type"]
+        == "null"
+    )
+    generated = types_path.read_text(encoding="utf-8")
+    assert generated.startswith("/**\n * This file was auto-generated")
+    assert all(operation_id in generated for operation_id in expected)
+    assert "PaperExecutionOrderCreateRequest" in generated
+    assert "PaperExecutionReconciliationResponse" in generated
+
+
 def test_canonical_openapi_matches_checked_in_snapshot() -> None:
     result = subprocess.run(
         [sys.executable, "scripts/export_openapi.py", "--check"],

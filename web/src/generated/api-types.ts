@@ -414,6 +414,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/paper-execution/attempts/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper Execution Attempt V1 */
+        get: operations["get_paper_execution_attempt_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-execution/fills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Paper Execution Fills V1 */
+        get: operations["list_paper_execution_fills_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-execution/fills/{fill_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper Execution Fill V1 */
+        get: operations["get_paper_execution_fill_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-execution/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Paper Execution Orders V1 */
+        get: operations["list_paper_execution_orders_v1"];
+        put?: never;
+        /** Create Paper Execution Order V1 */
+        post: operations["create_paper_execution_order_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-execution/orders/{execution_order_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper Execution Order V1 */
+        get: operations["get_paper_execution_order_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-execution/orders/{execution_order_id}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Paper Execution Attempts V1 */
+        get: operations["list_paper_execution_attempts_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-execution/orders/{execution_order_id}/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper Execution Reconciliation V1 */
+        get: operations["get_paper_execution_reconciliation_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-execution/orders/{execution_order_id}/steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Step Paper Execution Order V1 */
+        post: operations["step_paper_execution_order_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/paper-jobs": {
         parameters: {
             query?: never;
@@ -1946,6 +2083,740 @@ export interface components {
             schema_version: 1;
             /** Signed Amount */
             signed_amount: string;
+        };
+        /** PaperExecutionAccountHandoffResponse */
+        PaperExecutionAccountHandoffResponse: {
+            /** Account Head Chain Digest */
+            account_head_chain_digest: string;
+            /** Account Head Event Id */
+            account_head_event_id: string;
+            /** Account Head Version */
+            account_head_version: number;
+            /** Account Id */
+            account_id: string;
+            /** Available Cash */
+            available_cash: string;
+            /** Base Currency */
+            base_currency: string;
+            /** Cash Balance */
+            cash_balance: string;
+            /** Current Instrument Quantity */
+            current_instrument_quantity: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /**
+             * Lifecycle Status
+             * @constant
+             */
+            lifecycle_status: "active";
+            /** Reference Digest */
+            reference_digest: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionAttemptListResponse */
+        PaperExecutionAttemptListResponse: {
+            /** Items */
+            items: components["schemas"]["PaperExecutionAttemptResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionAttemptReferenceResponse */
+        PaperExecutionAttemptReferenceResponse: {
+            /** Attempt Digest */
+            attempt_digest: string;
+            /** Attempt Id */
+            attempt_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionAttemptResponse */
+        PaperExecutionAttemptResponse: {
+            /** Attempt Digest */
+            attempt_digest: string;
+            /** Attempt Id */
+            attempt_id: string;
+            /**
+             * Attempt Result
+             * @enum {string}
+             */
+            attempt_result: "no_fill" | "fill" | "risk_rejected" | "boundary_rejected";
+            consumed_event_reference: components["schemas"]["PaperExecutionEventReferenceResponse"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            execution_order_reference: components["schemas"]["PaperExecutionOrderReferenceResponse"];
+            /** Execution Version After */
+            execution_version_after: number;
+            /** Execution Version Before */
+            execution_version_before: number;
+            /** No Fill Reason Code */
+            no_fill_reason_code: ("instrument_mismatch" | "event_type_not_trade" | "trade_price_invalid") | null;
+            post_step_cursor: components["schemas"]["PaperExecutionReplayCursorResponse"];
+            pre_step_cursor: components["schemas"]["PaperExecutionReplayCursorResponse"];
+            prior_order_state: components["schemas"]["PaperExecutionOrderStateResponse"];
+            risk_revalidation: components["schemas"]["PaperExecutionRiskRevalidationResponse"] | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Terminal Reason Code */
+            terminal_reason_code: ("execution_risk_rejected" | "replay_exhausted" | "session_exhausted") | null;
+        };
+        /** PaperExecutionCostEvidenceResponse */
+        PaperExecutionCostEvidenceResponse: {
+            /** Commission */
+            commission: string;
+            /** Commission Bps */
+            commission_bps: string;
+            /** Commission Pre Round */
+            commission_pre_round: string;
+            /** Commission Rounding Applied */
+            commission_rounding_applied: boolean;
+            /** Cost Evidence Digest */
+            cost_evidence_digest: string;
+            execution_price_evidence: components["schemas"]["PaperExecutionPriceEvidenceResponse"];
+            /** Fee */
+            fee: string;
+            /** Fee Bps */
+            fee_bps: string;
+            /** Fee Pre Round */
+            fee_pre_round: string;
+            /** Fee Rounding Applied */
+            fee_rounding_applied: boolean;
+            /** Fill Quantity */
+            fill_quantity: string;
+            /** Gross Notional */
+            gross_notional: string;
+            /** Gross Notional Pre Round */
+            gross_notional_pre_round: string;
+            /** Gross Notional Rounding Applied */
+            gross_notional_rounding_applied: boolean;
+            /** Rounding Mode */
+            rounding_mode: string;
+            /** Rounding Quantum */
+            rounding_quantum: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Side Tax Bps */
+            side_tax_bps: string;
+            /** Tax */
+            tax: string;
+            /** Tax Pre Round */
+            tax_pre_round: string;
+            /** Tax Rounding Applied */
+            tax_rounding_applied: boolean;
+            /** Total Charges */
+            total_charges: string;
+            /**
+             * Transaction Cost Policy Id
+             * @constant
+             */
+            transaction_cost_policy_id: "per_fill_bps_costs_v1";
+        };
+        /** PaperExecutionCreateResultResponse */
+        PaperExecutionCreateResultResponse: {
+            order: components["schemas"]["PaperExecutionOrderResponse"];
+            state: components["schemas"]["PaperExecutionOrderStateResponse"];
+        };
+        /** PaperExecutionDecisionRequest */
+        PaperExecutionDecisionRequest: {
+            /** Decision Digest */
+            decision_digest: string;
+            /** Decision Id */
+            decision_id: string;
+        };
+        /** PaperExecutionEventReferenceResponse */
+        PaperExecutionEventReferenceResponse: {
+            /** Consumed Event Position */
+            consumed_event_position: number;
+            /** Event Digest */
+            event_digest: string;
+            /** Event Id */
+            event_id: string;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            /**
+             * Event Time
+             * Format: date-time
+             */
+            event_time: string;
+            /** Event Type */
+            event_type: string;
+            /** Instrument Id */
+            instrument_id: string;
+            /**
+             * Post Step Current Event Time
+             * Format: date-time
+             */
+            post_step_current_event_time: string;
+            /** Post Step Cursor Position */
+            post_step_cursor_position: number;
+            /** Post Step Last Event Id */
+            post_step_last_event_id: string;
+            /**
+             * Post Step Replay Status
+             * @enum {string}
+             */
+            post_step_replay_status: "ready" | "running" | "paused" | "completed";
+            /** Pre Step Cursor Position */
+            pre_step_cursor_position: number;
+            /** Reference Digest */
+            reference_digest: string;
+            /** Replay Id */
+            replay_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionFillListResponse */
+        PaperExecutionFillListResponse: {
+            /** Items */
+            items: components["schemas"]["PaperExecutionFillResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionFillReferenceResponse */
+        PaperExecutionFillReferenceResponse: {
+            /** Fill Digest */
+            fill_digest: string;
+            /** Fill Id */
+            fill_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionFillResponse */
+        PaperExecutionFillResponse: {
+            attempt_reference: components["schemas"]["PaperExecutionAttemptReferenceResponse"];
+            cost_evidence: components["schemas"]["PaperExecutionCostEvidenceResponse"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            execution_event_reference: components["schemas"]["PaperExecutionEventReferenceResponse"];
+            execution_order_reference: components["schemas"]["PaperExecutionOrderReferenceResponse"];
+            execution_price_evidence: components["schemas"]["PaperExecutionPriceEvidenceResponse"];
+            /** Fill Digest */
+            fill_digest: string;
+            /** Fill Id */
+            fill_id: string;
+            /** Fill Quantity */
+            fill_quantity: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "buy" | "sell";
+        };
+        /** PaperExecutionIntentRequest */
+        PaperExecutionIntentRequest: {
+            /** Intent Digest */
+            intent_digest: string;
+            /** Intent Id */
+            intent_id: string;
+        };
+        /** PaperExecutionMarketHandoffResponse */
+        PaperExecutionMarketHandoffResponse: {
+            /** Calendar Id */
+            calendar_id: string;
+            /** Calendar Version */
+            calendar_version: number;
+            /** Current Event Id */
+            current_event_id: string;
+            /**
+             * Current Event Time
+             * Format: date-time
+             */
+            current_event_time: string;
+            /** Cursor Position */
+            cursor_position: number;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            /**
+             * Handoff Replay Status
+             * @constant
+             */
+            handoff_replay_status: "running";
+            /** Instrument Id */
+            instrument_id: string;
+            /** Last Event Id */
+            last_event_id: string;
+            /** Reference Digest */
+            reference_digest: string;
+            /** Replay Id */
+            replay_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Session Close Time
+             * Format: date-time
+             */
+            session_close_time: string;
+            /**
+             * Session Open Time
+             * Format: date-time
+             */
+            session_open_time: string;
+            /** Session Type */
+            session_type: string;
+            /**
+             * Trading Date
+             * Format: date
+             */
+            trading_date: string;
+            /** Trading Session Id */
+            trading_session_id: string;
+        };
+        /** PaperExecutionOrderCommandResponse */
+        PaperExecutionOrderCommandResponse: {
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            result: components["schemas"]["PaperExecutionCreateResultResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionOrderCreateRequest */
+        PaperExecutionOrderCreateRequest: {
+            /** Actor */
+            actor: string;
+            decision: components["schemas"]["PaperExecutionDecisionRequest"];
+            execution_policy: components["schemas"]["PaperExecutionPolicyRequest"];
+            intent: components["schemas"]["PaperExecutionIntentRequest"];
+        };
+        /** PaperExecutionOrderListResponse */
+        PaperExecutionOrderListResponse: {
+            /** Items */
+            items: components["schemas"]["PaperExecutionOrderViewResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionOrderReferenceResponse */
+        PaperExecutionOrderReferenceResponse: {
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Execution Order Id */
+            execution_order_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionOrderResponse */
+        PaperExecutionOrderResponse: {
+            account_handoff_reference: components["schemas"]["PaperExecutionAccountHandoffResponse"];
+            /** Account Id */
+            account_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Execution Order Id */
+            execution_order_id: string;
+            execution_policy_reference: components["schemas"]["PaperExecutionPolicyReferenceResponse"];
+            /** Instrument Id */
+            instrument_id: string;
+            market_handoff_reference: components["schemas"]["PaperExecutionMarketHandoffResponse"];
+            order_intent_reference: components["schemas"]["OrderIntentReferenceResponse"];
+            /** Origin Actor */
+            origin_actor: string;
+            /** Origin Command Digest */
+            origin_command_digest: string;
+            /** Requested Quantity */
+            requested_quantity: string;
+            risk_handoff_reference: components["schemas"]["PaperExecutionRiskHandoffResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "buy" | "sell";
+        };
+        /** PaperExecutionOrderStateResponse */
+        PaperExecutionOrderStateResponse: {
+            /** Cumulative Filled Quantity */
+            cumulative_filled_quantity: string;
+            execution_order_reference: components["schemas"]["PaperExecutionOrderReferenceResponse"];
+            /** Execution Version */
+            execution_version: number;
+            /** Remaining Quantity */
+            remaining_quantity: string;
+            /** Requested Quantity */
+            requested_quantity: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "working" | "partially_filled" | "filled" | "rejected" | "partially_filled_rejected";
+            /** Terminal */
+            terminal: boolean;
+        };
+        /** PaperExecutionOrderStepRequest */
+        PaperExecutionOrderStepRequest: {
+            /** Actor */
+            actor: string;
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Expected Execution Version */
+            expected_execution_version: number;
+        };
+        /** PaperExecutionOrderViewResponse */
+        PaperExecutionOrderViewResponse: {
+            order: components["schemas"]["PaperExecutionOrderResponse"];
+            state: components["schemas"]["PaperExecutionOrderStateResponse"];
+        };
+        /** PaperExecutionPolicyReferenceResponse */
+        PaperExecutionPolicyReferenceResponse: {
+            /** Buy Tax Bps */
+            buy_tax_bps: string;
+            /** Commission Bps */
+            commission_bps: string;
+            /** Configuration Digest */
+            configuration_digest: string;
+            /**
+             * Execution Price Policy Id
+             * @constant
+             */
+            execution_price_policy_id: "consumed_trade_event_price_v1";
+            /** Fee Bps */
+            fee_bps: string;
+            /** Max Fill Quantity Per Trade Event */
+            max_fill_quantity_per_trade_event: string | null;
+            /**
+             * Policy Id
+             * @constant
+             */
+            policy_id: "paper_execution_v1";
+            /** Reference Digest */
+            reference_digest: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Sell Tax Bps */
+            sell_tax_bps: string;
+            /** Slippage Bps */
+            slippage_bps: string;
+            /**
+             * Slippage Policy Id
+             * @constant
+             */
+            slippage_policy_id: "fixed_bps_slippage_v1";
+            /**
+             * Transaction Cost Policy Id
+             * @constant
+             */
+            transaction_cost_policy_id: "per_fill_bps_costs_v1";
+        };
+        /** PaperExecutionPolicyRequest */
+        PaperExecutionPolicyRequest: {
+            /** Buy Tax Bps */
+            buy_tax_bps: string;
+            /** Commission Bps */
+            commission_bps: string;
+            /** Fee Bps */
+            fee_bps: string;
+            /** Max Fill Quantity Per Trade Event */
+            max_fill_quantity_per_trade_event: string | null;
+            /** Sell Tax Bps */
+            sell_tax_bps: string;
+            /** Slippage Bps */
+            slippage_bps: string;
+        };
+        /** PaperExecutionPriceEvidenceResponse */
+        PaperExecutionPriceEvidenceResponse: {
+            /** Base Trade Price */
+            base_trade_price: string;
+            execution_event_reference: components["schemas"]["PaperExecutionEventReferenceResponse"];
+            /** Execution Price */
+            execution_price: string;
+            /**
+             * Execution Price Policy Id
+             * @constant
+             */
+            execution_price_policy_id: "consumed_trade_event_price_v1";
+            /** Pre Round Execution Price */
+            pre_round_execution_price: string;
+            /** Price Evidence Digest */
+            price_evidence_digest: string;
+            /** Rounding Applied */
+            rounding_applied: boolean;
+            /** Rounding Mode */
+            rounding_mode: string;
+            /** Rounding Quantum */
+            rounding_quantum: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "buy" | "sell";
+            /** Slippage Bps */
+            slippage_bps: string;
+            /**
+             * Slippage Policy Id
+             * @constant
+             */
+            slippage_policy_id: "fixed_bps_slippage_v1";
+        };
+        /** PaperExecutionReconciliationResponse */
+        PaperExecutionReconciliationResponse: {
+            /** Attempts */
+            attempts: components["schemas"]["PaperExecutionAttemptResponse"][];
+            /** Fills */
+            fills: components["schemas"]["PaperExecutionFillResponse"][];
+            order: components["schemas"]["PaperExecutionOrderResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Settlement Links */
+            settlement_links: components["schemas"]["PaperExecutionSettlementLinkResponse"][];
+            state: components["schemas"]["PaperExecutionOrderStateResponse"];
+        };
+        /** PaperExecutionReplayCursorResponse */
+        PaperExecutionReplayCursorResponse: {
+            /** Current Event Time */
+            current_event_time: string | null;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            /** Last Event Id */
+            last_event_id: string | null;
+            /** Position */
+            position: number;
+            /** Replay Id */
+            replay_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "running" | "paused" | "completed";
+        };
+        /** PaperExecutionRiskHandoffResponse */
+        PaperExecutionRiskHandoffResponse: {
+            order_intent_reference: components["schemas"]["OrderIntentReferenceResponse"];
+            /**
+             * Outcome
+             * @constant
+             */
+            outcome: "allow";
+            /** Reference Digest */
+            reference_digest: string;
+            /** Risk Decision Digest */
+            risk_decision_digest: string;
+            /** Risk Decision Id */
+            risk_decision_id: string;
+            risk_policy_reference: components["schemas"]["PreTradeRiskPolicyReferenceResponse"];
+            /** Risk Snapshot Digest */
+            risk_snapshot_digest: string;
+            /** Risk Snapshot Id */
+            risk_snapshot_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionRiskRevalidationResponse */
+        PaperExecutionRiskRevalidationResponse: {
+            /** Account Head Chain Digest */
+            account_head_chain_digest: string;
+            /** Account Head Event Id */
+            account_head_event_id: string;
+            /** Account Head Version */
+            account_head_version: number;
+            /** Account Id */
+            account_id: string;
+            /** Available Cash */
+            available_cash: string;
+            /** Candidate Fill Quantity */
+            candidate_fill_quantity: string;
+            cost_evidence: components["schemas"]["PaperExecutionCostEvidenceResponse"];
+            /** Cumulative Filled Gross Notional */
+            cumulative_filled_gross_notional: string;
+            /** Current Instrument Quantity */
+            current_instrument_quantity: string;
+            execution_order_reference: components["schemas"]["PaperExecutionOrderReferenceResponse"];
+            execution_price_evidence: components["schemas"]["PaperExecutionPriceEvidenceResponse"];
+            /** Execution Version */
+            execution_version: number;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "allow" | "reject";
+            /** Projected Notional Pre Round */
+            projected_notional_pre_round: string;
+            /** Projected Notional Rounding Applied */
+            projected_notional_rounding_applied: boolean;
+            /** Projected Order Gross Notional */
+            projected_order_gross_notional: string;
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Remaining Quantity Before Step */
+            remaining_quantity_before_step: string;
+            /** Requested Quantity */
+            requested_quantity: string;
+            risk_policy_reference: components["schemas"]["PreTradeRiskPolicyReferenceResponse"];
+            /** Risk Revalidation Digest */
+            risk_revalidation_digest: string;
+            /** Risk Revalidation Id */
+            risk_revalidation_id: string;
+            /** Rounding Mode */
+            rounding_mode: string;
+            /** Rounding Quantum */
+            rounding_quantum: string;
+            /** Rules */
+            rules: components["schemas"]["PaperExecutionRiskRuleResponse"][];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionRiskRuleResponse */
+        PaperExecutionRiskRuleResponse: {
+            /** Limit Value */
+            limit_value: string | null;
+            /** Observed Value */
+            observed_value: string | null;
+            /** Passed */
+            passed: boolean;
+            /** Reason Code */
+            reason_code: string | null;
+            /** Rule Id */
+            rule_id: string;
+        };
+        /** PaperExecutionSettlementLinkResponse */
+        PaperExecutionSettlementLinkResponse: {
+            /** Account Chain Digest */
+            account_chain_digest: string;
+            /** Account Event Digest */
+            account_event_digest: string;
+            /** Account Event Id */
+            account_event_id: string;
+            /** Account Id */
+            account_id: string;
+            /** Account Version */
+            account_version: number;
+            /** Cash Entry Digest */
+            cash_entry_digest: string;
+            /** Cash Entry Id */
+            cash_entry_id: string;
+            execution_attempt_reference: components["schemas"]["PaperExecutionAttemptReferenceResponse"];
+            execution_fill_reference: components["schemas"]["PaperExecutionFillReferenceResponse"];
+            execution_order_reference: components["schemas"]["PaperExecutionOrderReferenceResponse"];
+            /** Position Entry Digest */
+            position_entry_digest: string;
+            /** Position Entry Id */
+            position_entry_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Settlement Link Digest */
+            settlement_link_digest: string;
+            /** Settlement Link Evidence Digest */
+            settlement_link_evidence_digest: string;
+            /** Settlement Link Id */
+            settlement_link_id: string;
+        };
+        /** PaperExecutionStepCommandResponse */
+        PaperExecutionStepCommandResponse: {
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            result: components["schemas"]["PaperExecutionStepResultResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperExecutionStepResultResponse */
+        PaperExecutionStepResultResponse: {
+            /** Account Event Id */
+            account_event_id: string | null;
+            attempt: components["schemas"]["PaperExecutionAttemptResponse"];
+            fill: components["schemas"]["PaperExecutionFillResponse"] | null;
+            order_state: components["schemas"]["PaperExecutionOrderStateResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            settlement_link: components["schemas"]["PaperExecutionSettlementLinkResponse"] | null;
         };
         /** PaperFillCommandRequest */
         PaperFillCommandRequest: {
@@ -4928,6 +5799,495 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_paper_execution_attempt_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionAttemptResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    list_paper_execution_fills_v1: {
+        parameters: {
+            query?: {
+                execution_order_id?: string | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionFillListResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_paper_execution_fill_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionFillResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    list_paper_execution_orders_v1: {
+        parameters: {
+            query?: {
+                account_id?: string | null;
+                replay_id?: string | null;
+                trading_session_id?: string | null;
+                instrument_id?: string | null;
+                side?: ("buy" | "sell") | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionOrderListResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    create_paper_execution_order_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperExecutionOrderCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionOrderCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionOrderCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_paper_execution_order_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execution_order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionOrderViewResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    list_paper_execution_attempts_v1: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                execution_order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionAttemptListResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_paper_execution_reconciliation_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execution_order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionReconciliationResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    step_paper_execution_order_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                execution_order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperExecutionOrderStepRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionStepCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperExecutionStepCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
         };

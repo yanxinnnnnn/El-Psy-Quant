@@ -2883,6 +2883,1953 @@
         "title": "PaperCashPostingResponse",
         "type": "object"
       },
+      "PaperExecutionAccountHandoffResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_head_chain_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Account Head Chain Digest",
+            "type": "string"
+          },
+          "account_head_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Head Event Id",
+            "type": "string"
+          },
+          "account_head_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Account Head Version",
+            "type": "integer"
+          },
+          "account_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "available_cash": {
+            "title": "Available Cash",
+            "type": "string"
+          },
+          "base_currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Base Currency",
+            "type": "string"
+          },
+          "cash_balance": {
+            "title": "Cash Balance",
+            "type": "string"
+          },
+          "current_instrument_quantity": {
+            "title": "Current Instrument Quantity",
+            "type": "string"
+          },
+          "instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "const": "active",
+            "title": "Lifecycle Status",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "account_id",
+          "base_currency",
+          "lifecycle_status",
+          "account_head_version",
+          "account_head_event_id",
+          "account_head_chain_digest",
+          "cash_balance",
+          "available_cash",
+          "instrument_id",
+          "current_instrument_quantity",
+          "reference_digest"
+        ],
+        "title": "PaperExecutionAccountHandoffResponse",
+        "type": "object"
+      },
+      "PaperExecutionAttemptListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaperExecutionAttemptResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PaperExecutionAttemptListResponse",
+        "type": "object"
+      },
+      "PaperExecutionAttemptReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Attempt Digest",
+            "type": "string"
+          },
+          "attempt_id": {
+            "pattern": "^pea_[0-9a-f]{64}$",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "attempt_id",
+          "attempt_digest"
+        ],
+        "title": "PaperExecutionAttemptReferenceResponse",
+        "type": "object"
+      },
+      "PaperExecutionAttemptResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Attempt Digest",
+            "type": "string"
+          },
+          "attempt_id": {
+            "pattern": "^pea_[0-9a-f]{64}$",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "attempt_result": {
+            "enum": [
+              "no_fill",
+              "fill",
+              "risk_rejected",
+              "boundary_rejected"
+            ],
+            "title": "Attempt Result",
+            "type": "string"
+          },
+          "consumed_event_reference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaperExecutionEventReferenceResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_order_reference": {
+            "$ref": "#/components/schemas/PaperExecutionOrderReferenceResponse"
+          },
+          "execution_version_after": {
+            "exclusiveMinimum": 0.0,
+            "title": "Execution Version After",
+            "type": "integer"
+          },
+          "execution_version_before": {
+            "minimum": 0.0,
+            "title": "Execution Version Before",
+            "type": "integer"
+          },
+          "no_fill_reason_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "instrument_mismatch",
+                  "event_type_not_trade",
+                  "trade_price_invalid"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "No Fill Reason Code"
+          },
+          "post_step_cursor": {
+            "$ref": "#/components/schemas/PaperExecutionReplayCursorResponse"
+          },
+          "pre_step_cursor": {
+            "$ref": "#/components/schemas/PaperExecutionReplayCursorResponse"
+          },
+          "prior_order_state": {
+            "$ref": "#/components/schemas/PaperExecutionOrderStateResponse"
+          },
+          "risk_revalidation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaperExecutionRiskRevalidationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "terminal_reason_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "execution_risk_rejected",
+                  "replay_exhausted",
+                  "session_exhausted"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Terminal Reason Code"
+          }
+        },
+        "required": [
+          "schema_version",
+          "attempt_id",
+          "attempt_digest",
+          "execution_order_reference",
+          "execution_version_before",
+          "execution_version_after",
+          "prior_order_state",
+          "pre_step_cursor",
+          "post_step_cursor",
+          "consumed_event_reference",
+          "attempt_result",
+          "no_fill_reason_code",
+          "terminal_reason_code",
+          "risk_revalidation",
+          "created_at"
+        ],
+        "title": "PaperExecutionAttemptResponse",
+        "type": "object"
+      },
+      "PaperExecutionCostEvidenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "commission": {
+            "title": "Commission",
+            "type": "string"
+          },
+          "commission_bps": {
+            "title": "Commission Bps",
+            "type": "string"
+          },
+          "commission_pre_round": {
+            "title": "Commission Pre Round",
+            "type": "string"
+          },
+          "commission_rounding_applied": {
+            "title": "Commission Rounding Applied",
+            "type": "boolean"
+          },
+          "cost_evidence_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Cost Evidence Digest",
+            "type": "string"
+          },
+          "execution_price_evidence": {
+            "$ref": "#/components/schemas/PaperExecutionPriceEvidenceResponse"
+          },
+          "fee": {
+            "title": "Fee",
+            "type": "string"
+          },
+          "fee_bps": {
+            "title": "Fee Bps",
+            "type": "string"
+          },
+          "fee_pre_round": {
+            "title": "Fee Pre Round",
+            "type": "string"
+          },
+          "fee_rounding_applied": {
+            "title": "Fee Rounding Applied",
+            "type": "boolean"
+          },
+          "fill_quantity": {
+            "title": "Fill Quantity",
+            "type": "string"
+          },
+          "gross_notional": {
+            "title": "Gross Notional",
+            "type": "string"
+          },
+          "gross_notional_pre_round": {
+            "title": "Gross Notional Pre Round",
+            "type": "string"
+          },
+          "gross_notional_rounding_applied": {
+            "title": "Gross Notional Rounding Applied",
+            "type": "boolean"
+          },
+          "rounding_mode": {
+            "title": "Rounding Mode",
+            "type": "string"
+          },
+          "rounding_quantum": {
+            "title": "Rounding Quantum",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "side_tax_bps": {
+            "title": "Side Tax Bps",
+            "type": "string"
+          },
+          "tax": {
+            "title": "Tax",
+            "type": "string"
+          },
+          "tax_pre_round": {
+            "title": "Tax Pre Round",
+            "type": "string"
+          },
+          "tax_rounding_applied": {
+            "title": "Tax Rounding Applied",
+            "type": "boolean"
+          },
+          "total_charges": {
+            "title": "Total Charges",
+            "type": "string"
+          },
+          "transaction_cost_policy_id": {
+            "const": "per_fill_bps_costs_v1",
+            "title": "Transaction Cost Policy Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "transaction_cost_policy_id",
+          "execution_price_evidence",
+          "fill_quantity",
+          "gross_notional_pre_round",
+          "gross_notional",
+          "gross_notional_rounding_applied",
+          "commission_bps",
+          "commission_pre_round",
+          "commission",
+          "commission_rounding_applied",
+          "fee_bps",
+          "fee_pre_round",
+          "fee",
+          "fee_rounding_applied",
+          "side_tax_bps",
+          "tax_pre_round",
+          "tax",
+          "tax_rounding_applied",
+          "total_charges",
+          "rounding_quantum",
+          "rounding_mode",
+          "cost_evidence_digest"
+        ],
+        "title": "PaperExecutionCostEvidenceResponse",
+        "type": "object"
+      },
+      "PaperExecutionCreateResultResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/PaperExecutionOrderResponse"
+          },
+          "state": {
+            "$ref": "#/components/schemas/PaperExecutionOrderStateResponse"
+          }
+        },
+        "required": [
+          "order",
+          "state"
+        ],
+        "title": "PaperExecutionCreateResultResponse",
+        "type": "object"
+      },
+      "PaperExecutionDecisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Decision Digest",
+            "type": "string"
+          },
+          "decision_id": {
+            "pattern": "^risk_decision_[0-9a-f]{64}$",
+            "title": "Decision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision_id",
+          "decision_digest"
+        ],
+        "title": "PaperExecutionDecisionRequest",
+        "type": "object"
+      },
+      "PaperExecutionEventReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "consumed_event_position": {
+            "exclusiveMinimum": 0.0,
+            "title": "Consumed Event Position",
+            "type": "integer"
+          },
+          "event_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Event Digest",
+            "type": "string"
+          },
+          "event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_stream_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "event_time": {
+            "format": "date-time",
+            "title": "Event Time",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "post_step_current_event_time": {
+            "format": "date-time",
+            "title": "Post Step Current Event Time",
+            "type": "string"
+          },
+          "post_step_cursor_position": {
+            "exclusiveMinimum": 0.0,
+            "title": "Post Step Cursor Position",
+            "type": "integer"
+          },
+          "post_step_last_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Post Step Last Event Id",
+            "type": "string"
+          },
+          "post_step_replay_status": {
+            "enum": [
+              "ready",
+              "running",
+              "paused",
+              "completed"
+            ],
+            "title": "Post Step Replay Status",
+            "type": "string"
+          },
+          "pre_step_cursor_position": {
+            "minimum": 0.0,
+            "title": "Pre Step Cursor Position",
+            "type": "integer"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replay_id",
+          "event_stream_digest",
+          "pre_step_cursor_position",
+          "consumed_event_position",
+          "event_id",
+          "event_digest",
+          "event_time",
+          "instrument_id",
+          "event_type",
+          "post_step_cursor_position",
+          "post_step_last_event_id",
+          "post_step_current_event_time",
+          "post_step_replay_status",
+          "reference_digest"
+        ],
+        "title": "PaperExecutionEventReferenceResponse",
+        "type": "object"
+      },
+      "PaperExecutionFillListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaperExecutionFillResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PaperExecutionFillListResponse",
+        "type": "object"
+      },
+      "PaperExecutionFillReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "fill_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Fill Digest",
+            "type": "string"
+          },
+          "fill_id": {
+            "pattern": "^pef_[0-9a-f]{64}$",
+            "title": "Fill Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "fill_id",
+          "fill_digest"
+        ],
+        "title": "PaperExecutionFillReferenceResponse",
+        "type": "object"
+      },
+      "PaperExecutionFillResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_reference": {
+            "$ref": "#/components/schemas/PaperExecutionAttemptReferenceResponse"
+          },
+          "cost_evidence": {
+            "$ref": "#/components/schemas/PaperExecutionCostEvidenceResponse"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_event_reference": {
+            "$ref": "#/components/schemas/PaperExecutionEventReferenceResponse"
+          },
+          "execution_order_reference": {
+            "$ref": "#/components/schemas/PaperExecutionOrderReferenceResponse"
+          },
+          "execution_price_evidence": {
+            "$ref": "#/components/schemas/PaperExecutionPriceEvidenceResponse"
+          },
+          "fill_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Fill Digest",
+            "type": "string"
+          },
+          "fill_id": {
+            "pattern": "^pef_[0-9a-f]{64}$",
+            "title": "Fill Id",
+            "type": "string"
+          },
+          "fill_quantity": {
+            "title": "Fill Quantity",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "side": {
+            "enum": [
+              "buy",
+              "sell"
+            ],
+            "title": "Side",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "fill_id",
+          "fill_digest",
+          "execution_order_reference",
+          "attempt_reference",
+          "execution_event_reference",
+          "side",
+          "fill_quantity",
+          "execution_price_evidence",
+          "cost_evidence",
+          "created_at"
+        ],
+        "title": "PaperExecutionFillResponse",
+        "type": "object"
+      },
+      "PaperExecutionIntentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "intent_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Intent Digest",
+            "type": "string"
+          },
+          "intent_id": {
+            "pattern": "^oi_[0-9a-f]{64}$",
+            "title": "Intent Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intent_id",
+          "intent_digest"
+        ],
+        "title": "PaperExecutionIntentRequest",
+        "type": "object"
+      },
+      "PaperExecutionMarketHandoffResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Calendar Id",
+            "type": "string"
+          },
+          "calendar_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Calendar Version",
+            "type": "integer"
+          },
+          "current_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Current Event Id",
+            "type": "string"
+          },
+          "current_event_time": {
+            "format": "date-time",
+            "title": "Current Event Time",
+            "type": "string"
+          },
+          "cursor_position": {
+            "exclusiveMinimum": 0.0,
+            "title": "Cursor Position",
+            "type": "integer"
+          },
+          "event_stream_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "handoff_replay_status": {
+            "const": "running",
+            "title": "Handoff Replay Status",
+            "type": "string"
+          },
+          "instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "last_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Last Event Id",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "session_close_time": {
+            "format": "date-time",
+            "title": "Session Close Time",
+            "type": "string"
+          },
+          "session_open_time": {
+            "format": "date-time",
+            "title": "Session Open Time",
+            "type": "string"
+          },
+          "session_type": {
+            "title": "Session Type",
+            "type": "string"
+          },
+          "trading_date": {
+            "format": "date",
+            "title": "Trading Date",
+            "type": "string"
+          },
+          "trading_session_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Trading Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "calendar_id",
+          "calendar_version",
+          "trading_session_id",
+          "trading_date",
+          "session_open_time",
+          "session_close_time",
+          "session_type",
+          "replay_id",
+          "event_stream_digest",
+          "cursor_position",
+          "last_event_id",
+          "current_event_time",
+          "current_event_id",
+          "instrument_id",
+          "handoff_replay_status",
+          "reference_digest"
+        ],
+        "title": "PaperExecutionMarketHandoffResponse",
+        "type": "object"
+      },
+      "PaperExecutionOrderCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/PaperExecutionCreateResultResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "result"
+        ],
+        "title": "PaperExecutionOrderCommandResponse",
+        "type": "object"
+      },
+      "PaperExecutionOrderCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/PaperExecutionDecisionRequest"
+          },
+          "execution_policy": {
+            "$ref": "#/components/schemas/PaperExecutionPolicyRequest"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/PaperExecutionIntentRequest"
+          }
+        },
+        "required": [
+          "intent",
+          "decision",
+          "execution_policy",
+          "actor"
+        ],
+        "title": "PaperExecutionOrderCreateRequest",
+        "type": "object"
+      },
+      "PaperExecutionOrderListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaperExecutionOrderViewResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PaperExecutionOrderListResponse",
+        "type": "object"
+      },
+      "PaperExecutionOrderReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "execution_order_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "execution_order_id": {
+            "pattern": "^peo_[0-9a-f]{64}$",
+            "title": "Execution Order Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "execution_order_id",
+          "execution_order_digest"
+        ],
+        "title": "PaperExecutionOrderReferenceResponse",
+        "type": "object"
+      },
+      "PaperExecutionOrderResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_handoff_reference": {
+            "$ref": "#/components/schemas/PaperExecutionAccountHandoffResponse"
+          },
+          "account_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_order_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "execution_order_id": {
+            "pattern": "^peo_[0-9a-f]{64}$",
+            "title": "Execution Order Id",
+            "type": "string"
+          },
+          "execution_policy_reference": {
+            "$ref": "#/components/schemas/PaperExecutionPolicyReferenceResponse"
+          },
+          "instrument_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "market_handoff_reference": {
+            "$ref": "#/components/schemas/PaperExecutionMarketHandoffResponse"
+          },
+          "order_intent_reference": {
+            "$ref": "#/components/schemas/OrderIntentReferenceResponse"
+          },
+          "origin_actor": {
+            "title": "Origin Actor",
+            "type": "string"
+          },
+          "origin_command_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Origin Command Digest",
+            "type": "string"
+          },
+          "requested_quantity": {
+            "title": "Requested Quantity",
+            "type": "string"
+          },
+          "risk_handoff_reference": {
+            "$ref": "#/components/schemas/PaperExecutionRiskHandoffResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "side": {
+            "enum": [
+              "buy",
+              "sell"
+            ],
+            "title": "Side",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "execution_order_id",
+          "execution_order_digest",
+          "order_intent_reference",
+          "risk_handoff_reference",
+          "account_handoff_reference",
+          "market_handoff_reference",
+          "execution_policy_reference",
+          "account_id",
+          "instrument_id",
+          "side",
+          "requested_quantity",
+          "origin_command_digest",
+          "origin_actor",
+          "created_at"
+        ],
+        "title": "PaperExecutionOrderResponse",
+        "type": "object"
+      },
+      "PaperExecutionOrderStateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "cumulative_filled_quantity": {
+            "title": "Cumulative Filled Quantity",
+            "type": "string"
+          },
+          "execution_order_reference": {
+            "$ref": "#/components/schemas/PaperExecutionOrderReferenceResponse"
+          },
+          "execution_version": {
+            "minimum": 0.0,
+            "title": "Execution Version",
+            "type": "integer"
+          },
+          "remaining_quantity": {
+            "title": "Remaining Quantity",
+            "type": "string"
+          },
+          "requested_quantity": {
+            "title": "Requested Quantity",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "working",
+              "partially_filled",
+              "filled",
+              "rejected",
+              "partially_filled_rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "terminal": {
+            "title": "Terminal",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schema_version",
+          "execution_order_reference",
+          "execution_version",
+          "status",
+          "requested_quantity",
+          "cumulative_filled_quantity",
+          "remaining_quantity",
+          "terminal"
+        ],
+        "title": "PaperExecutionOrderStateResponse",
+        "type": "object"
+      },
+      "PaperExecutionOrderStepRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "execution_order_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "expected_execution_version": {
+            "minimum": 0.0,
+            "title": "Expected Execution Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "execution_order_digest",
+          "expected_execution_version",
+          "actor"
+        ],
+        "title": "PaperExecutionOrderStepRequest",
+        "type": "object"
+      },
+      "PaperExecutionOrderViewResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/PaperExecutionOrderResponse"
+          },
+          "state": {
+            "$ref": "#/components/schemas/PaperExecutionOrderStateResponse"
+          }
+        },
+        "required": [
+          "order",
+          "state"
+        ],
+        "title": "PaperExecutionOrderViewResponse",
+        "type": "object"
+      },
+      "PaperExecutionPolicyReferenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "buy_tax_bps": {
+            "title": "Buy Tax Bps",
+            "type": "string"
+          },
+          "commission_bps": {
+            "title": "Commission Bps",
+            "type": "string"
+          },
+          "configuration_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Configuration Digest",
+            "type": "string"
+          },
+          "execution_price_policy_id": {
+            "const": "consumed_trade_event_price_v1",
+            "title": "Execution Price Policy Id",
+            "type": "string"
+          },
+          "fee_bps": {
+            "title": "Fee Bps",
+            "type": "string"
+          },
+          "max_fill_quantity_per_trade_event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Fill Quantity Per Trade Event"
+          },
+          "policy_id": {
+            "const": "paper_execution_v1",
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "sell_tax_bps": {
+            "title": "Sell Tax Bps",
+            "type": "string"
+          },
+          "slippage_bps": {
+            "title": "Slippage Bps",
+            "type": "string"
+          },
+          "slippage_policy_id": {
+            "const": "fixed_bps_slippage_v1",
+            "title": "Slippage Policy Id",
+            "type": "string"
+          },
+          "transaction_cost_policy_id": {
+            "const": "per_fill_bps_costs_v1",
+            "title": "Transaction Cost Policy Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "policy_id",
+          "execution_price_policy_id",
+          "max_fill_quantity_per_trade_event",
+          "slippage_policy_id",
+          "slippage_bps",
+          "transaction_cost_policy_id",
+          "commission_bps",
+          "fee_bps",
+          "buy_tax_bps",
+          "sell_tax_bps",
+          "configuration_digest",
+          "reference_digest"
+        ],
+        "title": "PaperExecutionPolicyReferenceResponse",
+        "type": "object"
+      },
+      "PaperExecutionPolicyRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "buy_tax_bps": {
+            "title": "Buy Tax Bps",
+            "type": "string"
+          },
+          "commission_bps": {
+            "title": "Commission Bps",
+            "type": "string"
+          },
+          "fee_bps": {
+            "title": "Fee Bps",
+            "type": "string"
+          },
+          "max_fill_quantity_per_trade_event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Fill Quantity Per Trade Event"
+          },
+          "sell_tax_bps": {
+            "title": "Sell Tax Bps",
+            "type": "string"
+          },
+          "slippage_bps": {
+            "title": "Slippage Bps",
+            "type": "string"
+          }
+        },
+        "required": [
+          "max_fill_quantity_per_trade_event",
+          "slippage_bps",
+          "commission_bps",
+          "fee_bps",
+          "buy_tax_bps",
+          "sell_tax_bps"
+        ],
+        "title": "PaperExecutionPolicyRequest",
+        "type": "object"
+      },
+      "PaperExecutionPriceEvidenceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "base_trade_price": {
+            "title": "Base Trade Price",
+            "type": "string"
+          },
+          "execution_event_reference": {
+            "$ref": "#/components/schemas/PaperExecutionEventReferenceResponse"
+          },
+          "execution_price": {
+            "title": "Execution Price",
+            "type": "string"
+          },
+          "execution_price_policy_id": {
+            "const": "consumed_trade_event_price_v1",
+            "title": "Execution Price Policy Id",
+            "type": "string"
+          },
+          "pre_round_execution_price": {
+            "title": "Pre Round Execution Price",
+            "type": "string"
+          },
+          "price_evidence_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Price Evidence Digest",
+            "type": "string"
+          },
+          "rounding_applied": {
+            "title": "Rounding Applied",
+            "type": "boolean"
+          },
+          "rounding_mode": {
+            "title": "Rounding Mode",
+            "type": "string"
+          },
+          "rounding_quantum": {
+            "title": "Rounding Quantum",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "side": {
+            "enum": [
+              "buy",
+              "sell"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "slippage_bps": {
+            "title": "Slippage Bps",
+            "type": "string"
+          },
+          "slippage_policy_id": {
+            "const": "fixed_bps_slippage_v1",
+            "title": "Slippage Policy Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "execution_price_policy_id",
+          "execution_event_reference",
+          "side",
+          "base_trade_price",
+          "slippage_policy_id",
+          "slippage_bps",
+          "pre_round_execution_price",
+          "execution_price",
+          "rounding_quantum",
+          "rounding_mode",
+          "rounding_applied",
+          "price_evidence_digest"
+        ],
+        "title": "PaperExecutionPriceEvidenceResponse",
+        "type": "object"
+      },
+      "PaperExecutionReconciliationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/PaperExecutionAttemptResponse"
+            },
+            "title": "Attempts",
+            "type": "array"
+          },
+          "fills": {
+            "items": {
+              "$ref": "#/components/schemas/PaperExecutionFillResponse"
+            },
+            "title": "Fills",
+            "type": "array"
+          },
+          "order": {
+            "$ref": "#/components/schemas/PaperExecutionOrderResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "settlement_links": {
+            "items": {
+              "$ref": "#/components/schemas/PaperExecutionSettlementLinkResponse"
+            },
+            "title": "Settlement Links",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/PaperExecutionOrderStateResponse"
+          }
+        },
+        "required": [
+          "schema_version",
+          "order",
+          "state",
+          "attempts",
+          "fills",
+          "settlement_links"
+        ],
+        "title": "PaperExecutionReconciliationResponse",
+        "type": "object"
+      },
+      "PaperExecutionReplayCursorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "current_event_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Event Time"
+          },
+          "event_stream_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "last_event_id": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Event Id"
+          },
+          "position": {
+            "minimum": 0.0,
+            "title": "Position",
+            "type": "integer"
+          },
+          "replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "running",
+              "paused",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replay_id",
+          "event_stream_digest",
+          "position",
+          "last_event_id",
+          "current_event_time",
+          "status"
+        ],
+        "title": "PaperExecutionReplayCursorResponse",
+        "type": "object"
+      },
+      "PaperExecutionRiskHandoffResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "order_intent_reference": {
+            "$ref": "#/components/schemas/OrderIntentReferenceResponse"
+          },
+          "outcome": {
+            "const": "allow",
+            "title": "Outcome",
+            "type": "string"
+          },
+          "reference_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Digest",
+            "type": "string"
+          },
+          "risk_decision_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Risk Decision Digest",
+            "type": "string"
+          },
+          "risk_decision_id": {
+            "pattern": "^risk_decision_[0-9a-f]{64}$",
+            "title": "Risk Decision Id",
+            "type": "string"
+          },
+          "risk_policy_reference": {
+            "$ref": "#/components/schemas/PreTradeRiskPolicyReferenceResponse"
+          },
+          "risk_snapshot_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Risk Snapshot Digest",
+            "type": "string"
+          },
+          "risk_snapshot_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Risk Snapshot Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "order_intent_reference",
+          "risk_decision_id",
+          "risk_decision_digest",
+          "risk_snapshot_id",
+          "risk_snapshot_digest",
+          "outcome",
+          "risk_policy_reference",
+          "reference_digest"
+        ],
+        "title": "PaperExecutionRiskHandoffResponse",
+        "type": "object"
+      },
+      "PaperExecutionRiskRevalidationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_head_chain_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Account Head Chain Digest",
+            "type": "string"
+          },
+          "account_head_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Head Event Id",
+            "type": "string"
+          },
+          "account_head_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Account Head Version",
+            "type": "integer"
+          },
+          "account_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "available_cash": {
+            "title": "Available Cash",
+            "type": "string"
+          },
+          "candidate_fill_quantity": {
+            "title": "Candidate Fill Quantity",
+            "type": "string"
+          },
+          "cost_evidence": {
+            "$ref": "#/components/schemas/PaperExecutionCostEvidenceResponse"
+          },
+          "cumulative_filled_gross_notional": {
+            "title": "Cumulative Filled Gross Notional",
+            "type": "string"
+          },
+          "current_instrument_quantity": {
+            "title": "Current Instrument Quantity",
+            "type": "string"
+          },
+          "execution_order_reference": {
+            "$ref": "#/components/schemas/PaperExecutionOrderReferenceResponse"
+          },
+          "execution_price_evidence": {
+            "$ref": "#/components/schemas/PaperExecutionPriceEvidenceResponse"
+          },
+          "execution_version": {
+            "minimum": 0.0,
+            "title": "Execution Version",
+            "type": "integer"
+          },
+          "outcome": {
+            "enum": [
+              "allow",
+              "reject"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "projected_notional_pre_round": {
+            "title": "Projected Notional Pre Round",
+            "type": "string"
+          },
+          "projected_notional_rounding_applied": {
+            "title": "Projected Notional Rounding Applied",
+            "type": "boolean"
+          },
+          "projected_order_gross_notional": {
+            "title": "Projected Order Gross Notional",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "remaining_quantity_before_step": {
+            "title": "Remaining Quantity Before Step",
+            "type": "string"
+          },
+          "requested_quantity": {
+            "title": "Requested Quantity",
+            "type": "string"
+          },
+          "risk_policy_reference": {
+            "$ref": "#/components/schemas/PreTradeRiskPolicyReferenceResponse"
+          },
+          "risk_revalidation_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Risk Revalidation Digest",
+            "type": "string"
+          },
+          "risk_revalidation_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Risk Revalidation Id",
+            "type": "string"
+          },
+          "rounding_mode": {
+            "title": "Rounding Mode",
+            "type": "string"
+          },
+          "rounding_quantum": {
+            "title": "Rounding Quantum",
+            "type": "string"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/PaperExecutionRiskRuleResponse"
+            },
+            "title": "Rules",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "risk_revalidation_id",
+          "risk_revalidation_digest",
+          "execution_order_reference",
+          "execution_version",
+          "account_id",
+          "account_head_version",
+          "account_head_event_id",
+          "account_head_chain_digest",
+          "available_cash",
+          "current_instrument_quantity",
+          "risk_policy_reference",
+          "execution_price_evidence",
+          "cost_evidence",
+          "requested_quantity",
+          "remaining_quantity_before_step",
+          "candidate_fill_quantity",
+          "cumulative_filled_gross_notional",
+          "projected_notional_pre_round",
+          "projected_order_gross_notional",
+          "projected_notional_rounding_applied",
+          "rounding_quantum",
+          "rounding_mode",
+          "rules",
+          "outcome",
+          "reason_codes"
+        ],
+        "title": "PaperExecutionRiskRevalidationResponse",
+        "type": "object"
+      },
+      "PaperExecutionRiskRuleResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "limit_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit Value"
+          },
+          "observed_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Value"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "passed",
+          "reason_code",
+          "observed_value",
+          "limit_value"
+        ],
+        "title": "PaperExecutionRiskRuleResponse",
+        "type": "object"
+      },
+      "PaperExecutionSettlementLinkResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_chain_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Account Chain Digest",
+            "type": "string"
+          },
+          "account_event_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Account Event Digest",
+            "type": "string"
+          },
+          "account_event_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Event Id",
+            "type": "string"
+          },
+          "account_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "account_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Account Version",
+            "type": "integer"
+          },
+          "cash_entry_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Cash Entry Digest",
+            "type": "string"
+          },
+          "cash_entry_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Cash Entry Id",
+            "type": "string"
+          },
+          "execution_attempt_reference": {
+            "$ref": "#/components/schemas/PaperExecutionAttemptReferenceResponse"
+          },
+          "execution_fill_reference": {
+            "$ref": "#/components/schemas/PaperExecutionFillReferenceResponse"
+          },
+          "execution_order_reference": {
+            "$ref": "#/components/schemas/PaperExecutionOrderReferenceResponse"
+          },
+          "position_entry_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Position Entry Digest",
+            "type": "string"
+          },
+          "position_entry_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Position Entry Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "settlement_link_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Settlement Link Digest",
+            "type": "string"
+          },
+          "settlement_link_evidence_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Settlement Link Evidence Digest",
+            "type": "string"
+          },
+          "settlement_link_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Settlement Link Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "settlement_link_id",
+          "settlement_link_digest",
+          "settlement_link_evidence_digest",
+          "execution_order_reference",
+          "execution_attempt_reference",
+          "execution_fill_reference",
+          "account_id",
+          "account_event_id",
+          "account_event_digest",
+          "account_chain_digest",
+          "account_version",
+          "cash_entry_id",
+          "cash_entry_digest",
+          "position_entry_id",
+          "position_entry_digest"
+        ],
+        "title": "PaperExecutionSettlementLinkResponse",
+        "type": "object"
+      },
+      "PaperExecutionStepCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/PaperExecutionStepResultResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "result"
+        ],
+        "title": "PaperExecutionStepCommandResponse",
+        "type": "object"
+      },
+      "PaperExecutionStepResultResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_event_id": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Event Id"
+          },
+          "attempt": {
+            "$ref": "#/components/schemas/PaperExecutionAttemptResponse"
+          },
+          "fill": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaperExecutionFillResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "order_state": {
+            "$ref": "#/components/schemas/PaperExecutionOrderStateResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "settlement_link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaperExecutionSettlementLinkResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "schema_version",
+          "attempt",
+          "fill",
+          "order_state",
+          "settlement_link",
+          "account_event_id"
+        ],
+        "title": "PaperExecutionStepResultResponse",
+        "type": "object"
+      },
       "PaperFillCommandRequest": {
         "additionalProperties": false,
         "properties": {
@@ -10060,6 +12007,788 @@
           }
         },
         "summary": "Post Paper Account Snapshot"
+      }
+    },
+    "/api/v1/paper-execution/attempts/{attempt_id}": {
+      "get": {
+        "operationId": "get_paper_execution_attempt_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^pea_[0-9a-f]{64}$",
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionAttemptResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Paper Execution Attempt V1"
+      }
+    },
+    "/api/v1/paper-execution/fills": {
+      "get": {
+        "operationId": "list_paper_execution_fills_v1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "execution_order_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^peo_[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Execution Order Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionFillListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Paper Execution Fills V1"
+      }
+    },
+    "/api/v1/paper-execution/fills/{fill_id}": {
+      "get": {
+        "operationId": "get_paper_execution_fill_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fill_id",
+            "required": true,
+            "schema": {
+              "pattern": "^pef_[0-9a-f]{64}$",
+              "title": "Fill Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionFillResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Paper Execution Fill V1"
+      }
+    },
+    "/api/v1/paper-execution/orders": {
+      "get": {
+        "operationId": "list_paper_execution_orders_v1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "replay_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Replay Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "trading_session_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Trading Session Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "instrument_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Instrument Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "side",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "buy",
+                    "sell"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Side"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionOrderListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Paper Execution Orders V1"
+      },
+      "post": {
+        "operationId": "create_paper_execution_order_v1",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperExecutionOrderCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionOrderCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionOrderCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Paper Execution Order V1"
+      }
+    },
+    "/api/v1/paper-execution/orders/{execution_order_id}": {
+      "get": {
+        "operationId": "get_paper_execution_order_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execution_order_id",
+            "required": true,
+            "schema": {
+              "pattern": "^peo_[0-9a-f]{64}$",
+              "title": "Execution Order Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionOrderViewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Paper Execution Order V1"
+      }
+    },
+    "/api/v1/paper-execution/orders/{execution_order_id}/attempts": {
+      "get": {
+        "operationId": "list_paper_execution_attempts_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execution_order_id",
+            "required": true,
+            "schema": {
+              "pattern": "^peo_[0-9a-f]{64}$",
+              "title": "Execution Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionAttemptListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Paper Execution Attempts V1"
+      }
+    },
+    "/api/v1/paper-execution/orders/{execution_order_id}/reconciliation": {
+      "get": {
+        "operationId": "get_paper_execution_reconciliation_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execution_order_id",
+            "required": true,
+            "schema": {
+              "pattern": "^peo_[0-9a-f]{64}$",
+              "title": "Execution Order Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionReconciliationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Paper Execution Reconciliation V1"
+      }
+    },
+    "/api/v1/paper-execution/orders/{execution_order_id}/steps": {
+      "post": {
+        "operationId": "step_paper_execution_order_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execution_order_id",
+            "required": true,
+            "schema": {
+              "pattern": "^peo_[0-9a-f]{64}$",
+              "title": "Execution Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperExecutionOrderStepRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionStepCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperExecutionStepCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Step Paper Execution Order V1"
       }
     },
     "/api/v1/paper-jobs": {

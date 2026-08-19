@@ -6,8 +6,8 @@ GitHub Issue #408 is the authoritative Milestone 34 architecture source. This
 record summarizes that approved boundary; it does not replace or broaden the
 Issue.
 
-Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S210
-are Complete. Sprint 211 is current, with Issue #415 as its authoritative
+Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S211
+are Complete. Sprint 212 is current, with Issue #417 as its authoritative
 implementation specification.
 
 ## Authority chain
@@ -93,14 +93,15 @@ one atomic durable commit.
 ## Deferred authority
 
 S211 durably commits the pure S209/S210 evidence without duplicating its math.
-Reservation, API,
-generated contract, Web, Demo v6, worker, scheduler, broker, live, and
-real-money behavior remain deferred.
+S212 exposes that authority through exactly nine authenticated versioned
+operations, strict generated contracts, stable public errors, and bounded
+audit correlation. Reservation, Web, Demo v6, worker, scheduler, broker, live,
+and real-money behavior remain deferred.
 
 The migration head is exactly `0011_paper_execution`.
 
 ## Preserved runtime boundary
 
-M34 remains a manual synchronous simulator. S212–S216 remain planned. M35
+M34 remains a manual synchronous simulator. S213–S216 remain planned. M35
 owns durable runtime and recovery; M36 owns multi-session and multi-day
 operation. Neither later milestone is implemented here.

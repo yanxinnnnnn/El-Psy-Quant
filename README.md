@@ -24,11 +24,12 @@ S207 — Complete
 S208 — Complete
 S209 — Complete
 S210 — Complete
-S211 — Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation
+S211 — Complete
+S212 — Versioned Paper Execution API, Errors, Audit, and Generated Contracts
 ```
 
-Issue #408 is the authoritative M34 architecture source. Issue #415 is the
-authoritative S211 implementation specification. M35–M36 remain future
+Issue #408 is the authoritative M34 architecture source. Issue #417 is the
+authoritative S212 implementation specification. M35–M36 remain future
 milestones.
 
 Current migration head:
@@ -180,7 +181,7 @@ M33 closes without execution order, fill, execution pricing, fee calculation,
 reservation, fill-caused account mutation, replay progression, runtime worker,
 broker, live, or real-money behavior.
 
-### M34 — Current S211 Durable Transaction Foundation
+### M34 — Current S212 Versioned API Foundation
 
 S208 introduced a separate pure `el_psy_quant.paper_execution` authority
 boundary with exact execution-policy values, strict M31/M32/M33 handoff
@@ -199,8 +200,12 @@ One immutable `ExecutionSettlementLink` binds the Fill to that M31 authority.
 
 S211 adds immutable Order/Attempt/Fill/SettlementLink/receipt persistence and
 atomic SQLite create/step orchestration across M34, M31 settlement, and M32
-checkpoint CAS authority. The migration head is `0011_paper_execution`. S212
-owns API/error/audit/generated contracts; S213–S216 remain planned.
+checkpoint CAS authority.
+
+S212 adds exactly nine Founder-authenticated Paper Execution operations, strict
+public schemas, bounded keyset pagination, stable sanitized errors, request-ID
+and audit correlation, canonical OpenAPI, and generated TypeScript contracts.
+The migration head remains `0011_paper_execution`; S213–S216 remain planned.
 
 ## Current Founder Journey
 
@@ -235,9 +240,7 @@ it is not yet true end-to-end simulated execution.
 
 It does not yet provide:
 
-- atomic fill-caused M31 ledger postings and execution reconciliation;
-- durable Attempt/Fill/replay-checkpoint persistence and transactions;
-- versioned execution API, Founder Web workflow, or Demo v6 evidence;
+- a Founder Web execution workflow or Demo v6 evidence;
 - a durable worker/claim/checkpoint/recovery loop for session execution;
 - continuous multi-day Paper Trading;
 - broker, QMT, MiniQMT, private-edge, live, or real-money behavior; or
@@ -264,7 +267,8 @@ S207 froze the M34 architecture in Issue #408. S208 completed the pure Order,
 policy, handoff, command, and lifecycle foundation. S209 completed the pure
 one-event Attempt/Fill/pricing/cost/risk layer. S210 completed pure Fill-to-M31
 settlement and link reconciliation. S211 adds durable atomic authority under
-Issue #415. S212–S216 remain planned.
+Issue #415. S212 adds the versioned API/error/audit/generated-contract boundary
+under Issue #417. S213–S216 remain planned.
 
 Authoritative runtime roadmap:
 

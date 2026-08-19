@@ -233,6 +233,23 @@ class PaperExecutionStoredResult(Generic[T]):
             raise ValueError("replayed must be bool")
 
 
+@dataclass(frozen=True)
+class PaperExecutionPage(Generic[T]):
+    """One bounded deterministic page of strictly reconstructed authority."""
+
+    items: tuple[T, ...]
+    has_more: bool
+    version_anchor: int | None = None
+
+    def __post_init__(self) -> None:
+        if type(self.items) is not tuple or type(self.has_more) is not bool:
+            raise ValueError("paper execution page is invalid")
+        if self.version_anchor is not None and (
+            type(self.version_anchor) is not int or self.version_anchor < 0
+        ):
+            raise ValueError("paper execution page version anchor is invalid")
+
+
 __all__ = [
     "COMMAND_NAMESPACE_CREATE_ORDER",
     "COMMAND_NAMESPACE_STEP_ORDER",
@@ -247,6 +264,7 @@ __all__ = [
     "PaperExecutionIdempotencyConflictError",
     "PaperExecutionNotFoundError",
     "PaperExecutionOperationConflictError",
+    "PaperExecutionPage",
     "PaperExecutionReconciliationRequiredError",
     "PaperExecutionStaleAuthorityError",
     "PaperExecutionStepCommit",

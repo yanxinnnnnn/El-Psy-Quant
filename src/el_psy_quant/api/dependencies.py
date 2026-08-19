@@ -12,6 +12,7 @@ from el_psy_quant.api.errors import PublicApiError
 from el_psy_quant.application import (
     PaperArtifactRootUnavailableError,
     PaperAccountApplicationService,
+    PaperExecutionApplicationService,
     PortfolioReviewArtifactRootUnavailableError,
     StrategyOrderApplicationService,
 )
@@ -49,6 +50,22 @@ def strategy_order_schema_incompatible() -> PublicApiError:
         status_code=HTTPStatus.SERVICE_UNAVAILABLE,
         code="strategy_order_schema_incompatible",
         message="Strategy-to-risk schema is incompatible",
+    )
+
+
+def paper_execution_authority_unavailable() -> PublicApiError:
+    return PublicApiError(
+        status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+        code="paper_execution_authority_unavailable",
+        message="Paper Execution authority is unavailable",
+    )
+
+
+def paper_execution_schema_incompatible() -> PublicApiError:
+    return PublicApiError(
+        status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+        code="paper_execution_schema_incompatible",
+        message="Paper Execution schema is incompatible",
     )
 
 
@@ -168,6 +185,43 @@ def get_strategy_order_application_service(
 ) -> StrategyOrderApplicationService:
     """Construct one explicit request-scoped M33 application service."""
     return StrategyOrderApplicationService(session_factory=session_factory)
+
+
+def get_paper_execution_session_factory(
+    request: Request,
+) -> sessionmaker[Session]:
+    """Resolve current M34 storage with distinct availability/schema errors."""
+    path = getattr(request.app.state, "product_database_path", None)
+    factory = getattr(request.app.state, "product_session_factory", None)
+    try:
+        storage_available = (
+            isinstance(path, Path)
+            and path.exists()
+            and path.is_file()
+            and isinstance(factory, sessionmaker)
+        )
+    except OSError as exc:
+        raise paper_execution_authority_unavailable() from exc
+    if not storage_available:
+        raise paper_execution_authority_unavailable()
+    try:
+        if not _product_schema_is_compatible(path):
+            raise paper_execution_schema_incompatible()
+    except PublicApiError:
+        raise
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise paper_execution_schema_incompatible() from exc
+    return factory
+
+
+def get_paper_execution_application_service(
+    session_factory: Annotated[
+        sessionmaker[Session],
+        Depends(get_paper_execution_session_factory),
+    ],
+) -> PaperExecutionApplicationService:
+    """Construct one explicit request-scoped M34 application service."""
+    return PaperExecutionApplicationService(session_factory=session_factory)
 
 
 def get_server_utc_timestamp() -> datetime:
