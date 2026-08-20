@@ -1505,15 +1505,18 @@ def _validate_paper_execution_journey(
                 raise ValueError("Demo execution Attempt expectations are incomplete")
             if len(scenario.expected.fills) != len(scenario.expected.settlement_links):
                 raise ValueError("Demo execution Fill/settlement expectations diverge")
-            for decimal_value in (
-                scenario.expected.cash_balance,
+            for quantity_value in (
                 scenario.expected.position_quantity,
-                scenario.expected.aggregate_cost_basis,
                 *(item.quantity for item in scenario.expected.fills),
+            ):
+                PaperQuantity.parse(quantity_value)
+            for money_value in (
+                scenario.expected.cash_balance,
+                scenario.expected.aggregate_cost_basis,
                 *(item.execution_price for item in scenario.expected.fills),
                 *(item.total_charges for item in scenario.expected.fills),
             ):
-                PaperMoney.parse(decimal_value)
+                PaperMoney.parse(money_value)
             for authority in (
                 scenario.expected.intent,
                 scenario.expected.allow_decision,
@@ -3264,45 +3267,93 @@ def _seed_demo_paper_execution(
         engine.dispose()
 
 
+def _validate_demo_paper_execution_authority(
+    *,
+    service: PaperExecutionApplicationService,
+    strategy: StrategyOrderApplicationService,
+    descriptor: dict[str, Any],
+    manual_must_be_fresh: bool,
+) -> None:
+    manual = descriptor["manual_candidate"]
+    intent = strategy.get_order_intent(intent_id=manual["intent_id"])
+    decision = strategy.get_pre_trade_risk_decision(
+        decision_id=manual["decision_id"]
+    )
+    page = service.list_order_histories(
+        limit=200,
+        account_id=intent.account_reference.account_id,
+        replay_id=intent.market_reference.replay_id,
+        trading_session_id=intent.market_reference.trading_session_id,
+    )
+    if (
+        page.has_more
+        or intent.intent_digest != manual["intent_digest"]
+        or decision.decision_digest != manual["decision_digest"]
+        or decision.outcome != "allow"
+        or len(page.items) > 1
+        or (
+            page.items
+            and page.items[0].order.order_intent_reference.intent_id
+            != intent.intent_id
+        )
+        or (manual_must_be_fresh and page.items)
+    ):
+        raise DemoWorkspaceUnavailableError(
+            "Demo manual execution candidate is inconsistent"
+        )
+    if page.items:
+        history = page.items[0]
+        reconciled = service.reconcile_order(
+            execution_order_id=history.order.execution_order_id
+        )
+        order = reconciled.order
+        expected_policy = _execution_policy(
+            _DemoExecutionPolicy.model_validate(descriptor["policy_draft"])
+        )
+        if (
+            reconciled != history
+            or order.order_intent_reference.intent_id != manual["intent_id"]
+            or order.order_intent_reference.intent_digest
+            != manual["intent_digest"]
+            or order.risk_handoff_reference.risk_decision_id
+            != manual["decision_id"]
+            or order.risk_handoff_reference.risk_decision_digest
+            != manual["decision_digest"]
+            or order.execution_policy_reference != expected_policy
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "Demo manual execution progression is inconsistent"
+            )
+    for name in (
+        "completed_order",
+        "risk_rejection_order",
+        "exhaustion_order",
+    ):
+        reference = descriptor[name]
+        history = service.reconcile_order(execution_order_id=reference["id"])
+        if history.order.execution_order_digest != reference["digest"]:
+            raise DemoWorkspaceUnavailableError(
+                "Demo execution descriptor is inconsistent"
+            )
+
+
 def _validate_seeded_demo_paper_execution(
-    *, paths: DemoWorkspacePaths, source: _ValidatedDemoSource
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+    manual_must_be_fresh: bool,
 ) -> None:
     engine = create_product_database_engine(
         config=resolve_product_database_config(database_path=paths.database_path)
     )
     factory = create_product_session_factory(engine=engine)
     try:
-        service = PaperExecutionApplicationService(session_factory=factory)
-        descriptor = source.descriptor.to_dict()["paper_execution"]
-        manual = descriptor["manual_candidate"]
-        strategy = StrategyOrderApplicationService(session_factory=factory)
-        intent = strategy.get_order_intent(intent_id=manual["intent_id"])
-        decision = strategy.get_pre_trade_risk_decision(
-            decision_id=manual["decision_id"]
+        _validate_demo_paper_execution_authority(
+            service=PaperExecutionApplicationService(session_factory=factory),
+            strategy=StrategyOrderApplicationService(session_factory=factory),
+            descriptor=source.descriptor.to_dict()["paper_execution"],
+            manual_must_be_fresh=manual_must_be_fresh,
         )
-        if (
-            intent.intent_digest != manual["intent_digest"]
-            or decision.decision_digest != manual["decision_digest"]
-            or decision.outcome != "allow"
-            or any(
-                item.order.order_intent_reference.intent_id == intent.intent_id
-                for item in service.list_order_histories(limit=200).items
-            )
-        ):
-            raise DemoWorkspaceUnavailableError(
-                "Demo manual execution candidate is inconsistent"
-            )
-        for name in (
-            "completed_order",
-            "risk_rejection_order",
-            "exhaustion_order",
-        ):
-            reference = descriptor[name]
-            history = service.reconcile_order(execution_order_id=reference["id"])
-            if history.order.execution_order_digest != reference["digest"]:
-                raise DemoWorkspaceUnavailableError(
-                    "Demo execution descriptor is inconsistent"
-                )
     finally:
         engine.dispose()
 
@@ -3504,7 +3555,10 @@ def _database_revision(database_path: Path) -> str:
 
 
 def _validate_installed_workspace(
-    *, paths: DemoWorkspacePaths, source: _ValidatedDemoSource
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+    manual_must_be_fresh: bool,
 ) -> None:
     if _database_revision(paths.database_path) != CURRENT_PRODUCT_SCHEMA_REVISION:
         raise DemoWorkspaceUnavailableError("demo database schema is unavailable")
@@ -3573,7 +3627,11 @@ def _validate_installed_workspace(
             "demo strategy-to-risk authority is unavailable"
         ) from exc
     try:
-        _validate_seeded_demo_paper_execution(paths=paths, source=source)
+        _validate_seeded_demo_paper_execution(
+            paths=paths,
+            source=source,
+            manual_must_be_fresh=manual_must_be_fresh,
+        )
     except DemoWorkspaceUnavailableError:
         raise
     except Exception as exc:
@@ -3673,7 +3731,11 @@ def install_demo_workspace(
             _populate_upgraded_demo_result_references(paths=paths, source=source)
         if prior_revision == "0009_market_time_runtime":
             _seed_demo_strategy_order(paths=paths, source=source)
-        _validate_installed_workspace(paths=paths, source=source)
+        _validate_installed_workspace(
+            paths=paths,
+            source=source,
+            manual_must_be_fresh=False,
+        )
         return DemoWorkspaceInstallResult(
             dataset_id=source.manifest.dataset_id,
             dataset_version=source.manifest.dataset_version,
@@ -3719,7 +3781,11 @@ def install_demo_workspace(
         _seed_demo_paper_execution(paths=staging, source=source)
         _write_json(staging.descriptor_path, source.descriptor.to_dict())
         _write_json(staging.marker_path, _install_marker(source))
-        _validate_installed_workspace(paths=staging, source=source)
+        _validate_installed_workspace(
+            paths=staging,
+            source=source,
+            manual_must_be_fresh=True,
+        )
         _retarget_staged_result_summaries(
             staging=staging,
             target=paths,
@@ -3954,6 +4020,16 @@ def validate_installed_demo_workspace(
             _validate_descriptor_strategy_order(
                 paths=paths,
                 strategy_order=payload["strategy_order"],
+            )
+            _validate_demo_paper_execution_authority(
+                service=PaperExecutionApplicationService(
+                    session_factory=factory
+                ),
+                strategy=StrategyOrderApplicationService(
+                    session_factory=factory
+                ),
+                descriptor=payload["paper_execution"],
+                manual_must_be_fresh=False,
             )
         finally:
             engine.dispose()
