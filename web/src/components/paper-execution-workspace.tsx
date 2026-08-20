@@ -8,7 +8,7 @@ import { ScrollableTable } from "@/components/ui/scrollable-table";
 import {
   ApiClientError,
   createPaperExecutionOrder,
-  fetchOrderIntents,
+  fetchOrderIntentDetail,
   fetchPaperExecutionAttempts,
   fetchPaperExecutionFills,
   fetchPaperExecutionOrderDetail,
@@ -16,7 +16,7 @@ import {
   fetchPaperExecutionReconciliation,
   fetchPreTradeRiskDecisions,
   stepPaperExecutionOrder,
-  type OrderIntentListResponse,
+  type OrderIntentResponse,
   type PaperExecutionAttemptListResponse,
   type PaperExecutionFillListResponse,
   type PaperExecutionOrderCommandResponse,
@@ -43,7 +43,12 @@ type Resource<Data> =
 
 type Candidate = Readonly<{
   decision: PreTradeRiskDecisionListResponse["items"][number];
-  intent: OrderIntentListResponse["items"][number];
+  intent: OrderIntentResponse;
+}>;
+
+type CandidatePage = Readonly<{
+  items: readonly Candidate[];
+  next_cursor: string | null;
 }>;
 
 type KeyState = Readonly<{ fingerprint: string; key: string }>;
@@ -148,7 +153,7 @@ export function PaperExecutionWorkspace() {
   const [buyTax, setBuyTax] = useState("");
   const [sellTax, setSellTax] = useState("");
 
-  const [candidates, setCandidates] = useState<Resource<readonly Candidate[]>>({ status: "idle" });
+  const [candidates, setCandidates] = useState<Resource<CandidatePage>>({ status: "idle" });
   const [selectedDecisionId, setSelectedDecisionId] = useState("");
   const [orders, setOrders] = useState<Resource<PaperExecutionOrderListResponse>>({ status: "idle" });
   const [selectedOrderId, setSelectedOrderId] = useState("");
@@ -164,68 +169,89 @@ export function PaperExecutionWorkspace() {
   const createPendingRef = useRef(false);
 
   const [stepPending, setStepPending] = useState(false);
+  const [stepPendingOrderId, setStepPendingOrderId] = useState<string | null>(null);
   const [stepError, setStepError] = useState<CommandError | null>(null);
   const [stepResult, setStepResult] = useState<PaperExecutionStepCommandResponse | null>(null);
   const [stepKey, setStepKey] = useState<KeyState | null>(null);
   const stepPendingRef = useRef(false);
+  const candidateRequestSequence = useRef(0);
+  const orderRequestSequence = useRef(0);
+  const selectionSequence = useRef(0);
+  const selectedOrderIdRef = useRef("");
+  const candidatesRef = useRef(candidates);
+  candidatesRef.current = candidates;
+  const ordersRef = useRef(orders);
+  ordersRef.current = orders;
 
   const selectedCandidate = useMemo(
     () => candidates.status === "success"
-      ? candidates.data.find((candidate) => candidate.decision.decision_id === selectedDecisionId) ?? null
+      ? candidates.data.items.find((candidate) => candidate.decision.decision_id === selectedDecisionId) ?? null
       : candidates.status === "loading" || candidates.status === "error"
-        ? candidates.previous?.find((candidate) => candidate.decision.decision_id === selectedDecisionId) ?? null
+        ? candidates.previous?.items.find((candidate) => candidate.decision.decision_id === selectedDecisionId) ?? null
         : null,
     [candidates, selectedDecisionId],
   );
 
-  const loadCandidates = useCallback(async () => {
-    setCandidates((current) => ({
-      status: "loading",
-      ...(current.status === "success" ? { previous: current.data } : current.status === "error" && current.previous ? { previous: current.previous } : {}),
-    }));
+  const loadCandidates = useCallback(async (cursor?: string | null) => {
+    const sequence = ++candidateRequestSequence.current;
+    const current = candidatesRef.current.status === "success" ? candidatesRef.current.data
+      : candidatesRef.current.status === "loading" || candidatesRef.current.status === "error" ? candidatesRef.current.previous : undefined;
+    const prior = cursor ? current : undefined;
+    setCandidates({ status: "loading", ...(current ? { previous: current } : {}) });
     try {
-      const [decisionResult, intentResult] = await Promise.all([
-        fetchPreTradeRiskDecisions({ outcome: "allow", limit: 50 }),
-        fetchOrderIntents({ limit: 50 }),
-      ]);
-      const data = decisionResult.data.items.flatMap((decision) => {
+      const decisionResult = await fetchPreTradeRiskDecisions({ outcome: "allow", limit: 50, ...(cursor ? { cursor } : {}) });
+      const resolved = await Promise.all(decisionResult.data.items.map(async (decision) => ({
+        decision,
+        intent: (await fetchOrderIntentDetail(decision.input_snapshot.intent_reference.intent_id)).data,
+      })));
+      const items = resolved.flatMap(({ decision, intent }) => {
         const reference = decision.input_snapshot.intent_reference;
-        const intent = intentResult.data.items.find((item) =>
-          item.intent_id === reference.intent_id && item.intent_digest === reference.intent_digest,
-        );
-        return decision.outcome === "allow" && intent ? [{ decision, intent }] : [];
+        return decision.outcome === "allow"
+          && intent.intent_id === reference.intent_id
+          && intent.intent_digest === reference.intent_digest
+          ? [{ decision, intent }]
+          : [];
       });
-      setCandidates({ status: "success", data, requestId: decisionResult.requestId });
+      if (sequence !== candidateRequestSequence.current) return;
+      setCandidates({
+        status: "success",
+        data: {
+          items: prior ? [...prior.items, ...items] : items,
+          next_cursor: decisionResult.data.next_cursor,
+        },
+        requestId: decisionResult.requestId,
+      });
     } catch (error) {
-      setCandidates((current) => ({
+      if (sequence !== candidateRequestSequence.current) return;
+      setCandidates({
         status: "error",
         error: commandError(error),
-        ...(current.status === "loading" && current.previous ? { previous: current.previous } : {}),
-      }));
+        ...(current ? { previous: current } : {}),
+      });
     }
   }, []);
 
   const loadOrders = useCallback(async (cursor?: string | null) => {
-    setOrders((current) => ({
-      status: "loading",
-      ...(current.status === "success" ? { previous: current.data } : current.status === "error" && current.previous ? { previous: current.previous } : {}),
-    }));
+    const sequence = ++orderRequestSequence.current;
+    const current = ordersRef.current.status === "success" ? ordersRef.current.data
+      : ordersRef.current.status === "loading" || ordersRef.current.status === "error" ? ordersRef.current.previous : undefined;
+    const prior = cursor ? current : undefined;
+    setOrders({ status: "loading", ...(current ? { previous: current } : {}) });
     try {
       const result = await fetchPaperExecutionOrders({ limit: 25, ...(cursor ? { cursor } : {}) });
-      setOrders((current) => {
-        const prior = cursor && current.status === "loading" ? current.previous : undefined;
-        return {
-          status: "success",
-          data: prior ? { ...result.data, items: [...prior.items, ...result.data.items] } : result.data,
-          requestId: result.requestId,
-        };
+      if (sequence !== orderRequestSequence.current) return;
+      setOrders({
+        status: "success",
+        data: prior ? { ...result.data, items: [...prior.items, ...result.data.items] } : result.data,
+        requestId: result.requestId,
       });
     } catch (error) {
-      setOrders((current) => ({
+      if (sequence !== orderRequestSequence.current) return;
+      setOrders({
         status: "error",
         error: commandError(error),
-        ...(current.status === "loading" && current.previous ? { previous: current.previous } : {}),
-      }));
+        ...(current ? { previous: current } : {}),
+      });
     }
   }, []);
 
@@ -234,31 +260,54 @@ export function PaperExecutionWorkspace() {
     void loadOrders();
   }, [loadCandidates, loadOrders]);
 
-  async function selectOrder(executionOrderId: string) {
-    setSelectedOrderId(executionOrderId);
-    setStepError(null);
-    setStepResult(null);
-    setReconciliation({ status: "idle" });
-    setSelectedOrder((current) => ({ status: "loading", ...(current.status === "success" ? { previous: current.data } : {}) }));
-    setAttempts({ status: "loading" });
-    setFills({ status: "loading" });
-    const results = await Promise.allSettled([
+  async function loadSelectedHistory(
+    executionOrderId: string,
+    sequence: number,
+    previousOrder?: PaperExecutionOrderViewResponse,
+    previousAttempts?: PaperExecutionAttemptListResponse,
+    previousFills?: PaperExecutionFillListResponse,
+  ) {
+    setSelectedOrder({ status: "loading", ...(previousOrder ? { previous: previousOrder } : {}) });
+    setAttempts({ status: "loading", ...(previousAttempts ? { previous: previousAttempts } : {}) });
+    setFills({ status: "loading", ...(previousFills ? { previous: previousFills } : {}) });
+    const [orderResult, attemptResult, fillResult] = await Promise.allSettled([
       fetchPaperExecutionOrderDetail(executionOrderId),
       fetchPaperExecutionAttempts(executionOrderId, { limit: 25 }),
       fetchPaperExecutionFills({ execution_order_id: executionOrderId, limit: 25 }),
     ]);
-    const [orderResult, attemptResult, fillResult] = results;
-    if (orderResult.status === "fulfilled") {
-      setSelectedOrder({ status: "success", data: orderResult.value.data, requestId: orderResult.value.requestId });
-    } else {
-      setSelectedOrder((current) => ({ status: "error", error: commandError(orderResult.reason), ...(current.status === "loading" && current.previous ? { previous: current.previous } : {}) }));
-    }
+    if (sequence !== selectionSequence.current || executionOrderId !== selectedOrderIdRef.current) return;
+    setSelectedOrder(orderResult.status === "fulfilled"
+      ? { status: "success", data: orderResult.value.data, requestId: orderResult.value.requestId }
+      : { status: "error", error: commandError(orderResult.reason), ...(previousOrder ? { previous: previousOrder } : {}) });
     setAttempts(attemptResult.status === "fulfilled"
       ? { status: "success", data: attemptResult.value.data, requestId: attemptResult.value.requestId }
-      : { status: "error", error: commandError(attemptResult.reason) });
+      : { status: "error", error: commandError(attemptResult.reason), ...(previousAttempts ? { previous: previousAttempts } : {}) });
     setFills(fillResult.status === "fulfilled"
       ? { status: "success", data: fillResult.value.data, requestId: fillResult.value.requestId }
-      : { status: "error", error: commandError(fillResult.reason) });
+      : { status: "error", error: commandError(fillResult.reason), ...(previousFills ? { previous: previousFills } : {}) });
+  }
+
+  async function selectOrder(executionOrderId: string, commandOrder?: PaperExecutionOrderViewResponse) {
+    const sameSelection = executionOrderId === selectedOrderIdRef.current;
+    const previousOrder = commandOrder ?? (sameSelection
+      ? selectedOrder.status === "success" ? selectedOrder.data
+        : selectedOrder.status === "loading" || selectedOrder.status === "error" ? selectedOrder.previous : undefined
+      : undefined);
+    const previousAttempts = sameSelection
+      ? attempts.status === "success" ? attempts.data
+        : attempts.status === "loading" || attempts.status === "error" ? attempts.previous : undefined
+      : undefined;
+    const previousFills = sameSelection
+      ? fills.status === "success" ? fills.data
+        : fills.status === "loading" || fills.status === "error" ? fills.previous : undefined
+      : undefined;
+    selectedOrderIdRef.current = executionOrderId;
+    const sequence = ++selectionSequence.current;
+    setSelectedOrderId(executionOrderId);
+    setStepError(null);
+    setStepResult(null);
+    setReconciliation({ status: "idle" });
+    await loadSelectedHistory(executionOrderId, sequence, previousOrder, previousAttempts, previousFills);
   }
 
   const createRequest = useMemo<PaperExecutionOrderCreateRequest | null>(() => {
@@ -296,16 +345,10 @@ export function PaperExecutionWorkspace() {
       const result = await createPaperExecutionOrder(createRequest, nextKey.key);
       setCreateResult(result.data);
       const view = result.data.result;
-      setSelectedOrderId(view.order.execution_order_id);
-      setSelectedOrder({ status: "success", data: view, requestId: result.requestId });
-      setAttempts({ status: "success", data: { schema_version: 1, items: [], next_cursor: null }, requestId: null });
-      setFills({ status: "success", data: { schema_version: 1, items: [], next_cursor: null }, requestId: null });
-      setReconciliation({ status: "idle" });
-      setOrders((current) => {
-        const existing = current.status === "success" ? current.data : current.status === "loading" || current.status === "error" ? current.previous : undefined;
-        if (!existing || existing.items.some((item) => item.order.execution_order_id === view.order.execution_order_id)) return current;
-        return { status: "success", data: { ...existing, items: [view, ...existing.items] }, requestId: result.requestId };
-      });
+      await Promise.all([
+        selectOrder(view.order.execution_order_id, view),
+        loadOrders(),
+      ]);
     } catch (error) {
       setCreateError(commandError(error));
     } finally {
@@ -314,84 +357,98 @@ export function PaperExecutionWorkspace() {
     }
   }
 
-  const activeOrder = selectedOrder.status === "success" ? selectedOrder.data
+  const visibleOrder = selectedOrder.status === "success" ? selectedOrder.data
     : selectedOrder.status === "loading" || selectedOrder.status === "error" ? selectedOrder.previous ?? null : null;
+  const activeOrder = visibleOrder?.order.execution_order_id === selectedOrderId ? visibleOrder : null;
+  const actionableOrder = selectedOrder.status === "success"
+    && selectedOrder.data.order.execution_order_id === selectedOrderId
+    ? selectedOrder.data
+    : null;
 
   async function submitStep() {
-    if (!activeOrder || activeOrder.state.terminal || actor.length === 0 || stepPendingRef.current) return;
+    if (!actionableOrder || actionableOrder.state.terminal || actor.length === 0 || stepPendingRef.current) return;
+    const executionOrderId = actionableOrder.order.execution_order_id;
+    const commandSelectionSequence = selectionSequence.current;
     const request = {
-      execution_order_digest: activeOrder.order.execution_order_digest,
-      expected_execution_version: activeOrder.state.execution_version,
+      execution_order_digest: actionableOrder.order.execution_order_digest,
+      expected_execution_version: actionableOrder.state.execution_version,
       actor,
     };
-    const requestFingerprint = fingerprint({ execution_order_id: activeOrder.order.execution_order_id, ...request });
+    const requestFingerprint = fingerprint({ execution_order_id: executionOrderId, ...request });
     const nextKey = keyFor(requestFingerprint, stepKey, "step");
     stepPendingRef.current = true;
     setStepPending(true);
+    setStepPendingOrderId(executionOrderId);
     setStepError(null);
     setStepKey(nextKey);
     try {
-      const result = await stepPaperExecutionOrder(activeOrder.order.execution_order_id, request, nextKey.key);
+      const result = await stepPaperExecutionOrder(executionOrderId, request, nextKey.key);
+      if (commandSelectionSequence !== selectionSequence.current || executionOrderId !== selectedOrderIdRef.current) return;
       setStepResult(result.data);
-      const nextView = { order: activeOrder.order, state: result.data.result.order_state };
-      setSelectedOrder({ status: "success", data: nextView, requestId: result.requestId });
-      setOrders((current) => current.status === "success" ? {
-        ...current,
-        data: {
-          ...current.data,
-          items: current.data.items.map((item) => item.order.execution_order_id === activeOrder.order.execution_order_id ? nextView : item),
-        },
-      } : current);
-      setAttempts((current) => current.status === "success" && !current.data.items.some((item) => item.attempt_id === result.data.result.attempt.attempt_id) ? {
-        ...current,
-        data: { ...current.data, items: [...current.data.items, result.data.result.attempt] },
-      } : current);
-      if (result.data.result.fill) {
-        const nextFill = result.data.result.fill;
-        setFills((current) => current.status === "success" && !current.data.items.some((item) => item.fill_id === nextFill.fill_id) ? {
-          ...current,
-          data: { ...current.data, items: [...current.data.items, nextFill] },
-        } : current);
-      }
+      const previousAttempts = attempts.status === "success" ? attempts.data
+        : attempts.status === "loading" || attempts.status === "error" ? attempts.previous : undefined;
+      const previousFills = fills.status === "success" ? fills.data
+        : fills.status === "loading" || fills.status === "error" ? fills.previous : undefined;
+      const refreshSequence = ++selectionSequence.current;
+      setReconciliation({ status: "idle" });
+      await Promise.all([
+        loadSelectedHistory(executionOrderId, refreshSequence, actionableOrder, previousAttempts, previousFills),
+        loadOrders(),
+      ]);
     } catch (error) {
-      setStepError(commandError(error));
+      if (commandSelectionSequence === selectionSequence.current && executionOrderId === selectedOrderIdRef.current) {
+        setStepError(commandError(error));
+      }
     } finally {
       stepPendingRef.current = false;
       setStepPending(false);
+      setStepPendingOrderId(null);
     }
   }
 
   async function loadMoreAttempts() {
-    if (!activeOrder || attempts.status !== "success" || !attempts.data.next_cursor) return;
+    if (!actionableOrder || attempts.status !== "success" || !attempts.data.next_cursor) return;
+    const executionOrderId = actionableOrder.order.execution_order_id;
+    const sequence = selectionSequence.current;
     const prior = attempts.data;
     setAttempts({ status: "loading", previous: prior });
     try {
-      const result = await fetchPaperExecutionAttempts(activeOrder.order.execution_order_id, { limit: 25, cursor: prior.next_cursor });
+      const result = await fetchPaperExecutionAttempts(executionOrderId, { limit: 25, cursor: prior.next_cursor });
+      if (sequence !== selectionSequence.current || executionOrderId !== selectedOrderIdRef.current) return;
       setAttempts({ status: "success", data: { ...result.data, items: [...prior.items, ...result.data.items] }, requestId: result.requestId });
     } catch (error) {
+      if (sequence !== selectionSequence.current || executionOrderId !== selectedOrderIdRef.current) return;
       setAttempts({ status: "error", error: commandError(error), previous: prior });
     }
   }
 
   async function loadMoreFills() {
-    if (!activeOrder || fills.status !== "success" || !fills.data.next_cursor) return;
+    if (!actionableOrder || fills.status !== "success" || !fills.data.next_cursor) return;
+    const executionOrderId = actionableOrder.order.execution_order_id;
+    const sequence = selectionSequence.current;
     const prior = fills.data;
     setFills({ status: "loading", previous: prior });
     try {
-      const result = await fetchPaperExecutionFills({ execution_order_id: activeOrder.order.execution_order_id, limit: 25, cursor: prior.next_cursor });
+      const result = await fetchPaperExecutionFills({ execution_order_id: executionOrderId, limit: 25, cursor: prior.next_cursor });
+      if (sequence !== selectionSequence.current || executionOrderId !== selectedOrderIdRef.current) return;
       setFills({ status: "success", data: { ...result.data, items: [...prior.items, ...result.data.items] }, requestId: result.requestId });
     } catch (error) {
+      if (sequence !== selectionSequence.current || executionOrderId !== selectedOrderIdRef.current) return;
       setFills({ status: "error", error: commandError(error), previous: prior });
     }
   }
 
   async function reconcile() {
-    if (!activeOrder || reconciliation.status === "loading") return;
+    if (!actionableOrder || reconciliation.status === "loading") return;
+    const executionOrderId = actionableOrder.order.execution_order_id;
+    const sequence = selectionSequence.current;
     setReconciliation((current) => ({ status: "loading", ...(current.status === "success" ? { previous: current.data } : current.status === "error" && current.previous ? { previous: current.previous } : {}) }));
     try {
-      const result = await fetchPaperExecutionReconciliation(activeOrder.order.execution_order_id);
+      const result = await fetchPaperExecutionReconciliation(executionOrderId);
+      if (sequence !== selectionSequence.current || executionOrderId !== selectedOrderIdRef.current) return;
       setReconciliation({ status: "success", data: result.data, requestId: result.requestId });
     } catch (error) {
+      if (sequence !== selectionSequence.current || executionOrderId !== selectedOrderIdRef.current) return;
       setReconciliation((current) => ({ status: "error", error: commandError(error), ...(current.status === "loading" && current.previous ? { previous: current.previous } : {}) }));
     }
   }
@@ -401,6 +458,7 @@ export function PaperExecutionWorkspace() {
   const fillData = fills.status === "success" ? fills.data : fills.status === "loading" || fills.status === "error" ? fills.previous : undefined;
   const candidateData = candidates.status === "success" ? candidates.data
     : candidates.status === "loading" || candidates.status === "error" ? candidates.previous : undefined;
+  const activeOrderStepPending = stepPending && stepPendingOrderId === activeOrder?.order.execution_order_id;
 
   return (
     <div className="page-stack paper-execution-workspace">
@@ -415,12 +473,13 @@ export function PaperExecutionWorkspace() {
           <label className="form-section">{t("candidate.label")}
             <select value={selectedDecisionId} onChange={(event) => setSelectedDecisionId(event.target.value)}>
               <option value="">{t("candidate.choose")}</option>
-              {candidateData.map(({ decision, intent }) => (
+              {candidateData.items.map(({ decision, intent }) => (
                 <option key={decision.decision_id} value={decision.decision_id}>{decision.decision_id} · {intent.intent_id}</option>
               ))}
             </select>
           </label>
         ) : null}
+        {candidateData?.next_cursor ? <button className="secondary-button" type="button" disabled={candidates.status === "loading"} onClick={() => void loadCandidates(candidateData.next_cursor)}>{candidates.status === "loading" ? t("actions.loadingMore") : t("actions.loadMore")}</button> : null}
         <p className="neutral-note" role="note">{t("candidate.historicalWarning")}</p>
         {selectedCandidate ? <EvidenceSection title={t("candidate.evidenceTitle")} eyebrow={t("candidate.evidenceEyebrow")} value={{ decision_id: selectedCandidate.decision.decision_id, decision_digest: selectedCandidate.decision.decision_digest, outcome: selectedCandidate.decision.outcome, intent_id: selectedCandidate.intent.intent_id, intent_digest: selectedCandidate.intent.intent_digest, decision_created_at: selectedCandidate.decision.created_at }} /> : null}
       </section>
@@ -454,7 +513,7 @@ export function PaperExecutionWorkspace() {
       {selectedOrder.status === "loading" && !selectedOrder.previous ? <LoadingState message={t("detail.loading")} /> : null}
       {selectedOrder.status === "error" ? <OperationError error={selectedOrder.error} title={t("detail.errorTitle")} operation="paper_execution.order.detail" onRetry={selectedOrderId ? () => void selectOrder(selectedOrderId) : undefined} /> : null}
       {activeOrder ? <section className="content-panel" aria-labelledby="detail-title"><div className="section-heading"><div><p className="eyebrow">{t("detail.eyebrow")}</p><h2 id="detail-title">{t("detail.title")}</h2></div><p>{t("detail.historical")}</p></div><EvidenceSection title={t("detail.authorityTitle")} eyebrow={t("detail.authorityEyebrow")} value={activeOrder} />
-        <div className="submission-actions">{!activeOrder.state.terminal ? <button className="primary-button" type="button" disabled={stepPending || actor.length === 0} aria-busy={stepPending} onClick={() => void submitStep()}>{stepPending ? t("step.pending") : t("step.action")}</button> : <p className="neutral-note" role="status">{t("step.terminal")}</p>}<p>{t("step.guidance")}</p></div>
+        <div className="submission-actions">{!activeOrder.state.terminal ? <button className="primary-button" type="button" disabled={!actionableOrder || stepPending || actor.length === 0} aria-busy={activeOrderStepPending} onClick={() => void submitStep()}>{activeOrderStepPending ? t("step.pending") : t("step.action")}</button> : <p className="neutral-note" role="status">{t("step.terminal")}</p>}<p>{t("step.guidance")}</p></div>
         {stepError ? <OperationError error={stepError} title={t("step.errorTitle")} operation="paper_execution.order.step" onRetry={() => void submitStep()} /> : null}
         {stepResult ? <EvidenceSection title={stepResult.replayed ? t("step.replayedTitle") : t("step.committedTitle")} eyebrow={t("step.resultEyebrow")} value={stepResult} /> : null}
       </section> : null}
@@ -463,18 +522,18 @@ export function PaperExecutionWorkspace() {
         {attempts.status === "error" ? <OperationError error={attempts.error} title={t("attempts.errorTitle")} operation="paper_execution.attempt.list" onRetry={() => void selectOrder(activeOrder.order.execution_order_id)} /> : null}
         {attemptData?.items.map((attempt) => <EvidenceSection key={attempt.attempt_id} title={t("attempts.itemTitle")} eyebrow={attempt.attempt_result} value={attempt} />)}
         {attemptData?.items.length === 0 ? <p className="neutral-note">{t("attempts.empty")}</p> : null}
-        {attemptData?.next_cursor ? <button className="secondary-button" type="button" disabled={attempts.status === "loading"} onClick={() => void loadMoreAttempts()}>{attempts.status === "loading" ? t("actions.loadingMore") : t("actions.loadMore")}</button> : null}
+        {attemptData?.next_cursor ? <button className="secondary-button" type="button" disabled={!actionableOrder || attempts.status === "loading"} onClick={() => void loadMoreAttempts()}>{attempts.status === "loading" ? t("actions.loadingMore") : t("actions.loadMore")}</button> : null}
       </section> : null}
 
       {activeOrder ? <section className="content-panel" aria-labelledby="fills-title"><div className="section-heading"><div><p className="eyebrow">{t("fills.eyebrow")}</p><h2 id="fills-title">{t("fills.title")}</h2></div><p>{t("fills.description")}</p></div>
         {fills.status === "error" ? <OperationError error={fills.error} title={t("fills.errorTitle")} operation="paper_execution.fill.list" onRetry={() => void selectOrder(activeOrder.order.execution_order_id)} /> : null}
         {fillData?.items.map((fillItem) => <EvidenceSection key={fillItem.fill_id} title={t("fills.itemTitle")} eyebrow={fillItem.side} value={fillItem} />)}
         {fillData?.items.length === 0 ? <p className="neutral-note">{t("fills.empty")}</p> : null}
-        {fillData?.next_cursor ? <button className="secondary-button" type="button" disabled={fills.status === "loading"} onClick={() => void loadMoreFills()}>{fills.status === "loading" ? t("actions.loadingMore") : t("actions.loadMore")}</button> : null}
+        {fillData?.next_cursor ? <button className="secondary-button" type="button" disabled={!actionableOrder || fills.status === "loading"} onClick={() => void loadMoreFills()}>{fills.status === "loading" ? t("actions.loadingMore") : t("actions.loadMore")}</button> : null}
       </section> : null}
 
       {activeOrder ? <section className="content-panel" aria-labelledby="reconciliation-title"><div className="section-heading"><div><p className="eyebrow">{t("reconciliation.eyebrow")}</p><h2 id="reconciliation-title">{t("reconciliation.title")}</h2></div><p>{t("reconciliation.description")}</p></div>
-        <button className="secondary-button" type="button" disabled={reconciliation.status === "loading"} aria-busy={reconciliation.status === "loading"} onClick={() => void reconcile()}>{reconciliation.status === "loading" ? t("reconciliation.pending") : t("reconciliation.action")}</button>
+        <button className="secondary-button" type="button" disabled={!actionableOrder || reconciliation.status === "loading"} aria-busy={reconciliation.status === "loading"} onClick={() => void reconcile()}>{reconciliation.status === "loading" ? t("reconciliation.pending") : t("reconciliation.action")}</button>
         {reconciliation.status === "error" ? <OperationError error={reconciliation.error} title={t("reconciliation.errorTitle")} operation="paper_execution.reconciliation.read" onRetry={() => void reconcile()} /> : null}
         {reconciliation.status === "success" ? <EvidenceSection title={t("reconciliation.successTitle")} eyebrow={t("reconciliation.successEyebrow")} value={reconciliation.data} /> : reconciliation.status === "loading" && reconciliation.previous ? <EvidenceSection title={t("reconciliation.successTitle")} eyebrow={t("reconciliation.previousEyebrow")} value={reconciliation.previous} /> : reconciliation.status === "error" && reconciliation.previous ? <EvidenceSection title={t("reconciliation.successTitle")} eyebrow={t("reconciliation.previousEyebrow")} value={reconciliation.previous} /> : null}
       </section> : null}
