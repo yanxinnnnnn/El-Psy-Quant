@@ -16,14 +16,14 @@ M30 — Complete
 M31 — Complete
 M32 — Complete
 M33 — Complete through S197–S206
-M34 — In Progress through approved S207–S216; S212 current
+M34 — In Progress through approved S207–S216; S213 current
 M35–M36 — Planned future milestones
 ```
 
 M31 used S179–S188, M32 used S189–S196, and M33 used S197–S206. Issue #389
 remains the authoritative M33 architecture source for the completed boundary.
-M34 uses S207–S216 under authoritative architecture Issue #408. S207–S211 are
-Complete and S212 is current under Issue #417. M35–M36 retain intentionally
+M34 uses S207–S216 under authoritative architecture Issue #408. S207–S212 are
+Complete and S213 is current under Issue #419. M35–M36 retain intentionally
 unassigned sprint ranges until each milestone is planned.
 
 The current migration head is exactly:
@@ -228,7 +228,7 @@ scheduler, broker, or live behavior.
 
 ### Status
 
-**In Progress through S207–S216. S207–S211 are Complete; Sprint 212 is current.**
+**In Progress through S207–S216. S207–S212 are Complete; Sprint 213 is current.**
 
 M34 is the first genuine market/strategy-driven Paper Trading milestone.
 
@@ -284,7 +284,9 @@ integration.
 Sprint 212 adds exactly nine thin authenticated Paper Execution operations,
 strict schemas and bounded pagination, stable errors and audit correlation,
 canonical OpenAPI, and generated TypeScript contracts. The migration head
-remains `0011_paper_execution`; S213–S216 remain planned.
+remains `0011_paper_execution`. Sprint 213 adds the single bilingual
+generated-contract-only Founder workspace for explicit manual control and
+immutable evidence inspection; S214–S216 remain planned.
 
 ### User-visible outcome
 
@@ -410,8 +412,8 @@ Only one milestone is planned and implemented at a time.
 The current implementation action is:
 
 ```text
-implement Sprint 212 versioned M34 API contracts under Issue #417
+implement Sprint 213 bilingual Founder Paper Execution workspace under Issue #419
 ```
 
-Do not pre-implement S213+ Web/Demo/runtime semantics during S212. M35–M36
+Do not pre-implement S214+ Demo/runtime semantics during S213. M35–M36
 remain future milestones until their predecessors are complete and explicitly planned.

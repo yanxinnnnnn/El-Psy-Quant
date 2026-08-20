@@ -39,6 +39,17 @@ import {
   isStrategySignalListResponse,
   isStrategySignalResponse,
 } from "@/lib/strategy-order-validators";
+import {
+  isPaperExecutionAttemptListResponse,
+  isPaperExecutionAttemptResponse,
+  isPaperExecutionFillListResponse,
+  isPaperExecutionFillResponse,
+  isPaperExecutionOrderCommandResponse,
+  isPaperExecutionOrderListResponse,
+  isPaperExecutionOrderViewResponse,
+  isPaperExecutionReconciliationResponse,
+  isPaperExecutionStepCommandResponse,
+} from "@/lib/paper-execution-validators";
 
 const API_BASE_PATH = "/api/backend";
 const HEALTH_PATH = "/api/v1/health";
@@ -97,6 +108,20 @@ const ORDER_INTENT_DETAIL_PATH = "/api/v1/order-intents/{intent_id}";
 const PRE_TRADE_RISK_DECISIONS_PATH = "/api/v1/pre-trade-risk-decisions";
 const PRE_TRADE_RISK_DECISION_DETAIL_PATH =
   "/api/v1/pre-trade-risk-decisions/{decision_id}";
+const PAPER_EXECUTION_ORDERS_PATH = "/api/v1/paper-execution/orders";
+const PAPER_EXECUTION_ORDER_DETAIL_PATH =
+  "/api/v1/paper-execution/orders/{execution_order_id}";
+const PAPER_EXECUTION_ORDER_STEPS_PATH =
+  "/api/v1/paper-execution/orders/{execution_order_id}/steps";
+const PAPER_EXECUTION_ORDER_ATTEMPTS_PATH =
+  "/api/v1/paper-execution/orders/{execution_order_id}/attempts";
+const PAPER_EXECUTION_ATTEMPT_DETAIL_PATH =
+  "/api/v1/paper-execution/attempts/{attempt_id}";
+const PAPER_EXECUTION_FILLS_PATH = "/api/v1/paper-execution/fills";
+const PAPER_EXECUTION_FILL_DETAIL_PATH =
+  "/api/v1/paper-execution/fills/{fill_id}";
+const PAPER_EXECUTION_RECONCILIATION_PATH =
+  "/api/v1/paper-execution/orders/{execution_order_id}/reconciliation";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -298,6 +323,50 @@ export type PreTradeRiskDecisionCommandResponse = PostSuccessResponse<
 >;
 export type PreTradeRiskDecisionListFilters = GetQueryParameters<
   typeof PRE_TRADE_RISK_DECISIONS_PATH
+>;
+export type PaperExecutionOrderListResponse = SuccessResponse<
+  typeof PAPER_EXECUTION_ORDERS_PATH
+>;
+export type PaperExecutionOrderViewResponse = SuccessResponse<
+  typeof PAPER_EXECUTION_ORDER_DETAIL_PATH
+>;
+export type PaperExecutionAttemptListResponse = SuccessResponse<
+  typeof PAPER_EXECUTION_ORDER_ATTEMPTS_PATH
+>;
+export type PaperExecutionAttemptResponse = SuccessResponse<
+  typeof PAPER_EXECUTION_ATTEMPT_DETAIL_PATH
+>;
+export type PaperExecutionFillListResponse = SuccessResponse<
+  typeof PAPER_EXECUTION_FILLS_PATH
+>;
+export type PaperExecutionFillResponse = SuccessResponse<
+  typeof PAPER_EXECUTION_FILL_DETAIL_PATH
+>;
+export type PaperExecutionReconciliationResponse = SuccessResponse<
+  typeof PAPER_EXECUTION_RECONCILIATION_PATH
+>;
+export type PaperExecutionOrderCreateRequest = PostRequestBody<
+  typeof PAPER_EXECUTION_ORDERS_PATH
+>;
+export type PaperExecutionOrderStepRequest = PostRequestBody<
+  typeof PAPER_EXECUTION_ORDER_STEPS_PATH
+>;
+export type PaperExecutionOrderCommandResponse = PostSuccessResponse<
+  typeof PAPER_EXECUTION_ORDERS_PATH,
+  200
+>;
+export type PaperExecutionStepCommandResponse = PostSuccessResponse<
+  typeof PAPER_EXECUTION_ORDER_STEPS_PATH,
+  200
+>;
+export type PaperExecutionOrderListFilters = GetQueryParameters<
+  typeof PAPER_EXECUTION_ORDERS_PATH
+>;
+export type PaperExecutionAttemptListFilters = GetQueryParameters<
+  typeof PAPER_EXECUTION_ORDER_ATTEMPTS_PATH
+>;
+export type PaperExecutionFillListFilters = GetQueryParameters<
+  typeof PAPER_EXECUTION_FILLS_PATH
 >;
 
 export type ApiResult<Response> = {
@@ -2055,6 +2124,191 @@ export function fetchPreTradeRiskDecisionDetail(
       decisionId,
     ),
     validate: isPreTradeRiskDecisionResponse,
+    fetchImplementation,
+  });
+}
+
+function validatePaperExecutionPaging(
+  limit: number | undefined,
+  cursor: string | null | undefined,
+): void {
+  if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 200)) {
+    throw new TypeError("Paper Execution limit must be an integer between 1 and 200.");
+  }
+  if (cursor !== undefined && cursor !== null
+    && (cursor.length === 0 || cursor.length > 2048 || cursor !== cursor.trim())) {
+    throw new TypeError("Paper Execution cursor is invalid.");
+  }
+}
+
+function paperExecutionPath(template: string, placeholder: string, id: string): string {
+  if (id.length === 0 || id.length > 512 || id !== id.trim()) {
+    throw new TypeError("Paper Execution identifier is invalid.");
+  }
+  return template.replace(`{${placeholder}}`, encodeURIComponent(id));
+}
+
+function setPaperExecutionFilter(
+  query: URLSearchParams,
+  key: string,
+  value: string | null | undefined,
+): void {
+  if (value === undefined || value === null) return;
+  if (value.length === 0 || value.length > 512 || value !== value.trim()) {
+    throw new TypeError(`Paper Execution ${key} filter is invalid.`);
+  }
+  query.set(key, value);
+}
+
+export function fetchPaperExecutionOrders(
+  filters: PaperExecutionOrderListFilters = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionOrderListResponse>> {
+  validatePaperExecutionPaging(filters.limit, filters.cursor);
+  const query = new URLSearchParams();
+  setPaperExecutionFilter(query, "account_id", filters.account_id);
+  setPaperExecutionFilter(query, "replay_id", filters.replay_id);
+  setPaperExecutionFilter(query, "trading_session_id", filters.trading_session_id);
+  setPaperExecutionFilter(query, "instrument_id", filters.instrument_id);
+  if (filters.side !== undefined && filters.side !== null) {
+    if (filters.side !== "buy" && filters.side !== "sell") {
+      throw new TypeError("Paper Execution side filter is invalid.");
+    }
+    query.set("side", filters.side);
+  }
+  if (filters.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters.cursor) query.set("cursor", filters.cursor);
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${PAPER_EXECUTION_ORDERS_PATH}${suffix}`,
+    validate: isPaperExecutionOrderListResponse,
+    fetchImplementation,
+  });
+}
+
+export function createPaperExecutionOrder(
+  request: PaperExecutionOrderCreateRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionOrderCommandResponse>> {
+  return requestJson({
+    path: PAPER_EXECUTION_ORDERS_PATH,
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isPaperExecutionOrderCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperExecutionOrderDetail(
+  executionOrderId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionOrderViewResponse>> {
+  return requestJson({
+    path: paperExecutionPath(
+      PAPER_EXECUTION_ORDER_DETAIL_PATH,
+      "execution_order_id",
+      executionOrderId,
+    ),
+    validate: isPaperExecutionOrderViewResponse,
+    fetchImplementation,
+  });
+}
+
+export function stepPaperExecutionOrder(
+  executionOrderId: string,
+  request: PaperExecutionOrderStepRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionStepCommandResponse>> {
+  return requestJson({
+    path: paperExecutionPath(
+      PAPER_EXECUTION_ORDER_STEPS_PATH,
+      "execution_order_id",
+      executionOrderId,
+    ),
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isPaperExecutionStepCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperExecutionAttempts(
+  executionOrderId: string,
+  filters: PaperExecutionAttemptListFilters = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionAttemptListResponse>> {
+  validatePaperExecutionPaging(filters.limit, filters.cursor);
+  const query = new URLSearchParams();
+  if (filters.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters.cursor) query.set("cursor", filters.cursor);
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${paperExecutionPath(
+      PAPER_EXECUTION_ORDER_ATTEMPTS_PATH,
+      "execution_order_id",
+      executionOrderId,
+    )}${suffix}`,
+    validate: isPaperExecutionAttemptListResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperExecutionAttemptDetail(
+  attemptId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionAttemptResponse>> {
+  return requestJson({
+    path: paperExecutionPath(PAPER_EXECUTION_ATTEMPT_DETAIL_PATH, "attempt_id", attemptId),
+    validate: isPaperExecutionAttemptResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperExecutionFills(
+  filters: PaperExecutionFillListFilters = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionFillListResponse>> {
+  validatePaperExecutionPaging(filters.limit, filters.cursor);
+  const query = new URLSearchParams();
+  setPaperExecutionFilter(query, "execution_order_id", filters.execution_order_id);
+  if (filters.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters.cursor) query.set("cursor", filters.cursor);
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${PAPER_EXECUTION_FILLS_PATH}${suffix}`,
+    validate: isPaperExecutionFillListResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperExecutionFillDetail(
+  fillId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionFillResponse>> {
+  return requestJson({
+    path: paperExecutionPath(PAPER_EXECUTION_FILL_DETAIL_PATH, "fill_id", fillId),
+    validate: isPaperExecutionFillResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperExecutionReconciliation(
+  executionOrderId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperExecutionReconciliationResponse>> {
+  return requestJson({
+    path: paperExecutionPath(
+      PAPER_EXECUTION_RECONCILIATION_PATH,
+      "execution_order_id",
+      executionOrderId,
+    ),
+    validate: isPaperExecutionReconciliationResponse,
     fetchImplementation,
   });
 }

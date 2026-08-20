@@ -18,6 +18,7 @@ export const REQUIRED_NAMESPACES = Object.freeze([
   "paper-accounts",
   "market-time",
   "strategy-to-risk",
+  "paper-execution",
   "lifecycle",
   "errors",
 ]);
@@ -94,6 +95,22 @@ export const REQUIRED_ERROR_CODES = Object.freeze([
   "strategy_order_storage_busy",
   "strategy_order_schema_incompatible",
   "strategy_order_storage_failure",
+  "paper_execution_upstream_authority_not_found",
+  "paper_execution_order_not_found",
+  "paper_execution_attempt_not_found",
+  "paper_execution_fill_not_found",
+  "paper_execution_idempotency_conflict",
+  "paper_execution_stale_authority",
+  "paper_execution_operation_conflict",
+  "paper_execution_concurrency_conflict",
+  "paper_execution_reconciliation_required",
+  "paper_execution_invalid_policy",
+  "paper_execution_invalid_decimal",
+  "paper_execution_invalid_cursor",
+  "paper_execution_authority_unavailable",
+  "paper_execution_schema_incompatible",
+  "paper_execution_storage_busy",
+  "paper_execution_storage_failure",
   "demo_workspace_not_configured",
   "demo_workspace_unavailable",
 ]);
@@ -326,6 +343,7 @@ export async function validateMessageCatalogs(messagesRoot) {
             : namespace === "paper-accounts" ? "paperAccounts"
             : namespace === "market-time" ? "marketTime"
               : namespace === "strategy-to-risk" ? "strategyToRisk"
+                : namespace === "paper-execution" ? "paperExecution"
           : namespace] = parsed;
     }
     const translator = createTranslator({ locale, messages });

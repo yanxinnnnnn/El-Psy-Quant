@@ -373,6 +373,86 @@
     "explanation": "本地产品数据库或持久化存储架构与当前策略到风控证据契约不兼容。",
     "recovery": "保留全部可见证据并记录请求 ID。请先按文档执行本地升级或修复，再显式重试；本工作区不会重新解释已存储的证据。"
   },
+  "paper_execution_upstream_authority_not_found": {
+    "title": "未找到模拟执行上游权威",
+    "explanation": "持久化权威中缺少精确的 M31、M32 或 M33 交接引用。",
+    "recovery": "保留草稿与历史证据，在发出新的显式命令前检查精确的上游记录。"
+  },
+  "paper_execution_order_not_found": {
+    "title": "未找到执行订单",
+    "explanation": "持久化权威中不存在该精确的不可变 M34 订单 ID。",
+    "recovery": "重新加载有界订单列表并选择现有的精确订单 ID。"
+  },
+  "paper_execution_attempt_not_found": {
+    "title": "未找到执行尝试",
+    "explanation": "不存在可供检查的精确不可变尝试 ID。",
+    "recovery": "保留所选订单并重新加载其有界尝试证据。"
+  },
+  "paper_execution_fill_not_found": {
+    "title": "未找到执行成交",
+    "explanation": "不存在可供检查的精确不可变成交 ID。",
+    "recovery": "保留所选订单并重新加载其有界成交证据。"
+  },
+  "paper_execution_idempotency_conflict": {
+    "title": "模拟执行幂等冲突",
+    "explanation": "隐藏的精确重试键已经绑定到不同的规范命令输入。",
+    "recovery": "保持草稿不变以精确重试，或实质修改草稿以获得新键。系统不会自动运行。"
+  },
+  "paper_execution_stale_authority": {
+    "title": "模拟执行权威已过期",
+    "explanation": "当前 M31 或 M32 权威不再匹配订单的精确续接锚点。",
+    "recovery": "保留所有历史证据。不要修复或重定基此订单；检查当前权威并决定是否创建新订单。"
+  },
+  "paper_execution_operation_conflict": {
+    "title": "模拟执行操作冲突",
+    "explanation": "请求的命令与当前后端订单状态不兼容。",
+    "recovery": "保留证据并检查精确后端状态，再选择其他显式操作。"
+  },
+  "paper_execution_concurrency_conflict": {
+    "title": "模拟执行并发冲突",
+    "explanation": "另一个本地命令赢得了精确状态转换事务。",
+    "recovery": "保留当前证据并显式重新加载持久化订单状态；不要自动重试或重定基。"
+  },
+  "paper_execution_reconciliation_required": {
+    "title": "模拟执行需要对账",
+    "explanation": "服务器发现执行、成交、结算、账户或重放证据不匹配。历史数据仍可检查。",
+    "recovery": "记录请求 ID 并检查保留的证据。不要自动 Step、修复或修改上游权威。"
+  },
+  "paper_execution_invalid_policy": {
+    "title": "执行策略无效",
+    "explanation": "一个或多个精确策略字符串不满足服务器 v1 执行策略契约。",
+    "recovery": "保留所选证据，更正可见草稿字符串，然后提交新的显式创建命令。"
+  },
+  "paper_execution_invalid_decimal": {
+    "title": "模拟执行小数无效",
+    "explanation": "数量、基点、价格或成本输入不是可接受的规范字符串。",
+    "recovery": "更正精确字符串，不得在浏览器中舍入、运算或进行本地化规范。"
+  },
+  "paper_execution_invalid_cursor": {
+    "title": "模拟执行游标无效",
+    "explanation": "不透明分页游标格式错误，或属于另一个集合。",
+    "recovery": "从该有界列表第一页重新开始；不要解码或重新解释游标。"
+  },
+  "paper_execution_authority_unavailable": {
+    "title": "模拟执行权威不可用",
+    "explanation": "所需执行或上游权威缺失、损坏、不完整或无法安全重建。",
+    "recovery": "保留可见证据，记录请求 ID，并在显式重试前检查本地持久化权威。"
+  },
+  "paper_execution_schema_incompatible": {
+    "title": "模拟执行架构不兼容",
+    "explanation": "本地持久化存储与当前 M34 证据契约不兼容。",
+    "recovery": "保留证据并遵循文档中的升级或恢复流程；本工作区不会重新解释或修复记录。"
+  },
+  "paper_execution_storage_busy": {
+    "title": "模拟执行存储繁忙",
+    "explanation": "后端无法安全获取本地持久化事务。",
+    "recovery": "保留未变更的命令草稿，并在竞争操作完成后手动重试。"
+  },
+  "paper_execution_storage_failure": {
+    "title": "模拟执行存储失败",
+    "explanation": "后端无法安全持久化或重新打开不可变 M34 权威。",
+    "recovery": "保留证据，记录请求 ID，并在重试前验证本地存储。"
+  },
   "request_validation_error": {
     "title": "命令结构无效",
     "explanation": "提交的请求与生成的 API 契约不一致。",

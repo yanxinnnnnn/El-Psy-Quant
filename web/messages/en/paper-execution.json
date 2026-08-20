@@ -1,0 +1,117 @@
+{
+  "eyebrow": "Sprint 213 · Manual Paper Execution",
+  "title": "Paper Execution",
+  "description": "Create, step, and inspect durable simulated execution authority one market event at a time.",
+  "boundary": {
+    "title": "Presentation and command orchestration only",
+    "description": "The server owns freshness, execution eligibility, prices, fill quantities, costs, risk, settlement, account effects, lifecycle state, replay progression, and reconciliation. Historical evidence shown here is not a claim of current executability."
+  },
+  "candidate": {
+    "eyebrow": "Historical M33 evidence",
+    "title": "Select an allowed Intent and Decision",
+    "description": "Only persisted allow Decisions with an exact matching persisted Intent are available for handoff.",
+    "loading": "Loading bounded historical Intent and allow Decision evidence.",
+    "errorTitle": "Historical M33 evidence is unavailable",
+    "label": "Allowed historical Decision and matching Intent",
+    "choose": "Choose exact persisted evidence",
+    "historicalWarning": "Allowed means the historical M33 risk check passed. It does not establish current M31/M32 freshness or authorize execution; the create-order API decides the current handoff.",
+    "evidenceTitle": "Selected immutable handoff evidence",
+    "evidenceEyebrow": "Exact IDs and digests"
+  },
+  "policy": {
+    "eyebrow": "Explicit draft input",
+    "title": "Execution policy editor",
+    "description": "Enter every v1 policy value as an exact string. The backend remains validation and execution authority.",
+    "legend": "Founder command draft",
+    "draftWarning": "All visible values are editable draft inputs, not backend facts or recommendations.",
+    "actor": "Actor provenance",
+    "maxFill": "Maximum fill quantity per trade event",
+    "maxFillNull": "Leave blank only to submit an explicit null liquidity cap.",
+    "slippage": "Slippage (basis-point string)",
+    "commission": "Commission (basis-point string)",
+    "fee": "Fee (basis-point string)",
+    "buyTax": "Buy tax (basis-point string)",
+    "sellTax": "Sell tax (basis-point string)"
+  },
+  "create": {
+    "action": "Create execution order",
+    "pending": "Creating one order…",
+    "guidance": "The command sends only selected M33 references, explicit policy strings or null, actor, and a hidden exact-retry key.",
+    "errorTitle": "Execution order was not created",
+    "createdTitle": "New execution order authority",
+    "createdEyebrow": "201 · newly created",
+    "replayedTitle": "Exact create command converged",
+    "replayedEyebrow": "200 · idempotent replay"
+  },
+  "orders": {
+    "eyebrow": "Durable M34 authority",
+    "title": "Execution orders",
+    "description": "The bounded backend list restores historical orders after a browser reload and remains separate from the create draft.",
+    "loading": "Loading durable Paper Execution orders.",
+    "errorTitle": "Execution orders are unavailable",
+    "caption": "Durable Paper Execution orders in backend order",
+    "id": "Order ID / digest",
+    "account": "Account",
+    "instrument": "Instrument",
+    "side": "Side",
+    "requested": "Requested quantity",
+    "version": "Execution version",
+    "status": "Backend status",
+    "filled": "Cumulative filled quantity",
+    "remaining": "Remaining quantity",
+    "terminal": "Terminal",
+    "createdAt": "Created at",
+    "inspect": "Inspect"
+  },
+  "detail": {
+    "loading": "Loading selected Order, Attempt, and Fill authority.",
+    "errorTitle": "Selected execution order is unavailable",
+    "eyebrow": "Historical inspection",
+    "title": "Selected execution order",
+    "historical": "This immutable historical detail remains inspectable even when a later Step is refused as stale.",
+    "authorityTitle": "Order, state, and exact M31/M32/M33 handoff",
+    "authorityEyebrow": "Backend authority"
+  },
+  "step": {
+    "action": "Process next event",
+    "pending": "Processing one event…",
+    "guidance": "One action submits at most one Step request. The browser neither selects an event nor computes or mutates execution, account, or replay authority.",
+    "terminal": "This backend Order state is terminal; no Step action is available.",
+    "errorTitle": "The one-event Step was refused",
+    "resultEyebrow": "Exact Step response",
+    "committedTitle": "Committed one-event Step authority",
+    "replayedTitle": "Exact Step command converged"
+  },
+  "attempts": {
+    "eyebrow": "M32 event progression and risk",
+    "title": "Execution Attempts",
+    "description": "Ordered immutable Attempt, cursor, consumed-event, terminal, and execution-time risk evidence from the backend.",
+    "errorTitle": "Attempts are unavailable",
+    "itemTitle": "Attempt authority",
+    "empty": "No committed Attempts exist for this Order."
+  },
+  "fills": {
+    "eyebrow": "Pricing and transaction costs",
+    "title": "Execution Fills",
+    "description": "Exact Fill, event, price, rounding, notional, commission, fee, tax, and charge strings are displayed without browser calculation.",
+    "errorTitle": "Fills are unavailable",
+    "itemTitle": "Fill authority",
+    "empty": "No Fill exists for this Order. Absence is not presented as zero."
+  },
+  "reconciliation": {
+    "eyebrow": "Explicit read check",
+    "title": "Reconciliation",
+    "description": "Run this server check explicitly. Historical Order, Attempt, and Fill inspection does not depend on a successful reconciliation.",
+    "action": "Run reconciliation check",
+    "pending": "Checking reconciliation…",
+    "errorTitle": "Reconciliation did not pass",
+    "successTitle": "Verified reconciliation response",
+    "successEyebrow": "200 · server check passed",
+    "previousEyebrow": "Previously verified evidence retained"
+  },
+  "actions": {
+    "retryExact": "Retry exact request",
+    "loadMore": "Load next bounded page",
+    "loadingMore": "Loading next page…"
+  }
+}
