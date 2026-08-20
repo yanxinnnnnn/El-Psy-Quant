@@ -1,10 +1,17 @@
 {
-  "eyebrow": "Sprint 213 · Manual Paper Execution",
+  "eyebrow": "Sprint 214 · Demo v6 Paper Execution",
   "title": "Paper Execution",
   "description": "Create, step, and inspect durable simulated execution authority one market event at a time.",
   "boundary": {
     "title": "Presentation and command orchestration only",
     "description": "The server owns freshness, execution eligibility, prices, fill quantities, costs, risk, settlement, account effects, lifecycle state, replay progression, and reconciliation. Historical evidence shown here is not a claim of current executability."
+  },
+  "demo": {
+    "title": "Demo v6 manual scenario",
+    "description": "Load the exact fresh historical Intent/Decision references and policy draft. Loading changes only this browser draft and performs no POST, Order creation, Step, freshness inference, or calculation.",
+    "replaceConfirmation": "Replace the current candidate and policy draft with the Demo v6 example.",
+    "load": "Load Demo v6 example",
+    "historicalWarning": "The loaded allow Decision remains historical evidence; create-order revalidates current M31/M32 authority."
   },
   "candidate": {
     "eyebrow": "Historical M33 evidence",

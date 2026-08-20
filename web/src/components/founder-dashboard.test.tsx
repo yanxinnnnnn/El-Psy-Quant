@@ -54,9 +54,9 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 5,
+  schema_version: 6,
   dataset_id: "dataset-from-descriptor",
-  dataset_version: 7,
+  dataset_version: 6,
   display_name: "Descriptor Demo Name",
   warning: "Backend warning",
   canonical_strategy_name: "strategy-from-descriptor",
@@ -198,6 +198,14 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
     intent: { id: `oi_${"2".repeat(64)}`, digest: "2".repeat(64), receipt: { namespace: "derive_order_intent", idempotency_key: "demo-intent" } },
     allow_decision: { id: `risk_decision_${"3".repeat(64)}`, digest: "3".repeat(64), outcome: "allow", reason_codes: [], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-allow" } },
     reject_decision: { id: `risk_decision_${"4".repeat(64)}`, digest: "4".repeat(64), outcome: "reject", reason_codes: ["maximum_order_quantity_exceeded"], receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: "demo-risk-reject" } },
+  },
+  paper_execution: {
+    workspace_path: "/paper-execution",
+    manual_candidate: { intent_id: `oi_${"5".repeat(64)}`, intent_digest: "5".repeat(64), decision_id: `risk_decision_${"6".repeat(64)}`, decision_digest: "6".repeat(64) },
+    policy_draft: { max_fill_quantity_per_trade_event: "4", slippage_bps: "10", commission_bps: "5", fee_bps: "1", buy_tax_bps: "0", sell_tax_bps: "0" },
+    completed_order: { id: `peo_${"7".repeat(64)}`, digest: "7".repeat(64) },
+    risk_rejection_order: { id: `peo_${"8".repeat(64)}`, digest: "8".repeat(64) },
+    exhaustion_order: { id: `peo_${"9".repeat(64)}`, digest: "9".repeat(64) },
   },
 };
 

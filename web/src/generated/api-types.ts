@@ -1075,6 +1075,52 @@ export interface components {
             /** Snapshot Id */
             snapshot_id: string;
         };
+        /** DemoPaperExecutionAuthorityResponse */
+        DemoPaperExecutionAuthorityResponse: {
+            /** Digest */
+            digest: string;
+            /** Id */
+            id: string;
+        };
+        /** DemoPaperExecutionManualCandidateResponse */
+        DemoPaperExecutionManualCandidateResponse: {
+            /** Decision Digest */
+            decision_digest: string;
+            /** Decision Id */
+            decision_id: string;
+            /** Intent Digest */
+            intent_digest: string;
+            /** Intent Id */
+            intent_id: string;
+        };
+        /** DemoPaperExecutionPolicyDraftResponse */
+        DemoPaperExecutionPolicyDraftResponse: {
+            /** Buy Tax Bps */
+            buy_tax_bps: string;
+            /** Commission Bps */
+            commission_bps: string;
+            /** Fee Bps */
+            fee_bps: string;
+            /** Max Fill Quantity Per Trade Event */
+            max_fill_quantity_per_trade_event: string | null;
+            /** Sell Tax Bps */
+            sell_tax_bps: string;
+            /** Slippage Bps */
+            slippage_bps: string;
+        };
+        /** DemoPaperExecutionReferenceResponse */
+        DemoPaperExecutionReferenceResponse: {
+            completed_order: components["schemas"]["DemoPaperExecutionAuthorityResponse"];
+            exhaustion_order: components["schemas"]["DemoPaperExecutionAuthorityResponse"];
+            manual_candidate: components["schemas"]["DemoPaperExecutionManualCandidateResponse"];
+            policy_draft: components["schemas"]["DemoPaperExecutionPolicyDraftResponse"];
+            risk_rejection_order: components["schemas"]["DemoPaperExecutionAuthorityResponse"];
+            /**
+             * Workspace Path
+             * @constant
+             */
+            workspace_path: "/paper-execution";
+        };
         /** DemoPaperJobReferenceResponse */
         DemoPaperJobReferenceResponse: {
             /** Job Id */
@@ -1180,6 +1226,7 @@ export interface components {
             lifecycle_review_example: components["schemas"]["LifecycleTransitionReviewCommandRequest"];
             market_time: components["schemas"]["DemoMarketTimeReferenceResponse"];
             paper_account: components["schemas"]["DemoPaperAccountReferenceResponse"];
+            paper_execution: components["schemas"]["DemoPaperExecutionReferenceResponse"];
             paper_job_submission_example: components["schemas"]["DemoPaperJobSubmissionExampleResponse"];
             /** Paper Jobs */
             paper_jobs: components["schemas"]["DemoPaperJobReferenceResponse"][];
@@ -1189,7 +1236,7 @@ export interface components {
              * Schema Version
              * @constant
              */
-            schema_version: 5;
+            schema_version: 6;
             strategy_order: components["schemas"]["DemoStrategyOrderReferenceResponse"];
             /** Warning */
             warning: string;

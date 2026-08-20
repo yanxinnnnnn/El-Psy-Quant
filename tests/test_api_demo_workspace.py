@@ -52,8 +52,8 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
 
     assert response.status_code == 200
     descriptor = DemoWorkspaceDescriptorResponse.model_validate(response.json())
-    assert descriptor.schema_version == 5
-    assert descriptor.dataset_version == 5
+    assert descriptor.schema_version == 6
+    assert descriptor.dataset_version == 6
     assert descriptor.dataset_id == "founder-demo-workspace"
     assert descriptor.comparison_candidate_job_ids == [
         "16000000-0000-4000-8000-000000000001",
@@ -113,6 +113,14 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
     assert descriptor.strategy_order.reject_decision.reason_codes == [
         "maximum_order_quantity_exceeded"
     ]
+    assert descriptor.paper_execution.workspace_path == "/paper-execution"
+    assert descriptor.paper_execution.manual_candidate.intent_id.startswith("oi_")
+    assert descriptor.paper_execution.completed_order.id.startswith("peo_")
+    assert descriptor.paper_execution.risk_rejection_order.id.startswith("peo_")
+    assert descriptor.paper_execution.exhaustion_order.id.startswith("peo_")
+    assert "idempotency" not in json.dumps(
+        descriptor.paper_execution.model_dump(), sort_keys=True
+    )
     assert descriptor.strategy_order.signal.receipt.namespace == (
         "evaluate_strategy_signal"
     )
@@ -156,16 +164,17 @@ def test_fresh_demo_s203_reads_return_exact_seeded_m33_evidence(
     assert signal_detail.json()["signal_digest"] == descriptor["signal"]["digest"]
     assert intent_detail.json()["intent_id"] == descriptor["intent"]["id"]
     assert intent_detail.json()["intent_digest"] == descriptor["intent"]["digest"]
-    assert [item["signal_id"] for item in signal_list.json()["items"]] == [
-        descriptor["signal"]["id"]
-    ]
-    assert [item["intent_id"] for item in intent_list.json()["items"]] == [
-        descriptor["intent"]["id"]
-    ]
-    assert [item["decision_id"] for item in decision_list.json()["items"]] == [
-        descriptor["reject_decision"]["id"],
-        descriptor["allow_decision"]["id"],
-    ]
+    assert descriptor["signal"]["id"] in {
+        item["signal_id"] for item in signal_list.json()["items"]
+    }
+    assert descriptor["intent"]["id"] in {
+        item["intent_id"] for item in intent_list.json()["items"]
+    }
+    decision_ids = {
+        item["decision_id"] for item in decision_list.json()["items"]
+    }
+    assert descriptor["reject_decision"]["id"] in decision_ids
+    assert descriptor["allow_decision"]["id"] in decision_ids
     for name, response in decision_details.items():
         assert response.status_code == 200
         assert response.json()["decision_id"] == descriptor[name]["id"]

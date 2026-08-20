@@ -45,6 +45,12 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
   const intentCommand = strategyOrder.intent as Record<string, unknown>;
   const allowCommand = strategyOrder.allow_risk as Record<string, unknown>;
   const rejectCommand = strategyOrder.reject_risk as Record<string, unknown>;
+  const executionJourney = demoSourceJson("paper_execution/execution-journey.json");
+  const executionScenarios = executionJourney.scenarios as Array<Record<string, unknown>>;
+  const [manual, completed, risk, exhaustion] = executionScenarios;
+  const manualExpected = manual.expected as Record<string, Record<string, unknown>>;
+  const orderExpected = (scenario: Record<string, unknown>) =>
+    (scenario.expected as Record<string, Record<string, unknown>>).order;
   return {
     schema_version: manifest.schema_version,
     dataset_id: manifest.dataset_id,
@@ -103,6 +109,19 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
       intent: { ...(strategyOrderExpected.intent as object), receipt: { namespace: "derive_order_intent", idempotency_key: intentCommand.idempotency_key } },
       allow_decision: { ...(strategyOrderExpected.allow_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: allowCommand.idempotency_key } },
       reject_decision: { ...(strategyOrderExpected.reject_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: rejectCommand.idempotency_key } },
+    },
+    paper_execution: {
+      workspace_path: "/paper-execution",
+      manual_candidate: {
+        intent_id: manualExpected.intent.id,
+        intent_digest: manualExpected.intent.digest,
+        decision_id: manualExpected.allow_decision.id,
+        decision_digest: manualExpected.allow_decision.digest,
+      },
+      policy_draft: manual.execution_policy,
+      completed_order: orderExpected(completed),
+      risk_rejection_order: orderExpected(risk),
+      exhaustion_order: orderExpected(exhaustion),
     },
   };
 }
@@ -287,8 +306,8 @@ describe("fetchDemoWorkspace", () => {
     const result = await fetchDemoWorkspace(fetcher);
 
     expect(result.data.dataset_id).toBe(descriptor.dataset_id);
-    expect(result.data.schema_version).toBe(5);
-    expect(result.data.dataset_version).toBe(5);
+    expect(result.data.schema_version).toBe(6);
+    expect(result.data.dataset_version).toBe(6);
     expect(result.data.comparison_candidate_job_ids).toHaveLength(2);
     expect(result.data.portfolio_review_example.request.review_id).toBe(
       "demo-portfolio-review-001",

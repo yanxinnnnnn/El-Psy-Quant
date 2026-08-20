@@ -37,8 +37,18 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
   const intentCommand = strategyOrder.intent as Record<string, unknown>;
   const allowCommand = strategyOrder.allow_risk as Record<string, unknown>;
   const rejectCommand = strategyOrder.reject_risk as Record<string, unknown>;
+  const paperExecution = demoSourceJson("paper_execution/execution-journey.json");
+  const executionScenarios = paperExecution.scenarios as Array<{
+    execution_policy: DemoWorkspaceDescriptorResponse["paper_execution"]["policy_draft"];
+    expected: {
+      intent: { id: string; digest: string };
+      allow_decision: { id: string; digest: string };
+      order: { id: string; digest: string } | null;
+    };
+  }>;
+  const [manual, completed, risk, exhaustion] = executionScenarios;
   return {
-    schema_version: manifest.schema_version as 5,
+    schema_version: manifest.schema_version as 6,
     dataset_id: manifest.dataset_id as string,
     dataset_version: manifest.dataset_version as number,
     display_name: manifest.display_name as string,
@@ -95,6 +105,19 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
       intent: { ...(strategyOrderExpected.intent as object), receipt: { namespace: "derive_order_intent", idempotency_key: intentCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["intent"],
       allow_decision: { ...(strategyOrderExpected.allow_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: allowCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["allow_decision"],
       reject_decision: { ...(strategyOrderExpected.reject_decision as object), receipt: { namespace: "evaluate_pre_trade_risk", idempotency_key: rejectCommand.idempotency_key } } as DemoWorkspaceDescriptorResponse["strategy_order"]["reject_decision"],
+    },
+    paper_execution: {
+      workspace_path: "/paper-execution",
+      manual_candidate: {
+        intent_id: manual.expected.intent.id,
+        intent_digest: manual.expected.intent.digest,
+        decision_id: manual.expected.allow_decision.id,
+        decision_digest: manual.expected.allow_decision.digest,
+      },
+      policy_draft: manual.execution_policy,
+      completed_order: completed.expected.order!,
+      risk_rejection_order: risk.expected.order!,
+      exhaustion_order: exhaustion.expected.order!,
     },
   };
 }

@@ -8,6 +8,7 @@ import { ScrollableTable } from "@/components/ui/scrollable-table";
 import {
   ApiClientError,
   createPaperExecutionOrder,
+  fetchDemoWorkspace,
   fetchOrderIntentDetail,
   fetchPaperExecutionAttempts,
   fetchPaperExecutionFills,
@@ -17,6 +18,7 @@ import {
   fetchPreTradeRiskDecisions,
   stepPaperExecutionOrder,
   type OrderIntentResponse,
+  type DemoWorkspaceDescriptorResponse,
   type PaperExecutionAttemptListResponse,
   type PaperExecutionFillListResponse,
   type PaperExecutionOrderCommandResponse,
@@ -152,6 +154,8 @@ export function PaperExecutionWorkspace() {
   const [fee, setFee] = useState("");
   const [buyTax, setBuyTax] = useState("");
   const [sellTax, setSellTax] = useState("");
+  const [demoDescriptor, setDemoDescriptor] = useState<DemoWorkspaceDescriptorResponse | null>(null);
+  const [demoReplaceConfirmed, setDemoReplaceConfirmed] = useState(false);
 
   const [candidates, setCandidates] = useState<Resource<CandidatePage>>({ status: "idle" });
   const [selectedDecisionId, setSelectedDecisionId] = useState("");
@@ -258,7 +262,28 @@ export function PaperExecutionWorkspace() {
   useEffect(() => {
     void loadCandidates();
     void loadOrders();
+    void fetchDemoWorkspace().then((result) => {
+      setDemoDescriptor(result.data);
+    }).catch(() => {
+      setDemoDescriptor(null);
+    });
   }, [loadCandidates, loadOrders]);
+
+  function loadDemoExample() {
+    if (!demoDescriptor || !demoReplaceConfirmed) return;
+    const example = demoDescriptor.paper_execution;
+    setSelectedDecisionId(example.manual_candidate.decision_id);
+    setMaxFill(example.policy_draft.max_fill_quantity_per_trade_event ?? "");
+    setSlippage(example.policy_draft.slippage_bps);
+    setCommission(example.policy_draft.commission_bps);
+    setFee(example.policy_draft.fee_bps);
+    setBuyTax(example.policy_draft.buy_tax_bps);
+    setSellTax(example.policy_draft.sell_tax_bps);
+    setCreateError(null);
+    setCreateResult(null);
+    setCreateKey(null);
+    setDemoReplaceConfirmed(false);
+  }
 
   async function loadSelectedHistory(
     executionOrderId: string,
@@ -464,6 +489,19 @@ export function PaperExecutionWorkspace() {
     <div className="page-stack paper-execution-workspace">
       <section className="page-heading"><p className="eyebrow">{t("eyebrow")}</p><h1>{t("title")}</h1><p>{t("description")}</p></section>
       <aside className="boundary-note"><strong>{t("boundary.title")}</strong><p>{t("boundary.description")}</p></aside>
+
+      {demoDescriptor ? (
+        <fieldset className="form-section confirmation-panel">
+          <legend>{t("demo.title")}</legend>
+          <p className="field-guidance">{t("demo.description")}</p>
+          <label className="confirmation-control">
+            <input type="checkbox" checked={demoReplaceConfirmed} onChange={(event) => setDemoReplaceConfirmed(event.target.checked)} />
+            <span>{t("demo.replaceConfirmation")}</span>
+          </label>
+          <button className="secondary-button" type="button" disabled={!demoReplaceConfirmed} onClick={loadDemoExample}>{t("demo.load")}</button>
+          <p className="neutral-note" role="note">{t("demo.historicalWarning")}</p>
+        </fieldset>
+      ) : null}
 
       <section className="content-panel" aria-labelledby="candidate-title">
         <div className="section-heading"><div><p className="eyebrow">{t("candidate.eyebrow")}</p><h2 id="candidate-title">{t("candidate.title")}</h2></div><p>{t("candidate.description")}</p></div>

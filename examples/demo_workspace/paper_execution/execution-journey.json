@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "scenarios": [
+    {
+      "scenario_id": "manual",
+      "kind": "manual",
+      "account": {"account_id": "demo-execution-account-manual", "display_name": "Demo Execution Manual", "initial_cash": "1000", "idempotency_key": "demo-v6-account-manual", "actor": "demo-founder", "created_at": "2026-08-20T00:00:00Z"},
+      "market": {
+        "calendar": {"schema_version": 1, "id": "demo-execution-calendar-manual", "market": "XNYS", "timezone": "UTC", "calendar_version": 2, "created_at": "2026-08-20T00:00:00Z"},
+        "session": {"schema_version": 1, "id": "demo-execution-session-manual", "calendar_id": "demo-execution-calendar-manual", "trading_date": "2026-08-20", "open_time": "2026-08-20T01:00:00Z", "close_time": "2026-08-20T10:00:00Z", "session_type": "regular"},
+        "replay_id": "demo-execution-replay-manual",
+        "events": [
+          {"schema_version": 1, "event_id": "demo-execution-manual-event-1", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-20T01:01:00Z", "event_type": "trade", "payload": {"price": 3}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-manual-event-2", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-20T01:02:00Z", "event_type": "trade", "payload": {"price": 2}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-manual-event-3", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-20T01:03:00Z", "event_type": "trade", "payload": {"price": 1}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-manual-event-4", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-20T01:04:00Z", "event_type": "trade", "payload": {"price": 4}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-manual-event-5", "instrument_id": "XNYS:MSFT", "event_time": "2026-08-20T01:05:00Z", "event_type": "trade", "payload": {"price": 9}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-manual-event-6", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-20T01:06:00Z", "event_type": "trade", "payload": {"price": 5}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-manual-event-7", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-20T01:07:00Z", "event_type": "trade", "payload": {"price": 6}, "source": "fixture:demo-v6"}
+        ],
+        "handoff_event_count": 4
+      },
+      "runtime": {"fast_window": 2, "slow_window": 3, "target_position_quantity": "8"},
+      "signal": {"idempotency_key": "demo-v6-signal-manual", "actor": "demo-founder", "created_at": "2026-08-20T02:00:00Z"},
+      "intent": {"idempotency_key": "demo-v6-intent-manual", "actor": "demo-founder", "created_at": "2026-08-20T02:01:00Z"},
+      "allow_risk": {"idempotency_key": "demo-v6-risk-manual", "actor": "demo-founder", "created_at": "2026-08-20T02:02:00Z", "maximum_order_quantity": null, "maximum_order_notional": null},
+      "execution_policy": {"max_fill_quantity_per_trade_event": "4", "slippage_bps": "10", "commission_bps": "5", "fee_bps": "1", "buy_tax_bps": "0", "sell_tax_bps": "0"},
+      "create": null,
+      "steps": [],
+      "expected": {"intent": {"id": "oi_63c1e75f8b4cf4728c9ef1b806c8e1dab1205c6b22c2485733527ea629589c64", "digest": "63c1e75f8b4cf4728c9ef1b806c8e1dab1205c6b22c2485733527ea629589c64"}, "allow_decision": {"id": "risk_decision_52e33224a641963759bdc83d4cd54337143ebf2accdbc397b334cd62408e626f", "digest": "52e33224a641963759bdc83d4cd54337143ebf2accdbc397b334cd62408e626f"}, "order": null, "status": "fresh_manual_candidate", "attempts": [], "fills": [], "settlement_links": [], "account_head_version": 1, "cash_balance": "1000", "position_quantity": "0", "aggregate_cost_basis": "0", "replay_position": 4, "replay_last_event_id": "demo-execution-manual-event-4"}
+    },
+    {
+      "scenario_id": "completed",
+      "kind": "completed",
+      "account": {"account_id": "demo-execution-account-completed", "display_name": "Demo Execution Completed", "initial_cash": "1000", "idempotency_key": "demo-v6-account-completed", "actor": "demo-founder", "created_at": "2026-08-21T00:00:00Z"},
+      "market": {
+        "calendar": {"schema_version": 1, "id": "demo-execution-calendar-completed", "market": "XNYS", "timezone": "UTC", "calendar_version": 3, "created_at": "2026-08-21T00:00:00Z"},
+        "session": {"schema_version": 1, "id": "demo-execution-session-completed", "calendar_id": "demo-execution-calendar-completed", "trading_date": "2026-08-21", "open_time": "2026-08-21T01:00:00Z", "close_time": "2026-08-21T10:00:00Z", "session_type": "regular"},
+        "replay_id": "demo-execution-replay-completed",
+        "events": [
+          {"schema_version": 1, "event_id": "demo-execution-completed-event-1", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-21T01:01:00Z", "event_type": "trade", "payload": {"price": 3}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-completed-event-2", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-21T01:02:00Z", "event_type": "trade", "payload": {"price": 2}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-completed-event-3", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-21T01:03:00Z", "event_type": "trade", "payload": {"price": 1}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-completed-event-4", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-21T01:04:00Z", "event_type": "trade", "payload": {"price": 4}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-completed-event-5", "instrument_id": "XNYS:MSFT", "event_time": "2026-08-21T01:05:00Z", "event_type": "trade", "payload": {"price": 9}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-completed-event-6", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-21T01:06:00Z", "event_type": "trade", "payload": {"price": 5}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-completed-event-7", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-21T01:07:00Z", "event_type": "trade", "payload": {"price": 6}, "source": "fixture:demo-v6"}
+        ],
+        "handoff_event_count": 4
+      },
+      "runtime": {"fast_window": 2, "slow_window": 3, "target_position_quantity": "8"},
+      "signal": {"idempotency_key": "demo-v6-signal-completed", "actor": "demo-founder", "created_at": "2026-08-21T02:00:00Z"},
+      "intent": {"idempotency_key": "demo-v6-intent-completed", "actor": "demo-founder", "created_at": "2026-08-21T02:01:00Z"},
+      "allow_risk": {"idempotency_key": "demo-v6-risk-completed", "actor": "demo-founder", "created_at": "2026-08-21T02:02:00Z", "maximum_order_quantity": null, "maximum_order_notional": null},
+      "execution_policy": {"max_fill_quantity_per_trade_event": "4", "slippage_bps": "10", "commission_bps": "5", "fee_bps": "1", "buy_tax_bps": "0", "sell_tax_bps": "0"},
+      "create": {"idempotency_key": "demo-v6-create-completed", "actor": "demo-founder", "created_at": "2026-08-21T02:03:00Z"},
+      "steps": [
+        {"idempotency_key": "demo-v6-step-completed-1", "actor": "demo-founder", "created_at": "2026-08-21T02:04:00Z", "expected_execution_version": 0},
+        {"idempotency_key": "demo-v6-step-completed-2", "actor": "demo-founder", "created_at": "2026-08-21T02:05:00Z", "expected_execution_version": 1},
+        {"idempotency_key": "demo-v6-step-completed-3", "actor": "demo-founder", "created_at": "2026-08-21T02:06:00Z", "expected_execution_version": 2}
+      ],
+      "expected": {"intent": {"id": "oi_e37a066d5174076df65c72bc8e221f22b8e0380c156cbe137a959bf91a8717b5", "digest": "e37a066d5174076df65c72bc8e221f22b8e0380c156cbe137a959bf91a8717b5"}, "allow_decision": {"id": "risk_decision_8f8f158cc32bb25bf7187c94422e09e5a57ac6ff8006b89de8978bf4dd7f1a78", "digest": "8f8f158cc32bb25bf7187c94422e09e5a57ac6ff8006b89de8978bf4dd7f1a78"}, "order": {"id": "peo_a038c45a0235aadf1d386e3aaf6cc5486ac9619e4048fa9ba743fff431c943d0", "digest": "a038c45a0235aadf1d386e3aaf6cc5486ac9619e4048fa9ba743fff431c943d0"}, "status": "filled", "attempts": [{"id": "pea_548d5261dc86685306e180284123ecc81104b46ca4e4bd9bad7b8774e811b7ef", "digest": "548d5261dc86685306e180284123ecc81104b46ca4e4bd9bad7b8774e811b7ef", "result": "no_fill", "consumed_event_id": "demo-execution-completed-event-5"}, {"id": "pea_86fac1ee723a191ccbbb141cb23ff0b4168aaed26a9bd621e0eba56563be46c0", "digest": "86fac1ee723a191ccbbb141cb23ff0b4168aaed26a9bd621e0eba56563be46c0", "result": "fill", "consumed_event_id": "demo-execution-completed-event-6"}, {"id": "pea_41bef744207582aee87181935f8418c43e2d803b3549c78893767e9a32bcf09f", "digest": "41bef744207582aee87181935f8418c43e2d803b3549c78893767e9a32bcf09f", "result": "fill", "consumed_event_id": "demo-execution-completed-event-7"}], "fills": [{"id": "pef_64493445f9502a795aaeb8db7db61c2fb6aa17c2a09924a8a60f8887df4dd552", "digest": "64493445f9502a795aaeb8db7db61c2fb6aa17c2a09924a8a60f8887df4dd552", "quantity": "4", "execution_price": "5.005", "total_charges": "0.012012"}, {"id": "pef_d988f4e6fd5c6b1bfaa1c1fc78aab6a72776d146dba511c884c0850db61bd188", "digest": "d988f4e6fd5c6b1bfaa1c1fc78aab6a72776d146dba511c884c0850db61bd188", "quantity": "4", "execution_price": "6.006", "total_charges": "0.0144144"}], "settlement_links": [{"id": "pes_d6c83ba4f22b7ead3f757c8d03c8f12837468c74fe3c6985eef245cc902b47fb", "digest": "d6c83ba4f22b7ead3f757c8d03c8f12837468c74fe3c6985eef245cc902b47fb"}, {"id": "pes_13b3a1c98b15f7d8656c425c3bbb8d8aeb26676fee9b0d32d86e98165d7b4948", "digest": "13b3a1c98b15f7d8656c425c3bbb8d8aeb26676fee9b0d32d86e98165d7b4948"}], "account_head_version": 3, "cash_balance": "955.9295736", "position_quantity": "8", "aggregate_cost_basis": "44.0704264", "replay_position": 7, "replay_last_event_id": "demo-execution-completed-event-7"}
+    },
+    {
+      "scenario_id": "risk-rejection",
+      "kind": "risk_rejection",
+      "account": {"account_id": "demo-execution-account-risk", "display_name": "Demo Execution Risk Rejection", "initial_cash": "1000", "idempotency_key": "demo-v6-account-risk", "actor": "demo-founder", "created_at": "2026-08-22T00:00:00Z"},
+      "market": {
+        "calendar": {"schema_version": 1, "id": "demo-execution-calendar-risk", "market": "XNYS", "timezone": "UTC", "calendar_version": 4, "created_at": "2026-08-22T00:00:00Z"},
+        "session": {"schema_version": 1, "id": "demo-execution-session-risk", "calendar_id": "demo-execution-calendar-risk", "trading_date": "2026-08-22", "open_time": "2026-08-22T01:00:00Z", "close_time": "2026-08-22T10:00:00Z", "session_type": "regular"},
+        "replay_id": "demo-execution-replay-risk",
+        "events": [
+          {"schema_version": 1, "event_id": "demo-execution-risk-event-1", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-22T01:01:00Z", "event_type": "trade", "payload": {"price": 3}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-risk-event-2", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-22T01:02:00Z", "event_type": "trade", "payload": {"price": 2}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-risk-event-3", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-22T01:03:00Z", "event_type": "trade", "payload": {"price": 1}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-risk-event-4", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-22T01:04:00Z", "event_type": "trade", "payload": {"price": 4}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-risk-event-5", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-22T01:05:00Z", "event_type": "trade", "payload": {"price": 20}, "source": "fixture:demo-v6"}
+        ],
+        "handoff_event_count": 4
+      },
+      "runtime": {"fast_window": 2, "slow_window": 3, "target_position_quantity": "8"},
+      "signal": {"idempotency_key": "demo-v6-signal-risk", "actor": "demo-founder", "created_at": "2026-08-22T02:00:00Z"},
+      "intent": {"idempotency_key": "demo-v6-intent-risk", "actor": "demo-founder", "created_at": "2026-08-22T02:01:00Z"},
+      "allow_risk": {"idempotency_key": "demo-v6-risk-risk", "actor": "demo-founder", "created_at": "2026-08-22T02:02:00Z", "maximum_order_quantity": null, "maximum_order_notional": "40"},
+      "execution_policy": {"max_fill_quantity_per_trade_event": "4", "slippage_bps": "10", "commission_bps": "5", "fee_bps": "1", "buy_tax_bps": "0", "sell_tax_bps": "0"},
+      "create": {"idempotency_key": "demo-v6-create-risk", "actor": "demo-founder", "created_at": "2026-08-22T02:03:00Z"},
+      "steps": [{"idempotency_key": "demo-v6-step-risk-1", "actor": "demo-founder", "created_at": "2026-08-22T02:04:00Z", "expected_execution_version": 0}],
+      "expected": {"intent": {"id": "oi_070c48b7cacc48ef61c1fd645329440ee68d5142f026874e55f8e6aae5492a67", "digest": "070c48b7cacc48ef61c1fd645329440ee68d5142f026874e55f8e6aae5492a67"}, "allow_decision": {"id": "risk_decision_136d748e2ceb447f82bb30e3fb389e7d2ba2f3248025f87b1f208da9914379a1", "digest": "136d748e2ceb447f82bb30e3fb389e7d2ba2f3248025f87b1f208da9914379a1"}, "order": {"id": "peo_144a10bbd744e5922de8407e2afe0b03e71bcb232185255cc2052ccfe649d4e5", "digest": "144a10bbd744e5922de8407e2afe0b03e71bcb232185255cc2052ccfe649d4e5"}, "status": "rejected", "attempts": [{"id": "pea_e58f614c9787e1756aef84ea775f7d649a662db4f43836537436072e82ccf55f", "digest": "e58f614c9787e1756aef84ea775f7d649a662db4f43836537436072e82ccf55f", "result": "risk_rejected", "consumed_event_id": "demo-execution-risk-event-5"}], "fills": [], "settlement_links": [], "account_head_version": 1, "cash_balance": "1000", "position_quantity": "0", "aggregate_cost_basis": "0", "replay_position": 5, "replay_last_event_id": "demo-execution-risk-event-5"}
+    },
+    {
+      "scenario_id": "exhaustion",
+      "kind": "exhaustion",
+      "account": {"account_id": "demo-execution-account-exhaustion", "display_name": "Demo Execution Exhaustion", "initial_cash": "1000", "idempotency_key": "demo-v6-account-exhaustion", "actor": "demo-founder", "created_at": "2026-08-23T00:00:00Z"},
+      "market": {
+        "calendar": {"schema_version": 1, "id": "demo-execution-calendar-exhaustion", "market": "XNYS", "timezone": "UTC", "calendar_version": 5, "created_at": "2026-08-23T00:00:00Z"},
+        "session": {"schema_version": 1, "id": "demo-execution-session-exhaustion", "calendar_id": "demo-execution-calendar-exhaustion", "trading_date": "2026-08-23", "open_time": "2026-08-23T01:00:00Z", "close_time": "2026-08-23T10:00:00Z", "session_type": "regular"},
+        "replay_id": "demo-execution-replay-exhaustion",
+        "events": [
+          {"schema_version": 1, "event_id": "demo-execution-exhaustion-event-1", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-23T01:01:00Z", "event_type": "trade", "payload": {"price": 3}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-exhaustion-event-2", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-23T01:02:00Z", "event_type": "trade", "payload": {"price": 2}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-exhaustion-event-3", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-23T01:03:00Z", "event_type": "trade", "payload": {"price": 1}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-exhaustion-event-4", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-23T01:04:00Z", "event_type": "trade", "payload": {"price": 4}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-exhaustion-event-5", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-23T01:05:00Z", "event_type": "trade", "payload": {"price": 5}, "source": "fixture:demo-v6"},
+          {"schema_version": 1, "event_id": "demo-execution-exhaustion-event-6", "instrument_id": "XNYS:AAPL", "event_time": "2026-08-23T11:00:00Z", "event_type": "trade", "payload": {"price": 6}, "source": "fixture:demo-v6"}
+        ],
+        "handoff_event_count": 4
+      },
+      "runtime": {"fast_window": 2, "slow_window": 3, "target_position_quantity": "8"},
+      "signal": {"idempotency_key": "demo-v6-signal-exhaustion", "actor": "demo-founder", "created_at": "2026-08-23T02:00:00Z"},
+      "intent": {"idempotency_key": "demo-v6-intent-exhaustion", "actor": "demo-founder", "created_at": "2026-08-23T02:01:00Z"},
+      "allow_risk": {"idempotency_key": "demo-v6-risk-exhaustion", "actor": "demo-founder", "created_at": "2026-08-23T02:02:00Z", "maximum_order_quantity": null, "maximum_order_notional": null},
+      "execution_policy": {"max_fill_quantity_per_trade_event": "4", "slippage_bps": "10", "commission_bps": "5", "fee_bps": "1", "buy_tax_bps": "0", "sell_tax_bps": "0"},
+      "create": {"idempotency_key": "demo-v6-create-exhaustion", "actor": "demo-founder", "created_at": "2026-08-23T02:03:00Z"},
+      "steps": [{"idempotency_key": "demo-v6-step-exhaustion-1", "actor": "demo-founder", "created_at": "2026-08-23T02:04:00Z", "expected_execution_version": 0}, {"idempotency_key": "demo-v6-step-exhaustion-2", "actor": "demo-founder", "created_at": "2026-08-23T02:05:00Z", "expected_execution_version": 1}],
+      "expected": {"intent": {"id": "oi_2c92728349c65776a1bcac3295e96d45407a8a06e6a5f230944fc221b37c0368", "digest": "2c92728349c65776a1bcac3295e96d45407a8a06e6a5f230944fc221b37c0368"}, "allow_decision": {"id": "risk_decision_8604ea033f5f6d706fdf786cac796c4a3a00a35ca5ca3d94fe70102a0d4cdd90", "digest": "8604ea033f5f6d706fdf786cac796c4a3a00a35ca5ca3d94fe70102a0d4cdd90"}, "order": {"id": "peo_49d1302d52cad827096e2d96696fd5d0907fdaa01e0a53240d9c096cd4a86fe2", "digest": "49d1302d52cad827096e2d96696fd5d0907fdaa01e0a53240d9c096cd4a86fe2"}, "status": "partially_filled_rejected", "attempts": [{"id": "pea_4f03726a10b91d79f18ffb7bab3a4d172f35d6373b54edfad25e2b2568d02471", "digest": "4f03726a10b91d79f18ffb7bab3a4d172f35d6373b54edfad25e2b2568d02471", "result": "fill", "consumed_event_id": "demo-execution-exhaustion-event-5"}, {"id": "pea_2c1542fb25e2d7ab3892bdf1b2845ffe5d8cd2aa4fa52b8d32c93c961e4c587d", "digest": "2c1542fb25e2d7ab3892bdf1b2845ffe5d8cd2aa4fa52b8d32c93c961e4c587d", "result": "boundary_rejected", "consumed_event_id": null}], "fills": [{"id": "pef_f642fbf99db337b0152e0b72e6b632e0387d253651714a2d4fb9b17037c2d5cd", "digest": "f642fbf99db337b0152e0b72e6b632e0387d253651714a2d4fb9b17037c2d5cd", "quantity": "4", "execution_price": "5.005", "total_charges": "0.012012"}], "settlement_links": [{"id": "pes_367dcd3f9023b1b070ad8cb7e8ad6a8f91f83f91ada3e39bbd1827f8167b3639", "digest": "367dcd3f9023b1b070ad8cb7e8ad6a8f91f83f91ada3e39bbd1827f8167b3639"}], "account_head_version": 2, "cash_balance": "979.967988", "position_quantity": "4", "aggregate_cost_basis": "20.032012", "replay_position": 5, "replay_last_event_id": "demo-execution-exhaustion-event-5"}
+    }
+  ]
+}
