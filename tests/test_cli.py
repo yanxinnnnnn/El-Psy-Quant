@@ -259,9 +259,9 @@ def test_demo_installer_cli_requires_demo_mode_and_replays_deterministically(
 
     monkeypatch.setenv("EL_PSY_QUANT_WORKSPACE_MODE", "demo")
     assert main(arguments) == 0
-    assert "founder-demo-workspace v5 installed" in capsys.readouterr().out
+    assert "founder-demo-workspace v6 installed" in capsys.readouterr().out
     assert main(arguments) == 0
-    assert "founder-demo-workspace v5 already installed" in capsys.readouterr().out
+    assert "founder-demo-workspace v6 already installed" in capsys.readouterr().out
 
 
 def test_cli_main_is_importable() -> None:

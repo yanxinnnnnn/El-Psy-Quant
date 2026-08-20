@@ -38,6 +38,9 @@ from el_psy_quant.application.paper_jobs import read_paper_job_result
 from el_psy_quant.application.paper_accounts import (
     PaperAccountApplicationService,
 )
+from el_psy_quant.application.paper_execution import (
+    PaperExecutionApplicationService,
+)
 from el_psy_quant.application.strategy_order import (
     StrategyOrderApplicationService,
 )
@@ -70,6 +73,10 @@ from el_psy_quant.paper_account import (
     PaperQuantity,
     rebuild_paper_account_projection,
     replay_paper_account_ledger,
+)
+from el_psy_quant.paper_execution import (
+    PaperExecutionBasisPoints,
+    create_paper_execution_policy_reference,
 )
 from el_psy_quant.market_time import (
     MarketDataReplayEngine,
@@ -128,8 +135,8 @@ from el_psy_quant.strategy_order import (
 if TYPE_CHECKING:
     from el_psy_quant.api.portfolio_review_schemas import PortfolioReviewCreateRequest
 
-DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 5
-DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 5
+DEMO_WORKSPACE_SOURCE_SCHEMA_VERSION = 6
+DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION = 6
 DEMO_WORKSPACE_INSTALL_SCHEMA_VERSION = 1
 DEMO_WORKSPACE_MODE = "demo"
 STANDARD_WORKSPACE_MODE = "standard"
@@ -152,6 +159,7 @@ _SOURCE_ROOT_DIRECTORIES = (
     "paper_accounts",
     "market_time",
     "strategy_order",
+    "paper_execution",
 )
 _SOURCE_ROOT_FILES = ("README.md", WORKSPACE_MANIFEST_FILE_NAME)
 _INSTALLED_CHILDREN = (
@@ -227,6 +235,10 @@ class _MarketTimeExampleSource(_StrictSourceModel):
 
 
 class _StrategyOrderExampleSource(_StrictSourceModel):
+    request_relative_path: str
+
+
+class _PaperExecutionExampleSource(_StrictSourceModel):
     request_relative_path: str
 
 
@@ -328,6 +340,97 @@ class _DemoStrategyOrderJourney(_StrictSourceModel):
     expected: _DemoStrategyOrderExpected
 
 
+class _DemoExecutionAccount(_StrictSourceModel):
+    account_id: str
+    display_name: str
+    initial_cash: str
+    idempotency_key: str
+    actor: str
+    created_at: str
+
+
+class _DemoExecutionMarket(_StrictSourceModel):
+    calendar: _DemoTradingCalendar
+    session: _DemoTradingSession
+    replay_id: str
+    events: tuple[_DemoMarketDataEvent, ...]
+    handoff_event_count: int
+
+
+class _DemoExecutionRiskCommand(_DemoStrategyCommand):
+    maximum_order_quantity: str | None = None
+    maximum_order_notional: str | None = None
+
+
+class _DemoExecutionPolicy(_StrictSourceModel):
+    max_fill_quantity_per_trade_event: str | None
+    slippage_bps: str
+    commission_bps: str
+    fee_bps: str
+    buy_tax_bps: str
+    sell_tax_bps: str
+
+
+class _DemoExecutionCreateCommand(_DemoStrategyCommand):
+    pass
+
+
+class _DemoExecutionStepCommand(_DemoStrategyCommand):
+    expected_execution_version: int
+
+
+class _DemoExecutionExpectedAttempt(_DemoStrategyExpectedAuthority):
+    result: Literal["no_fill", "fill", "risk_rejected", "boundary_rejected"]
+    consumed_event_id: str | None
+
+
+class _DemoExecutionExpectedFill(_DemoStrategyExpectedAuthority):
+    quantity: str
+    execution_price: str
+    total_charges: str
+
+
+class _DemoExecutionExpected(_StrictSourceModel):
+    intent: _DemoStrategyExpectedAuthority
+    allow_decision: _DemoStrategyExpectedAuthority
+    order: _DemoStrategyExpectedAuthority | None
+    status: Literal[
+        "fresh_manual_candidate",
+        "filled",
+        "rejected",
+        "partially_filled_rejected",
+    ]
+    attempts: tuple[_DemoExecutionExpectedAttempt, ...]
+    fills: tuple[_DemoExecutionExpectedFill, ...]
+    settlement_links: tuple[_DemoStrategyExpectedAuthority, ...]
+    account_head_version: int
+    cash_balance: str
+    position_quantity: str
+    aggregate_cost_basis: str
+    replay_position: int
+    replay_last_event_id: str
+
+
+class _DemoExecutionScenario(_StrictSourceModel):
+    scenario_id: str
+    kind: Literal["manual", "completed", "risk_rejection", "exhaustion"]
+    account: _DemoExecutionAccount
+    market: _DemoExecutionMarket
+    runtime: _DemoStrategyRuntime
+    signal: _DemoStrategyCommand
+    intent: _DemoStrategyCommand
+    allow_risk: _DemoExecutionRiskCommand
+    execution_policy: _DemoExecutionPolicy
+    create: _DemoExecutionCreateCommand | None
+    steps: tuple[_DemoExecutionStepCommand, ...]
+    expected: _DemoExecutionExpected
+
+
+class _DemoPaperExecutionJourney(_StrictSourceModel):
+    schema_version: Literal[1]
+    scenarios: tuple[_DemoExecutionScenario, ...]
+
+
 class _DemoPaperAccountCreation(_StrictSourceModel):
     idempotency_key: str
     display_name: str
@@ -408,7 +511,7 @@ class _DemoPaperAccountJourney(_StrictSourceModel):
 
 
 class _DemoWorkspaceSourceManifest(_StrictSourceModel):
-    schema_version: Literal[5]
+    schema_version: Literal[6]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -425,6 +528,7 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     paper_account_example: _PaperAccountExampleSource
     market_time_example: _MarketTimeExampleSource
     strategy_order_example: _StrategyOrderExampleSource
+    paper_execution_example: _PaperExecutionExampleSource
 
     @field_validator(
         "dataset_id",
@@ -451,8 +555,8 @@ class _DemoWorkspaceSourceManifest(_StrictSourceModel):
     def require_coherent_journey(self) -> _DemoWorkspaceSourceManifest:
         if "DEMO" not in self.warning.upper():
             raise ValueError("demo warning must identify demo data")
-        if self.dataset_version != 5:
-            raise ValueError("demo dataset version must be 5")
+        if self.dataset_version != 6:
+            raise ValueError("demo dataset version must be 6")
         if len(self.paper_jobs) < 2:
             raise ValueError("at least two paper jobs are required")
         job_ids = tuple(job.job_id for job in self.paper_jobs)
@@ -533,6 +637,7 @@ class _ValidatedDemoSource:
     paper_account_journey: _DemoPaperAccountJourney
     market_time: _ValidatedDemoMarketTime
     strategy_order_journey: _DemoStrategyOrderJourney
+    paper_execution_journey: _DemoPaperExecutionJourney
     descriptor: DemoWorkspaceDescriptor
 
 
@@ -1295,6 +1400,157 @@ def _validate_strategy_order_journey(
     return journey
 
 
+def _execution_policy(source: _DemoExecutionPolicy):
+    return create_paper_execution_policy_reference(
+        max_fill_quantity_per_trade_event=(
+            None
+            if source.max_fill_quantity_per_trade_event is None
+            else PaperQuantity.parse(source.max_fill_quantity_per_trade_event)
+        ),
+        slippage_bps=PaperExecutionBasisPoints.parse(source.slippage_bps),
+        commission_bps=PaperExecutionBasisPoints.parse(source.commission_bps),
+        fee_bps=PaperExecutionBasisPoints.parse(source.fee_bps),
+        buy_tax_bps=PaperExecutionBasisPoints.parse(source.buy_tax_bps),
+        sell_tax_bps=PaperExecutionBasisPoints.parse(source.sell_tax_bps),
+    )
+
+
+def _execution_risk_policy(source: _DemoExecutionRiskCommand):
+    return create_long_only_cash_risk_policy_reference(
+        maximum_order_quantity=(
+            None
+            if source.maximum_order_quantity is None
+            else PaperQuantity.parse(source.maximum_order_quantity)
+        ),
+        maximum_order_notional=(
+            None
+            if source.maximum_order_notional is None
+            else PaperMoney.parse(source.maximum_order_notional)
+        ),
+    )
+
+
+def _validate_paper_execution_journey(
+    payload: dict[str, Any],
+) -> _DemoPaperExecutionJourney:
+    try:
+        journey = _DemoPaperExecutionJourney.model_validate(payload)
+        if tuple(item.kind for item in journey.scenarios) != (
+            "manual",
+            "completed",
+            "risk_rejection",
+            "exhaustion",
+        ):
+            raise ValueError("the four Demo execution scenarios are required in order")
+        identities = tuple(item.scenario_id for item in journey.scenarios)
+        account_ids = tuple(item.account.account_id for item in journey.scenarios)
+        replay_ids = tuple(item.market.replay_id for item in journey.scenarios)
+        session_ids = tuple(item.market.session.id for item in journey.scenarios)
+        if any(len(set(values)) != len(values) for values in (
+            identities, account_ids, replay_ids, session_ids
+        )):
+            raise ValueError("Demo execution scenario identities must be isolated")
+        command_keys: list[str] = []
+        expected_ids: list[str] = []
+        for scenario in journey.scenarios:
+            _normalized_text(scenario.scenario_id)
+            _normalized_text(scenario.account.account_id)
+            PaperMoney.parse(scenario.account.initial_cash)
+            _utc_timestamp(scenario.account.created_at)
+            runtime_quantity = PaperQuantity.parse(
+                scenario.runtime.target_position_quantity
+            )
+            if runtime_quantity.decimal_value <= 0:
+                raise ValueError("Demo execution target quantity must be positive")
+            _execution_policy(scenario.execution_policy)
+            _execution_risk_policy(scenario.allow_risk)
+            command_times = [
+                _utc_timestamp(scenario.signal.created_at),
+                _utc_timestamp(scenario.intent.created_at),
+                _utc_timestamp(scenario.allow_risk.created_at),
+            ]
+            if scenario.create is not None:
+                command_times.append(_utc_timestamp(scenario.create.created_at))
+            command_times.extend(_utc_timestamp(item.created_at) for item in scenario.steps)
+            if command_times != sorted(command_times):
+                raise ValueError("Demo execution command timestamps must be ordered")
+            if scenario.market.session.calendar_id != scenario.market.calendar.id:
+                raise ValueError("Demo execution calendar/session reference mismatch")
+            if not 3 <= scenario.market.handoff_event_count < len(scenario.market.events):
+                raise ValueError("Demo execution handoff must leave a future event")
+            event_ids = tuple(item.event_id for item in scenario.market.events)
+            if len(set(event_ids)) != len(event_ids):
+                raise ValueError("Demo execution event IDs must be distinct")
+            if (
+                scenario.expected.replay_last_event_id not in event_ids
+                or any(
+                    item.consumed_event_id is not None
+                    and item.consumed_event_id not in event_ids
+                    for item in scenario.expected.attempts
+                )
+                or tuple(
+                    item.expected_execution_version for item in scenario.steps
+                )
+                != tuple(range(len(scenario.steps)))
+            ):
+                raise ValueError("Demo execution expected references are inconsistent")
+            if scenario.kind == "manual":
+                if scenario.create is not None or scenario.steps or scenario.expected.order is not None:
+                    raise ValueError("manual Demo scenario must remain M34-fresh")
+                if scenario.expected.status != "fresh_manual_candidate":
+                    raise ValueError("manual Demo status is invalid")
+            elif scenario.create is None or not scenario.steps or scenario.expected.order is None:
+                raise ValueError("prebuilt Demo scenario is incomplete")
+            if len(scenario.expected.attempts) != len(scenario.steps):
+                raise ValueError("Demo execution Attempt expectations are incomplete")
+            if len(scenario.expected.fills) != len(scenario.expected.settlement_links):
+                raise ValueError("Demo execution Fill/settlement expectations diverge")
+            for quantity_value in (
+                scenario.expected.position_quantity,
+                *(item.quantity for item in scenario.expected.fills),
+            ):
+                PaperQuantity.parse(quantity_value)
+            for money_value in (
+                scenario.expected.cash_balance,
+                scenario.expected.aggregate_cost_basis,
+                *(item.execution_price for item in scenario.expected.fills),
+                *(item.total_charges for item in scenario.expected.fills),
+            ):
+                PaperMoney.parse(money_value)
+            for authority in (
+                scenario.expected.intent,
+                scenario.expected.allow_decision,
+                *(() if scenario.expected.order is None else (scenario.expected.order,)),
+                *scenario.expected.attempts,
+                *scenario.expected.fills,
+                *scenario.expected.settlement_links,
+            ):
+                _normalized_text(authority.id)
+                _digest(authority.digest)
+                if not authority.id.endswith(authority.digest):
+                    raise ValueError(
+                        "Demo execution authority ID/digest mismatch"
+                    )
+                expected_ids.append(authority.id)
+            command_keys.extend((
+                scenario.account.idempotency_key,
+                scenario.signal.idempotency_key,
+                scenario.intent.idempotency_key,
+                scenario.allow_risk.idempotency_key,
+                *(() if scenario.create is None else (scenario.create.idempotency_key,)),
+                *(item.idempotency_key for item in scenario.steps),
+            ))
+        if len(set(command_keys)) != len(command_keys):
+            raise ValueError("Demo execution command identities must be distinct")
+        if len(set(expected_ids)) != len(expected_ids):
+            raise ValueError("Demo execution expected identities must be distinct")
+    except (DemoWorkspaceSourceInvalidError, TypeError, ValueError) as exc:
+        raise DemoWorkspaceSourceInvalidError(
+            "demo paper-execution journey is invalid"
+        ) from exc
+    return journey
+
+
 def _descriptor_payload(
     *,
     manifest: _DemoWorkspaceSourceManifest,
@@ -1305,6 +1561,7 @@ def _descriptor_payload(
     paper_account_journey: _DemoPaperAccountJourney,
     market_time: _ValidatedDemoMarketTime,
     strategy_order_journey: _DemoStrategyOrderJourney,
+    paper_execution_journey: _DemoPaperExecutionJourney,
 ) -> dict[str, Any]:
     checkpoint = market_time.replay.session.cursor
     recovered = market_time.recovered_session.cursor
@@ -1416,6 +1673,34 @@ def _descriptor_payload(
                 }
             ),
         },
+        "paper_execution": _paper_execution_descriptor(paper_execution_journey),
+    }
+
+
+def _paper_execution_descriptor(
+    journey: _DemoPaperExecutionJourney,
+) -> dict[str, object]:
+    by_kind = {item.kind: item for item in journey.scenarios}
+    manual = by_kind["manual"]
+
+    def order_reference(kind: str) -> dict[str, str]:
+        expected = by_kind[kind].expected.order
+        if expected is None:
+            raise DemoWorkspaceSourceInvalidError("Demo execution Order is missing")
+        return {"id": expected.id, "digest": expected.digest}
+
+    return {
+        "workspace_path": "/paper-execution",
+        "manual_candidate": {
+            "intent_id": manual.expected.intent.id,
+            "intent_digest": manual.expected.intent.digest,
+            "decision_id": manual.expected.allow_decision.id,
+            "decision_digest": manual.expected.allow_decision.digest,
+        },
+        "policy_draft": manual.execution_policy.model_dump(),
+        "completed_order": order_reference("completed"),
+        "risk_rejection_order": order_reference("risk_rejection"),
+        "exhaustion_order": order_reference("exhaustion"),
     }
 
 
@@ -1595,6 +1880,14 @@ def validate_demo_workspace_source(
             account_journey=paper_account_journey,
             market_time=market_time,
         )
+        paper_execution_journey = _validate_paper_execution_journey(
+            _read_json_object(
+                _relative_source_path(
+                    root,
+                    manifest.paper_execution_example.request_relative_path,
+                )
+            )
+        )
         descriptor = DemoWorkspaceDescriptor(
             payload=_descriptor_payload(
                 manifest=manifest,
@@ -1605,6 +1898,7 @@ def validate_demo_workspace_source(
                 paper_account_journey=paper_account_journey,
                 market_time=market_time,
                 strategy_order_journey=strategy_order_journey,
+                paper_execution_journey=paper_execution_journey,
             )
         )
         _validate_descriptor_payload(descriptor.to_dict())
@@ -1623,6 +1917,7 @@ def validate_demo_workspace_source(
             paper_account_journey=paper_account_journey,
             market_time=market_time,
             strategy_order_journey=strategy_order_journey,
+            paper_execution_journey=paper_execution_journey,
             descriptor=descriptor,
         )
     except DemoWorkspaceSourceInvalidError:
@@ -1652,12 +1947,13 @@ def _validate_descriptor_payload(payload: object) -> None:
             "paper_account",
             "market_time",
             "strategy_order",
+            "paper_execution",
         },
     )
     if root["schema_version"] != DEMO_WORKSPACE_DESCRIPTOR_SCHEMA_VERSION:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["dataset_id"])
-    if type(root["dataset_version"]) is not int or root["dataset_version"] != 5:
+    if type(root["dataset_version"]) is not int or root["dataset_version"] != 6:
         raise DemoWorkspaceSourceInvalidError("demo descriptor version is invalid")
     _normalized_text(root["display_name"])
     if "DEMO" not in _normalized_text(root["warning"]).upper():
@@ -1917,6 +2213,45 @@ def _validate_descriptor_payload(payload: object) -> None:
                 "demo descriptor strategy-to-risk receipt is invalid"
             )
         receipt_keys.add(identity)
+    execution = _exact_object(
+        root["paper_execution"],
+        {
+            "workspace_path",
+            "manual_candidate",
+            "policy_draft",
+            "completed_order",
+            "risk_rejection_order",
+            "exhaustion_order",
+        },
+    )
+    if execution["workspace_path"] != "/paper-execution":
+        raise DemoWorkspaceSourceInvalidError(
+            "demo descriptor paper execution path is invalid"
+        )
+    manual = _exact_object(
+        execution["manual_candidate"],
+        {"intent_id", "intent_digest", "decision_id", "decision_digest"},
+    )
+    for field in ("intent_id", "decision_id"):
+        _normalized_text(manual[field])
+    for field in ("intent_digest", "decision_digest"):
+        _digest(manual[field])
+    policy = _DemoExecutionPolicy.model_validate(execution["policy_draft"])
+    _execution_policy(policy)
+    order_ids: set[str] = set()
+    for name in (
+        "completed_order",
+        "risk_rejection_order",
+        "exhaustion_order",
+    ):
+        reference = _exact_object(execution[name], {"id", "digest"})
+        identity = _normalized_text(reference["id"])
+        _digest(reference["digest"])
+        if identity in order_ids:
+            raise DemoWorkspaceSourceInvalidError(
+                "demo descriptor paper execution Orders are invalid"
+            )
+        order_ids.add(identity)
 
 
 @contextmanager
@@ -2564,10 +2899,12 @@ def _validate_descriptor_strategy_order(
             != intent.intent_id
             or reject.input_snapshot.intent_reference.intent_digest
             != intent.intent_digest
-            or service.list_strategy_signals(limit=10).items != (signal,)
-            or service.list_order_intents(limit=10).items != (intent,)
-            or service.list_pre_trade_risk_decisions(limit=10).items
-            != (reject, allow)
+            or signal not in service.list_strategy_signals(limit=200).items
+            or intent not in service.list_order_intents(limit=200).items
+            or allow
+            not in service.list_pre_trade_risk_decisions(limit=200).items
+            or reject
+            not in service.list_pre_trade_risk_decisions(limit=200).items
         ):
             raise DemoWorkspaceUnavailableError(
                 "demo strategy-to-risk authority is inconsistent"
@@ -2604,6 +2941,421 @@ def _validate_seeded_demo_strategy_order(
         paths=paths,
         strategy_order=source.descriptor.to_dict()["strategy_order"],
     )
+
+
+class _DemoExecutionClock:
+    def __init__(self, value: datetime) -> None:
+        self.value = value
+
+    def __call__(self) -> datetime:
+        return self.value
+
+
+def _demo_execution_id_factory(scenario: _DemoExecutionScenario):
+    counts: dict[str, int] = {}
+
+    def identifier(kind: str) -> str:
+        counts[kind] = counts.get(kind, 0) + 1
+        if kind == "paper_account":
+            return scenario.account.account_id
+        return f"demo-{scenario.scenario_id}-{kind}-{counts[kind]}"
+
+    return identifier
+
+
+def _build_demo_execution_scenario(
+    *,
+    factory,
+    scenario: _DemoExecutionScenario,
+) -> dict[str, object]:
+    account_clock = _DemoExecutionClock(_utc_timestamp(scenario.account.created_at))
+    account_service = PaperAccountApplicationService(
+        session_factory=factory,
+        clock=account_clock,
+        id_factory=_demo_execution_id_factory(scenario),
+    )
+    account = account_service.create_account(
+        display_name=scenario.account.display_name,
+        base_currency="USD",
+        initial_cash=PaperMoney.parse(scenario.account.initial_cash),
+        creation_idempotency_key=scenario.account.idempotency_key,
+        actor=scenario.account.actor,
+    ).account
+    if account.account_id != scenario.account.account_id:
+        raise DemoWorkspaceUnavailableError("Demo execution account ID diverged")
+
+    market = scenario.market
+    calendar = create_trading_calendar(
+        id=market.calendar.id,
+        market=market.calendar.market,
+        timezone=market.calendar.timezone,
+        calendar_version=market.calendar.calendar_version,
+        created_at=_utc_timestamp(market.calendar.created_at),
+    )
+    trading_session = create_trading_session(
+        id=market.session.id,
+        calendar_id=market.session.calendar_id,
+        trading_date=date.fromisoformat(market.session.trading_date),
+        open_time=_utc_timestamp(market.session.open_time),
+        close_time=_utc_timestamp(market.session.close_time),
+        session_type=market.session.session_type,
+    )
+    events = tuple(
+        create_market_data_event(
+            event_id=item.event_id,
+            instrument_id=item.instrument_id,
+            event_time=_utc_timestamp(item.event_time),
+            event_type=item.event_type,
+            payload=item.payload,
+            schema_version=item.schema_version,
+            source=item.source,
+        )
+        for item in market.events
+    )
+    replay = MarketDataReplayEngine(replay_id=market.replay_id, events=events)
+    replay.start()
+    for _ in range(market.handoff_event_count):
+        if replay.next_event() is None:
+            raise DemoWorkspaceUnavailableError("Demo execution handoff exhausted")
+    with factory.begin() as session:
+        repository = SqlAlchemyMarketTimeRepository(session=session)
+        repository.add_calendar(calendar=calendar)
+        repository.add_session(session=trading_session)
+        repository.add_replay(
+            replay=create_market_data_replay_record(
+                session=replay.session,
+                events=replay.events,
+            )
+        )
+
+    strategy = StrategyOrderApplicationService(session_factory=factory)
+    current_event = replay.events[replay.cursor.position - 1]
+    signal = strategy.evaluate_and_store_strategy_signal(
+        strategy_runtime_reference=create_moving_average_crossover_runtime_reference(
+            fast_window=scenario.runtime.fast_window,
+            slow_window=scenario.runtime.slow_window,
+            target_position_quantity=PaperQuantity.parse(
+                scenario.runtime.target_position_quantity
+            ),
+        ),
+        calendar_id=calendar.id,
+        expected_calendar_version=calendar.calendar_version,
+        trading_session_id=trading_session.id,
+        replay_id=replay.session.replay_id,
+        expected_event_stream_digest=replay.cursor.event_stream_digest,
+        expected_cursor_position=replay.cursor.position,
+        expected_signal_event_id=cast(str, replay.cursor.last_event_id),
+        expected_signal_time=current_event.event_time,
+        instrument_id=current_event.instrument_id,
+        command_idempotency_key=scenario.signal.idempotency_key,
+        actor=scenario.signal.actor,
+        created_at=_utc_timestamp(scenario.signal.created_at),
+    )
+    intent = strategy.derive_and_store_order_intent(
+        signal_id=signal.result.signal_id,
+        account_id=account.account_id,
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        command_idempotency_key=scenario.intent.idempotency_key,
+        actor=scenario.intent.actor,
+        created_at=_utc_timestamp(scenario.intent.created_at),
+    )
+    if type(intent.result) is not OrderIntent:
+        raise DemoWorkspaceUnavailableError("Demo execution Intent is not executable")
+    decision = strategy.evaluate_and_store_pre_trade_risk(
+        intent_id=intent.result.intent_id,
+        risk_policy_reference=_execution_risk_policy(scenario.allow_risk),
+        expected_account_head_version=account.head_version,
+        expected_account_head_event_id=account.head_event_id,
+        expected_account_head_chain_digest=account.head_chain_digest,
+        expected_calendar_id=calendar.id,
+        expected_calendar_version=calendar.calendar_version,
+        expected_trading_session_id=trading_session.id,
+        expected_replay_id=replay.session.replay_id,
+        expected_event_stream_digest=replay.cursor.event_stream_digest,
+        expected_cursor_position=replay.cursor.position,
+        expected_current_event_id=cast(str, replay.cursor.last_event_id),
+        expected_current_event_time=current_event.event_time,
+        expected_instrument_id=current_event.instrument_id,
+        command_idempotency_key=scenario.allow_risk.idempotency_key,
+        actor=scenario.allow_risk.actor,
+        created_at=_utc_timestamp(scenario.allow_risk.created_at),
+    )
+    if decision.result.outcome != "allow":
+        raise DemoWorkspaceUnavailableError("Demo execution M33 handoff was rejected")
+
+    order = None
+    history = None
+    create_replayed = False
+    step_replayed = False
+    if scenario.create is not None:
+        execution_clock = _DemoExecutionClock(_utc_timestamp(scenario.create.created_at))
+        execution = PaperExecutionApplicationService(
+            session_factory=factory,
+            clock=execution_clock,
+        )
+
+        def create_order():
+            return execution.create_order_from_references(
+                intent_id=intent.result.intent_id,
+                intent_digest=intent.result.intent_digest,
+                decision_id=decision.result.decision_id,
+                decision_digest=decision.result.decision_digest,
+                execution_policy_reference=_execution_policy(
+                    scenario.execution_policy
+                ),
+                command_idempotency_key=scenario.create.idempotency_key,
+                actor=scenario.create.actor,
+            )
+
+        created = create_order()
+        replayed_create = create_order()
+        order = created.result.order
+        create_replayed = (
+            not created.replayed
+            and replayed_create.replayed
+            and replayed_create.result.order == order
+        )
+        for index, step in enumerate(scenario.steps):
+            execution_clock.value = _utc_timestamp(step.created_at)
+            committed = execution.step_order_from_reference(
+                execution_order_id=order.execution_order_id,
+                execution_order_digest=order.execution_order_digest,
+                expected_execution_version=step.expected_execution_version,
+                command_idempotency_key=step.idempotency_key,
+                actor=step.actor,
+            )
+            if index == 0:
+                replayed_step = execution.step_order_from_reference(
+                    execution_order_id=order.execution_order_id,
+                    execution_order_digest=order.execution_order_digest,
+                    expected_execution_version=step.expected_execution_version,
+                    command_idempotency_key=step.idempotency_key,
+                    actor=step.actor,
+                )
+                step_replayed = (
+                    not committed.replayed
+                    and replayed_step.replayed
+                    and replayed_step.result == committed.result
+                )
+        execution = PaperExecutionApplicationService(
+            session_factory=factory,
+            clock=execution_clock,
+        )
+        history = execution.reconcile_order(
+            execution_order_id=order.execution_order_id
+        )
+
+    detail = account_service.get_account_detail(account_id=account.account_id)
+    projection = detail.projection.to_dict()
+    positions = cast(list[dict[str, object]], projection["positions"])
+    position = positions[0] if positions else None
+    with factory() as session:
+        persisted_replay = SqlAlchemyMarketTimeRepository(session=session).get_replay(
+            replay_id=market.replay_id
+        )
+    if persisted_replay is None:
+        raise DemoWorkspaceUnavailableError("Demo execution replay is unavailable")
+    return {
+        "intent": (intent.result.intent_id, intent.result.intent_digest),
+        "allow_decision": (
+            decision.result.decision_id,
+            decision.result.decision_digest,
+        ),
+        "order": None if order is None else (
+            order.execution_order_id,
+            order.execution_order_digest,
+        ),
+        "status": "fresh_manual_candidate" if history is None else history.state.status,
+        "attempts": () if history is None else tuple(
+            (
+                item.attempt_id,
+                item.attempt_digest,
+                item.attempt_result,
+                None if item.consumed_event_reference is None else item.consumed_event_reference.event_id,
+            )
+            for item in history.attempts
+        ),
+        "fills": () if history is None else tuple(
+            (
+                item.fill_id,
+                item.fill_digest,
+                item.fill_quantity.to_json_value(),
+                item.execution_price_evidence.execution_price.to_json_value(),
+                item.cost_evidence.total_charges.to_json_value(),
+            )
+            for item in history.fills
+        ),
+        "settlement_links": () if history is None else tuple(
+            (item.settlement_link_id, item.settlement_link_digest)
+            for item in history.settlement_links
+        ),
+        "account_head_version": detail.account.head_version,
+        "cash_balance": projection["cash_balance"],
+        "position_quantity": "0" if position is None else position["quantity"],
+        "aggregate_cost_basis": "0" if position is None else position["aggregate_cost_basis"],
+        "replay_position": persisted_replay.session.cursor.position,
+        "replay_last_event_id": persisted_replay.session.cursor.last_event_id,
+        "create_replayed": create_replayed,
+        "step_replayed": step_replayed,
+    }
+
+
+def _expected_demo_execution_scenario(
+    scenario: _DemoExecutionScenario,
+) -> dict[str, object]:
+    expected = scenario.expected
+    return {
+        "intent": (expected.intent.id, expected.intent.digest),
+        "allow_decision": (
+            expected.allow_decision.id,
+            expected.allow_decision.digest,
+        ),
+        "order": None if expected.order is None else (
+            expected.order.id,
+            expected.order.digest,
+        ),
+        "status": expected.status,
+        "attempts": tuple(
+            (item.id, item.digest, item.result, item.consumed_event_id)
+            for item in expected.attempts
+        ),
+        "fills": tuple(
+            (
+                item.id,
+                item.digest,
+                item.quantity,
+                item.execution_price,
+                item.total_charges,
+            )
+            for item in expected.fills
+        ),
+        "settlement_links": tuple(
+            (item.id, item.digest) for item in expected.settlement_links
+        ),
+        "account_head_version": expected.account_head_version,
+        "cash_balance": expected.cash_balance,
+        "position_quantity": expected.position_quantity,
+        "aggregate_cost_basis": expected.aggregate_cost_basis,
+        "replay_position": expected.replay_position,
+        "replay_last_event_id": expected.replay_last_event_id,
+        "create_replayed": scenario.kind != "manual",
+        "step_replayed": scenario.kind != "manual",
+    }
+
+
+def _seed_demo_paper_execution(
+    *, paths: DemoWorkspacePaths, source: _ValidatedDemoSource
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    factory = create_product_session_factory(engine=engine)
+    try:
+        for scenario in source.paper_execution_journey.scenarios:
+            actual = _build_demo_execution_scenario(
+                factory=factory,
+                scenario=scenario,
+            )
+            expected = _expected_demo_execution_scenario(scenario)
+            if actual != expected:
+                raise DemoWorkspaceUnavailableError(
+                    "Demo execution authority diverged: " + repr((scenario.kind, actual))
+                )
+    finally:
+        engine.dispose()
+
+
+def _validate_demo_paper_execution_authority(
+    *,
+    service: PaperExecutionApplicationService,
+    strategy: StrategyOrderApplicationService,
+    descriptor: dict[str, Any],
+    manual_must_be_fresh: bool,
+) -> None:
+    manual = descriptor["manual_candidate"]
+    intent = strategy.get_order_intent(intent_id=manual["intent_id"])
+    decision = strategy.get_pre_trade_risk_decision(
+        decision_id=manual["decision_id"]
+    )
+    page = service.list_order_histories(
+        limit=200,
+        account_id=intent.account_reference.account_id,
+        replay_id=intent.market_reference.replay_id,
+        trading_session_id=intent.market_reference.trading_session_id,
+    )
+    if (
+        page.has_more
+        or intent.intent_digest != manual["intent_digest"]
+        or decision.decision_digest != manual["decision_digest"]
+        or decision.outcome != "allow"
+        or len(page.items) > 1
+        or (
+            page.items
+            and page.items[0].order.order_intent_reference.intent_id
+            != intent.intent_id
+        )
+        or (manual_must_be_fresh and page.items)
+    ):
+        raise DemoWorkspaceUnavailableError(
+            "Demo manual execution candidate is inconsistent"
+        )
+    if page.items:
+        history = page.items[0]
+        reconciled = service.reconcile_order(
+            execution_order_id=history.order.execution_order_id
+        )
+        order = reconciled.order
+        expected_policy = _execution_policy(
+            _DemoExecutionPolicy.model_validate(descriptor["policy_draft"])
+        )
+        if (
+            reconciled != history
+            or order.order_intent_reference.intent_id != manual["intent_id"]
+            or order.order_intent_reference.intent_digest
+            != manual["intent_digest"]
+            or order.risk_handoff_reference.risk_decision_id
+            != manual["decision_id"]
+            or order.risk_handoff_reference.risk_decision_digest
+            != manual["decision_digest"]
+            or order.execution_policy_reference != expected_policy
+        ):
+            raise DemoWorkspaceUnavailableError(
+                "Demo manual execution progression is inconsistent"
+            )
+    for name in (
+        "completed_order",
+        "risk_rejection_order",
+        "exhaustion_order",
+    ):
+        reference = descriptor[name]
+        history = service.reconcile_order(execution_order_id=reference["id"])
+        if history.order.execution_order_digest != reference["digest"]:
+            raise DemoWorkspaceUnavailableError(
+                "Demo execution descriptor is inconsistent"
+            )
+
+
+def _validate_seeded_demo_paper_execution(
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+    manual_must_be_fresh: bool,
+) -> None:
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    factory = create_product_session_factory(engine=engine)
+    try:
+        _validate_demo_paper_execution_authority(
+            service=PaperExecutionApplicationService(session_factory=factory),
+            strategy=StrategyOrderApplicationService(session_factory=factory),
+            descriptor=source.descriptor.to_dict()["paper_execution"],
+            manual_must_be_fresh=manual_must_be_fresh,
+        )
+    finally:
+        engine.dispose()
 
 
 def _validate_seeded_portfolio_review(
@@ -2803,7 +3555,10 @@ def _database_revision(database_path: Path) -> str:
 
 
 def _validate_installed_workspace(
-    *, paths: DemoWorkspacePaths, source: _ValidatedDemoSource
+    *,
+    paths: DemoWorkspacePaths,
+    source: _ValidatedDemoSource,
+    manual_must_be_fresh: bool,
 ) -> None:
     if _database_revision(paths.database_path) != CURRENT_PRODUCT_SCHEMA_REVISION:
         raise DemoWorkspaceUnavailableError("demo database schema is unavailable")
@@ -2870,6 +3625,18 @@ def _validate_installed_workspace(
     except Exception as exc:
         raise DemoWorkspaceUnavailableError(
             "demo strategy-to-risk authority is unavailable"
+        ) from exc
+    try:
+        _validate_seeded_demo_paper_execution(
+            paths=paths,
+            source=source,
+            manual_must_be_fresh=manual_must_be_fresh,
+        )
+    except DemoWorkspaceUnavailableError:
+        raise
+    except Exception as exc:
+        raise DemoWorkspaceUnavailableError(
+            "demo paper execution authority is unavailable"
         ) from exc
     installed_descriptor = _read_json_object(paths.descriptor_path)
     if _canonical_json(installed_descriptor) != _canonical_json(
@@ -2964,7 +3731,11 @@ def install_demo_workspace(
             _populate_upgraded_demo_result_references(paths=paths, source=source)
         if prior_revision == "0009_market_time_runtime":
             _seed_demo_strategy_order(paths=paths, source=source)
-        _validate_installed_workspace(paths=paths, source=source)
+        _validate_installed_workspace(
+            paths=paths,
+            source=source,
+            manual_must_be_fresh=False,
+        )
         return DemoWorkspaceInstallResult(
             dataset_id=source.manifest.dataset_id,
             dataset_version=source.manifest.dataset_version,
@@ -3007,9 +3778,14 @@ def install_demo_workspace(
         _seed_demo_paper_account(paths=staging, source=source)
         _seed_demo_market_time(paths=staging, source=source)
         _seed_demo_strategy_order(paths=staging, source=source)
+        _seed_demo_paper_execution(paths=staging, source=source)
         _write_json(staging.descriptor_path, source.descriptor.to_dict())
         _write_json(staging.marker_path, _install_marker(source))
-        _validate_installed_workspace(paths=staging, source=source)
+        _validate_installed_workspace(
+            paths=staging,
+            source=source,
+            manual_must_be_fresh=True,
+        )
         _retarget_staged_result_summaries(
             staging=staging,
             target=paths,
@@ -3244,6 +4020,16 @@ def validate_installed_demo_workspace(
             _validate_descriptor_strategy_order(
                 paths=paths,
                 strategy_order=payload["strategy_order"],
+            )
+            _validate_demo_paper_execution_authority(
+                service=PaperExecutionApplicationService(
+                    session_factory=factory
+                ),
+                strategy=StrategyOrderApplicationService(
+                    session_factory=factory
+                ),
+                descriptor=payload["paper_execution"],
+                manual_must_be_fresh=False,
             )
         finally:
             engine.dispose()

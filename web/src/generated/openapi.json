@@ -265,6 +265,131 @@
         "title": "DemoPaperAccountReferenceResponse",
         "type": "object"
       },
+      "DemoPaperExecutionAuthorityResponse": {
+        "properties": {
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "digest"
+        ],
+        "title": "DemoPaperExecutionAuthorityResponse",
+        "type": "object"
+      },
+      "DemoPaperExecutionManualCandidateResponse": {
+        "properties": {
+          "decision_digest": {
+            "title": "Decision Digest",
+            "type": "string"
+          },
+          "decision_id": {
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "intent_digest": {
+            "title": "Intent Digest",
+            "type": "string"
+          },
+          "intent_id": {
+            "title": "Intent Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intent_id",
+          "intent_digest",
+          "decision_id",
+          "decision_digest"
+        ],
+        "title": "DemoPaperExecutionManualCandidateResponse",
+        "type": "object"
+      },
+      "DemoPaperExecutionPolicyDraftResponse": {
+        "properties": {
+          "buy_tax_bps": {
+            "title": "Buy Tax Bps",
+            "type": "string"
+          },
+          "commission_bps": {
+            "title": "Commission Bps",
+            "type": "string"
+          },
+          "fee_bps": {
+            "title": "Fee Bps",
+            "type": "string"
+          },
+          "max_fill_quantity_per_trade_event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Fill Quantity Per Trade Event"
+          },
+          "sell_tax_bps": {
+            "title": "Sell Tax Bps",
+            "type": "string"
+          },
+          "slippage_bps": {
+            "title": "Slippage Bps",
+            "type": "string"
+          }
+        },
+        "required": [
+          "max_fill_quantity_per_trade_event",
+          "slippage_bps",
+          "commission_bps",
+          "fee_bps",
+          "buy_tax_bps",
+          "sell_tax_bps"
+        ],
+        "title": "DemoPaperExecutionPolicyDraftResponse",
+        "type": "object"
+      },
+      "DemoPaperExecutionReferenceResponse": {
+        "properties": {
+          "completed_order": {
+            "$ref": "#/components/schemas/DemoPaperExecutionAuthorityResponse"
+          },
+          "exhaustion_order": {
+            "$ref": "#/components/schemas/DemoPaperExecutionAuthorityResponse"
+          },
+          "manual_candidate": {
+            "$ref": "#/components/schemas/DemoPaperExecutionManualCandidateResponse"
+          },
+          "policy_draft": {
+            "$ref": "#/components/schemas/DemoPaperExecutionPolicyDraftResponse"
+          },
+          "risk_rejection_order": {
+            "$ref": "#/components/schemas/DemoPaperExecutionAuthorityResponse"
+          },
+          "workspace_path": {
+            "const": "/paper-execution",
+            "title": "Workspace Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_path",
+          "manual_candidate",
+          "policy_draft",
+          "completed_order",
+          "risk_rejection_order",
+          "exhaustion_order"
+        ],
+        "title": "DemoPaperExecutionReferenceResponse",
+        "type": "object"
+      },
       "DemoPaperJobReferenceResponse": {
         "properties": {
           "job_id": {
@@ -535,6 +660,9 @@
           "paper_account": {
             "$ref": "#/components/schemas/DemoPaperAccountReferenceResponse"
           },
+          "paper_execution": {
+            "$ref": "#/components/schemas/DemoPaperExecutionReferenceResponse"
+          },
           "paper_job_submission_example": {
             "$ref": "#/components/schemas/DemoPaperJobSubmissionExampleResponse"
           },
@@ -552,7 +680,7 @@
             "$ref": "#/components/schemas/DemoResearchRunReferenceResponse"
           },
           "schema_version": {
-            "const": 5,
+            "const": 6,
             "title": "Schema Version",
             "type": "integer"
           },
@@ -581,7 +709,8 @@
           "portfolio_review_example",
           "paper_account",
           "market_time",
-          "strategy_order"
+          "strategy_order",
+          "paper_execution"
         ],
         "title": "DemoWorkspaceDescriptorResponse",
         "type": "object"

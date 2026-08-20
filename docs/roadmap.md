@@ -240,8 +240,10 @@ reconciliation. S211 adds durable immutable M34 records and atomic M31/M32 CAS
 transactions under Issue #415. S212 adds exactly nine versioned Paper Execution
 operations, stable errors/audit, canonical OpenAPI, and generated contracts
 under Issue #417. The migration head remains `0011_paper_execution`;
-S213 adds the generated-contract-only bilingual Founder Paper Execution
-workspace under Issue #419. S214–S216 remain planned.
+S213 added the generated-contract-only bilingual Founder Paper Execution
+workspace. S214 is current under Issue #421 and upgrades Demo source/descriptor
+to v6 with four application-built Paper Execution scenarios. S215–S216 remain
+planned; migration head remains `0011_paper_execution`.
 M34 must not mutate M33 Signal, Intent, or Decision records.
 
 Approved M34 sequence:
@@ -254,8 +256,8 @@ Approved M34 sequence:
 | S210 | Atomic Execution Fill to M31 Ledger Domain Integration | Complete |
 | S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Complete |
 | S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Complete |
-| S213 | Bilingual Founder Paper Execution Workspace | In Progress |
-| S214 | Demo v6 and End-to-End First True Paper Trading Evidence | Planned |
+| S213 | Bilingual Founder Paper Execution Workspace | Complete |
+| S214 | Demo v6 and End-to-End First True Paper Trading Evidence | In Progress |
 | S215 | M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening | Planned |
 | S216 | Milestone 34 Closeout and M35 Handoff | Planned |
 

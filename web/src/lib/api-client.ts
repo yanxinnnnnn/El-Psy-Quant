@@ -764,6 +764,7 @@ function isDemoWorkspaceDescriptor(
     "paper_account",
     "market_time",
     "strategy_order",
+    "paper_execution",
   ])) {
     return false;
   }
@@ -774,9 +775,9 @@ function isDemoWorkspaceDescriptor(
         .filter(isString)
     : [];
   return (
-    value.schema_version === 5 &&
+    value.schema_version === 6 &&
     isString(value.dataset_id) &&
-    value.dataset_version === 5 &&
+    value.dataset_version === 6 &&
     isString(value.display_name) &&
     isString(value.warning) &&
     isString(value.canonical_strategy_name) &&
@@ -948,6 +949,56 @@ function isDemoWorkspaceDescriptor(
       isNormalizedNonblankString(authority.receipt.idempotency_key) &&
       authority.outcome === outcome &&
       JSON.stringify(authority.reason_codes) === JSON.stringify(reasonCodes)
+    ) &&
+    isObject(value.paper_execution) &&
+    hasOnlyKeys(value.paper_execution, [
+      "workspace_path",
+      "manual_candidate",
+      "policy_draft",
+      "completed_order",
+      "risk_rejection_order",
+      "exhaustion_order",
+    ]) &&
+    value.paper_execution.workspace_path === "/paper-execution" &&
+    isObject(value.paper_execution.manual_candidate) &&
+    hasOnlyKeys(value.paper_execution.manual_candidate, [
+      "intent_id", "intent_digest", "decision_id", "decision_digest",
+    ]) &&
+    isNormalizedNonblankString(value.paper_execution.manual_candidate.intent_id) &&
+    typeof value.paper_execution.manual_candidate.intent_digest === "string" &&
+    /^[0-9a-f]{64}$/.test(value.paper_execution.manual_candidate.intent_digest) &&
+    isNormalizedNonblankString(value.paper_execution.manual_candidate.decision_id) &&
+    typeof value.paper_execution.manual_candidate.decision_digest === "string" &&
+    /^[0-9a-f]{64}$/.test(value.paper_execution.manual_candidate.decision_digest) &&
+    isObject(value.paper_execution.policy_draft) &&
+    hasOnlyKeys(value.paper_execution.policy_draft, [
+      "max_fill_quantity_per_trade_event",
+      "slippage_bps",
+      "commission_bps",
+      "fee_bps",
+      "buy_tax_bps",
+      "sell_tax_bps",
+    ]) &&
+    (value.paper_execution.policy_draft.max_fill_quantity_per_trade_event === null ||
+      isNormalizedNonblankString(value.paper_execution.policy_draft.max_fill_quantity_per_trade_event)) &&
+    [
+      value.paper_execution.policy_draft.slippage_bps,
+      value.paper_execution.policy_draft.commission_bps,
+      value.paper_execution.policy_draft.fee_bps,
+      value.paper_execution.policy_draft.buy_tax_bps,
+      value.paper_execution.policy_draft.sell_tax_bps,
+    ].every(isNormalizedNonblankString) &&
+    [
+      value.paper_execution.completed_order,
+      value.paper_execution.risk_rejection_order,
+      value.paper_execution.exhaustion_order,
+    ].every((reference) =>
+      isObject(reference) &&
+      hasOnlyKeys(reference, ["id", "digest"]) &&
+      isNormalizedNonblankString(reference.id) &&
+      typeof reference.digest === "string" &&
+      /^[0-9a-f]{64}$/.test(reference.digest) &&
+      reference.id.endsWith(reference.digest)
     )
   );
 }

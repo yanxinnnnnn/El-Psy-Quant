@@ -152,10 +152,10 @@ governance evidence and does not create mutable current state. The optional
 Paper Job example only fills the form after an explicit user action; it never
 submits automatically.
 
-Demo dataset/descriptor v5 also exposes one deterministic seeded portfolio
+Demo dataset/descriptor v6 preserves the deterministic seeded portfolio
 review and one exact create-example prefill. Loading requires explicit
 replace-draft confirmation and never submits or chooses a decision. An installed
-earlier Demo source conflicts with v5; use only the Demo reset below. Demo v5
+earlier Demo source conflicts with v6; use only the Demo reset below. Demo v6
 also seeds one synthetic Paper Account through the existing application
 service. Its five immutable events, ledger-derived projection, immutable
 snapshot, and matched reconciliation are verified on install and exact restart
@@ -163,7 +163,7 @@ replay. The opening position is an explicit adjustment, not an order, fill,
 execution, PnL, or equity calculation. Standard and
 Demo keep separate project names, databases, artifact roots, and volumes.
 
-Demo v5 additionally seeds one immutable market-time calendar, two ordered
+Demo v6 additionally preserves the immutable market-time calendar, ordered
 sessions, five canonical events, and one replay paused at position 4. Startup
 and explicit verification restore the exact stream/cursor, prove the final
 event completes on an in-memory copy, and confirm the durable paused checkpoint
@@ -225,6 +225,47 @@ explicitly reset the disposable earlier-version Demo volume when required
 
 Founder owns these Docker/container/browser steps and the merge decision. Codex
 owns deterministic checks and static Compose rendering only.
+
+## Sprint 214 Demo v6 First True Paper Trading Acceptance
+
+After CTO code review, use only the supported isolated Demo commands in
+`Isolated Demo Workspace Startup` above. Stop Standard, reset only the
+disposable Demo volume when its installed dataset predates v6, then start the
+Demo overlay. Codex does not perform these Docker or browser steps.
+
+Founder acceptance checklist:
+
+1. Install/reset the isolated Demo through the documented Compose overlay and
+   confirm the persistent Demo identity reports dataset/descriptor v6.
+2. Open `/paper-execution` and choose `Load Demo v6 example`; confirm the
+   explicit replacement checkbox is required and loading performs no POST.
+3. Confirm the loaded fresh historical M33 Intent/allow Decision references and
+   exact policy strings match the descriptor and remain labeled as historical,
+   not current eligibility.
+4. Create exactly one M34 execution Order through the existing S212/S213 form.
+5. Confirm the M33 handoff/risk-reference event is not reused as a Fill event.
+6. Process the irrelevant future event and observe one committed no-fill
+   Attempt with exactly one replay-cursor advance.
+7. Process the first eligible future trade and observe a genuine partial Fill,
+   non-zero slippage, non-zero transaction cost, and one M31 settlement event.
+8. Process the later eligible trade and observe exact remaining quantity filled
+   with terminal state `filled` and a second atomic M31 settlement event.
+9. Inspect immutable Attempts, Fills, SettlementLinks, M31 account postings, and
+   the contiguous M32 replay cursor through the existing product views.
+10. Run the explicit whole-order reconciliation action and confirm success.
+11. Inspect the prebuilt execution-time risk-rejection Order: the attempted
+    event is consumed, no Fill/SettlementLink exists, and M31 is unchanged.
+12. Inspect the prebuilt exhaustion Order: the partial Fill is retained,
+    terminal status is `partially_filled_rejected`, and the out-of-session
+    boundary event was not consumed.
+13. Restart Demo without removing its volume and confirm the same immutable
+    IDs/digests, account effects, cursor positions, and reconciliation results.
+14. Stop Demo, return to the preserved Standard workspace, and confirm no Demo
+    account, replay, M33 handoff, or M34 execution authority appears there.
+
+Migration head for this acceptance remains exactly `0011_paper_execution`.
+Sprint 215 adversarial concurrency/upgrade/corruption hardening and all M35
+worker/scheduler/runtime behavior remain out of scope.
 
 Existing-volume recovery must use the same preserved Standard volume and
 retained cold backup. Do not reset, replace, stamp, downgrade, rebuild a

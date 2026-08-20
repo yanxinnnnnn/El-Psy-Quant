@@ -1,10 +1,17 @@
 {
-  "eyebrow": "冲刺 213 · 手动模拟执行",
+  "eyebrow": "冲刺 214 · Demo v6 模拟执行",
   "title": "模拟执行",
   "description": "逐个市场事件创建、推进并检查持久化的模拟执行权威证据。",
   "boundary": {
     "title": "仅负责展示与命令编排",
     "description": "服务器负责时效性、执行资格、价格、成交数量、费用、风控、结算、账户影响、生命周期状态、重放推进和对账。此处展示的历史证据并不表示当前可执行。"
+  },
+  "demo": {
+    "title": "Demo v6 手动场景",
+    "description": "加载精确的新鲜历史意图/决策引用与策略草稿。加载只会替换浏览器草稿，不会发起 POST、创建订单、推进事件、推断时效性或计算执行数值。",
+    "replaceConfirmation": "使用 Demo v6 示例替换当前候选项与策略草稿。",
+    "load": "加载 Demo v6 示例",
+    "historicalWarning": "加载的 allow 决策仍是历史证据；创建订单时会重新验证当前 M31/M32 权威状态。"
   },
   "candidate": {
     "eyebrow": "M33 历史证据",

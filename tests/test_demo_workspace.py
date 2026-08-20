@@ -9,7 +9,6 @@ from pathlib import Path
 from threading import Barrier
 
 import pytest
-import el_psy_quant.demo_workspace as demo_workspace_module
 from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
 from el_psy_quant.application.paper_accounts import (
@@ -93,8 +92,8 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
     )
     assert len(set(source.manifest.comparison_candidate_job_ids)) == 2
     descriptor = source.descriptor.to_dict()
-    assert descriptor["schema_version"] == 5
-    assert descriptor["dataset_version"] == 5
+    assert descriptor["schema_version"] == 6
+    assert descriptor["dataset_version"] == 6
     assert descriptor["portfolio_review_example"]["create_idempotency_key"] == (
         "demo-portfolio-review-create-v1"
     )
@@ -269,7 +268,7 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         engine.dispose()
 
 
-def test_demo_v5_restart_exact_replay_conflict_and_concurrent_convergence(
+def test_demo_v6_restart_exact_replay_conflict_and_concurrent_convergence(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "demo-workspace"
@@ -458,7 +457,7 @@ def test_demo_v5_restart_exact_replay_conflict_and_concurrent_convergence(
     reopened.dispose()
 
 
-def test_demo_v5_duplicate_signal_race_creates_one_absent_authority(
+def test_demo_v6_duplicate_signal_race_creates_one_absent_authority(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "demo-workspace"
@@ -494,9 +493,11 @@ def test_demo_v5_duplicate_signal_race_creates_one_absent_authority(
     actor = "demo-absent-signal-race"
     created_at = datetime(2030, 1, 11, tzinfo=timezone.utc)
     signals_before = signal_service.list_strategy_signals(limit=10).items
-    assert len(signals_before) == 1
-    assert signals_before[0].signal_id == journey["signal"]["id"]
-    assert signals_before[0].strategy_runtime_reference != runtime
+    assert len(signals_before) == 5
+    original_signal = next(
+        item for item in signals_before if item.signal_id == journey["signal"]["id"]
+    )
+    assert original_signal.strategy_runtime_reference != runtime
     with engine.connect() as connection:
         counts_before = tuple(
             connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
@@ -547,7 +548,7 @@ def test_demo_v5_duplicate_signal_race_creates_one_absent_authority(
     assert signal_service.get_strategy_signal(signal_id=created.signal_id) == created
     assert signal_service.list_strategy_signals(limit=10).items == (
         created,
-        signals_before[0],
+        *signals_before,
     )
 
     with engine.connect() as connection:
@@ -604,7 +605,7 @@ def test_demo_v5_duplicate_signal_race_creates_one_absent_authority(
     engine.dispose()
 
 
-def test_demo_v5_stale_authority_and_corruption_fail_closed_without_repair(
+def test_demo_v6_stale_authority_and_corruption_fail_closed_without_repair(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "demo-workspace"
@@ -707,11 +708,11 @@ def test_demo_v5_stale_authority_and_corruption_fail_closed_without_repair(
     corrupt_engine.dispose()
 
 
-def test_populated_0009_upgrade_then_explicit_demo_v5_install_and_verify(
+def test_populated_0009_upgrade_is_seed_free_and_v6_reinstall_fails_closed(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Migration stays seed-free; the explicit installer adds M33 exactly once."""
+    """Migration stays seed-free; populated upgrade acceptance remains S215."""
     target = tmp_path / "demo-workspace"
     _install(DEMO_SOURCE, target)
     paths = DemoWorkspacePaths.from_root(target)
@@ -740,59 +741,11 @@ def test_populated_0009_upgrade_then_explicit_demo_v5_install_and_verify(
             "SELECT COUNT(*) FROM market_data_replays"
         ).fetchone()
 
-    original_seed = demo_workspace_module._seed_demo_strategy_order
-    observed_migration_counts: list[tuple[int, int, int, int]] = []
-
-    def seed_after_upgrade(*, paths, source):
-        with sqlite3.connect(paths.database_path) as connection:
-            assert connection.execute(
-                "SELECT version_num FROM alembic_version"
-            ).fetchone() == ("0011_paper_execution",)
-            observed_migration_counts.append(
-                tuple(
-                    connection.execute(
-                        f"SELECT COUNT(*) FROM {table}"
-                    ).fetchone()[0]
-                    for table in (
-                        "strategy_signals",
-                        "order_intents",
-                        "pre_trade_risk_decisions",
-                        "strategy_order_command_receipts",
-                    )
-                )
-            )
-            assert connection.execute(
-                "SELECT COUNT(*) FROM paper_accounts"
-            ).fetchone() == account_count
-            assert connection.execute(
-                "SELECT COUNT(*) FROM market_data_replays"
-            ).fetchone() == replay_count
-        original_seed(paths=paths, source=source)
-
-    monkeypatch.setattr(
-        demo_workspace_module,
-        "_seed_demo_strategy_order",
-        seed_after_upgrade,
-    )
-    installed = _install(DEMO_SOURCE, target)
-    assert installed.already_installed
-    assert observed_migration_counts == [(0, 0, 0, 0)]
-    validate_installed_demo_workspace(target)
+    alembic_command.upgrade(config, "head")
     with sqlite3.connect(paths.database_path) as connection:
-        counts = tuple(
-            connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-            for table in (
-                "strategy_signals",
-                "order_intents",
-                "pre_trade_risk_decisions",
-                "strategy_order_command_receipts",
-            )
-        )
-    assert counts == (1, 1, 2, 4)
-    replayed = _install(DEMO_SOURCE, target)
-    assert replayed.already_installed
-    validate_installed_demo_workspace(target)
-    with sqlite3.connect(paths.database_path) as connection:
+        assert connection.execute(
+            "SELECT version_num FROM alembic_version"
+        ).fetchone() == ("0011_paper_execution",)
         assert tuple(
             connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
             for table in (
@@ -800,8 +753,21 @@ def test_populated_0009_upgrade_then_explicit_demo_v5_install_and_verify(
                 "order_intents",
                 "pre_trade_risk_decisions",
                 "strategy_order_command_receipts",
+                "paper_execution_orders",
+                "paper_execution_attempts",
+                "paper_execution_fills",
+                "paper_execution_settlement_links",
             )
-        ) == counts
+        ) == (0, 0, 0, 0, 0, 0, 0, 0)
+        assert connection.execute(
+            "SELECT COUNT(*) FROM paper_accounts"
+        ).fetchone() == account_count
+        assert connection.execute(
+            "SELECT COUNT(*) FROM market_data_replays"
+        ).fetchone() == replay_count
+
+    with pytest.raises(DemoWorkspaceUnavailableError):
+        _install(DEMO_SOURCE, target)
 
 
 def test_prior_dataset_marker_is_refused_without_reinstall_or_mutation(
@@ -1051,10 +1017,10 @@ def test_conflicting_dataset_replay_is_refused_without_changes(
         _install(source, target)
 
     assert (target / ".demo-workspace-install.json").read_bytes() == marker_before
-    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 5
+    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 6
 
 
-def test_descriptor_requires_exact_dataset_version_five(tmp_path: Path) -> None:
+def test_descriptor_requires_exact_dataset_version_six(tmp_path: Path) -> None:
     target = tmp_path / "demo-workspace"
     _install(DEMO_SOURCE, target)
     descriptor_path = target / "workspace-descriptor.json"

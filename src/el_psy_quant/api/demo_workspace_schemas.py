@@ -120,8 +120,38 @@ class DemoStrategyOrderReferenceResponse(BaseModel):
     reject_decision: DemoStrategyDecisionResponse
 
 
+class DemoPaperExecutionAuthorityResponse(BaseModel):
+    id: str
+    digest: str
+
+
+class DemoPaperExecutionManualCandidateResponse(BaseModel):
+    intent_id: str
+    intent_digest: str
+    decision_id: str
+    decision_digest: str
+
+
+class DemoPaperExecutionPolicyDraftResponse(BaseModel):
+    max_fill_quantity_per_trade_event: str | None
+    slippage_bps: str
+    commission_bps: str
+    fee_bps: str
+    buy_tax_bps: str
+    sell_tax_bps: str
+
+
+class DemoPaperExecutionReferenceResponse(BaseModel):
+    workspace_path: Literal["/paper-execution"]
+    manual_candidate: DemoPaperExecutionManualCandidateResponse
+    policy_draft: DemoPaperExecutionPolicyDraftResponse
+    completed_order: DemoPaperExecutionAuthorityResponse
+    risk_rejection_order: DemoPaperExecutionAuthorityResponse
+    exhaustion_order: DemoPaperExecutionAuthorityResponse
+
+
 class DemoWorkspaceDescriptorResponse(BaseModel):
-    schema_version: Literal[5]
+    schema_version: Literal[6]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -138,3 +168,4 @@ class DemoWorkspaceDescriptorResponse(BaseModel):
     paper_account: DemoPaperAccountReferenceResponse
     market_time: DemoMarketTimeReferenceResponse
     strategy_order: DemoStrategyOrderReferenceResponse
+    paper_execution: DemoPaperExecutionReferenceResponse

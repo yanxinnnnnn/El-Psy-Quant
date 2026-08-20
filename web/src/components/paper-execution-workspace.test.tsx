@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PaperExecutionWorkspace } from "@/components/paper-execution-workspace";
 import {
   ApiClientError,
+  type DemoWorkspaceDescriptorResponse,
   type PaperExecutionAttemptResponse,
   type PaperExecutionFillResponse,
   type PaperExecutionOrderViewResponse,
@@ -25,6 +26,7 @@ import { intentCommand, rejectedRiskCommand, riskCommand } from "@/test/strategy
 const apiMocks = vi.hoisted(() => ({
   createPaperExecutionOrder: vi.fn(),
   fetchOrderIntentDetail: vi.fn(),
+  fetchDemoWorkspace: vi.fn(),
   fetchPaperExecutionAttempts: vi.fn(),
   fetchPaperExecutionFills: vi.fn(),
   fetchPaperExecutionOrderDetail: vi.fn(),
@@ -114,6 +116,12 @@ beforeEach(() => {
   apiMocks.fetchPaperExecutionReconciliation.mockReturnValue(result(executionReconciliation));
   apiMocks.createPaperExecutionOrder.mockReturnValue(result(executionOrderCommand));
   apiMocks.stepPaperExecutionOrder.mockReturnValue(result(executionStepCommand));
+  apiMocks.fetchDemoWorkspace.mockRejectedValue(new ApiClientError({
+    status: 404,
+    code: "demo_workspace_not_configured",
+    publicMessage: "Demo workspace is not configured",
+    requestId: "demo-not-configured",
+  }));
 });
 
 async function completeCreateDraft(user: ReturnType<typeof userEvent.setup>) {
@@ -127,6 +135,43 @@ async function completeCreateDraft(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("Paper Execution workspace", () => {
+  it("loads exact Demo v6 references and policy only after replacement confirmation", async () => {
+    const user = userEvent.setup();
+    apiMocks.fetchDemoWorkspace.mockReturnValue(result({
+      paper_execution: {
+        workspace_path: "/paper-execution",
+        manual_candidate: {
+          intent_id: intentCommand.result.intent_id,
+          intent_digest: intentCommand.result.intent_digest,
+          decision_id: riskCommand.decision.decision_id,
+          decision_digest: riskCommand.decision.decision_digest,
+        },
+        policy_draft: {
+          max_fill_quantity_per_trade_event: "4",
+          slippage_bps: "10",
+          commission_bps: "5",
+          fee_bps: "1",
+          buy_tax_bps: "0",
+          sell_tax_bps: "0",
+        },
+      },
+    } as unknown as DemoWorkspaceDescriptorResponse));
+    render(<PaperExecutionWorkspace />);
+
+    const load = await screen.findByRole("button", { name: "Load Demo v6 example" });
+    expect(load).toBeDisabled();
+    await user.click(screen.getByLabelText(/Replace the current candidate/));
+    await user.click(load);
+
+    expect(screen.getByLabelText("Allowed historical Decision and matching Intent")).toHaveValue(riskCommand.decision.decision_id);
+    expect(screen.getByLabelText(/^Maximum fill quantity per trade event/)).toHaveValue("4");
+    expect(screen.getByLabelText("Slippage (basis-point string)")).toHaveValue("10");
+    expect(screen.getByLabelText("Commission (basis-point string)")).toHaveValue("5");
+    expect(screen.getByLabelText("Fee (basis-point string)")).toHaveValue("1");
+    expect(apiMocks.createPaperExecutionOrder).not.toHaveBeenCalled();
+    expect(apiMocks.stepPaperExecutionOrder).not.toHaveBeenCalled();
+  });
+
   it("is one WorkspaceShell route and navigation destination with exact active semantics", () => {
     const page = readFileSync("src/app/paper-execution/page.tsx", "utf8");
     expect(page).toContain("<WorkspaceShell>");
