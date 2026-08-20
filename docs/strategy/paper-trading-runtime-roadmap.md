@@ -16,14 +16,14 @@ M30 — Complete
 M31 — Complete
 M32 — Complete
 M33 — Complete through S197–S206
-M34 — In Progress through approved S207–S216; S214 current
+M34 — In Progress through approved S207–S216; S215 current
 M35–M36 — Planned future milestones
 ```
 
 M31 used S179–S188, M32 used S189–S196, and M33 used S197–S206. Issue #389
 remains the authoritative M33 architecture source for the completed boundary.
-M34 uses S207–S216 under authoritative architecture Issue #408. S207–S213 are
-Complete and S214 is current under Issue #421. M35–M36 retain intentionally
+M34 uses S207–S216 under authoritative architecture Issue #408. S207–S214 are
+Complete and S215 is current under Issue #423. M35–M36 retain intentionally
 unassigned sprint ranges until each milestone is planned.
 
 The current migration head is exactly:
@@ -228,7 +228,7 @@ scheduler, broker, or live behavior.
 
 ### Status
 
-**In Progress through S207–S216. S207–S213 are Complete; Sprint 214 is current.**
+**In Progress through S207–S216. S207–S214 are Complete; Sprint 215 is current.**
 
 M34 is the first genuine market/strategy-driven Paper Trading milestone.
 
@@ -291,7 +291,8 @@ descriptor to v6 with four independent execution contexts: one fresh manual
 handoff, one completed no-fill/partial/full flow, one execution-time risk
 rejection, and one session-boundary exhaustion rejection. Prebuilt M34
 authority is created only through the merged application paths. S215–S216
-remain planned.
+remain bounded to adversarial hardening and closeout respectively. Sprint 215
+is current under Issue #423; S216 remains planned.
 
 ### User-visible outcome
 
@@ -417,8 +418,9 @@ Only one milestone is planned and implemented at a time.
 The current implementation action is:
 
 ```text
-implement Sprint 213 bilingual Founder Paper Execution workspace under Issue #419
+implement Sprint 215 M34 adversarial hardening under Issue #423
 ```
 
-Do not pre-implement S215+ hardening/runtime semantics during S214. M35–M36
-remain future milestones until their predecessors are complete and explicitly planned.
+Do not pre-implement S216 closeout or M35 runtime semantics during S215.
+M35–M36 remain future milestones until their predecessors are complete and
+explicitly planned.
