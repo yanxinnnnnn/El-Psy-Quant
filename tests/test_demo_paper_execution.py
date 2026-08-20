@@ -1,15 +1,18 @@
-"""Focused Sprint 214 Demo v6 Paper Execution end-to-end evidence."""
+"""Focused Sprint 214 Demo v6 and Sprint 215 isolation/corruption evidence."""
 
 from __future__ import annotations
 
 import inspect
 import json
 import shutil
+import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
 import el_psy_quant.demo_workspace as demo_workspace_module
 import pytest
+from alembic import command as alembic_command
+from alembic.config import Config as AlembicConfig
 
 from el_psy_quant.application import (
     PaperAccountApplicationService,
@@ -18,11 +21,13 @@ from el_psy_quant.application import (
 from el_psy_quant.demo_workspace import (
     DemoWorkspacePaths,
     DemoWorkspaceSourceInvalidError,
+    DemoWorkspaceUnavailableError,
     install_demo_workspace,
     load_demo_workspace_descriptor,
     validate_demo_workspace_source,
 )
 from el_psy_quant.local_workspace import (
+    LocalWorkspaceError,
     LocalWorkspaceVerification,
     start_local_backend,
     verify_local_workspace,
@@ -84,13 +89,11 @@ def test_demo_v6_paper_execution_source_fails_closed(
     elif case == "malformed_digest":
         payload["scenarios"][0]["expected"]["intent"]["digest"] = "bad"
     elif case == "duplicate_identity":
-        payload["scenarios"][1]["scenario_id"] = payload["scenarios"][0][
-            "scenario_id"
-        ]
+        payload["scenarios"][1]["scenario_id"] = payload["scenarios"][0]["scenario_id"]
     else:
-        payload["scenarios"][1]["expected"]["attempts"][0][
-            "consumed_event_id"
-        ] = "wrong-event"
+        payload["scenarios"][1]["expected"]["attempts"][0]["consumed_event_id"] = (
+            "wrong-event"
+        )
     path.write_text(json.dumps(payload), encoding="utf-8")
 
     with pytest.raises(DemoWorkspaceSourceInvalidError):
@@ -126,9 +129,7 @@ def test_demo_v6_source_uses_exact_quantity_and_money_precision_contracts(
     elif field == "cash_balance":
         payload["scenarios"][0]["expected"]["cash_balance"] = value
     else:
-        payload["scenarios"][1]["expected"]["fills"][0][
-            "execution_price"
-        ] = value
+        payload["scenarios"][1]["expected"]["fills"][0]["execution_price"] = value
     path.write_text(json.dumps(payload), encoding="utf-8")
 
     if valid:
@@ -158,8 +159,7 @@ def test_demo_v6_four_scenarios_reconstruct_exact_e2e_authority(
         assert manual.kind == "manual"
         assert manual_reference["intent_id"] == manual.expected.intent.id
         assert not any(
-            item.order.order_intent_reference.intent_id
-            == manual_reference["intent_id"]
+            item.order.order_intent_reference.intent_id == manual_reference["intent_id"]
             for item in execution.list_order_histories(limit=200).items
         )
 
@@ -185,7 +185,9 @@ def test_demo_v6_four_scenarios_reconstruct_exact_e2e_authority(
         assert completed_history.fills[0].execution_event_reference.event_id != (
             completed_history.order.market_handoff_reference.current_event_id
         )
-        assert tuple(item.fill_quantity.to_json_value() for item in completed_history.fills) == (
+        assert tuple(
+            item.fill_quantity.to_json_value() for item in completed_history.fills
+        ) == (
             "4",
             "4",
         )
@@ -194,7 +196,9 @@ def test_demo_v6_four_scenarios_reconstruct_exact_e2e_authority(
             and item.cost_evidence.total_charges.to_json_value() != "0"
             for item in completed_history.fills
         )
-        assert len(completed_history.settlement_links) == len(completed_history.fills) == 2
+        assert (
+            len(completed_history.settlement_links) == len(completed_history.fills) == 2
+        )
         assert tuple(
             (
                 item.pre_step_cursor.position,
@@ -206,18 +210,20 @@ def test_demo_v6_four_scenarios_reconstruct_exact_e2e_authority(
             account_id=completed.account.account_id
         )
         assert completed_account.account.head_version == 3
-        assert completed_account.projection.cash_balance.to_json_value() == "955.9295736"
+        assert (
+            completed_account.projection.cash_balance.to_json_value() == "955.9295736"
+        )
         assert completed_account.projection.positions[0].quantity.to_json_value() == "8"
         assert (
-            completed_account.projection.positions[0].aggregate_cost_basis.to_json_value()
+            completed_account.projection.positions[
+                0
+            ].aggregate_cost_basis.to_json_value()
             == "44.0704264"
         )
         completed_account_history = accounts.get_account_history(
             account_id=completed.account.account_id
         )
-        assert tuple(
-            item.event.event_type for item in completed_account_history
-        ) == (
+        assert tuple(item.event.event_type for item in completed_account_history) == (
             "account_created",
             "execution_fill_posted",
             "execution_fill_posted",
@@ -233,9 +239,12 @@ def test_demo_v6_four_scenarios_reconstruct_exact_e2e_authority(
         )
         assert not risk_history.fills
         assert not risk_history.settlement_links
-        assert accounts.get_account_detail(
-            account_id=risk.account.account_id
-        ).account.head_version == 1
+        assert (
+            accounts.get_account_detail(
+                account_id=risk.account.account_id
+            ).account.head_version
+            == 1
+        )
 
         exhaustion = source.paper_execution_journey.scenarios[3]
         exhaustion_history = execution.reconcile_order(
@@ -282,9 +291,7 @@ def test_progressed_manual_scenario_survives_supported_demo_restart(
             policy["max_fill_quantity_per_trade_event"]
         ),
         slippage_bps=PaperExecutionBasisPoints.parse(policy["slippage_bps"]),
-        commission_bps=PaperExecutionBasisPoints.parse(
-            policy["commission_bps"]
-        ),
+        commission_bps=PaperExecutionBasisPoints.parse(policy["commission_bps"]),
         fee_bps=PaperExecutionBasisPoints.parse(policy["fee_bps"]),
         buy_tax_bps=PaperExecutionBasisPoints.parse(policy["buy_tax_bps"]),
         sell_tax_bps=PaperExecutionBasisPoints.parse(policy["sell_tax_bps"]),
@@ -314,9 +321,7 @@ def test_progressed_manual_scenario_survives_supported_demo_restart(
     )
     accounts = PaperAccountApplicationService(session_factory=factory)
     before_account = accounts.get_account_detail(account_id=order.account_id)
-    before_account_history = accounts.get_account_history(
-        account_id=order.account_id
-    )
+    before_account_history = accounts.get_account_history(account_id=order.account_id)
     with factory() as session:
         before_replay = SqlAlchemyMarketTimeRepository(session=session).get_replay(
             replay_id=order.market_handoff_reference.replay_id
@@ -335,12 +340,8 @@ def test_progressed_manual_scenario_survives_supported_demo_restart(
     engine.dispose()
 
     monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(paths.database_path))
-    monkeypatch.setenv(
-        "EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT", str(paths.research_root)
-    )
-    monkeypatch.setenv(
-        "EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT", str(paths.evidence_root)
-    )
+    monkeypatch.setenv("EL_PSY_QUANT_RESEARCH_ARTIFACT_ROOT", str(paths.research_root))
+    monkeypatch.setenv("EL_PSY_QUANT_EVIDENCE_ARTIFACT_ROOT", str(paths.evidence_root))
     monkeypatch.setenv("EL_PSY_QUANT_PAPER_ARTIFACT_ROOT", str(paths.paper_root))
     monkeypatch.setenv("EL_PSY_QUANT_WORKSPACE_MODE", "demo")
     monkeypatch.setenv("EL_PSY_QUANT_DEMO_WORKSPACE_ROOT", str(paths.root))
@@ -394,3 +395,115 @@ def test_progressed_manual_scenario_survives_supported_demo_restart(
         assert after_replay.session.cursor == before_replay.session.cursor
     finally:
         reopened_engine.dispose()
+
+
+def test_s215_demo_paper_execution_corruption_is_refused_without_reseed(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "demo-v6-corrupt"
+    _install(target)
+    paths = DemoWorkspacePaths.from_root(target)
+    descriptor = load_demo_workspace_descriptor(target).to_dict()
+    order_id = descriptor["paper_execution"]["completed_order"]["id"]
+    with sqlite3.connect(paths.database_path) as connection:
+        connection.execute("DROP TRIGGER trg_paper_execution_orders_no_update")
+        connection.execute(
+            "UPDATE paper_execution_orders SET instrument_id = 'XNYS:CORRUPT' "
+            "WHERE execution_order_id = ?",
+            (order_id,),
+        )
+        connection.execute(
+            "CREATE TRIGGER trg_paper_execution_orders_no_update "
+            "BEFORE UPDATE ON paper_execution_orders "
+            "BEGIN SELECT RAISE(ABORT, 'M34 authority is append-only'); END"
+        )
+        connection.commit()
+    with sqlite3.connect(paths.database_path) as connection:
+        corrupted = tuple(connection.iterdump())
+
+    with pytest.raises(DemoWorkspaceUnavailableError):
+        _install(target)
+    with pytest.raises(LocalWorkspaceError):
+        verify_local_workspace(mode="demo", workspace_root=target)
+
+    with sqlite3.connect(paths.database_path) as connection:
+        assert tuple(connection.iterdump()) == corrupted
+
+
+def test_s215_demo_progression_and_restart_never_change_standard_workspace(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    standard = tmp_path / "standard"
+    standard.mkdir()
+    for child in ("research", "evidence", "paper"):
+        root = standard / child
+        root.mkdir()
+        (root / "founder-sentinel.txt").write_text(
+            f"standard-{child}\n", encoding="utf-8"
+        )
+    standard_database = standard / "product.sqlite3"
+    monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(standard_database))
+    alembic_command.upgrade(AlembicConfig(str(ROOT / "alembic.ini")), "head")
+    assert verify_local_workspace(
+        mode="standard", workspace_root=standard
+    ) == LocalWorkspaceVerification(
+        mode="standard", schema_revision="0011_paper_execution"
+    )
+
+    def standard_bytes() -> dict[str, bytes]:
+        return {
+            path.relative_to(standard).as_posix(): path.read_bytes()
+            for path in standard.rglob("*")
+            if path.is_file()
+        }
+
+    before = standard_bytes()
+    demo = tmp_path / "demo"
+    _install(demo)
+    descriptor = load_demo_workspace_descriptor(demo).to_dict()["paper_execution"]
+    manual = descriptor["manual_candidate"]
+    policy = descriptor["policy_draft"]
+    paths = DemoWorkspacePaths.from_root(demo)
+    engine = create_product_database_engine(
+        config=resolve_product_database_config(database_path=paths.database_path)
+    )
+    factory = create_product_session_factory(engine=engine)
+    execution = PaperExecutionApplicationService(
+        session_factory=factory,
+        clock=lambda: datetime(2026, 8, 24, tzinfo=timezone.utc),
+    )
+    execution_policy = create_paper_execution_policy_reference(
+        max_fill_quantity_per_trade_event=PaperQuantity.parse(
+            policy["max_fill_quantity_per_trade_event"]
+        ),
+        slippage_bps=PaperExecutionBasisPoints.parse(policy["slippage_bps"]),
+        commission_bps=PaperExecutionBasisPoints.parse(policy["commission_bps"]),
+        fee_bps=PaperExecutionBasisPoints.parse(policy["fee_bps"]),
+        buy_tax_bps=PaperExecutionBasisPoints.parse(policy["buy_tax_bps"]),
+        sell_tax_bps=PaperExecutionBasisPoints.parse(policy["sell_tax_bps"]),
+    )
+    order = execution.create_order_from_references(
+        intent_id=manual["intent_id"],
+        intent_digest=manual["intent_digest"],
+        decision_id=manual["decision_id"],
+        decision_digest=manual["decision_digest"],
+        execution_policy_reference=execution_policy,
+        command_idempotency_key="s215-isolated-demo-create",
+        actor="demo-founder",
+    ).result.order
+    execution.step_order_from_reference(
+        execution_order_id=order.execution_order_id,
+        execution_order_digest=order.execution_order_digest,
+        expected_execution_version=0,
+        command_idempotency_key="s215-isolated-demo-step",
+        actor="demo-founder",
+    )
+    engine.dispose()
+
+    _install(demo)
+    assert verify_local_workspace(mode="demo", workspace_root=demo).dataset_version == 6
+    assert verify_local_workspace(mode="standard", workspace_root=standard).mode == (
+        "standard"
+    )
+    assert standard_bytes() == before

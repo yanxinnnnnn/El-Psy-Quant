@@ -3,7 +3,7 @@
 ## Status
 
 **In Progress.** GitHub Issue #408 is the authoritative M34 architecture source.
-S207–S213 are Complete. Sprint 214 is current under authoritative Issue #421.
+S207–S214 are Complete. Sprint 215 is current under authoritative Issue #423.
 
 ## Goal
 
@@ -24,8 +24,8 @@ atomic durable Paper Account effects.
 | S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Complete |
 | S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Complete |
 | S213 | Bilingual Founder Paper Execution Workspace | Complete |
-| S214 | Demo v6 and End-to-End First True Paper Trading Evidence | In Progress |
-| S215 | M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening | Planned |
+| S214 | Demo v6 and End-to-End First True Paper Trading Evidence | Complete |
+| S215 | M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening | In Progress |
 | S216 | Milestone 34 Closeout and M35 Handoff | Planned |
 
 ## Current delivered boundary
@@ -50,7 +50,8 @@ evidence inspection, and reconciliation without browser financial math.
 
 Demo dataset/descriptor v6 adds the four isolated S214 Paper Execution
 scenarios through merged application paths. Current migration head remains
-`0011_paper_execution`. S215–S216 remain planned.
+`0011_paper_execution`. S215 is adversarially hardening restart, concurrency,
+upgrade, recovery, corruption refusal, and isolation; S216 remains planned.
 
 ## Exit gate
 
