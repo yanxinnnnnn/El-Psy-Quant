@@ -28,8 +28,9 @@ EXPECTED_MIGRATION_RESOURCES = (
     f"{WHEEL_MIGRATION_ROOT}/versions/0009_market_time_runtime.py",
     f"{WHEEL_MIGRATION_ROOT}/versions/0010_strategy_order_risk.py",
     f"{WHEEL_MIGRATION_ROOT}/versions/0011_paper_execution.py",
+    f"{WHEEL_MIGRATION_ROOT}/versions/0012_durable_paper_runtime.py",
 )
-EXPECTED_HEAD_OUTPUT = "0011_paper_execution (head)"
+EXPECTED_HEAD_OUTPUT = "0012_durable_paper_runtime (head)"
 EXPECTED_STRATEGY_ORDER_TABLES = {
     "strategy_signals",
     "order_intents",
@@ -42,6 +43,13 @@ EXPECTED_PAPER_EXECUTION_TABLES = {
     "paper_execution_fills",
     "paper_execution_settlement_links",
     "paper_execution_command_receipts",
+}
+EXPECTED_PAPER_RUNTIME_TABLES = {
+    "paper_runtimes",
+    "paper_runtime_work",
+    "paper_runtime_checkpoints",
+    "paper_runtime_events",
+    "paper_runtime_command_receipts",
 }
 EXPECTED_PRODUCT_TABLES = {
     "alembic_version",
@@ -67,6 +75,7 @@ EXPECTED_PRODUCT_TABLES = {
     "trading_sessions",
     *EXPECTED_STRATEGY_ORDER_TABLES,
     *EXPECTED_PAPER_EXECUTION_TABLES,
+    *EXPECTED_PAPER_RUNTIME_TABLES,
 }
 EXPECTED_MARKET_TIME_TABLES = {
     "trading_calendars",
@@ -88,6 +97,7 @@ EXPECTED_0007_TABLES = EXPECTED_PRODUCT_TABLES - {
     *EXPECTED_MARKET_TIME_RUNTIME_TABLES,
     *EXPECTED_STRATEGY_ORDER_TABLES,
     *EXPECTED_PAPER_EXECUTION_TABLES,
+    *EXPECTED_PAPER_RUNTIME_TABLES,
 }
 EXPECTED_PAPER_ACCOUNT_TABLES = EXPECTED_0007_TABLES - {
     "portfolio_reviews",
@@ -273,7 +283,7 @@ def _verify_fresh_upgrade(
         revision_rows = connection.execute(
             "SELECT version_num FROM alembic_version"
         ).fetchall()
-        if revision_rows != [("0011_paper_execution",)]:
+        if revision_rows != [("0012_durable_paper_runtime",)]:
             raise GateError("fresh installed-wheel upgrade did not reach head")
         if _tables(connection) != EXPECTED_PRODUCT_TABLES:
             raise GateError("fresh installed-wheel upgrade created an invalid schema")
@@ -322,8 +332,8 @@ def _verify_0005_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0011_paper_execution",)]:
-            raise GateError("installed-wheel 0005 upgrade did not reach 0011")
+        ).fetchall() != [("0012_durable_paper_runtime",)]:
+            raise GateError("installed-wheel 0005 upgrade did not reach 0012")
         if _tables(connection) != (
             before_tables
             | EXPECTED_0007_TABLES
@@ -331,6 +341,7 @@ def _verify_0005_upgrade(
             | EXPECTED_MARKET_TIME_RUNTIME_TABLES
             | EXPECTED_STRATEGY_ORDER_TABLES
             | EXPECTED_PAPER_EXECUTION_TABLES
+            | EXPECTED_PAPER_RUNTIME_TABLES
         ):
             raise GateError("installed-wheel 0005 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
@@ -425,8 +436,8 @@ def _verify_0006_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0011_paper_execution",)]:
-            raise GateError("installed-wheel 0006 upgrade did not reach 0011")
+        ).fetchall() != [("0012_durable_paper_runtime",)]:
+            raise GateError("installed-wheel 0006 upgrade did not reach 0012")
         if _tables(connection) != (
             before_tables
             | EXPECTED_PAPER_ACCOUNT_TABLES
@@ -434,6 +445,7 @@ def _verify_0006_upgrade(
             | EXPECTED_MARKET_TIME_RUNTIME_TABLES
             | EXPECTED_STRATEGY_ORDER_TABLES
             | EXPECTED_PAPER_EXECUTION_TABLES
+            | EXPECTED_PAPER_RUNTIME_TABLES
         ):
             raise GateError("installed-wheel 0006 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
@@ -480,14 +492,15 @@ def _verify_0007_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0011_paper_execution",)]:
-            raise GateError("installed-wheel 0007 upgrade did not reach 0011")
+        ).fetchall() != [("0012_durable_paper_runtime",)]:
+            raise GateError("installed-wheel 0007 upgrade did not reach 0012")
         if _tables(connection) != (
             before_tables
             | EXPECTED_MARKET_TIME_TABLES
             | EXPECTED_MARKET_TIME_RUNTIME_TABLES
             | EXPECTED_STRATEGY_ORDER_TABLES
             | EXPECTED_PAPER_EXECUTION_TABLES
+            | EXPECTED_PAPER_RUNTIME_TABLES
         ):
             raise GateError("installed-wheel 0007 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
@@ -552,13 +565,14 @@ def _verify_0008_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0011_paper_execution",)]:
-            raise GateError("installed-wheel 0008 upgrade did not reach 0011")
+        ).fetchall() != [("0012_durable_paper_runtime",)]:
+            raise GateError("installed-wheel 0008 upgrade did not reach 0012")
         if _tables(connection) != (
             before_tables
             | EXPECTED_MARKET_TIME_RUNTIME_TABLES
             | EXPECTED_STRATEGY_ORDER_TABLES
             | EXPECTED_PAPER_EXECUTION_TABLES
+            | EXPECTED_PAPER_RUNTIME_TABLES
         ):
             raise GateError("installed-wheel 0008 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
@@ -609,12 +623,13 @@ def _verify_0009_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0011_paper_execution",)]:
-            raise GateError("installed-wheel 0009 upgrade did not reach 0011")
+        ).fetchall() != [("0012_durable_paper_runtime",)]:
+            raise GateError("installed-wheel 0009 upgrade did not reach 0012")
         if _tables(connection) != (
             before_tables
             | EXPECTED_STRATEGY_ORDER_TABLES
             | EXPECTED_PAPER_EXECUTION_TABLES
+            | EXPECTED_PAPER_RUNTIME_TABLES
         ):
             raise GateError("installed-wheel 0009 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
@@ -665,9 +680,9 @@ def _verify_0010_upgrade(
     with closing(sqlite3.connect(database)) as connection:
         if connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchall() != [("0011_paper_execution",)]:
-            raise GateError("installed-wheel 0010 upgrade did not reach 0011")
-        if _tables(connection) != before_tables | EXPECTED_PAPER_EXECUTION_TABLES:
+        ).fetchall() != [("0012_durable_paper_runtime",)]:
+            raise GateError("installed-wheel 0010 upgrade did not reach 0012")
+        if _tables(connection) != before_tables | EXPECTED_PAPER_EXECUTION_TABLES | EXPECTED_PAPER_RUNTIME_TABLES:
             raise GateError("installed-wheel 0010 upgrade changed unrelated tables")
         if _rows(connection, before_tables) != before_rows:
             raise GateError("installed-wheel 0010 upgrade changed existing data")
@@ -679,6 +694,28 @@ def _verify_0010_upgrade(
             for table_name in EXPECTED_PAPER_EXECUTION_TABLES
         ):
             raise GateError("installed-wheel 0010 upgrade seeded M34 authority")
+
+
+def _verify_0011_upgrade(
+    target: Path, config: Path, working: Path, database: Path
+) -> None:
+    _alembic(target, config, working, "upgrade", "0011_paper_execution", database_path=database)
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute("CREATE TABLE preserved_0011_gate_data (identity TEXT PRIMARY KEY, value TEXT)")
+        connection.execute("INSERT INTO preserved_0011_gate_data VALUES ('existing', 'preserve-me')")
+        connection.commit()
+        before_tables = _tables(connection)
+        before_rows = _rows(connection, before_tables)
+    _alembic(target, config, working, "upgrade", "head", database_path=database)
+    with closing(sqlite3.connect(database)) as connection:
+        if connection.execute("SELECT version_num FROM alembic_version").fetchall() != [("0012_durable_paper_runtime",)]:
+            raise GateError("installed-wheel 0011 upgrade did not reach 0012")
+        if _tables(connection) != before_tables | EXPECTED_PAPER_RUNTIME_TABLES:
+            raise GateError("installed-wheel 0011 upgrade changed unrelated tables")
+        if _rows(connection, before_tables) != before_rows:
+            raise GateError("installed-wheel 0011 upgrade changed existing data")
+        if any(connection.execute(f'SELECT COUNT(*) FROM "{table_name}"').fetchone() != (0,) for table_name in EXPECTED_PAPER_RUNTIME_TABLES):
+            raise GateError("installed-wheel 0011 upgrade seeded M35 authority")
 
 
 def _verify_fail_closed(
@@ -800,6 +837,12 @@ def main() -> int:
                 working,
                 root / "upgrade-0010.sqlite3",
             )
+            _verify_0011_upgrade(
+                installed,
+                config,
+                working,
+                root / "upgrade-0011.sqlite3",
+            )
 
             missing = root / "missing-resource"
             shutil.copytree(installed, missing)
@@ -817,12 +860,12 @@ def main() -> int:
                 mismatched
                 / Path(WHEEL_MIGRATION_ROOT)
                 / "versions"
-                / "0011_paper_execution.py"
+                / "0012_durable_paper_runtime.py"
             )
             revision_text = revision_path.read_text(encoding="utf-8")
             revision_path.write_text(
                 revision_text.replace(
-                    'revision: str = "0011_paper_execution"',
+                    'revision: str = "0012_durable_paper_runtime"',
                     'revision: str = "0012_unexpected_head"',
                     1,
                 ),
@@ -840,9 +883,9 @@ def main() -> int:
 
     print(
         "installed-wheel migration-resource gate passed: complete resources; "
-        "0011_paper_execution head; fresh, 0005, populated 0006, "
+        "0012_durable_paper_runtime head; fresh, 0005, populated 0006, "
         "preserved 0007, populated 0008, preserved 0009, and preserved "
-        "0010 upgrades; "
+        "0010 and 0011 upgrades; "
         "fail-closed probes"
     )
     return 0

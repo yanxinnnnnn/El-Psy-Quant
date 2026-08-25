@@ -21,6 +21,7 @@ PAPER_ACCOUNT_REVISION = "0007_paper_account_ledger"
 MARKET_TIME_FOUNDATION_REVISION = "0008_market_time_foundation"
 MARKET_TIME_RUNTIME_REVISION = "0009_market_time_runtime"
 STRATEGY_ORDER_REVISION = "0010_strategy_order_risk"
+PAPER_EXECUTION_REVISION = "0011_paper_execution"
 
 
 def _config() -> Config:
@@ -47,7 +48,10 @@ def test_portfolio_review_is_one_exact_linear_head() -> None:
     assert scripts.get_heads() == [CURRENT_PRODUCT_SCHEMA_REVISION]
     assert (
         scripts.get_revision(CURRENT_PRODUCT_SCHEMA_REVISION).down_revision
-        == STRATEGY_ORDER_REVISION
+        == PAPER_EXECUTION_REVISION
+    )
+    assert scripts.get_revision(PAPER_EXECUTION_REVISION).down_revision == (
+        STRATEGY_ORDER_REVISION
     )
     assert (
         scripts.get_revision(STRATEGY_ORDER_REVISION).down_revision
@@ -90,8 +94,7 @@ def test_upgrade_adds_only_compact_portfolio_review_table(
         inspector = inspect(engine)
         assert set(inspector.get_table_names()) == before | {"portfolio_reviews"}
         columns = tuple(
-            column["name"]
-            for column in inspector.get_columns("portfolio_reviews")
+            column["name"] for column in inspector.get_columns("portfolio_reviews")
         )
         assert columns == REQUIRED_PRODUCT_TABLE_COLUMNS["portfolio_reviews"]
         assert not any(
@@ -164,8 +167,6 @@ def test_downgrade_removes_only_portfolio_reviews(
     assert _current(path) == PREVIOUS_REVISION
     engine = _engine(path)
     try:
-        assert set(inspect(engine).get_table_names()) == before - {
-            "portfolio_reviews"
-        }
+        assert set(inspect(engine).get_table_names()) == before - {"portfolio_reviews"}
     finally:
         engine.dispose()

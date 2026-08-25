@@ -745,7 +745,7 @@ def test_populated_0009_upgrade_is_seed_free_and_v6_reinstall_fails_closed(
     with sqlite3.connect(paths.database_path) as connection:
         assert connection.execute(
             "SELECT version_num FROM alembic_version"
-        ).fetchone() == ("0011_paper_execution",)
+        ).fetchone() == ("0012_durable_paper_runtime",)
         assert tuple(
             connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
             for table in (

@@ -296,9 +296,9 @@ def test_0010_is_additive_linear_append_only_and_current(
 ) -> None:
     path = tmp_path / "product.sqlite3"
     scripts = ScriptDirectory.from_config(_config())
-    assert scripts.get_heads() == ["0011_paper_execution"]
+    assert scripts.get_heads() == ["0012_durable_paper_runtime"]
     assert scripts.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert CURRENT_PRODUCT_SCHEMA_REVISION == "0011_paper_execution"
+    assert CURRENT_PRODUCT_SCHEMA_REVISION == "0012_durable_paper_runtime"
 
     _migrate(path, monkeypatch, PREVIOUS_REVISION)
     engine = _engine(path)
