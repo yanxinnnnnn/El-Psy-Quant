@@ -264,8 +264,36 @@ Founder acceptance checklist:
     account, replay, M33 handoff, or M34 execution authority appears there.
 
 Migration head for this acceptance remains exactly `0011_paper_execution`.
-Sprint 215 adversarial concurrency/upgrade/corruption hardening and all M35
-worker/scheduler/runtime behavior remain out of scope.
+Sprint 214 did not perform the Sprint 215 adversarial matrix. All M35
+worker/scheduler/runtime behavior remains out of scope.
+
+## Sprint 215 Hardening Acceptance Boundary
+
+Sprint 215 adds deterministic automated evidence for concurrent Create/Step
+one-winner behavior, changed-content idempotency conflicts, bounded SQLite busy
+refusal and retry, populated Standard `0010_strategy_order_risk` to
+`0011_paper_execution` preservation, atomic rollback fault injection,
+corruption/no-repair refusal, lifecycle restart/recovery, sanitized API errors,
+and Standard/Demo v6 isolation.
+
+After CTO review, the Founder retains the same supported local acceptance
+boundary:
+
+1. Preserve the Standard volume and cold backup; run only the documented
+   Standard startup/verification flow and confirm the head is
+   `0011_paper_execution` with existing M31/M32/M33 authority intact.
+2. Reset only an explicitly disposable Demo volume when needed, install Demo
+   v6 through the documented overlay, and repeat the Sprint 214 manual
+   execution/restart/reconciliation journey.
+3. Return to the preserved Standard workspace and confirm its identity,
+   artifacts, accounts, replay, M33, and M34 evidence are unchanged.
+4. Treat any corruption, mode/root mismatch, descriptor mismatch, or storage
+   refusal as fail-closed. Do not hand-edit, restamp, rebase, auto-repair, or
+   reseed an existing Standard or conflicting Demo workspace.
+
+Codex runs no Docker build, pull, Compose/container startup, runtime reset,
+volume removal, browser acceptance, or other runtime acceptance for S215.
+S216 closeout and all M35 automation remain separate future work.
 
 Existing-volume recovery must use the same preserved Standard volume and
 retained cold backup. Do not reset, replace, stamp, downgrade, rebuild a

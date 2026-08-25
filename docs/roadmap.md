@@ -71,9 +71,9 @@ flowchart LR
 | M36 — Multi-day Paper Operations and Acceptance | TBD | Planned | Continuous multi-session Paper Trading | One account runs safely across sessions and trading days with reconciliation and Founder acceptance. |
 
 M33 used the approved S197–S206 sequence from Issue #389. M34 uses the approved
-S207–S216 sequence from authoritative architecture Issue #408. S207 is Complete
-and S208 is current under authoritative implementation Issue #409. M35–M36
-retain intentionally unassigned sprint ranges.
+S207–S216 sequence from authoritative architecture Issue #408. S207–S214 are
+Complete and S215 is current under authoritative implementation Issue #423.
+M35–M36 retain intentionally unassigned sprint ranges.
 
 ## Completed Milestone 30
 
@@ -241,9 +241,11 @@ transactions under Issue #415. S212 adds exactly nine versioned Paper Execution
 operations, stable errors/audit, canonical OpenAPI, and generated contracts
 under Issue #417. The migration head remains `0011_paper_execution`;
 S213 added the generated-contract-only bilingual Founder Paper Execution
-workspace. S214 is current under Issue #421 and upgrades Demo source/descriptor
-to v6 with four application-built Paper Execution scenarios. S215–S216 remain
-planned; migration head remains `0011_paper_execution`.
+workspace. S214 completed Demo source/descriptor v6 with four application-built
+Paper Execution scenarios. S215 is current under Issue #423 for adversarial
+restart, concurrency, upgrade, rollback, corruption, recovery, API, and
+Standard/Demo isolation hardening. S216 remains planned; migration head remains
+`0011_paper_execution`.
 M34 must not mutate M33 Signal, Intent, or Decision records.
 
 Approved M34 sequence:
@@ -257,8 +259,8 @@ Approved M34 sequence:
 | S211 | Durable M34 Persistence, Migration, Transactions, Idempotency, and Reconciliation | Complete |
 | S212 | Versioned Paper Execution API, Errors, Audit, and Generated Contracts | Complete |
 | S213 | Bilingual Founder Paper Execution Workspace | Complete |
-| S214 | Demo v6 and End-to-End First True Paper Trading Evidence | In Progress |
-| S215 | M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening | Planned |
+| S214 | Demo v6 and End-to-End First True Paper Trading Evidence | Complete |
+| S215 | M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening | In Progress |
 | S216 | Milestone 34 Closeout and M35 Handoff | Planned |
 
 ## Approved Paper Trading Runtime Sequence

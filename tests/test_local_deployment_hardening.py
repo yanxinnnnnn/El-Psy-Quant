@@ -330,6 +330,91 @@ def test_standard_startup_orders_prepare_verify_serve_and_failures_never_serve(
     assert events == ["prepare"]
 
 
+@pytest.mark.parametrize(
+    ("cross_wire", "mode", "expected_message"),
+    (
+        (
+            "standard_database_path",
+            "standard",
+            PRODUCT_DATABASE_PATH_ENV,
+        ),
+        (
+            "workspace_mode",
+            "standard",
+            "EL_PSY_QUANT_WORKSPACE_MODE",
+        ),
+        (
+            "demo_workspace_root",
+            "demo",
+            "EL_PSY_QUANT_DEMO_WORKSPACE_ROOT",
+        ),
+    ),
+)
+def test_s215_cross_wired_runtime_configuration_refuses_before_workspace_use(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    cross_wire: str,
+    mode: str,
+    expected_message: str,
+) -> None:
+    selected = tmp_path / "selected"
+    other = tmp_path / "other"
+    selected.mkdir()
+    other.mkdir()
+    (selected / "sentinel.bin").write_bytes(b"selected-workspace-preserved\n")
+    (other / "sentinel.bin").write_bytes(b"other-workspace-preserved\n")
+    before = (_tree_digest(selected), _tree_digest(other))
+
+    _runtime_environment(monkeypatch, root=selected, mode=mode)
+    if cross_wire == "standard_database_path":
+        monkeypatch.setenv(PRODUCT_DATABASE_PATH_ENV, str(other / "product.sqlite3"))
+    elif cross_wire == "workspace_mode":
+        monkeypatch.setenv("EL_PSY_QUANT_WORKSPACE_MODE", "demo")
+    elif cross_wire == "demo_workspace_root":
+        monkeypatch.setenv("EL_PSY_QUANT_DEMO_WORKSPACE_ROOT", str(other))
+    else:
+        raise AssertionError(f"unknown cross-wire case: {cross_wire}")
+
+    events: list[str] = []
+
+    def forbidden(*_args: object, **_kwargs: object) -> None:
+        events.append("workspace use")
+        raise AssertionError("workspace use must not run for a cross-wired workspace")
+
+    monkeypatch.setattr(
+        local_module,
+        "preflight_product_migration_resources",
+        forbidden,
+    )
+    monkeypatch.setattr(
+        local_module,
+        "prepare_standard_workspace",
+        forbidden,
+    )
+    monkeypatch.setattr(
+        local_module,
+        "install_demo_workspace",
+        forbidden,
+    )
+    monkeypatch.setattr(
+        local_module,
+        "verify_local_workspace",
+        forbidden,
+    )
+
+    with pytest.raises(LocalWorkspaceError, match=expected_message):
+        start_local_backend(
+            mode=mode,
+            workspace_root=selected,
+            alembic_config_path=ALEMBIC_CONFIG,
+            demo_source_root=DEMO_SOURCE if mode == "demo" else None,
+            serve=forbidden,
+        )
+
+    assert events == []
+    assert (_tree_digest(selected), _tree_digest(other)) == before
+
+
 def test_migration_resource_failure_precedes_mutation_demo_install_and_serve(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

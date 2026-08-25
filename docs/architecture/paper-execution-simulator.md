@@ -6,8 +6,8 @@ GitHub Issue #408 is the authoritative Milestone 34 architecture source. This
 record summarizes that approved boundary; it does not replace or broaden the
 Issue.
 
-Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S212
-are Complete. Sprint 213 is current, with Issue #419 as its authoritative
+Milestone 34 is In Progress through the approved S207–S216 sequence. S207–S214
+are Complete. Sprint 215 is current, with Issue #423 as its authoritative
 implementation specification.
 
 ## Authority chain
@@ -97,13 +97,15 @@ S212 exposes that authority through exactly nine authenticated versioned
 operations, strict generated contracts, stable public errors, and bounded
 audit correlation. S213 adds one bilingual generated-contract-only Founder
 workspace for explicit manual Order creation, one-event Step, historical
-inspection, and reconciliation. Reservation, Demo v6, worker, scheduler,
-broker, live, and real-money behavior remain deferred.
+inspection, and reconciliation. S214 adds Demo v6 end-to-end evidence through
+those application paths. S215 adversarially hardens the same authority without
+changing business execution semantics. Reservation, worker, scheduler, broker,
+live, and real-money behavior remain deferred.
 
 The migration head is exactly `0011_paper_execution`.
 
 ## Preserved runtime boundary
 
-M34 remains a manual synchronous simulator. S214–S216 remain planned. M35
-owns durable runtime and recovery; M36 owns multi-session and multi-day
-operation. Neither later milestone is implemented here.
+M34 remains a manual synchronous simulator. S215 is In Progress and S216 remains
+planned. M35 owns durable runtime and recovery; M36 owns multi-session and
+multi-day operation. Neither later milestone is implemented here.

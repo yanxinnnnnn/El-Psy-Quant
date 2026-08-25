@@ -26,11 +26,13 @@ S209 — Complete
 S210 — Complete
 S211 — Complete
 S212 — Complete
-S213 — Bilingual Founder Paper Execution Workspace
+S213 — Complete
+S214 — Complete
+S215 — M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening
 ```
 
-Issue #408 is the authoritative M34 architecture source. Issue #419 is the
-authoritative S213 implementation specification. M35–M36 remain future
+Issue #408 is the authoritative M34 architecture source. Issue #423 is the
+authoritative S215 implementation specification. M35–M36 remain future
 milestones.
 
 Current migration head:
@@ -209,7 +211,10 @@ and audit correlation, canonical OpenAPI, and generated TypeScript contracts.
 S213 adds one bilingual `/paper-execution` workspace for historical M33 allow
 selection, explicit policy input, manual Order creation, one-event Step,
 immutable Attempt/Fill/risk/settlement inspection, and explicit reconciliation.
-The migration head remains `0011_paper_execution`; S214–S216 remain planned.
+S214 adds isolated Demo v6 evidence for manual, completed-fill, risk-rejection,
+and session-exhaustion flows through the merged application paths. S215 is the
+current adversarial hardening Sprint. The migration head remains
+`0011_paper_execution`; S216 remains planned.
 
 ## Current Founder Journey
 
@@ -240,12 +245,12 @@ automatically, or directly mutate M31/M32/SQLite.
 
 ## What the Current Product Is Not Yet
 
-The current product now reaches deterministic risk-checked strategy intent, but
-it is not yet true end-to-end simulated execution.
+The current product now reaches explicit manual first true Paper Trading through
+deterministic simulated execution and atomic account effects. M34 remains In
+Progress until adversarial hardening and closeout are accepted.
 
 It does not yet provide:
 
-- Demo v6 end-to-end execution evidence;
 - a durable worker/claim/checkpoint/recovery loop for session execution;
 - continuous multi-day Paper Trading;
 - broker, QMT, MiniQMT, private-edge, live, or real-money behavior; or
@@ -274,7 +279,8 @@ one-event Attempt/Fill/pricing/cost/risk layer. S210 completed pure Fill-to-M31
 settlement and link reconciliation. S211 adds durable atomic authority under
 Issue #415. S212 adds the versioned API/error/audit/generated-contract boundary
 under Issue #417. S213 adds the bilingual Founder workspace under Issue #419.
-S214–S216 remain planned.
+S214 completed Demo v6 end-to-end evidence under Issue #421. S215 is current
+under Issue #423; S216 remains planned.
 
 Authoritative runtime roadmap:
 

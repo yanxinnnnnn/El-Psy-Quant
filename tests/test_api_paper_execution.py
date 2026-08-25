@@ -1,8 +1,9 @@
-"""Focused Sprint 212 API, error, audit, pagination, and contract coverage."""
+"""Focused Sprint 212 API and Sprint 215 adversarial error-surface coverage."""
 
 from __future__ import annotations
 
 import logging
+import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -11,6 +12,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
+from sqlalchemy import event
 
 from el_psy_quant.api.app import create_app
 from el_psy_quant.api.middleware import REQUEST_ID_HEADER
@@ -66,6 +68,7 @@ INSTRUMENT = "XNYS:AAPL"
 @dataclass(frozen=True)
 class _Configured:
     application: object
+    database_path: Path
     account: object
     account_service: PaperAccountApplicationService
     intent: object
@@ -194,7 +197,7 @@ def configured(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> _Configured:
         created_at=AUDIT + timedelta(minutes=2),
     ).result
     logging.getLogger(PRODUCT_LOGGER_NAME).disabled = False
-    return _Configured(application, account, account_service, intent, decision)
+    return _Configured(application, path, account, account_service, intent, decision)
 
 
 def _create_payload(configured: _Configured) -> dict[str, object]:
@@ -302,9 +305,7 @@ def test_create_replay_convergence_strict_input_and_public_projection(
         assert body["result"]["state"]["status"] == "working"
         assert "origin_command_idempotency_key" not in created.text
         assert isinstance(order["requested_quantity"], str)
-        assert isinstance(
-            order["execution_policy_reference"]["slippage_bps"], str
-        )
+        assert isinstance(order["execution_policy_reference"]["slippage_bps"], str)
 
         same = _create(client, configured)
         alternate = _create(client, configured, "alternate-create-s212")
@@ -394,23 +395,29 @@ def test_step_no_fill_fill_replay_reads_and_reconciliation(
         assert result["settlement_link"] is not None
         assert result["account_event_id"] is not None
         assert result["order_state"]["status"] == "filled"
-        assert all(
-            isinstance(result["fill"][key], str)
-            for key in ("fill_quantity",)
-        )
+        assert all(isinstance(result["fill"][key], str) for key in ("fill_quantity",))
 
         order_id = order["execution_order_id"]
         attempt_id = result["attempt"]["attempt_id"]
         fill_id = result["fill"]["fill_id"]
-        assert client.get(
-            f"/api/v1/paper-execution/orders/{order_id}", auth=AUTH
-        ).status_code == 200
-        assert client.get(
-            f"/api/v1/paper-execution/attempts/{attempt_id}", auth=AUTH
-        ).status_code == 200
-        assert client.get(
-            f"/api/v1/paper-execution/fills/{fill_id}", auth=AUTH
-        ).status_code == 200
+        assert (
+            client.get(
+                f"/api/v1/paper-execution/orders/{order_id}", auth=AUTH
+            ).status_code
+            == 200
+        )
+        assert (
+            client.get(
+                f"/api/v1/paper-execution/attempts/{attempt_id}", auth=AUTH
+            ).status_code
+            == 200
+        )
+        assert (
+            client.get(
+                f"/api/v1/paper-execution/fills/{fill_id}", auth=AUTH
+            ).status_code
+            == 200
+        )
         reconciliation = client.get(
             f"/api/v1/paper-execution/orders/{order_id}/reconciliation",
             auth=AUTH,
@@ -439,9 +446,7 @@ def test_attempt_pagination_has_no_skip_or_duplicate(configured: _Configured) ->
                 },
             )
             assert response.status_code == 201, response.text
-        path = (
-            f"/api/v1/paper-execution/orders/{order['execution_order_id']}/attempts"
-        )
+        path = f"/api/v1/paper-execution/orders/{order['execution_order_id']}/attempts"
         first = client.get(path, auth=AUTH, params={"limit": 1})
         assert first.status_code == 200
         cursor = first.json()["next_cursor"]
@@ -523,9 +528,7 @@ def test_historical_read_survives_later_progression_but_live_checks_refuse(
             f"/api/v1/paper-execution/orders/{order['execution_order_id']}/reconciliation",
             auth=AUTH,
         )
-        _assert_error(
-            reconciliation, 409, "paper_execution_reconciliation_required"
-        )
+        _assert_error(reconciliation, 409, "paper_execution_reconciliation_required")
         next_step = client.post(
             step_path,
             auth=AUTH,
@@ -598,15 +601,11 @@ def test_openapi_decimal_fields_are_strings_and_requests_are_strict(
     ):
         assert schemas[name]["additionalProperties"] is False
     assert (
-        schemas["PaperExecutionPolicyRequest"]["properties"]["slippage_bps"][
-            "type"
-        ]
+        schemas["PaperExecutionPolicyRequest"]["properties"]["slippage_bps"]["type"]
         == "string"
     )
     assert (
-        schemas["PaperExecutionFillResponse"]["properties"]["fill_quantity"][
-            "type"
-        ]
+        schemas["PaperExecutionFillResponse"]["properties"]["fill_quantity"]["type"]
         == "string"
     )
 
@@ -748,3 +747,103 @@ def test_every_paper_execution_error_mapping_is_stable_and_sanitized(
     assert caught.value.status_code == status
     assert caught.value.code == code
     assert "secret" not in caught.value.message.lower()
+
+
+def _database_dump(path: Path) -> tuple[str, ...]:
+    with sqlite3.connect(path) as connection:
+        return tuple(connection.iterdump())
+
+
+def test_s215_api_corruption_is_sanitized_and_non_mutating(
+    configured: _Configured,
+) -> None:
+    with TestClient(configured.application) as client:
+        order = _create(client, configured, "api-corruption-create").json()["result"][
+            "order"
+        ]
+    with sqlite3.connect(configured.database_path) as connection:
+        connection.execute("DROP TRIGGER trg_paper_execution_orders_no_update")
+        connection.execute(
+            "UPDATE paper_execution_orders SET instrument_id = 'XNYS:SECRET' "
+            "WHERE execution_order_id = ?",
+            (order["execution_order_id"],),
+        )
+        connection.execute(
+            "CREATE TRIGGER trg_paper_execution_orders_no_update "
+            "BEFORE UPDATE ON paper_execution_orders "
+            "BEGIN SELECT RAISE(ABORT, 'M34 authority is append-only'); END"
+        )
+        connection.commit()
+    corrupted = _database_dump(configured.database_path)
+
+    with TestClient(configured.application) as client:
+        detail = client.get(
+            f"/api/v1/paper-execution/orders/{order['execution_order_id']}",
+            auth=AUTH,
+        )
+        _assert_error(detail, 503, "paper_execution_authority_unavailable")
+        refused_step = client.post(
+            f"/api/v1/paper-execution/orders/{order['execution_order_id']}/steps",
+            auth=AUTH,
+            headers={"Idempotency-Key": "secret-corruption-step-key"},
+            json={
+                "execution_order_digest": order["execution_order_digest"],
+                "expected_execution_version": 0,
+                "actor": "founder",
+            },
+        )
+        _assert_error(refused_step, 503, "paper_execution_authority_unavailable")
+    exposed = (detail.text + refused_step.text).lower()
+    assert all(
+        secret not in exposed
+        for secret in (
+            "sqlite",
+            "instrument_id",
+            "xnys:secret",
+            "secret-corruption-step-key",
+            "paper_execution_orders",
+        )
+    )
+    configured.application.state.product_database_engine.dispose()
+    assert _database_dump(configured.database_path) == corrupted
+
+
+def test_s215_api_storage_busy_is_sanitized_retryable_and_non_mutating(
+    configured: _Configured,
+) -> None:
+    engine = configured.application.state.product_database_engine
+
+    @event.listens_for(engine, "connect")
+    def _bounded_busy_timeout(dbapi_connection, _connection_record) -> None:
+        dbapi_connection.execute("PRAGMA busy_timeout=100")
+
+    engine.dispose()
+    lock = sqlite3.connect(configured.database_path, timeout=0, isolation_level=None)
+    try:
+        lock.execute("BEGIN IMMEDIATE")
+        with TestClient(configured.application) as client:
+            refused = _create(client, configured, "secret-busy-create-key")
+        _assert_error(refused, 503, "paper_execution_storage_busy")
+        assert all(
+            secret not in refused.text.lower()
+            for secret in (
+                "database is locked",
+                "sqlite",
+                "secret-busy-create-key",
+                "begin immediate",
+            )
+        )
+        assert lock.execute(
+            "SELECT COUNT(*) FROM paper_execution_orders"
+        ).fetchone() == (0,)
+        assert lock.execute(
+            "SELECT COUNT(*) FROM paper_execution_command_receipts"
+        ).fetchone() == (0,)
+    finally:
+        lock.rollback()
+        lock.close()
+
+    with TestClient(configured.application) as client:
+        retry = _create(client, configured, "secret-busy-create-key")
+    assert retry.status_code == 201, retry.text
+    assert retry.json()["replayed"] is False
