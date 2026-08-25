@@ -37,8 +37,12 @@ is deployed.
   infrastructure.
 - Keep financial calculations explicit and owned by domain modules.
 - Keep broker-specific behavior behind future adapters.
-- Do not add or modify proxy configuration in the repository.
-- Do not change project files to solve a local proxy problem.
+- VPN, proxy, and network settings are Founder/machine environment, not product
+  or repository authority. Do not assume a specific provider, endpoint, port,
+  environment variable, or network topology.
+- If dependency or network access fails, report the observed failure. Do not add
+  repository-level proxy settings or change unrelated project files merely to
+  work around the local network environment.
 - Never commit local `.env`, credentials, tokens, machine-specific paths,
   private endpoints, or local backups.
 

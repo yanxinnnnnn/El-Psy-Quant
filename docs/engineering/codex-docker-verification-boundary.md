@@ -19,12 +19,16 @@ local Standard or Demo product stack.
 
 ## Reason
 
-Docker image dependency downloads are highly exposed to unstable local proxy
-conditions. Build/start attempts can fail through network timeout even when the
-product implementation and repository tests are correct.
+Docker runtime acceptance is a Founder-owned product-acceptance responsibility,
+separate from implementation verification. Image builds and container startup
+also depend on machine-local state and external dependency availability that are
+outside repository authority.
 
-Those network failures create noise and consume implementation time without
-providing reliable product evidence.
+VPN, proxy, DNS, and other network settings are machine environment. Codex must
+not assume a particular provider, endpoint, port, environment variable, or
+network topology. A transient network/dependency failure should be reported as
+observed; it must not be worked around by adding repository proxy settings or by
+changing unrelated project files.
 
 ## Codex Responsibilities
 
