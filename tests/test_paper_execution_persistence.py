@@ -94,6 +94,11 @@ TABLES = {
     "paper_execution_fills",
     "paper_execution_settlement_links",
     "paper_execution_command_receipts",
+    "paper_runtimes",
+    "paper_runtime_work",
+    "paper_runtime_checkpoints",
+    "paper_runtime_events",
+    "paper_runtime_command_receipts",
 }
 
 
@@ -293,12 +298,12 @@ def test_0011_is_additive_linear_and_has_five_empty_tables(
 ) -> None:
     path = tmp_path / "product.sqlite3"
     scripts = ScriptDirectory.from_config(_config())
-    assert scripts.get_heads() == ["0011_paper_execution"]
+    assert scripts.get_heads() == ["0012_durable_paper_runtime"]
     assert (
         scripts.get_revision("0011_paper_execution").down_revision
         == "0010_strategy_order_risk"
     )
-    assert CURRENT_PRODUCT_SCHEMA_REVISION == "0011_paper_execution"
+    assert CURRENT_PRODUCT_SCHEMA_REVISION == "0012_durable_paper_runtime"
     _migrate(path, monkeypatch, "0010_strategy_order_risk")
     before_engine = create_product_database_engine(
         config=resolve_product_database_config(database_path=path)
@@ -325,7 +330,7 @@ def test_0011_is_additive_linear_and_has_five_empty_tables(
                 connection.scalar(text(f"SELECT COUNT(*) FROM {table}")) == 0
                 for table in TABLES
             )
-        assert verify_product_schema(path) == "0011_paper_execution"
+        assert verify_product_schema(path) == "0012_durable_paper_runtime"
     finally:
         engine.dispose()
 
@@ -405,8 +410,8 @@ def test_populated_0010_upgrade_preserves_m31_m32_m33_authority(
             )
             assert connection.scalar(
                 text("SELECT version_num FROM alembic_version")
-            ) == ("0011_paper_execution")
-        assert verify_product_schema(path) == "0011_paper_execution"
+            ) == ("0012_durable_paper_runtime")
+        assert verify_product_schema(path) == "0012_durable_paper_runtime"
         upgraded_factory = create_product_session_factory(engine=upgraded)
         execution = PaperExecutionApplicationService(
             session_factory=upgraded_factory,
@@ -481,6 +486,11 @@ def test_create_no_fill_fill_replay_and_durable_reconciliation(
             "paper_execution_fills": 1,
             "paper_execution_settlement_links": 1,
             "paper_execution_command_receipts": 3,
+            "paper_runtimes": 0,
+            "paper_runtime_work": 0,
+            "paper_runtime_checkpoints": 0,
+            "paper_runtime_events": 0,
+            "paper_runtime_command_receipts": 0,
         }
         assert (
             connection.scalar(

@@ -48,6 +48,11 @@ def test_declarative_metadata_contains_only_approved_product_tables() -> None:
         "paper_execution_fills",
         "paper_execution_orders",
         "paper_execution_settlement_links",
+        "paper_runtimes",
+        "paper_runtime_work",
+        "paper_runtime_checkpoints",
+        "paper_runtime_events",
+        "paper_runtime_command_receipts",
         "paper_job_attempts",
         "paper_job_result_references",
         "paper_job_submission_keys",
@@ -100,9 +105,7 @@ def test_committed_work_is_visible_to_a_later_session(tmp_path: Path) -> None:
     engine = _engine_for(tmp_path / "product.sqlite3")
     session_factory = create_product_session_factory(engine=engine)
     with engine.begin() as connection:
-        connection.execute(
-            text("CREATE TABLE persistence_test (value TEXT NOT NULL)")
-        )
+        connection.execute(text("CREATE TABLE persistence_test (value TEXT NOT NULL)"))
 
     with session_factory() as session:
         session.execute(
@@ -112,9 +115,7 @@ def test_committed_work_is_visible_to_a_later_session(tmp_path: Path) -> None:
         session.commit()
 
     with session_factory() as later_session:
-        values = later_session.scalars(
-            text("SELECT value FROM persistence_test")
-        ).all()
+        values = later_session.scalars(text("SELECT value FROM persistence_test")).all()
 
     assert values == ["committed"]
     engine.dispose()
@@ -124,9 +125,7 @@ def test_rolled_back_work_is_not_visible(tmp_path: Path) -> None:
     engine = _engine_for(tmp_path / "product.sqlite3")
     session_factory = create_product_session_factory(engine=engine)
     with engine.begin() as connection:
-        connection.execute(
-            text("CREATE TABLE persistence_test (value TEXT NOT NULL)")
-        )
+        connection.execute(text("CREATE TABLE persistence_test (value TEXT NOT NULL)"))
 
     with session_factory() as session:
         session.execute(

@@ -40,7 +40,8 @@ PREVIOUS_REVISION = "0007_paper_account_ledger"
 REVISION = "0008_market_time_foundation"
 RUNTIME_REVISION = "0009_market_time_runtime"
 STRATEGY_ORDER_REVISION = "0010_strategy_order_risk"
-CURRENT_REVISION = "0011_paper_execution"
+PAPER_EXECUTION_REVISION = "0011_paper_execution"
+CURRENT_REVISION = "0012_durable_paper_runtime"
 NEW_TABLES = {"trading_calendars", "trading_sessions"}
 
 
@@ -121,10 +122,15 @@ def test_migration_is_one_additive_linear_head_without_seed_data(
     scripts = ScriptDirectory.from_config(_config())
     assert scripts.get_heads() == [CURRENT_REVISION]
     assert (
-        scripts.get_revision(CURRENT_REVISION).down_revision
+        scripts.get_revision(CURRENT_REVISION).down_revision == PAPER_EXECUTION_REVISION
+    )
+    assert (
+        scripts.get_revision(PAPER_EXECUTION_REVISION).down_revision
         == STRATEGY_ORDER_REVISION
     )
-    assert scripts.get_revision(STRATEGY_ORDER_REVISION).down_revision == RUNTIME_REVISION
+    assert (
+        scripts.get_revision(STRATEGY_ORDER_REVISION).down_revision == RUNTIME_REVISION
+    )
     assert scripts.get_revision(RUNTIME_REVISION).down_revision == REVISION
     assert scripts.get_revision(REVISION).down_revision == PREVIOUS_REVISION
     assert CURRENT_PRODUCT_SCHEMA_REVISION == CURRENT_REVISION
@@ -154,9 +160,10 @@ def test_migration_is_one_additive_linear_head_without_seed_data(
         inspector = inspect(engine)
         assert set(inspector.get_table_names()) == before_tables | NEW_TABLES
         for table_name in NEW_TABLES:
-            assert tuple(
-                item["name"] for item in inspector.get_columns(table_name)
-            ) == REQUIRED_PRODUCT_TABLE_COLUMNS[table_name]
+            assert (
+                tuple(item["name"] for item in inspector.get_columns(table_name))
+                == REQUIRED_PRODUCT_TABLE_COLUMNS[table_name]
+            )
         assert inspector.get_pk_constraint("trading_calendars") == {
             "name": "pk_trading_calendars",
             "constrained_columns": ["calendar_id"],
@@ -189,10 +196,7 @@ def test_migration_is_one_additive_linear_head_without_seed_data(
             triggers = {
                 row[0]
                 for row in connection.execute(
-                    text(
-                        "SELECT name FROM sqlite_master "
-                        "WHERE type = 'trigger'"
-                    )
+                    text("SELECT name FROM sqlite_master WHERE type = 'trigger'")
                 )
             }
         assert after_m31_sql == before_m31_sql
@@ -210,15 +214,18 @@ def test_migration_is_one_additive_linear_head_without_seed_data(
     try:
         assert set(inspect(engine).get_table_names()) == before_tables
         with engine.connect() as connection:
-            assert tuple(
-                connection.execute(
-                    text(
-                        "SELECT name, sql FROM sqlite_master "
-                        "WHERE type = 'table' AND name LIKE 'paper_account%' "
-                        "ORDER BY name"
+            assert (
+                tuple(
+                    connection.execute(
+                        text(
+                            "SELECT name, sql FROM sqlite_master "
+                            "WHERE type = 'table' AND name LIKE 'paper_account%' "
+                            "ORDER BY name"
+                        )
                     )
                 )
-            ) == before_m31_sql
+                == before_m31_sql
+            )
     finally:
         engine.dispose()
 
@@ -265,17 +272,22 @@ def test_repository_persists_and_queries_calendar_availability_deterministically
         repository.add_calendar(calendar=version_two)
         repository.add_calendar(calendar=xnas)
         repository.add_calendar(calendar=calendar)
-        assert repository.add_sessions(
-            sessions=[post_market, regular, pre_market]
-        ) == (pre_market, regular, post_market)
+        assert repository.add_sessions(sessions=[post_market, regular, pre_market]) == (
+            pre_market,
+            regular,
+            post_market,
+        )
 
     with session_factory() as session:
         repository = SqlAlchemyMarketTimeRepository(session=session)
         assert repository.get_calendar(calendar_id=calendar.id) == calendar
-        assert repository.get_calendar_by_market_version(
-            market="xnys",
-            calendar_version=1,
-        ) == calendar
+        assert (
+            repository.get_calendar_by_market_version(
+                market="xnys",
+                calendar_version=1,
+            )
+            == calendar
+        )
         assert repository.list_calendars() == (
             xnas,
             calendar,
@@ -408,9 +420,6 @@ def test_database_constraints_preserve_immutable_market_time_authority(
     with engine.begin() as connection:
         with pytest.raises(DatabaseError, match="cannot be deleted"):
             connection.execute(
-                text(
-                    "DELETE FROM trading_calendars "
-                    "WHERE calendar_id = 'xnys-2026-v1'"
-                )
+                text("DELETE FROM trading_calendars WHERE calendar_id = 'xnys-2026-v1'")
             )
     engine.dispose()

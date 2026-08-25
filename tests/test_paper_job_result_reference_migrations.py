@@ -24,6 +24,7 @@ PAPER_ACCOUNT_REVISION = "0007_paper_account_ledger"
 MARKET_TIME_FOUNDATION_REVISION = "0008_market_time_foundation"
 MARKET_TIME_RUNTIME_REVISION = "0009_market_time_runtime"
 STRATEGY_ORDER_REVISION = "0010_strategy_order_risk"
+PAPER_EXECUTION_REVISION = "0011_paper_execution"
 
 
 def _config() -> Config:
@@ -50,6 +51,9 @@ def test_exact_result_reference_head_chain() -> None:
 
     assert scripts.get_heads() == [CURRENT_PRODUCT_SCHEMA_REVISION]
     assert scripts.get_revision(CURRENT_PRODUCT_SCHEMA_REVISION).down_revision == (
+        PAPER_EXECUTION_REVISION
+    )
+    assert scripts.get_revision(PAPER_EXECUTION_REVISION).down_revision == (
         STRATEGY_ORDER_REVISION
     )
     assert scripts.get_revision(STRATEGY_ORDER_REVISION).down_revision == (
@@ -116,13 +120,9 @@ def test_upgrade_adds_exact_one_result_reference_table(
         }
         assert {
             item["name"]: item["column_names"]
-            for item in inspector.get_unique_constraints(
-                "paper_job_result_references"
-            )
+            for item in inspector.get_unique_constraints("paper_job_result_references")
         } == {
-            "uq_paper_job_result_references_artifact_path": [
-                "artifact_relative_path"
-            ],
+            "uq_paper_job_result_references_artifact_path": ["artifact_relative_path"],
             "uq_paper_job_result_references_summary_path": [
                 "result_summary_relative_path"
             ],
@@ -133,9 +133,7 @@ def test_upgrade_adds_exact_one_result_reference_table(
         assert foreign_keys[0]["options"].get("ondelete") == "RESTRICT"
         assert {
             check["name"]
-            for check in inspector.get_check_constraints(
-                "paper_job_result_references"
-            )
+            for check in inspector.get_check_constraints("paper_job_result_references")
         } == {
             "ck_paper_job_result_references_record_schema_version",
             "ck_paper_job_result_references_root_type",

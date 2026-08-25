@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-CURRENT_PRODUCT_SCHEMA_REVISION = "0011_paper_execution"
+CURRENT_PRODUCT_SCHEMA_REVISION = "0012_durable_paper_runtime"
 APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0001_product_baseline",
     "0002_artifact_index",
@@ -17,6 +17,7 @@ APPROVED_PRODUCT_SCHEMA_REVISIONS = (
     "0008_market_time_foundation",
     "0009_market_time_runtime",
     "0010_strategy_order_risk",
+    "0011_paper_execution",
     CURRENT_PRODUCT_SCHEMA_REVISION,
 )
 
@@ -456,6 +457,42 @@ REQUIRED_PRODUCT_TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
         "account_event_id",
         "created_at",
     ),
+    "paper_runtimes": (
+        "record_schema_version", "runtime_schema_version", "runtime_id",
+        "runtime_binding_digest", "payload_json", "execution_order_id",
+        "execution_order_digest", "account_id", "replay_id",
+        "trading_session_id", "logical_actor", "runtime_policy_id",
+        "runtime_policy_version", "desired_state", "observed_state",
+        "owner_id", "fencing_token", "claimed_at", "heartbeat_at",
+        "lease_expires_at", "row_version", "block_reason_code", "created_at",
+        "updated_at",
+    ),
+    "paper_runtime_work": (
+        "record_schema_version", "work_schema_version", "work_id", "work_digest",
+        "payload_json", "runtime_id", "execution_order_id",
+        "execution_order_digest", "expected_execution_version",
+        "m34_step_idempotency_key", "m34_step_actor", "created_at",
+    ),
+    "paper_runtime_checkpoints": (
+        "record_schema_version", "checkpoint_schema_version", "checkpoint_id",
+        "checkpoint_digest", "payload_json", "runtime_id", "work_id",
+        "execution_order_id", "execution_order_digest",
+        "observed_execution_version", "attempt_id", "attempt_digest", "fill_id",
+        "fill_digest", "settlement_link_id", "settlement_link_evidence_digest",
+        "account_event_id", "replay_id", "event_stream_digest",
+        "post_cursor_position", "post_cursor_last_event_id", "observed_at",
+    ),
+    "paper_runtime_events": (
+        "record_schema_version", "event_schema_version", "event_id", "event_digest",
+        "runtime_id", "event_sequence", "event_type", "resulting_runtime_version",
+        "payload_json", "recorded_at",
+    ),
+    "paper_runtime_command_receipts": (
+        "record_schema_version", "receipt_schema_version", "namespace",
+        "command_idempotency_key", "command_digest", "command_actor", "runtime_id",
+        "result_event_id", "result_event_digest", "resulting_runtime_version",
+        "created_at",
+    ),
 }
 
 REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
@@ -536,6 +573,11 @@ REQUIRED_PRODUCT_INDEXES: dict[str, tuple[str, ...]] = {
     "paper_execution_command_receipts": (
         "ix_paper_execution_receipts_result",
     ),
+    "paper_runtimes": ("ix_paper_runtimes_binding", "ix_paper_runtimes_state"),
+    "paper_runtime_work": ("ix_paper_runtime_work_runtime",),
+    "paper_runtime_checkpoints": ("ix_paper_runtime_checkpoints_runtime",),
+    "paper_runtime_events": ("ix_paper_runtime_events_runtime",),
+    "paper_runtime_command_receipts": ("ix_paper_runtime_receipts_result",),
 }
 
 REQUIRED_PRODUCT_TRIGGERS = (
@@ -581,6 +623,16 @@ REQUIRED_PRODUCT_TRIGGERS = (
     "trg_paper_execution_settlement_links_no_delete",
     "trg_paper_execution_command_receipts_no_update",
     "trg_paper_execution_command_receipts_no_delete",
+    "trg_paper_runtimes_immutable_binding",
+    "trg_paper_runtimes_no_delete",
+    "trg_paper_runtime_work_no_update",
+    "trg_paper_runtime_work_no_delete",
+    "trg_paper_runtime_checkpoints_no_update",
+    "trg_paper_runtime_checkpoints_no_delete",
+    "trg_paper_runtime_events_no_update",
+    "trg_paper_runtime_events_no_delete",
+    "trg_paper_runtime_receipts_no_update",
+    "trg_paper_runtime_receipts_no_delete",
 )
 
 

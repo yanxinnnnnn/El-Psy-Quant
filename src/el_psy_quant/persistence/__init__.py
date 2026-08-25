@@ -102,6 +102,16 @@ from el_psy_quant.persistence.paper_execution_repository import (
     PaperExecutionRepository,
     SqlAlchemyPaperExecutionRepository,
 )
+from el_psy_quant.persistence.paper_runtime_records import (
+    PAPER_RUNTIME_LIST_LIMIT_MAXIMUM,
+    PAPER_RUNTIME_PERSISTENCE_RECORD_SCHEMA_VERSION,
+    PaperRuntimeNotFoundError,
+    PaperRuntimePersistenceCorruptionError,
+)
+from el_psy_quant.persistence.paper_runtime_repository import (
+    PaperRuntimeRepository,
+    SqlAlchemyPaperRuntimeRepository,
+)
 from el_psy_quant.persistence.paper_jobs import (
     PaperJobRecord,
     PaperJobStatus,
@@ -174,6 +184,8 @@ __all__ = [
     "PAPER_ACCOUNT_RECORD_SCHEMA_VERSION",
     "PAPER_EXECUTION_LIST_LIMIT_MAXIMUM",
     "PAPER_EXECUTION_PERSISTENCE_RECORD_SCHEMA_VERSION",
+    "PAPER_RUNTIME_LIST_LIMIT_MAXIMUM",
+    "PAPER_RUNTIME_PERSISTENCE_RECORD_SCHEMA_VERSION",
     "PaperAccountApprovedEvidenceError",
     "PaperAccountCommandResult",
     "PaperAccountConcurrencyConflictError",
@@ -203,6 +215,9 @@ __all__ = [
     "PaperExecutionStorageBusyError",
     "PaperExecutionStorageFailureError",
     "PaperExecutionStoredResult",
+    "PaperRuntimeNotFoundError",
+    "PaperRuntimePersistenceCorruptionError",
+    "PaperRuntimeRepository",
     "PaperJobRecord",
     "PaperJobAttemptRecord",
     "PaperJobAttemptRepository",
@@ -234,6 +249,7 @@ __all__ = [
     "SqlAlchemyMarketTimeRepository",
     "SqlAlchemyPaperAccountRepository",
     "SqlAlchemyPaperExecutionRepository",
+    "SqlAlchemyPaperRuntimeRepository",
     "SqlAlchemyPaperJobAttemptRepository",
     "SqlAlchemyPaperJobRepository",
     "SqlAlchemyPaperJobResultReferenceRepository",

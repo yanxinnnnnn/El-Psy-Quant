@@ -448,7 +448,7 @@ def test_s215_demo_progression_and_restart_never_change_standard_workspace(
     assert verify_local_workspace(
         mode="standard", workspace_root=standard
     ) == LocalWorkspaceVerification(
-        mode="standard", schema_revision="0011_paper_execution"
+        mode="standard", schema_revision="0012_durable_paper_runtime"
     )
 
     def standard_bytes() -> dict[str, bytes]:

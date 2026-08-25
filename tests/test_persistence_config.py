@@ -83,9 +83,7 @@ def test_path_resolution_is_side_effect_free(tmp_path: Path) -> None:
 
 
 def test_config_is_immutable(tmp_path: Path) -> None:
-    config = resolve_product_database_config(
-        database_path=tmp_path / "product.sqlite3"
-    )
+    config = resolve_product_database_config(database_path=tmp_path / "product.sqlite3")
 
     with pytest.raises(FrozenInstanceError):
         config.database_path = tmp_path / "other.sqlite3"  # type: ignore[misc]
@@ -147,6 +145,8 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "PAPER_ACCOUNT_RECORD_SCHEMA_VERSION",
         "PAPER_EXECUTION_LIST_LIMIT_MAXIMUM",
         "PAPER_EXECUTION_PERSISTENCE_RECORD_SCHEMA_VERSION",
+        "PAPER_RUNTIME_LIST_LIMIT_MAXIMUM",
+        "PAPER_RUNTIME_PERSISTENCE_RECORD_SCHEMA_VERSION",
         "PaperAccountApprovedEvidenceError",
         "PaperAccountCommandResult",
         "PaperAccountConcurrencyConflictError",
@@ -176,6 +176,9 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "PaperExecutionStorageBusyError",
         "PaperExecutionStorageFailureError",
         "PaperExecutionStoredResult",
+        "PaperRuntimeNotFoundError",
+        "PaperRuntimePersistenceCorruptionError",
+        "PaperRuntimeRepository",
         "PaperJobRecord",
         "PaperJobAttemptRecord",
         "PaperJobAttemptRepository",
@@ -209,6 +212,7 @@ def test_persistence_package_exports_only_the_approved_foundation() -> None:
         "SqlAlchemyOrderIntentRepository",
         "SqlAlchemyPaperAccountRepository",
         "SqlAlchemyPaperExecutionRepository",
+        "SqlAlchemyPaperRuntimeRepository",
         "SqlAlchemyPaperJobAttemptRepository",
         "SqlAlchemyPaperJobRepository",
         "SqlAlchemyPaperJobResultReferenceRepository",
