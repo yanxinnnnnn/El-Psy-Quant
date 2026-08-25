@@ -245,8 +245,8 @@ class PaperRuntimeOwnershipService:
         self, *, runtime_id: str, owner_id: str
     ) -> PaperRuntimeOwnershipResult:
         owner = bounded_string(owner_id, "owner_id", 256)
-        now = self._now()
         with self._write() as session:
+            now = self._now()
             repository = SqlAlchemyPaperRuntimeRepository(session=session)
             current = self._runtime(repository, runtime_id=runtime_id)
             if current.owner_id is not None and current.lease_expires_at > now:
@@ -305,8 +305,8 @@ class PaperRuntimeOwnershipService:
     ) -> PaperRuntime:
         owner = bounded_string(owner_id, "owner_id", 256)
         fence = non_negative_int(fencing_token, "fencing_token")
-        now = self._now()
         with self._write() as session:
+            now = self._now()
             repository = SqlAlchemyPaperRuntimeRepository(session=session)
             current = self._runtime(repository, runtime_id=runtime_id)
             self._assert_exact_claim(
@@ -328,8 +328,8 @@ class PaperRuntimeOwnershipService:
     ) -> PaperRuntimeOwnershipResult:
         owner = bounded_string(owner_id, "owner_id", 256)
         fence = non_negative_int(fencing_token, "fencing_token")
-        now = self._now()
         with self._write() as session:
+            now = self._now()
             repository = SqlAlchemyPaperRuntimeRepository(session=session)
             current = self._runtime(repository, runtime_id=runtime_id)
             self._assert_exact_claim(

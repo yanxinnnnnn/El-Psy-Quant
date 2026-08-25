@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from threading import Barrier
@@ -150,6 +151,114 @@ def test_exact_cas_updates_payload_and_indexes_and_remains_caller_owned(
                         updated_at=AUDIT + timedelta(seconds=2),
                     ),
                 )
+    finally:
+        engine.dispose()
+
+
+def test_cas_rejects_fencing_token_regression_and_allows_same_fence(
+    tmp_path, monkeypatch
+):
+    engine, factory, runtime, _event, _receipt = _stored_runtime(
+        tmp_path / "cas-fence.sqlite3", monkeypatch
+    )
+    clock = _Clock(AUDIT + timedelta(minutes=1))
+    service = _service(factory, clock)
+    try:
+        claimed = service.claim_runtime(
+            runtime_id=runtime.runtime_id, owner_id="worker-a"
+        ).runtime
+        regressed = _copy(
+            claimed,
+            fencing_token=claimed.fencing_token - 1,
+            row_version=claimed.row_version + 1,
+            updated_at=clock.value + timedelta(seconds=1),
+        )
+        with pytest.raises(ValueError, match="fencing token regresses"):
+            with factory.begin() as session:
+                SqlAlchemyPaperRuntimeRepository(
+                    session=session
+                ).compare_and_swap_runtime(
+                    expected_runtime=claimed,
+                    replacement_runtime=regressed,
+                )
+        assert _read(factory, runtime.runtime_id)[0] == claimed
+
+        same_fence = _copy(
+            claimed,
+            desired_state="running",
+            observed_state="running",
+            row_version=claimed.row_version + 1,
+            updated_at=clock.value + timedelta(seconds=1),
+        )
+        with factory.begin() as session:
+            stored = SqlAlchemyPaperRuntimeRepository(
+                session=session
+            ).compare_and_swap_runtime(
+                expected_runtime=claimed,
+                replacement_runtime=same_fence,
+            )
+        assert stored == same_fence
+        assert stored.fencing_token == claimed.fencing_token
+        assert _read(factory, runtime.runtime_id)[0] == same_fence
+    finally:
+        engine.dispose()
+
+
+@pytest.mark.parametrize("operation", ("claim", "renew", "release"))
+def test_mutating_ownership_samples_lease_time_after_write_acquisition(
+    tmp_path, monkeypatch, operation
+):
+    engine, factory, runtime, _event, _receipt = _stored_runtime(
+        tmp_path / f"post-lock-{operation}.sqlite3", monkeypatch
+    )
+    clock = _Clock(AUDIT + timedelta(minutes=1))
+    service = _service(factory, clock)
+    try:
+        claimed = service.claim_runtime(
+            runtime_id=runtime.runtime_id, owner_id="worker-a"
+        ).runtime
+        clock.value = claimed.lease_expires_at - timedelta(microseconds=1)
+        observations: list[datetime] = []
+        original_clock = service._clock
+        original_write = service._write
+
+        def observed_clock() -> datetime:
+            value = original_clock()
+            observations.append(value)
+            return value
+
+        @contextmanager
+        def post_acquisition_write():
+            with original_write() as session:
+                clock.value = claimed.lease_expires_at
+                yield session
+
+        monkeypatch.setattr(service, "_clock", observed_clock)
+        monkeypatch.setattr(service, "_write", post_acquisition_write)
+
+        if operation == "claim":
+            takeover = service.claim_runtime(
+                runtime_id=runtime.runtime_id, owner_id="worker-b"
+            ).runtime
+            assert takeover.owner_id == "worker-b"
+            assert takeover.fencing_token == claimed.fencing_token + 1
+            assert takeover.claimed_at == claimed.lease_expires_at
+            assert takeover.heartbeat_at == claimed.lease_expires_at
+            assert takeover.updated_at == claimed.lease_expires_at
+        else:
+            command = (
+                service.renew_runtime_claim
+                if operation == "renew"
+                else service.release_runtime_claim
+            )
+            with pytest.raises(PaperRuntimeLeaseExpiredError):
+                command(
+                    runtime_id=runtime.runtime_id,
+                    owner_id="worker-a",
+                    fencing_token=claimed.fencing_token,
+                )
+            assert _read(factory, runtime.runtime_id)[0] == claimed
+        assert observations == [claimed.lease_expires_at]
     finally:
         engine.dispose()
 

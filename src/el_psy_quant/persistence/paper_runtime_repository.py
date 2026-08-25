@@ -220,6 +220,8 @@ class SqlAlchemyPaperRuntimeRepository:
         replacement = self._validate_runtime_authority(replacement)
         if replacement.row_version != expected.row_version + 1:
             raise ValueError("replacement runtime version is not the exact successor")
+        if replacement.fencing_token < expected.fencing_token:
+            raise ValueError("replacement runtime fencing token regresses")
         if replacement.updated_at < expected.updated_at:
             raise ValueError("replacement runtime timestamp regresses")
 
