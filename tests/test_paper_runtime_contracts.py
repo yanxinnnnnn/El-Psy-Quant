@@ -13,6 +13,7 @@ from el_psy_quant.paper_runtime import (
     create_paper_runtime_command_receipt,
     create_paper_runtime_event,
     create_paper_runtime_work,
+    reconstruct_paper_runtime_event_result,
     validate_paper_runtime,
     validate_paper_runtime_command_receipt,
     validate_paper_runtime_event,
@@ -29,6 +30,10 @@ def _copy(value, **changes):
     for name in value.__dataclass_fields__:
         object.__setattr__(result, name, changes.get(name, getattr(value, name)))
     return result
+
+
+def _event_payload(runtime):
+    return {"resulting_runtime": runtime.to_dict()}
 
 
 def _order(tmp_path, monkeypatch):
@@ -85,7 +90,7 @@ def test_runtime_work_event_and_receipt_are_deterministic_and_strict(
             event_sequence=0,
             event_type="runtime_created",
             resulting_runtime_version=0,
-            payload={"runtime": runtime.to_dict()},
+            payload=_event_payload(runtime),
             recorded_at=AUDIT,
         )
         assert event == create_paper_runtime_event(
@@ -93,7 +98,7 @@ def test_runtime_work_event_and_receipt_are_deterministic_and_strict(
             event_sequence=0,
             event_type="runtime_created",
             resulting_runtime_version=0,
-            payload={"runtime": runtime.to_dict()},
+            payload=_event_payload(runtime),
             recorded_at=AUDIT,
         )
         receipt = create_paper_runtime_command_receipt(
@@ -113,6 +118,7 @@ def test_runtime_work_event_and_receipt_are_deterministic_and_strict(
         )
         assert validate_paper_runtime_work(work, runtime=runtime) is work
         assert validate_paper_runtime_event(event, runtime=runtime) is event
+        assert reconstruct_paper_runtime_event_result(event, runtime=runtime) == runtime
     finally:
         engine.dispose()
 
@@ -173,7 +179,7 @@ def test_work_and_receipt_refuse_transient_actor_key_and_semantic_cross_wire(
             event_sequence=0,
             event_type="runtime_created",
             resulting_runtime_version=0,
-            payload={},
+            payload=_event_payload(runtime),
             recorded_at=AUDIT,
         )
         with pytest.raises(ValueError, match="incompatible"):
@@ -198,5 +204,121 @@ def test_work_and_receipt_refuse_transient_actor_key_and_semantic_cross_wire(
                 resulting_runtime_version=0,
                 created_at=AUDIT,
             )
+    finally:
+        engine.dispose()
+
+
+def test_event_vocabulary_has_exact_bounded_type_compatible_payloads(
+    tmp_path, monkeypatch
+):
+    engine, order = _order(tmp_path, monkeypatch)
+    try:
+        runtime = create_paper_runtime(
+            execution_order=order,
+            logical_actor="stable-runtime",
+            runtime_policy_id="runtime-v1",
+            runtime_policy_version=1,
+            created_at=AUDIT,
+        )
+        claimed = _copy(
+            runtime,
+            owner_id="worker-1",
+            fencing_token=1,
+            claimed_at=AUDIT + timedelta(seconds=1),
+            heartbeat_at=AUDIT + timedelta(seconds=1),
+            lease_expires_at=AUDIT + timedelta(minutes=1),
+            row_version=1,
+            updated_at=AUDIT + timedelta(seconds=1),
+        )
+        released = _copy(
+            runtime,
+            fencing_token=1,
+            row_version=2,
+            updated_at=AUDIT + timedelta(seconds=2),
+        )
+        completed = _copy(
+            released,
+            observed_state="completed",
+            row_version=3,
+            updated_at=AUDIT + timedelta(seconds=3),
+        )
+        blocked = _copy(
+            released,
+            observed_state="blocked",
+            block_reason_code="upstream_corruption",
+            row_version=3,
+            updated_at=AUDIT + timedelta(seconds=3),
+        )
+        work = create_paper_runtime_work(
+            runtime=runtime, expected_execution_version=0, created_at=AUDIT
+        )
+        work_evidence = {
+            "work_id": work.work_id,
+            "work_digest": work.work_digest,
+            "expected_execution_version": work.expected_execution_version,
+        }
+        cases = (
+            ("runtime_created", runtime, _event_payload(runtime)),
+            ("start_requested", runtime, _event_payload(runtime)),
+            ("stop_requested", runtime, _event_payload(runtime)),
+            ("resume_requested", runtime, _event_payload(runtime)),
+            ("recover_requested", runtime, _event_payload(runtime)),
+            ("claim_acquired", claimed, _event_payload(claimed)),
+            ("claim_released", released, _event_payload(released)),
+            ("claim_taken_over", claimed, _event_payload(claimed)),
+            (
+                "work_created",
+                runtime,
+                {**_event_payload(runtime), "work": work_evidence},
+            ),
+            (
+                "work_observed",
+                runtime,
+                {
+                    **_event_payload(runtime),
+                    "work": work_evidence,
+                    "checkpoint": {
+                        "checkpoint_id": "prc_" + "1" * 64,
+                        "checkpoint_digest": "1" * 64,
+                        "observed_execution_version": 1,
+                    },
+                },
+            ),
+            ("runtime_completed", completed, _event_payload(completed)),
+            ("runtime_blocked", blocked, _event_payload(blocked)),
+        )
+        for sequence, (event_type, result, payload) in enumerate(cases):
+            event = create_paper_runtime_event(
+                runtime=result,
+                event_sequence=sequence,
+                event_type=event_type,
+                resulting_runtime_version=result.row_version,
+                payload=payload,
+                recorded_at=AUDIT + timedelta(minutes=sequence),
+            )
+            assert reconstruct_paper_runtime_event_result(event, runtime=runtime) == result
+
+        invalid = (
+            ("runtime_created", runtime, {}),
+            (
+                "start_requested",
+                runtime,
+                {**_event_payload(runtime), "arbitrary": "not-allowed"},
+            ),
+            ("claim_acquired", runtime, _event_payload(runtime)),
+            ("runtime_completed", runtime, _event_payload(runtime)),
+            ("runtime_blocked", runtime, _event_payload(runtime)),
+            ("work_created", runtime, _event_payload(runtime)),
+        )
+        for event_type, result, payload in invalid:
+            with pytest.raises(ValueError):
+                create_paper_runtime_event(
+                    runtime=result,
+                    event_sequence=0,
+                    event_type=event_type,
+                    resulting_runtime_version=result.row_version,
+                    payload=payload,
+                    recorded_at=AUDIT,
+                )
     finally:
         engine.dispose()

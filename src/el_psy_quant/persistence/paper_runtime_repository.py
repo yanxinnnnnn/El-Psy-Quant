@@ -4,10 +4,15 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from el_psy_quant.paper_execution import create_step_paper_execution_order_command
+from el_psy_quant.paper_execution import (
+    ExecutionSettlementLink,
+    PaperExecutionAttempt,
+    PaperExecutionFill,
+    create_step_paper_execution_order_command,
+)
 from el_psy_quant.paper_runtime import (
     PaperRuntime,
     PaperRuntimeCheckpoint,
@@ -242,14 +247,8 @@ class SqlAlchemyPaperRuntimeRepository:
             raise PaperRuntimePersistenceCorruptionError()
         checkpoint = checkpoint_from_row(row, runtime=runtime, work=work)
         try:
-            attempt = self._execution.get_attempt(attempt_id=checkpoint.attempt_id)
-            if attempt is None or attempt.attempt_digest != checkpoint.attempt_digest:
-                raise PaperRuntimePersistenceCorruptionError()
-            fill = self._execution.get_fill_for_attempt(attempt_id=attempt.attempt_id)
-            link = (
-                None
-                if fill is None
-                else self._execution.get_settlement_link_for_fill(fill_id=fill.fill_id)
+            attempt, fill, link = self._canonical_checkpoint_authority(
+                runtime=runtime, work=work
             )
             expected = create_paper_runtime_checkpoint(
                 runtime=runtime,
@@ -263,6 +262,57 @@ class SqlAlchemyPaperRuntimeRepository:
                 raise PaperRuntimePersistenceCorruptionError()
             return checkpoint
         except (PaperExecutionCorruptAuthorityError, ValueError) as exc:
+            raise PaperRuntimePersistenceCorruptionError() from exc
+
+    def _canonical_checkpoint_authority(
+        self, *, runtime: PaperRuntime, work: PaperRuntimeWork
+    ) -> tuple[
+        PaperExecutionAttempt,
+        PaperExecutionFill | None,
+        ExecutionSettlementLink | None,
+    ]:
+        try:
+            history = self._execution.load_historical_history(
+                execution_order_id=runtime.execution_order_id
+            )
+            attempts = tuple(
+                attempt
+                for attempt in history.attempts
+                if attempt.execution_version_before
+                == work.expected_execution_version
+            )
+            if len(attempts) != 1:
+                raise PaperRuntimePersistenceCorruptionError()
+            attempt = attempts[0]
+            if attempt.execution_version_after != work.expected_execution_version + 1:
+                raise PaperRuntimePersistenceCorruptionError()
+            fills = tuple(
+                fill
+                for fill in history.fills
+                if fill.attempt_reference.attempt_id == attempt.attempt_id
+                and fill.attempt_reference.attempt_digest == attempt.attempt_digest
+            )
+            if len(fills) > 1:
+                raise PaperRuntimePersistenceCorruptionError()
+            fill = None if not fills else fills[0]
+            links = tuple(
+                link
+                for link in history.settlement_links
+                if link.execution_attempt_reference.attempt_id == attempt.attempt_id
+                and link.execution_attempt_reference.attempt_digest
+                == attempt.attempt_digest
+            )
+            if (fill is None and links) or (fill is not None and len(links) != 1):
+                raise PaperRuntimePersistenceCorruptionError()
+            link = None if not links else links[0]
+            if fill is not None and (
+                link is None
+                or link.execution_fill_reference.fill_id != fill.fill_id
+                or link.execution_fill_reference.fill_digest != fill.fill_digest
+            ):
+                raise PaperRuntimePersistenceCorruptionError()
+            return attempt, fill, link
+        except PaperExecutionCorruptAuthorityError as exc:
             raise PaperRuntimePersistenceCorruptionError() from exc
 
     def get_checkpoint(self, *, checkpoint_id: str) -> PaperRuntimeCheckpoint | None:
@@ -326,14 +376,8 @@ class SqlAlchemyPaperRuntimeRepository:
         work: PaperRuntimeWork,
     ) -> PaperRuntimeCheckpoint:
         checkpoint = checkpoint_from_row(row, runtime=runtime, work=work)
-        attempt = self._execution.get_attempt(attempt_id=checkpoint.attempt_id)
-        if attempt is None or attempt.attempt_digest != checkpoint.attempt_digest:
-            raise PaperRuntimePersistenceCorruptionError()
-        fill = self._execution.get_fill_for_attempt(attempt_id=attempt.attempt_id)
-        link = (
-            None
-            if fill is None
-            else self._execution.get_settlement_link_for_fill(fill_id=fill.fill_id)
+        attempt, fill, link = self._canonical_checkpoint_authority(
+            runtime=runtime, work=work
         )
         try:
             expected = create_paper_runtime_checkpoint(
@@ -392,7 +436,18 @@ class SqlAlchemyPaperRuntimeRepository:
             if current != event:
                 raise PaperRuntimePersistenceCorruptionError()
             return current
-        if event.event_sequence != len(self.list_events(runtime_id=runtime.runtime_id)):
+        count, minimum, maximum = self._session.execute(
+            select(
+                func.count(PaperRuntimeEventRow.event_id),
+                func.min(PaperRuntimeEventRow.event_sequence),
+                func.max(PaperRuntimeEventRow.event_sequence),
+            ).where(PaperRuntimeEventRow.runtime_id == runtime.runtime_id)
+        ).one()
+        if (
+            (count == 0 and (minimum is not None or maximum is not None))
+            or (count > 0 and (minimum != 0 or maximum != count - 1))
+            or event.event_sequence != count
+        ):
             raise PaperRuntimePersistenceCorruptionError()
         self._session.add(event_row(event))
         self._session.flush()

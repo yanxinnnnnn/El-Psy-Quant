@@ -16,6 +16,7 @@ from el_psy_quant.paper_runtime import (
     create_paper_runtime_command_receipt,
     create_paper_runtime_event,
     create_paper_runtime_work,
+    reconstruct_paper_runtime_event_result,
 )
 from el_psy_quant.persistence import (
     PaperRuntimePersistenceCorruptionError,
@@ -30,6 +31,7 @@ from el_psy_quant.persistence.paper_runtime_mapping import (
     checkpoint_row,
     receipt_from_row,
     receipt_row,
+    runtime_row,
 )
 from el_psy_quant.persistence.schema import (
     CURRENT_PRODUCT_SCHEMA_REVISION,
@@ -48,6 +50,17 @@ TABLES = {
 }
 
 
+def _copy(value, **changes):
+    result = object.__new__(type(value))
+    for name in value.__dataclass_fields__:
+        object.__setattr__(result, name, changes.get(name, getattr(value, name)))
+    return result
+
+
+def _event_payload(runtime):
+    return {"resulting_runtime": runtime.to_dict()}
+
+
 def _authorities(path, monkeypatch, *, step: bool = True):
     _migrate(path, monkeypatch, "head")
     engine, factory, command = _fixture(path)
@@ -55,13 +68,17 @@ def _authorities(path, monkeypatch, *, step: bool = True):
         session_factory=factory, clock=lambda: AUDIT
     )
     order = service.create_order(command).result
-    commit = (
-        None
-        if not step
-        else service.step_order(
-            _step_command(order, version=0, key="runtime-observed-step")
+    commit = None
+    if step:
+        no_fill = service.step_order(
+            _step_command(order, version=0, key="runtime-observed-no-fill")
         ).result
-    )
+        assert no_fill.step_result.fill is None
+        commit = service.step_order(
+            _step_command(order, version=1, key="runtime-observed-fill")
+        ).result
+        assert commit.step_result.fill is not None
+        assert commit.settlement_link is not None
     runtime = create_paper_runtime(
         execution_order=order,
         logical_actor="paper-runtime",
@@ -71,7 +88,7 @@ def _authorities(path, monkeypatch, *, step: bool = True):
     )
     work = create_paper_runtime_work(
         runtime=runtime,
-        expected_execution_version=0,
+        expected_execution_version=0 if commit is None else 1,
         created_at=AUDIT + timedelta(seconds=1),
     )
     event = create_paper_runtime_event(
@@ -79,7 +96,7 @@ def _authorities(path, monkeypatch, *, step: bool = True):
         event_sequence=0,
         event_type="runtime_created",
         resulting_runtime_version=0,
-        payload={"runtime_id": runtime.runtime_id},
+        payload=_event_payload(runtime),
         recorded_at=AUDIT,
     )
     receipt = create_paper_runtime_command_receipt(
@@ -167,6 +184,104 @@ def test_repository_reconstructs_runtime_work_checkpoint_event_and_historical_re
                 )
                 == receipt
             )
+    finally:
+        engine.dispose()
+
+
+def test_old_control_receipt_reconstructs_immutable_result_after_runtime_progression(
+    tmp_path, monkeypatch
+):
+    path = tmp_path / "historical-receipt.sqlite3"
+    engine, factory, _order, _commit, runtime, _work, event, receipt = _authorities(
+        path, monkeypatch, step=False
+    )
+    advanced = _copy(
+        runtime,
+        desired_state="running",
+        observed_state="running",
+        row_version=1,
+        updated_at=AUDIT + timedelta(minutes=1),
+    )
+    try:
+        with factory.begin() as session:
+            repository = SqlAlchemyPaperRuntimeRepository(session=session)
+            repository.append_runtime(runtime=runtime)
+            repository.append_event(event=event)
+            repository.append_receipt(receipt=receipt)
+        advanced_row = runtime_row(advanced)
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE paper_runtimes SET desired_state=:desired, "
+                    "observed_state=:observed, row_version=:version, "
+                    "updated_at=:updated, payload_json=:payload "
+                    "WHERE runtime_id=:runtime_id"
+                ),
+                {
+                    "desired": advanced.desired_state,
+                    "observed": advanced.observed_state,
+                    "version": advanced.row_version,
+                    "updated": advanced.updated_at,
+                    "payload": advanced_row.payload_json,
+                    "runtime_id": runtime.runtime_id,
+                },
+            )
+        with factory() as session:
+            repository = SqlAlchemyPaperRuntimeRepository(session=session)
+            assert repository.get_runtime(runtime_id=runtime.runtime_id) == advanced
+            stored_receipt = repository.get_receipt(
+                namespace="create_paper_runtime",
+                command_idempotency_key="create-runtime",
+            )
+            stored_event = repository.get_event(event_id=event.event_id)
+            assert stored_receipt == receipt
+            assert stored_event == event
+            assert (
+                reconstruct_paper_runtime_event_result(
+                    stored_event, runtime=advanced
+                )
+                == runtime
+            )
+    finally:
+        engine.dispose()
+
+
+def test_event_sequence_continues_beyond_bounded_reads_and_refuses_gaps(
+    tmp_path, monkeypatch
+):
+    path = tmp_path / "event-sequence.sqlite3"
+    engine, factory, _order, _commit, runtime, _work, _event, _receipt = _authorities(
+        path, monkeypatch, step=False
+    )
+
+    def event(sequence, *, recorded_offset=0):
+        return create_paper_runtime_event(
+            runtime=runtime,
+            event_sequence=sequence,
+            event_type="runtime_created" if sequence == 0 else "stop_requested",
+            resulting_runtime_version=0,
+            payload=_event_payload(runtime),
+            recorded_at=AUDIT + timedelta(seconds=sequence + recorded_offset),
+        )
+
+    try:
+        with factory.begin() as session:
+            repository = SqlAlchemyPaperRuntimeRepository(session=session)
+            repository.append_runtime(runtime=runtime)
+            for sequence in range(200):
+                repository.append_event(event=event(sequence))
+            assert len(repository.list_events(runtime_id=runtime.runtime_id)) == 200
+            repository.append_event(event=event(200))
+            repository.append_event(event=event(201))
+            with pytest.raises(PaperRuntimePersistenceCorruptionError):
+                repository.append_event(event=event(203))
+            repository.append_event(event=event(202))
+            with pytest.raises(PaperRuntimePersistenceCorruptionError):
+                repository.append_event(event=event(202, recorded_offset=1_000))
+            assert len(repository.list_events(runtime_id=runtime.runtime_id)) == 200
+        with engine.connect() as connection:
+            assert connection.scalar(text("SELECT COUNT(*) FROM paper_runtime_events")) == 203
+            assert connection.scalar(text("SELECT MAX(event_sequence) FROM paper_runtime_events")) == 202
     finally:
         engine.dispose()
 
@@ -277,8 +392,8 @@ def test_checkpoint_and_receipt_mismatches_fail_closed_in_strict_mappers(
             runtime=runtime,
             event_sequence=1,
             event_type="start_requested",
-            resulting_runtime_version=1,
-            payload={"requested": "running"},
+            resulting_runtime_version=0,
+            payload=_event_payload(runtime),
             recorded_at=AUDIT + timedelta(minutes=1),
         )
         for field, value, result_event in (
@@ -343,17 +458,102 @@ def test_payload_and_cross_authority_corruption_fails_closed_without_repair(
         engine.dispose()
 
 
+@pytest.mark.parametrize("corruption", ("m31_settlement", "m32_authority"))
+def test_checkpoint_read_uses_full_m34_history_and_refuses_upstream_corruption(
+    tmp_path, monkeypatch, corruption
+):
+    path = tmp_path / f"checkpoint-{corruption}.sqlite3"
+    engine, factory, _order, commit, runtime, work, _event, _receipt = _authorities(
+        path, monkeypatch
+    )
+    assert commit is not None
+    checkpoint = create_paper_runtime_checkpoint(
+        runtime=runtime,
+        work=work,
+        attempt=commit.step_result.attempt,
+        fill=commit.step_result.fill,
+        settlement_link=commit.settlement_link,
+        observed_at=AUDIT + timedelta(seconds=2),
+    )
+    assert checkpoint.account_event_id is not None
+    try:
+        with factory.begin() as session:
+            repository = SqlAlchemyPaperRuntimeRepository(session=session)
+            repository.append_runtime(runtime=runtime)
+            repository.append_work(work=work)
+            repository.append_checkpoint(checkpoint=checkpoint)
+        with engine.begin() as connection:
+            if corruption == "m31_settlement":
+                connection.execute(
+                    text("DROP TRIGGER trg_paper_cash_ledger_entries_no_update")
+                )
+                connection.execute(
+                    text(
+                        "UPDATE paper_cash_ledger_entries SET signed_amount='-1999' "
+                        "WHERE event_id=:event_id"
+                    ),
+                    {"event_id": checkpoint.account_event_id},
+                )
+            else:
+                connection.execute(
+                    text(
+                        "UPDATE market_data_replays SET last_event_id='event-s211-1' "
+                        "WHERE replay_id=:replay_id"
+                    ),
+                    {"replay_id": runtime.replay_id},
+                )
+        with factory() as session:
+            with pytest.raises(PaperRuntimePersistenceCorruptionError):
+                SqlAlchemyPaperRuntimeRepository(session=session).get_checkpoint(
+                    checkpoint_id=checkpoint.checkpoint_id
+                )
+        with engine.connect() as connection:
+            if corruption == "m31_settlement":
+                assert connection.scalar(
+                    text(
+                        "SELECT signed_amount FROM paper_cash_ledger_entries "
+                        "WHERE event_id=:event_id"
+                    ),
+                    {"event_id": checkpoint.account_event_id},
+                ) == "-1999"
+            else:
+                assert connection.scalar(
+                    text(
+                        "SELECT last_event_id FROM market_data_replays "
+                        "WHERE replay_id=:replay_id"
+                    ),
+                    {"replay_id": runtime.replay_id},
+                ) == "event-s211-1"
+    finally:
+        engine.dispose()
+
+
 def test_populated_0011_upgrade_preserves_every_existing_row_and_m34_reconstruction(
     tmp_path, monkeypatch
 ):
     path = tmp_path / "populated.sqlite3"
     _migrate(path, monkeypatch, "0011_paper_execution")
     engine, factory, command = _fixture(path)
-    order = (
-        PaperExecutionApplicationService(session_factory=factory)
-        .create_order(command)
-        .result
+    service = PaperExecutionApplicationService(
+        session_factory=factory, clock=lambda: AUDIT
     )
+    order = service.create_order(command).result
+    no_fill = service.step_order(
+        _step_command(order, version=0, key="pre-upgrade-no-fill")
+    ).result
+    filled = service.step_order(
+        _step_command(order, version=1, key="pre-upgrade-fill")
+    ).result
+    assert no_fill.step_result.fill is None
+    assert filled.step_result.fill is not None
+    assert filled.settlement_link is not None
+    assert filled.account_event_id is not None
+    historical_before = service.reconcile_order(
+        execution_order_id=order.execution_order_id
+    )
+    assert len(historical_before.attempts) == 2
+    assert len(historical_before.fills) == 1
+    assert len(historical_before.settlement_links) == 1
     predecessor = tuple(
         name for name in inspect(engine).get_table_names() if name != "alembic_version"
     )
@@ -388,5 +588,32 @@ def test_populated_0011_upgrade_preserves_every_existing_row_and_m34_reconstruct
                 session=session
             ).load_historical_history(execution_order_id=order.execution_order_id)
             assert history.order == order
+            assert history == historical_before
+        reconciled = PaperExecutionApplicationService(
+            session_factory=upgraded_factory, clock=lambda: AUDIT
+        ).reconcile_order(execution_order_id=order.execution_order_id)
+        assert reconciled == historical_before
+        with upgraded.connect() as connection:
+            assert connection.scalar(
+                text("SELECT COUNT(*) FROM paper_execution_attempts")
+            ) == 2
+            assert connection.scalar(
+                text("SELECT COUNT(*) FROM paper_execution_fills")
+            ) == 1
+            assert connection.scalar(
+                text("SELECT COUNT(*) FROM paper_execution_settlement_links")
+            ) == 1
+            assert connection.scalar(
+                text(
+                    "SELECT COUNT(*) FROM paper_account_events "
+                    "WHERE event_type='execution_fill_posted'"
+                )
+            ) == 1
+            assert connection.scalar(
+                text("SELECT position FROM market_data_replays")
+            ) == 6
+            assert connection.scalar(
+                text("SELECT COUNT(*) FROM paper_execution_command_receipts")
+            ) == 3
     finally:
         upgraded.dispose()

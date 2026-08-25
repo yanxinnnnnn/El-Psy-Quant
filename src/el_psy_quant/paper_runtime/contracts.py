@@ -94,6 +94,26 @@ RuntimeCommandNamespace = Literal[
     "recover_paper_runtime",
 ]
 
+_RUNTIME_EVENT_RESULT_KEY = "resulting_runtime"
+_RUNTIME_EVENT_CONTROL_TYPES = frozenset(COMMAND_EVENT_COMPATIBILITY.values())
+_RUNTIME_EVENT_CLAIM_OWNER_TYPES = frozenset(
+    ("claim_acquired", "claim_taken_over")
+)
+_RUNTIME_IMMUTABLE_FIELDS = (
+    "schema_version",
+    "runtime_id",
+    "runtime_binding_digest",
+    "execution_order_id",
+    "execution_order_digest",
+    "account_id",
+    "replay_id",
+    "trading_session_id",
+    "logical_actor",
+    "runtime_policy_id",
+    "runtime_policy_version",
+    "created_at",
+)
+
 
 def _runtime_binding_payload(
     *,
@@ -311,6 +331,140 @@ def validate_paper_runtime(value: object) -> PaperRuntime:
     except (AttributeError, TypeError, ValueError) as exc:
         raise ValueError("paper runtime is invalid") from exc
     return value
+
+
+def _runtime_from_event_snapshot(value: object) -> PaperRuntime:
+    if type(value) is not dict or set(value) != set(PaperRuntime.__dataclass_fields__):
+        raise ValueError("event runtime snapshot fields are invalid")
+    values = dict(value)
+    for field in ("created_at", "updated_at"):
+        raw = values[field]
+        if type(raw) is not str:
+            raise ValueError(f"event runtime {field} is invalid")
+        values[field] = datetime.fromisoformat(raw)
+    for field in ("claimed_at", "heartbeat_at", "lease_expires_at"):
+        raw = values[field]
+        if raw is not None:
+            if type(raw) is not str:
+                raise ValueError(f"event runtime {field} is invalid")
+            values[field] = datetime.fromisoformat(raw)
+    result = _build_runtime(**values)
+    validate_paper_runtime(result)
+    if result.to_dict() != value:
+        raise ValueError("event runtime snapshot is not canonical")
+    return result
+
+
+def _same_runtime_binding(left: PaperRuntime, right: PaperRuntime) -> bool:
+    return all(
+        getattr(left, field) == getattr(right, field)
+        for field in _RUNTIME_IMMUTABLE_FIELDS
+    )
+
+
+def _event_reference(
+    value: object, *, name: str, fields: set[str]
+) -> dict[str, object]:
+    if type(value) is not dict or set(value) != fields:
+        raise ValueError(f"{name} event evidence fields are invalid")
+    return value
+
+
+def _validate_event_payload(
+    *,
+    payload: object,
+    event_type: RuntimeEventType,
+    runtime: PaperRuntime,
+    resulting_runtime_version: int,
+) -> PaperRuntime:
+    if type(payload) is not dict:
+        raise ValueError("event payload must be an object")
+    expected_keys = {_RUNTIME_EVENT_RESULT_KEY}
+    if event_type == "work_created":
+        expected_keys.add("work")
+    elif event_type == "work_observed":
+        expected_keys.update(("work", "checkpoint"))
+    if set(payload) != expected_keys:
+        raise ValueError("event payload fields are invalid")
+
+    result = _runtime_from_event_snapshot(payload[_RUNTIME_EVENT_RESULT_KEY])
+    if (
+        not _same_runtime_binding(result, runtime)
+        or result.row_version != resulting_runtime_version
+    ):
+        raise ValueError("event resulting runtime is invalid")
+
+    if event_type == "runtime_created":
+        if not (
+            result.desired_state == "stopped"
+            and result.observed_state == "ready"
+            and result.owner_id is None
+            and result.fencing_token == 0
+            and result.row_version == 0
+            and result.created_at == result.updated_at
+        ):
+            raise ValueError("runtime_created result is invalid")
+    elif event_type in _RUNTIME_EVENT_CLAIM_OWNER_TYPES:
+        if result.owner_id is None:
+            raise ValueError("claim result requires an owner")
+    elif event_type == "claim_released":
+        if result.owner_id is not None:
+            raise ValueError("claim release result must be unowned")
+    elif event_type == "runtime_completed":
+        if result.observed_state != "completed":
+            raise ValueError("runtime completion result is invalid")
+    elif event_type == "runtime_blocked":
+        if result.observed_state != "blocked":
+            raise ValueError("runtime block result is invalid")
+
+    if event_type in ("work_created", "work_observed"):
+        work = _event_reference(
+            payload["work"],
+            name="work",
+            fields={"work_id", "work_digest", "expected_execution_version"},
+        )
+        work_id = bounded_string(work["work_id"], "work_id", 96)
+        work_digest = digest(work["work_digest"], "work_digest")
+        if work_id != f"prw_{work_digest}":
+            raise ValueError("work event identity is invalid")
+        expected_version = non_negative_int(
+            work["expected_execution_version"], "expected_execution_version"
+        )
+        if event_type == "work_observed":
+            checkpoint = _event_reference(
+                payload["checkpoint"],
+                name="checkpoint",
+                fields={
+                    "checkpoint_id",
+                    "checkpoint_digest",
+                    "observed_execution_version",
+                },
+            )
+            checkpoint_id = bounded_string(
+                checkpoint["checkpoint_id"], "checkpoint_id", 96
+            )
+            checkpoint_digest = digest(
+                checkpoint["checkpoint_digest"], "checkpoint_digest"
+            )
+            if checkpoint_id != f"prc_{checkpoint_digest}":
+                raise ValueError("checkpoint event identity is invalid")
+            if (
+                non_negative_int(
+                    checkpoint["observed_execution_version"],
+                    "observed_execution_version",
+                )
+                != expected_version + 1
+            ):
+                raise ValueError("work observation version is invalid")
+    elif event_type not in _RUNTIME_EVENT_CONTROL_TYPES and event_type not in (
+        "claim_acquired",
+        "claim_released",
+        "claim_taken_over",
+        "runtime_completed",
+        "runtime_blocked",
+    ):
+        raise ValueError("unsupported event payload contract")
+    return result
 
 
 def _work_identity_payload(runtime: PaperRuntime, version: int) -> dict[str, object]:
@@ -688,7 +842,15 @@ def create_paper_runtime_event(
     if event_type not in PAPER_RUNTIME_EVENT_TYPES:
         raise ValueError("unsupported runtime event type")
     payload_json = canonical_json(payload)
-    load_canonical_json(payload_json)
+    canonical_payload = load_canonical_json(payload_json)
+    result_runtime = _validate_event_payload(
+        payload=canonical_payload,
+        event_type=event_type,
+        runtime=rt,
+        resulting_runtime_version=version,
+    )
+    if result_runtime != rt or result_runtime.to_dict() != rt.to_dict():
+        raise ValueError("event creation requires the exact resulting runtime")
     timestamp = utc_datetime(recorded_at, "recorded_at")
     event_digest = canonical_digest(
         _event_business(
@@ -729,7 +891,13 @@ def validate_paper_runtime_event(
             value.resulting_runtime_version, "resulting_runtime_version"
         )
         timestamp = utc_datetime(value.recorded_at, "recorded_at")
-        load_canonical_json(value.payload_json)
+        payload = load_canonical_json(value.payload_json)
+        _validate_event_payload(
+            payload=payload,
+            event_type=value.event_type,
+            runtime=rt,
+            resulting_runtime_version=version,
+        )
         expected = canonical_digest(
             _event_business(
                 rt.runtime_id,
@@ -745,6 +913,21 @@ def validate_paper_runtime_event(
     except (AttributeError, TypeError, ValueError) as exc:
         raise ValueError("paper runtime event is invalid") from exc
     return value
+
+
+def reconstruct_paper_runtime_event_result(
+    value: object, *, runtime: PaperRuntime
+) -> PaperRuntime:
+    """Reconstruct one immutable historical control result from event evidence."""
+
+    event = validate_paper_runtime_event(value, runtime=runtime)
+    payload = load_canonical_json(event.payload_json)
+    return _validate_event_payload(
+        payload=payload,
+        event_type=event.event_type,
+        runtime=runtime,
+        resulting_runtime_version=event.resulting_runtime_version,
+    )
 
 
 @dataclass(frozen=True)
