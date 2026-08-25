@@ -13,10 +13,10 @@ operate, and improve trading ideas before real capital is deployed.
 
 ## Current Status
 
-Milestones 1–33 are **Complete**. Milestone 34 is **In Progress** through the
-approved S207–S216 sequence.
+Milestones 1–33 are **Complete**. Milestone 34 is in its documentation-only
+Sprint 216 closeout and is **Complete after the S216 closeout PR is merged**.
 
-The current milestone and Sprint are:
+The current closeout state is:
 
 ```text
 M34 — Paper Execution Simulator and First True Paper Trading
@@ -28,12 +28,15 @@ S211 — Complete
 S212 — Complete
 S213 — Complete
 S214 — Complete
-S215 — M34 Restart, Concurrency, Upgrade, Recovery, Corruption, and Isolation Hardening
+S215 — Complete
+S216 — Milestone 34 Closeout and M35 Handoff
 ```
 
-Issue #408 is the authoritative M34 architecture source. Issue #423 is the
-authoritative S215 implementation specification. M35–M36 remain future
-milestones.
+Issue #408 remains the authoritative M34 architecture source. Issue #425 is the
+authoritative S216 closeout specification. After S216 merge, M35 — Durable Paper
+Runtime and Recovery — is the exact next milestone and Sprint 217 is its
+CTO-owned architecture/planning gate. M36 remains future multi-day Paper Trading
+operations and acceptance work.
 
 Current migration head:
 
@@ -41,13 +44,20 @@ Current migration head:
 0011_paper_execution
 ```
 
-The canonical M33 closeout is:
+Current Demo source/descriptor/dataset:
+
+```text
+v6
+```
+
+Canonical recent closeouts:
 
 ```text
 docs/closeouts/milestone-033-strategy-to-order-and-pre-trade-risk-pipeline-closeout.md
+docs/closeouts/milestone-034-paper-execution-simulator-and-first-true-paper-trading-closeout.md
 ```
 
-## Product Delivered Through M33
+## Product Delivered Through M34
 
 The current product provides:
 
@@ -59,7 +69,7 @@ The current product provides:
 - a bounded Founder Dashboard for workflow navigation and operational attention;
 - authoritative strategy, research, governance, report, Paper Job, result,
   comparison, portfolio-review, lifecycle-review, Paper Account, market-time,
-  and strategy-to-risk inspection;
+  strategy-to-risk, and Paper Execution inspection;
 - explicit Paper Job submit, replay, Run, Cancel, Retry, Recover, attempt, and
   result workflows;
 - stable localized error meaning with raw codes, request IDs, and technical audit
@@ -184,42 +194,63 @@ M33 closes without execution order, fill, execution pricing, fee calculation,
 reservation, fill-caused account mutation, replay progression, runtime worker,
 broker, live, or real-money behavior.
 
-### M34 — Current S213 Founder Workspace
+### M34 — Paper Execution Simulator and First True Paper Trading
 
-S208 introduced a separate pure `el_psy_quant.paper_execution` authority
-boundary with exact execution-policy values, strict M31/M32/M33 handoff
-references, create/step command identities, immutable deterministic
-`PaperExecutionOrder`, a compact Order reference, and derived lifecycle state.
+M34 established a separate `el_psy_quant.paper_execution` authority boundary
+that consumes only an exact reconstructed M33 Intent + matching `allow` Decision
+and exact M31/M32 handoff.
 
-S209 adds pure/in-memory one-event execution with immutable Attempt and
-unsettled Fill authority, exact M32 `next_event()` progression, deterministic
-execution price/slippage/cost evidence, execution-time risk revalidation, and
-strict full/partial/no-fill/rejection lifecycle reconstruction.
+The final M34 authority chain is:
 
-S210 maps one validated Fill to one M31 `execution_fill_posted` event containing
-exactly one cash and one position posting. Buy costs are capitalized; sell cost
-basis uses deterministic proportional average cost with exact full-exit cleanup.
-One immutable `ExecutionSettlementLink` binds the Fill to that M31 authority.
+```text
+M31 immutable Paper Account ledger authority
+  + M32 durable calendar/session/event/replay authority
+  + immutable M33 OrderIntent + matching allow PreTradeRiskDecision
+    -> immutable PaperExecutionOrder
+      -> explicit synchronous one-event Step
+        -> immutable PaperExecutionAttempt
+          -> optional immutable PaperExecutionFill
+            -> exactly one atomic M31 execution settlement
+        -> exact M32 checkpoint progression when one event is consumed
+      -> strict historical reconstruction / live freshness / reconciliation
+```
 
-S211 adds immutable Order/Attempt/Fill/SettlementLink/receipt persistence and
-atomic SQLite create/step orchestration across M34, M31 settlement, and M32
-checkpoint CAS authority.
+M34 delivers:
 
-S212 adds exactly nine Founder-authenticated Paper Execution operations, strict
-public schemas, bounded keyset pagination, stable sanitized errors, request-ID
-and audit correlation, canonical OpenAPI, and generated TypeScript contracts.
-S213 adds one bilingual `/paper-execution` workspace for historical M33 allow
-selection, explicit policy input, manual Order creation, one-event Step,
-immutable Attempt/Fill/risk/settlement inspection, and explicit reconciliation.
-S214 adds isolated Demo v6 evidence for manual, completed-fill, risk-rejection,
-and session-exhaustion flows through the merged application paths. S215 is the
-current adversarial hardening Sprint. The migration head remains
-`0011_paper_execution`; S216 remains planned.
+- immutable deterministic Order, Attempt, Fill, and SettlementLink authority;
+- the closed `working / partially_filled / filled / rejected /
+  partially_filled_rejected` lifecycle reconstructed from immutable history;
+- future-event execution timing after the M33 handoff cursor;
+- `consumed_trade_event_price_v1` execution-price authority;
+- exact `fixed_bps_slippage_v1` slippage and `per_fill_bps_costs_v1` costs;
+- execution-time `long_only_cash_risk_v1` revalidation without creating a new
+  M33 Decision;
+- atomic `execution_fill_posted` M31 ledger settlement for each Fill;
+- append-only persistence and scoped receipts under migration
+  `0011_paper_execution`;
+- one-winner SQLite Create/Step transactions with M31/M32 CAS, restart-safe
+  idempotency, strict reconstruction, and read-only reconciliation;
+- exactly nine Paper Execution API operations with stable errors/audit, canonical
+  OpenAPI, and generated TypeScript contracts;
+- one bilingual generated-contract-only `/paper-execution` Founder workspace;
+- isolated Demo v6 fresh-manual, completed, execution-risk-rejection, and
+  exhaustion evidence created through application paths only; and
+- adversarial concurrency, SQLite busy, populated upgrade, transaction rollback,
+  corruption/no-repair, restart/recovery, API, and Standard/Demo isolation
+  evidence.
+
+The final reviewed S215 baseline is Python `3257 passed` and Web
+`471 passed / 49 files`; Ruff/import/CLI/messages/contracts/lint/typecheck/
+production build passed, Demo remains v6, and migration head remains
+`0011_paper_execution`.
+
+M34 closes as the first genuine market/strategy-driven Paper Trading execution
+milestone, but it remains manually stepped and synchronous. M35 owns durable
+runtime automation around the existing M34 Step primitive.
 
 ## Current Founder Journey
 
-The existing Founder product supports explicit inspection and controlled
-commands across:
+The Founder product supports explicit inspection and controlled commands across:
 
 ```text
 Strategy
@@ -245,13 +276,13 @@ automatically, or directly mutate M31/M32/SQLite.
 
 ## What the Current Product Is Not Yet
 
-The current product now reaches explicit manual first true Paper Trading through
-deterministic simulated execution and atomic account effects. M34 remains In
-Progress until adversarial hardening and closeout are accepted.
+The current product reaches explicit manual first true Paper Trading through
+deterministic simulated execution and atomic account effects.
 
 It does not yet provide:
 
 - a durable worker/claim/checkpoint/recovery loop for session execution;
+- explicit durable start/stop/resume runtime ownership;
 - continuous multi-day Paper Trading;
 - broker, QMT, MiniQMT, private-edge, live, or real-money behavior; or
 - automatic strategy ranking, approval, optimization, or capital allocation.
@@ -263,24 +294,25 @@ M30 Portfolio-Level Decision Review Foundation — Complete
   -> M31 Stateful Paper Account and Ledger Foundation — Complete
   -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Complete
-  -> M34 Paper Execution Simulator and First True Paper Trading — In Progress (S207–S216)
-  -> M35 Durable Paper Runtime and Recovery
-  -> M36 Multi-day Paper Operations and Acceptance
+  -> M34 Paper Execution Simulator and First True Paper Trading — Complete after S216 merge
+  -> M35 Durable Paper Runtime and Recovery — exact next milestone
+  -> M36 Multi-day Paper Operations and Acceptance — future
 ```
 
-M34 may consume only an M33 Intent with a matching `allow`
-PreTradeRiskDecision and exact verified account/market anchors. At execution
-handoff it must revalidate freshness; M33 risk allowance is not automatically
-fresh execution authorization.
+Issue #408 froze M34 architecture and the S207–S216 sequence. S208–S215 delivered
+the execution domain, settlement, durable transactions, API, Web, Demo v6, and
+adversarial hardening. S216 is documentation-only closeout.
 
-S207 froze the M34 architecture in Issue #408. S208 completed the pure Order,
-policy, handoff, command, and lifecycle foundation. S209 completed the pure
-one-event Attempt/Fill/pricing/cost/risk layer. S210 completed pure Fill-to-M31
-settlement and link reconciliation. S211 adds durable atomic authority under
-Issue #415. S212 adds the versioned API/error/audit/generated-contract boundary
-under Issue #417. S213 adds the bilingual Founder workspace under Issue #419.
-S214 completed Demo v6 end-to-end evidence under Issue #421. S215 is current
-under Issue #423; S216 remains planned.
+After S216 merge, the exact next Sprint is:
+
+```text
+Sprint 217 — Plan Milestone 35: Durable Paper Runtime and Recovery
+```
+
+M35 must reuse M34 execution primitives and may only add durable runtime
+ownership, controls, repeated Step orchestration, interruption recovery,
+operational reconciliation, and bounded observability after S217 freezes the
+architecture.
 
 Authoritative runtime roadmap:
 
@@ -308,6 +340,8 @@ Authority rules:
 - calendar/session definitions and canonical market events own market-time truth;
 - replay engine state owns deterministic market progression;
 - M33 Signal/Intent/Risk records own immutable strategy-to-risk evidence;
+- M34 Order/Attempt/Fill records own immutable execution evidence while M31
+  settlement remains financial authority;
 - persistence stores and restores authority but does not replace it;
 - API, Web, and Demo payloads remain presentation and verification surfaces;
 - raw IDs, states, versions, timestamps, codes, digests, values, and artifact
@@ -407,6 +441,7 @@ docs/strategy/paper-trading-runtime-roadmap.md
 docs/architecture/portfolio-level-decision-review.md
 docs/architecture/stateful-paper-account-and-ledger.md
 docs/architecture/strategy-to-order-and-pre-trade-risk.md
+docs/architecture/paper-execution-simulator.md
 docs/milestones/milestone-030-portfolio-level-decision-review-foundation.md
 docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
 docs/milestones/milestone-031-stateful-paper-account-and-ledger-foundation.md
@@ -415,6 +450,8 @@ docs/milestones/milestone-032-market-data-replay-trading-calendar-and-session-cl
 docs/closeouts/milestone-032-market-data-replay-trading-calendar-and-session-clock-closeout.md
 docs/milestones/milestone-033-strategy-to-order-and-pre-trade-risk-pipeline.md
 docs/closeouts/milestone-033-strategy-to-order-and-pre-trade-risk-pipeline-closeout.md
+docs/milestones/milestone-034-paper-execution-simulator-and-first-true-paper-trading.md
+docs/closeouts/milestone-034-paper-execution-simulator-and-first-true-paper-trading-closeout.md
 ```
 
 ## Explicitly Deferred
