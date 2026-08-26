@@ -26,7 +26,11 @@ from el_psy_quant.paper_runtime import (
     validate_paper_runtime_event,
     validate_paper_runtime_work,
 )
-from el_psy_quant.paper_runtime._canonical import bounded_string, digest
+from el_psy_quant.paper_runtime._canonical import (
+    bounded_string,
+    digest,
+    load_canonical_json,
+)
 from el_psy_quant.persistence.paper_execution_records import (
     PaperExecutionCorruptAuthorityError,
 )
@@ -96,14 +100,22 @@ class PaperRuntimeRepository(Protocol):
     ) -> PaperRuntime: ...
     def get_work(self, *, work_id: str) -> PaperRuntimeWork | None: ...
     def append_work(self, *, work: PaperRuntimeWork) -> PaperRuntimeWork: ...
+    def list_all_work(self, *, runtime_id: str) -> tuple[PaperRuntimeWork, ...]: ...
     def get_checkpoint(
         self, *, checkpoint_id: str
     ) -> PaperRuntimeCheckpoint | None: ...
     def append_checkpoint(
         self, *, checkpoint: PaperRuntimeCheckpoint
     ) -> PaperRuntimeCheckpoint: ...
+    def load_checkpoint_authority(
+        self, *, runtime: PaperRuntime, work: PaperRuntimeWork
+    ) -> tuple[PaperExecutionAttempt, PaperExecutionFill | None, ExecutionSettlementLink | None]: ...
     def get_event(self, *, event_id: str) -> PaperRuntimeEvent | None: ...
     def append_event(self, *, event: PaperRuntimeEvent) -> PaperRuntimeEvent: ...
+    def list_all_events(self, *, runtime_id: str) -> tuple[PaperRuntimeEvent, ...]: ...
+    def find_work_events(
+        self, *, runtime_id: str, work_id: str, event_type: str
+    ) -> tuple[PaperRuntimeEvent, ...]: ...
     def next_event_sequence(self, *, runtime_id: str) -> int: ...
     def get_receipt_by_digest(
         self, *, namespace: str, command_digest: str
@@ -310,6 +322,27 @@ class SqlAlchemyPaperRuntimeRepository:
             if (item := self.get_work(work_id=row.work_id)) is not None
         )
 
+    def list_all_work(self, *, runtime_id: str) -> tuple[PaperRuntimeWork, ...]:
+        """Read every Work exactly for runner recovery gates, without truncation."""
+
+        rows = self._session.scalars(
+            select(PaperRuntimeWorkRow)
+            .where(
+                PaperRuntimeWorkRow.runtime_id
+                == bounded_string(runtime_id, "runtime_id", 96)
+            )
+            .order_by(PaperRuntimeWorkRow.expected_execution_version)
+        ).all()
+        work = tuple(
+            item
+            for row in rows
+            if (item := self.get_work(work_id=row.work_id)) is not None
+        )
+        versions = tuple(item.expected_execution_version for item in work)
+        if len(work) != len(rows) or len(set(versions)) != len(versions):
+            raise PaperRuntimePersistenceCorruptionError()
+        return work
+
     def append_work(self, *, work: PaperRuntimeWork) -> PaperRuntimeWork:
         runtime = self.get_runtime(runtime_id=work.runtime_id)
         if runtime is None:
@@ -405,6 +438,17 @@ class SqlAlchemyPaperRuntimeRepository:
             return attempt, fill, link
         except PaperExecutionCorruptAuthorityError as exc:
             raise PaperRuntimePersistenceCorruptionError() from exc
+
+    def load_checkpoint_authority(
+        self, *, runtime: PaperRuntime, work: PaperRuntimeWork
+    ) -> tuple[
+        PaperExecutionAttempt,
+        PaperExecutionFill | None,
+        ExecutionSettlementLink | None,
+    ]:
+        """Expose the exact canonical authority used by checkpoint reconstruction."""
+
+        return self._canonical_checkpoint_authority(runtime=runtime, work=work)
 
     def get_checkpoint(self, *, checkpoint_id: str) -> PaperRuntimeCheckpoint | None:
         row = self._session.get(
@@ -514,6 +558,55 @@ class SqlAlchemyPaperRuntimeRepository:
             if (item := self.get_event(event_id=row.event_id)) is not None
         )
         if tuple(event.event_sequence for event in events) != tuple(range(len(events))):
+            raise PaperRuntimePersistenceCorruptionError()
+        return events
+
+    def find_work_events(
+        self, *, runtime_id: str, work_id: str, event_type: str
+    ) -> tuple[PaperRuntimeEvent, ...]:
+        """Find exact Work evidence without relying on bounded event listings."""
+
+        if event_type not in ("work_created", "work_observed"):
+            raise ValueError("event_type is not Work evidence")
+        runtime = self.get_runtime(runtime_id=runtime_id)
+        if runtime is None:
+            raise PaperRuntimePersistenceCorruptionError()
+        identity = bounded_string(work_id, "work_id", 96)
+        rows = self._session.scalars(
+            select(PaperRuntimeEventRow)
+            .where(
+                PaperRuntimeEventRow.runtime_id == runtime.runtime_id,
+                PaperRuntimeEventRow.event_type == event_type,
+            )
+            .order_by(PaperRuntimeEventRow.event_sequence)
+        ).all()
+        matches: list[PaperRuntimeEvent] = []
+        for row in rows:
+            event = event_from_row(row, runtime=runtime)
+            payload = load_canonical_json(event.payload_json)
+            if type(payload) is not dict or type(payload.get("work")) is not dict:
+                raise PaperRuntimePersistenceCorruptionError()
+            if payload["work"].get("work_id") == identity:
+                matches.append(event)
+        if len(matches) > 1:
+            raise PaperRuntimePersistenceCorruptionError()
+        return tuple(matches)
+
+    def list_all_events(self, *, runtime_id: str) -> tuple[PaperRuntimeEvent, ...]:
+        """Read the complete immutable event stream for exact runner checks."""
+
+        runtime = self.get_runtime(runtime_id=runtime_id)
+        if runtime is None:
+            raise PaperRuntimePersistenceCorruptionError()
+        rows = self._session.scalars(
+            select(PaperRuntimeEventRow)
+            .where(PaperRuntimeEventRow.runtime_id == runtime.runtime_id)
+            .order_by(PaperRuntimeEventRow.event_sequence)
+        ).all()
+        events = tuple(event_from_row(row, runtime=runtime) for row in rows)
+        if tuple(event.event_sequence for event in events) != tuple(
+            range(len(events))
+        ):
             raise PaperRuntimePersistenceCorruptionError()
         return events
 
