@@ -105,8 +105,11 @@ from el_psy_quant.persistence.paper_execution_repository import (
 from el_psy_quant.persistence.paper_runtime_records import (
     PAPER_RUNTIME_LIST_LIMIT_MAXIMUM,
     PAPER_RUNTIME_PERSISTENCE_RECORD_SCHEMA_VERSION,
+    PaperRuntimeConcurrencyConflictError,
     PaperRuntimeNotFoundError,
     PaperRuntimePersistenceCorruptionError,
+    PaperRuntimeStorageBusyError,
+    PaperRuntimeStorageFailureError,
 )
 from el_psy_quant.persistence.paper_runtime_repository import (
     PaperRuntimeRepository,
@@ -216,7 +219,10 @@ __all__ = [
     "PaperExecutionStorageFailureError",
     "PaperExecutionStoredResult",
     "PaperRuntimeNotFoundError",
+    "PaperRuntimeConcurrencyConflictError",
     "PaperRuntimePersistenceCorruptionError",
+    "PaperRuntimeStorageBusyError",
+    "PaperRuntimeStorageFailureError",
     "PaperRuntimeRepository",
     "PaperJobRecord",
     "PaperJobAttemptRecord",

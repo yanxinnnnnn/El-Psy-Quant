@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select, update
 from sqlalchemy.orm import Session
 
 from el_psy_quant.paper_execution import (
@@ -21,11 +21,12 @@ from el_psy_quant.paper_runtime import (
     PaperRuntimeWork,
     create_paper_runtime,
     create_paper_runtime_checkpoint,
+    validate_paper_runtime,
     validate_paper_runtime_command_receipt,
     validate_paper_runtime_event,
     validate_paper_runtime_work,
 )
-from el_psy_quant.paper_runtime._canonical import bounded_string
+from el_psy_quant.paper_runtime._canonical import bounded_string, digest
 from el_psy_quant.persistence.paper_execution_records import (
     PaperExecutionCorruptAuthorityError,
 )
@@ -53,13 +54,46 @@ from el_psy_quant.persistence.paper_runtime_model import (
 )
 from el_psy_quant.persistence.paper_runtime_records import (
     PAPER_RUNTIME_LIST_LIMIT_MAXIMUM,
+    PaperRuntimeConcurrencyConflictError,
     PaperRuntimePersistenceCorruptionError,
+)
+
+
+_RUNTIME_IMMUTABLE_FIELDS = (
+    "schema_version",
+    "runtime_id",
+    "runtime_binding_digest",
+    "execution_order_id",
+    "execution_order_digest",
+    "account_id",
+    "replay_id",
+    "trading_session_id",
+    "logical_actor",
+    "runtime_policy_id",
+    "runtime_policy_version",
+    "created_at",
+)
+
+_RUNTIME_MUTABLE_COLUMNS = (
+    "desired_state",
+    "observed_state",
+    "owner_id",
+    "fencing_token",
+    "claimed_at",
+    "heartbeat_at",
+    "lease_expires_at",
+    "row_version",
+    "block_reason_code",
+    "updated_at",
 )
 
 
 class PaperRuntimeRepository(Protocol):
     def get_runtime(self, *, runtime_id: str) -> PaperRuntime | None: ...
     def append_runtime(self, *, runtime: PaperRuntime) -> PaperRuntime: ...
+    def compare_and_swap_runtime(
+        self, *, expected_runtime: PaperRuntime, replacement_runtime: PaperRuntime
+    ) -> PaperRuntime: ...
     def get_work(self, *, work_id: str) -> PaperRuntimeWork | None: ...
     def append_work(self, *, work: PaperRuntimeWork) -> PaperRuntimeWork: ...
     def get_checkpoint(
@@ -70,6 +104,10 @@ class PaperRuntimeRepository(Protocol):
     ) -> PaperRuntimeCheckpoint: ...
     def get_event(self, *, event_id: str) -> PaperRuntimeEvent | None: ...
     def append_event(self, *, event: PaperRuntimeEvent) -> PaperRuntimeEvent: ...
+    def next_event_sequence(self, *, runtime_id: str) -> int: ...
+    def get_receipt_by_digest(
+        self, *, namespace: str, command_digest: str
+    ) -> PaperRuntimeCommandReceipt | None: ...
 
 
 class SqlAlchemyPaperRuntimeRepository:
@@ -162,6 +200,59 @@ class SqlAlchemyPaperRuntimeRepository:
         self._session.add(runtime_row(runtime))
         self._session.flush()
         return runtime
+
+    def compare_and_swap_runtime(
+        self,
+        *,
+        expected_runtime: PaperRuntime,
+        replacement_runtime: PaperRuntime,
+    ) -> PaperRuntime:
+        """Replace one exact snapshot with its exact next version, without commit."""
+
+        expected = validate_paper_runtime(expected_runtime)
+        replacement = validate_paper_runtime(replacement_runtime)
+        if any(
+            getattr(expected, field) != getattr(replacement, field)
+            for field in _RUNTIME_IMMUTABLE_FIELDS
+        ):
+            raise ValueError("runtime immutable binding cannot change")
+        expected = self._validate_runtime_authority(expected)
+        replacement = self._validate_runtime_authority(replacement)
+        if replacement.row_version != expected.row_version + 1:
+            raise ValueError("replacement runtime version is not the exact successor")
+        if replacement.fencing_token < expected.fencing_token:
+            raise ValueError("replacement runtime fencing token regresses")
+        if replacement.updated_at < expected.updated_at:
+            raise ValueError("replacement runtime timestamp regresses")
+
+        expected_row = runtime_row(expected)
+        replacement_row = runtime_row(replacement)
+        exact_predicates = tuple(
+            getattr(PaperRuntimeRow, column.name) == getattr(expected_row, column.name)
+            for column in PaperRuntimeRow.__table__.columns
+        )
+        values = {
+            name: getattr(replacement_row, name) for name in _RUNTIME_MUTABLE_COLUMNS
+        }
+        values["payload_json"] = replacement_row.payload_json
+        result = self._session.execute(
+            update(PaperRuntimeRow)
+            .where(and_(*exact_predicates))
+            .values(**values)
+            .execution_options(synchronize_session=False)
+        )
+        if result.rowcount != 1:
+            raise PaperRuntimeConcurrencyConflictError()
+        self._session.flush()
+        self._session.expire_all()
+        stored = self.get_runtime(runtime_id=replacement.runtime_id)
+        if (
+            stored is None
+            or stored != replacement
+            or stored.to_dict() != replacement.to_dict()
+        ):
+            raise PaperRuntimePersistenceCorruptionError()
+        return stored
 
     def get_work(self, *, work_id: str) -> PaperRuntimeWork | None:
         row = self._session.get(
@@ -436,22 +527,43 @@ class SqlAlchemyPaperRuntimeRepository:
             if current != event:
                 raise PaperRuntimePersistenceCorruptionError()
             return current
+        count, minimum, maximum = self._event_sequence_authority(
+            runtime_id=runtime.runtime_id
+        )
+        if event.event_sequence != count:
+            raise PaperRuntimePersistenceCorruptionError()
+        self._session.add(event_row(event))
+        self._session.flush()
+        return event
+
+    def _event_sequence_authority(
+        self, *, runtime_id: str
+    ) -> tuple[int, int | None, int | None]:
         count, minimum, maximum = self._session.execute(
             select(
                 func.count(PaperRuntimeEventRow.event_id),
                 func.min(PaperRuntimeEventRow.event_sequence),
                 func.max(PaperRuntimeEventRow.event_sequence),
-            ).where(PaperRuntimeEventRow.runtime_id == runtime.runtime_id)
+            ).where(
+                PaperRuntimeEventRow.runtime_id
+                == bounded_string(runtime_id, "runtime_id", 96)
+            )
         ).one()
         if (
             (count == 0 and (minimum is not None or maximum is not None))
             or (count > 0 and (minimum != 0 or maximum != count - 1))
-            or event.event_sequence != count
         ):
             raise PaperRuntimePersistenceCorruptionError()
-        self._session.add(event_row(event))
-        self._session.flush()
-        return event
+        return count, minimum, maximum
+
+    def next_event_sequence(self, *, runtime_id: str) -> int:
+        runtime = self.get_runtime(runtime_id=runtime_id)
+        if runtime is None:
+            raise PaperRuntimePersistenceCorruptionError()
+        count, _minimum, _maximum = self._event_sequence_authority(
+            runtime_id=runtime.runtime_id
+        )
+        return count
 
     def get_receipt(
         self, *, namespace: str, command_idempotency_key: str
@@ -470,6 +582,24 @@ class SqlAlchemyPaperRuntimeRepository:
         if runtime is None or event is None:
             raise PaperRuntimePersistenceCorruptionError()
         return receipt_from_row(row, runtime=runtime, result_event=event)
+
+    def get_receipt_by_digest(
+        self, *, namespace: str, command_digest: str
+    ) -> PaperRuntimeCommandReceipt | None:
+        row = self._session.scalar(
+            select(PaperRuntimeCommandReceiptRow).where(
+                PaperRuntimeCommandReceiptRow.namespace
+                == bounded_string(namespace, "namespace", 64),
+                PaperRuntimeCommandReceiptRow.command_digest
+                == digest(command_digest, "command_digest"),
+            )
+        )
+        if row is None:
+            return None
+        return self.get_receipt(
+            namespace=row.namespace,
+            command_idempotency_key=row.command_idempotency_key,
+        )
 
     def list_receipts(
         self, *, runtime_id: str, limit: int = 200

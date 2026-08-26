@@ -333,6 +333,41 @@ def validate_paper_runtime(value: object) -> PaperRuntime:
     return value
 
 
+def digest_paper_runtime_control_command(
+    *,
+    namespace: RuntimeCommandNamespace,
+    command_actor: str,
+    command_target_identity: dict[str, object] | None,
+    material_payload: dict[str, object],
+    command_schema_version: int = 1,
+) -> str:
+    """Digest only stable, material control-command authority."""
+
+    if command_schema_version != 1:
+        raise ValueError("unsupported runtime control command schema")
+    if namespace not in PAPER_RUNTIME_COMMAND_NAMESPACES:
+        raise ValueError("unsupported runtime control command namespace")
+    actor = bounded_string(command_actor, "command_actor", 256)
+    if command_target_identity is not None and type(command_target_identity) is not dict:
+        raise ValueError("command target identity must be an object or null")
+    if type(material_payload) is not dict:
+        raise ValueError("material payload must be an object")
+    try:
+        target = load_canonical_json(canonical_json(command_target_identity))
+        material = load_canonical_json(canonical_json(material_payload))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("runtime control command material is invalid") from exc
+    return canonical_digest(
+        {
+            "command_schema_version": command_schema_version,
+            "namespace": namespace,
+            "command_actor": actor,
+            "command_target_identity": target,
+            "material_payload": material,
+        }
+    )
+
+
 def _runtime_from_event_snapshot(value: object) -> PaperRuntime:
     if type(value) is not dict or set(value) != set(PaperRuntime.__dataclass_fields__):
         raise ValueError("event runtime snapshot fields are invalid")
