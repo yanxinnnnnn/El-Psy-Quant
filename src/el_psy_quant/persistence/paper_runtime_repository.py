@@ -110,6 +110,9 @@ class PaperRuntimeRepository(Protocol):
     def load_checkpoint_authority(
         self, *, runtime: PaperRuntime, work: PaperRuntimeWork
     ) -> tuple[PaperExecutionAttempt, PaperExecutionFill | None, ExecutionSettlementLink | None]: ...
+    def list_all_checkpoints(
+        self, *, runtime_id: str
+    ) -> tuple[PaperRuntimeCheckpoint, ...]: ...
     def get_event(self, *, event_id: str) -> PaperRuntimeEvent | None: ...
     def append_event(self, *, event: PaperRuntimeEvent) -> PaperRuntimeEvent: ...
     def list_all_events(self, *, runtime_id: str) -> tuple[PaperRuntimeEvent, ...]: ...
@@ -479,6 +482,26 @@ class SqlAlchemyPaperRuntimeRepository:
             .limit(self._limit(limit))
         ).all()
         return tuple(self._reconstruct_checkpoint(row) for row in rows)
+
+    def list_all_checkpoints(
+        self, *, runtime_id: str
+    ) -> tuple[PaperRuntimeCheckpoint, ...]:
+        """Read every checkpoint exactly for operational reconciliation."""
+
+        rows = self._session.scalars(
+            select(PaperRuntimeCheckpointRow)
+            .where(
+                PaperRuntimeCheckpointRow.runtime_id
+                == bounded_string(runtime_id, "runtime_id", 96)
+            )
+            .order_by(PaperRuntimeCheckpointRow.observed_execution_version)
+        ).all()
+        checkpoints = tuple(self._reconstruct_checkpoint(row) for row in rows)
+        work_ids = tuple(item.work_id for item in checkpoints)
+        versions = tuple(item.observed_execution_version for item in checkpoints)
+        if len(set(work_ids)) != len(work_ids) or len(set(versions)) != len(versions):
+            raise PaperRuntimePersistenceCorruptionError()
+        return checkpoints
 
     def append_checkpoint(
         self, *, checkpoint: PaperRuntimeCheckpoint
