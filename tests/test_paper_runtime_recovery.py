@@ -61,6 +61,28 @@ def _commit_without_observation(runner, claim, monkeypatch):
     monkeypatch.setattr(runner._execution_service, "step_order", original)
 
 
+def _canonical_side_effects(factory, runtime_id, replay_id):
+    history = _read(factory, runtime_id)[4]
+    with factory() as session:
+        settlement_events = session.scalar(
+            text(
+                "SELECT COUNT(*) FROM paper_account_events "
+                "WHERE event_type='execution_fill_posted'"
+            )
+        )
+        replay_position = session.scalar(
+            text("SELECT position FROM market_data_replays WHERE replay_id=:replay_id"),
+            {"replay_id": replay_id},
+        )
+    return (
+        len(history.attempts),
+        len(history.fills),
+        len(history.settlement_links),
+        settlement_events,
+        replay_position,
+    )
+
+
 def test_unowned_crash_a_recovers_claim_then_normal_runner_creates_work(
     tmp_path, monkeypatch
 ):
@@ -190,6 +212,205 @@ def test_crash_b_stopped_pending_work_does_not_step_and_releases(
     assert len(work) == 1
     assert checkpoints == history.attempts == ()
     assert calls == []
+    engine.dispose()
+
+
+def test_pre_r2_fence_loss_prevents_old_owner_step_and_reuses_exact_work(
+    tmp_path, monkeypatch
+):
+    engine, factory, order, _lifecycle, ownership, runner, clock, claim = (
+        _runner_fixture(tmp_path / "pre-r2-fence-loss.sqlite3", monkeypatch)
+    )
+    _leave_work_without_attempt(runner, claim, monkeypatch)
+    before_runtime, before_work, *_ = _read(factory, claim.runtime_id)
+    before_effects = _canonical_side_effects(
+        factory, claim.runtime_id, order.market_handoff_reference.replay_id
+    )
+    recovery = _recovery(factory, ownership, runner, clock)
+    original_confirm = recovery._confirm_recovery_step_entry
+    original_step = runner._execution_service.step_order
+    replacement = None
+    calls = []
+
+    def take_over_before_r2(**kwargs):
+        nonlocal replacement
+        _expire(clock, before_runtime)
+        replacement = ownership.claim_runtime(
+            runtime_id=claim.runtime_id, owner_id="replacement-owner"
+        ).runtime
+        return original_confirm(**kwargs)
+
+    def forbidden(command):
+        calls.append(command)
+        raise AssertionError("fenced recovery owner must not enter M34")
+
+    monkeypatch.setattr(recovery, "_confirm_recovery_step_entry", take_over_before_r2)
+    monkeypatch.setattr(runner._execution_service, "step_order", forbidden)
+    with pytest.raises(PaperRuntimeClaimMismatchError):
+        recovery.reconcile_claimed_runtime(
+            runtime_id=claim.runtime_id,
+            owner_id=claim.owner_id,
+            fencing_token=claim.fencing_token,
+        )
+
+    runtime, work, checkpoints, events, history = _read(factory, claim.runtime_id)
+    assert replacement is not None
+    assert runtime == replacement
+    assert runtime.fencing_token == claim.fencing_token + 1
+    assert work == before_work
+    assert checkpoints == history.attempts == ()
+    assert [event.event_type for event in events].count("work_observed") == 0
+    assert calls == []
+    assert (
+        _canonical_side_effects(
+            factory, claim.runtime_id, order.market_handoff_reference.replay_id
+        )
+        == before_effects
+    )
+
+    monkeypatch.setattr(recovery, "_confirm_recovery_step_entry", original_confirm)
+    monkeypatch.setattr(runner._execution_service, "step_order", original_step)
+    recovered = recovery.reconcile_claimed_runtime(
+        runtime_id=replacement.runtime_id,
+        owner_id=replacement.owner_id,
+        fencing_token=replacement.fencing_token,
+    )
+    _runtime, later_work, later_checkpoints, later_events, later_history = _read(
+        factory, claim.runtime_id
+    )
+    assert recovered.outcome == "runnable"
+    assert recovered.work == before_work[0] == later_work[0]
+    assert len(later_work) == len(later_checkpoints) == len(later_history.attempts) == 1
+    assert [event.event_type for event in later_events].count("work_created") == 1
+    assert [event.event_type for event in later_events].count("work_observed") == 1
+    engine.dispose()
+
+
+def test_pre_r2_stop_prevents_uncommitted_step_and_releases_existing_work(
+    tmp_path, monkeypatch
+):
+    engine, factory, order, lifecycle, ownership, runner, clock, claim = (
+        _runner_fixture(tmp_path / "pre-r2-stop.sqlite3", monkeypatch)
+    )
+    _leave_work_without_attempt(runner, claim, monkeypatch)
+    before_work = _read(factory, claim.runtime_id)[1]
+    before_effects = _canonical_side_effects(
+        factory, claim.runtime_id, order.market_handoff_reference.replay_id
+    )
+    recovery = _recovery(factory, ownership, runner, clock)
+    original_confirm = recovery._confirm_recovery_step_entry
+    calls = []
+
+    def stop_before_r2(**kwargs):
+        current = _read(factory, claim.runtime_id)[0]
+        lifecycle.stop_runtime(
+            runtime_id=current.runtime_id,
+            runtime_binding_digest=current.runtime_binding_digest,
+            expected_runtime_version=current.row_version,
+            command_idempotency_key="stop-between-r1-r2",
+            command_actor="founder",
+        )
+        return original_confirm(**kwargs)
+
+    def forbidden(command):
+        calls.append(command)
+        raise AssertionError("stopped recovery must not enter an unproven M34 Step")
+
+    monkeypatch.setattr(recovery, "_confirm_recovery_step_entry", stop_before_r2)
+    monkeypatch.setattr(runner._execution_service, "step_order", forbidden)
+    result = recovery.reconcile_claimed_runtime(
+        runtime_id=claim.runtime_id,
+        owner_id=claim.owner_id,
+        fencing_token=claim.fencing_token,
+    )
+
+    runtime, work, checkpoints, events, history = _read(factory, claim.runtime_id)
+    assert result.outcome == "stopped"
+    assert runtime.desired_state == runtime.observed_state == "stopped"
+    assert runtime.owner_id is None
+    assert work == before_work
+    assert checkpoints == history.attempts == ()
+    assert [event.event_type for event in events].count("work_created") == 1
+    assert [event.event_type for event in events].count("work_observed") == 0
+    assert calls == []
+    assert (
+        _canonical_side_effects(
+            factory, claim.runtime_id, order.market_handoff_reference.replay_id
+        )
+        == before_effects
+    )
+    engine.dispose()
+
+
+def test_pre_r2_committed_attempt_converges_after_stop_without_duplicate_effects(
+    tmp_path, monkeypatch
+):
+    engine, factory, order, lifecycle, ownership, runner, clock, claim = (
+        _runner_fixture(tmp_path / "pre-r2-committed-stop.sqlite3", monkeypatch)
+    )
+    _leave_work_without_attempt(runner, claim, monkeypatch)
+    before_work = _read(factory, claim.runtime_id)[1]
+    recovery = _recovery(factory, ownership, runner, clock)
+    original_confirm = recovery._confirm_recovery_step_entry
+    original_step = runner._execution_service.step_order
+    committed_effects = None
+    recovery_calls = []
+
+    def commit_and_stop_before_r2(**kwargs):
+        nonlocal committed_effects
+        current = _read(factory, claim.runtime_id)[0]
+        committed = original_step(recovery._work_command(current, before_work[0]))
+        assert committed.replayed is False
+        committed_effects = _canonical_side_effects(
+            factory, claim.runtime_id, order.market_handoff_reference.replay_id
+        )
+        current = _read(factory, claim.runtime_id)[0]
+        lifecycle.stop_runtime(
+            runtime_id=current.runtime_id,
+            runtime_binding_digest=current.runtime_binding_digest,
+            expected_runtime_version=current.row_version,
+            command_idempotency_key="stop-after-pre-r2-commit",
+            command_actor="founder",
+        )
+        return original_confirm(**kwargs)
+
+    def record_recovery_step(command):
+        recovery_calls.append(command)
+        return original_step(command)
+
+    monkeypatch.setattr(
+        recovery, "_confirm_recovery_step_entry", commit_and_stop_before_r2
+    )
+    monkeypatch.setattr(runner._execution_service, "step_order", record_recovery_step)
+    result = recovery.reconcile_claimed_runtime(
+        runtime_id=claim.runtime_id,
+        owner_id=claim.owner_id,
+        fencing_token=claim.fencing_token,
+    )
+
+    runtime, work, checkpoints, events, history = _read(factory, claim.runtime_id)
+    assert result.outcome == "stopped"
+    assert result.step_replayed is True
+    assert runtime.desired_state == runtime.observed_state == "stopped"
+    assert runtime.owner_id is None
+    assert work == before_work
+    assert len(work) == len(checkpoints) == len(history.attempts) == 1
+    assert [event.event_type for event in events].count("work_created") == 1
+    assert [event.event_type for event in events].count("work_observed") == 1
+    assert len(recovery_calls) == 1
+    assert recovery_calls[0].command_idempotency_key == work[0].m34_step_idempotency_key
+    assert recovery_calls[0].actor == work[0].m34_step_actor
+    assert (
+        recovery_calls[0].expected_execution_version
+        == work[0].expected_execution_version
+    )
+    assert committed_effects is not None
+    assert (
+        _canonical_side_effects(
+            factory, claim.runtime_id, order.market_handoff_reference.replay_id
+        )
+        == committed_effects
+    )
     engine.dispose()
 
 
@@ -326,8 +547,19 @@ def test_recovery_never_holds_m35_transaction_while_calling_m34_step(
     _expire(clock, current)
     recovery = _recovery(factory, ownership, runner, clock)
     active = 0
+    original_read = recovery._read
     original_write = recovery._write
     original_step = runner._execution_service.step_order
+
+    @contextmanager
+    def tracked_read():
+        nonlocal active
+        with original_read() as session:
+            active += 1
+            try:
+                yield session
+            finally:
+                active -= 1
 
     @contextmanager
     def tracked_write():
@@ -343,6 +575,7 @@ def test_recovery_never_holds_m35_transaction_while_calling_m34_step(
         assert active == 0
         return original_step(command)
 
+    monkeypatch.setattr(recovery, "_read", tracked_read)
     monkeypatch.setattr(recovery, "_write", tracked_write)
     monkeypatch.setattr(runner._execution_service, "step_order", checked_step)
     result = recovery.recover_runtime(

@@ -1355,15 +1355,22 @@ class PaperRuntimeRunnerService:
             owner_id=owner_id,
             fencing_token=fencing_token,
         )
+        self._require_step_entry_runtime(runtime=runtime, work=work)
+        return runtime
+
+    @staticmethod
+    def _require_step_entry_runtime(
+        *, runtime: PaperRuntime, work: PaperRuntimeWork
+    ) -> None:
         if runtime.observed_state in ("blocked", "completed"):
             raise PaperRuntimeRunnerStateError()
         if (
-            runtime.execution_order_id != work.execution_order_id
+            runtime.runtime_id != work.runtime_id
+            or runtime.execution_order_id != work.execution_order_id
             or runtime.execution_order_digest != work.execution_order_digest
             or runtime.logical_actor != work.m34_step_actor
         ):
             raise PaperRuntimePersistenceCorruptionError()
-        return runtime
 
     @staticmethod
     def _verify_step_result(
@@ -1717,6 +1724,20 @@ class PaperRuntimeRecoveryService:
         return utc_datetime(self._clock(), "runtime recovery clock")
 
     @contextmanager
+    def _read(self) -> Iterator[Session]:
+        session = self._session_factory()
+        try:
+            yield session
+        except OperationalError as exc:
+            if _busy(exc):
+                raise PaperRuntimeStorageBusyError() from exc
+            raise PaperRuntimeStorageFailureError() from exc
+        except SQLAlchemyError as exc:
+            raise PaperRuntimeStorageFailureError() from exc
+        finally:
+            session.close()
+
+    @contextmanager
     def _write(self) -> Iterator[Session]:
         session = self._session_factory()
         try:
@@ -1818,6 +1839,56 @@ class PaperRuntimeRecoveryService:
             fill=fill,
             settlement_link=link,
         )
+
+    def _confirm_recovery_step_entry(
+        self,
+        *,
+        runtime_id: str,
+        owner_id: str,
+        fencing_token: int,
+        work: PaperRuntimeWork,
+    ) -> tuple[PaperRuntime, bool]:
+        """Freshly fence R2 and report whether its exact Attempt is canonical."""
+
+        with self._read() as session:
+            now = self._now()
+            runtime_repository = SqlAlchemyPaperRuntimeRepository(session=session)
+            runtime = self._runner_service._runtime(
+                runtime_repository, runtime_id=runtime_id
+            )
+            self._runner_service._assert_claim(
+                runtime,
+                owner_id=owner_id,
+                fencing_token=fencing_token,
+                now=now,
+            )
+            self._runner_service._require_step_entry_runtime(runtime=runtime, work=work)
+            stored_work = runtime_repository.get_work(work_id=work.work_id)
+            if stored_work != work:
+                raise PaperRuntimePersistenceCorruptionError()
+            self._runner_service._require_exact_work_event(
+                runtime_repository,
+                runtime=runtime,
+                work=work,
+                event_type="work_created",
+            )
+
+            execution_repository = SqlAlchemyPaperExecutionRepository(session=session)
+            history = execution_repository.load_historical_history(
+                execution_order_id=runtime.execution_order_id
+            )
+            self._require_runtime_order_binding(runtime, history)
+            self._validate_pending_step_authority(
+                runtime_repository=runtime_repository,
+                execution_repository=execution_repository,
+                runtime=runtime,
+                work=work,
+                history=history,
+            )
+            return (
+                runtime,
+                history.state.execution_version == work.expected_execution_version + 1,
+            )
 
     def _phase_r1_reconcile(
         self, *, runtime_id: str, owner_id: str, fencing_token: int
@@ -2071,8 +2142,27 @@ class PaperRuntimeRecoveryService:
                 fencing_token=fence,
                 reason_code=self._CORRUPT_REASON,
             )
-        command = self._work_command(prepared.runtime, work)
         try:
+            fresh, canonical_attempt_exists = self._confirm_recovery_step_entry(
+                runtime_id=runtime_identifier,
+                owner_id=owner,
+                fencing_token=fence,
+                work=work,
+            )
+            if fresh.desired_state == "stopped" and not canonical_attempt_exists:
+                stopped = self._runner_service._settle_stopped_before_step(
+                    runtime_id=runtime_identifier,
+                    owner_id=owner,
+                    fencing_token=fence,
+                )
+                return self._release_result(
+                    outcome="stopped",
+                    runtime_id=stopped.runtime_id,
+                    owner_id=owner,
+                    fencing_token=fence,
+                    work=work,
+                )
+            command = self._work_command(fresh, work)
             step = self._execution_service.step_order(command)
             observed = self._runner_service._phase_c_observe(
                 runtime_id=runtime_identifier,
