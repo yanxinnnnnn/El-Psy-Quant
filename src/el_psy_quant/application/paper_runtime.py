@@ -11,17 +11,28 @@ from typing import Callable, Iterator, Literal
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from el_psy_quant.application.paper_execution import PaperExecutionApplicationService
+from el_psy_quant.paper_execution import create_step_paper_execution_order_command
 from el_psy_quant.paper_runtime import (
     PAPER_RUNTIME_COMMAND_NAMESPACES,
     PaperRuntime,
+    PaperRuntimeCheckpoint,
     PaperRuntimeCommandReceipt,
     PaperRuntimeEvent,
+    PaperRuntimeWork,
     create_paper_runtime,
+    create_paper_execution_order_reference_from_runtime,
+    create_paper_runtime_checkpoint,
     create_paper_runtime_command_receipt,
     create_paper_runtime_event,
+    create_paper_runtime_work,
     digest_paper_runtime_control_command,
     reconstruct_paper_runtime_event_result,
     validate_paper_runtime,
+)
+from el_psy_quant.persistence.paper_execution_records import (
+    PaperExecutionStepCommit,
+    PaperExecutionStoredResult,
 )
 from el_psy_quant.paper_runtime._canonical import (
     bounded_string,
@@ -94,6 +105,14 @@ class PaperRuntimeTerminalContinuationError(Exception):
     """Terminal M34 or M35 authority cannot continue automatically."""
 
 
+class PaperRuntimeRunnerStateError(Exception):
+    """The durable runtime lifecycle state is not runnable."""
+
+
+class PaperRuntimeObservationRequiredError(Exception):
+    """A committed M34 Step is missing its M35 operational observation."""
+
+
 @dataclass(frozen=True)
 class PaperRuntimeOwnershipResult:
     runtime: PaperRuntime
@@ -114,6 +133,29 @@ class PaperRuntimeLifecycleResult:
     event: PaperRuntimeEvent
     receipt: PaperRuntimeCommandReceipt
     replayed: bool
+
+
+PaperRuntimeIterationOutcome = Literal["running", "stopped", "completed"]
+PaperRuntimeLoopOutcome = Literal[
+    "stopped", "completed", "iteration_budget_exhausted"
+]
+
+
+@dataclass(frozen=True)
+class PaperRuntimeIterationResult:
+    outcome: PaperRuntimeIterationOutcome
+    runtime: PaperRuntime
+    work: PaperRuntimeWork | None
+    checkpoint: PaperRuntimeCheckpoint | None
+    step_replayed: bool | None
+
+
+@dataclass(frozen=True)
+class PaperRuntimeLoopResult:
+    outcome: PaperRuntimeLoopOutcome
+    runtime: PaperRuntime
+    iterations: int
+    last_iteration: PaperRuntimeIterationResult | None
 
 
 def _default_clock() -> datetime:
@@ -842,6 +884,713 @@ class PaperRuntimeOwnershipService:
             )
 
 
+@dataclass(frozen=True)
+class _PreparedRuntimeIteration:
+    outcome: Literal["step", "stopped", "completed"]
+    runtime: PaperRuntime
+    work: PaperRuntimeWork | None
+
+
+class PaperRuntimeRunnerService:
+    """Run one already-claimed M35 runtime through exact durable M34 Steps."""
+
+    def __init__(
+        self,
+        *,
+        session_factory: sessionmaker[Session],
+        execution_service: PaperExecutionApplicationService,
+        ownership_service: PaperRuntimeOwnershipService,
+        clock: PaperRuntimeClock = _default_clock,
+    ) -> None:
+        if not isinstance(session_factory, sessionmaker):
+            raise TypeError("session_factory must be a SQLAlchemy sessionmaker")
+        if not isinstance(execution_service, PaperExecutionApplicationService):
+            raise TypeError("execution_service must be PaperExecutionApplicationService")
+        if not isinstance(ownership_service, PaperRuntimeOwnershipService):
+            raise TypeError("ownership_service must be PaperRuntimeOwnershipService")
+        if (
+            execution_service._session_factory is not session_factory
+            or ownership_service._session_factory is not session_factory
+        ):
+            raise ValueError("runner services must share one session factory")
+        if not callable(clock):
+            raise TypeError("clock must be callable")
+        self._session_factory = session_factory
+        self._execution_service = execution_service
+        self._ownership_service = ownership_service
+        self._clock = clock
+
+    def _now(self) -> datetime:
+        return utc_datetime(self._clock(), "runtime runner clock")
+
+    @contextmanager
+    def _write(self) -> Iterator[Session]:
+        session = self._session_factory()
+        try:
+            session.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            session.connection().exec_driver_sql("PRAGMA defer_foreign_keys=ON")
+            yield session
+            session.commit()
+        except OperationalError as exc:
+            session.rollback()
+            if _busy(exc):
+                raise PaperRuntimeStorageBusyError() from exc
+            raise PaperRuntimeStorageFailureError() from exc
+        except IntegrityError as exc:
+            session.rollback()
+            raise PaperRuntimeConcurrencyConflictError() from exc
+        except SQLAlchemyError as exc:
+            session.rollback()
+            raise PaperRuntimeStorageFailureError() from exc
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    @staticmethod
+    def _runtime(
+        repository: SqlAlchemyPaperRuntimeRepository, *, runtime_id: str
+    ) -> PaperRuntime:
+        runtime = repository.get_runtime(runtime_id=runtime_id)
+        if runtime is None:
+            raise PaperRuntimeNotFoundError()
+        return runtime
+
+    @staticmethod
+    def _assert_claim(
+        runtime: PaperRuntime,
+        *,
+        owner_id: str,
+        fencing_token: int,
+        now: datetime,
+    ) -> None:
+        PaperRuntimeOwnershipService._assert_exact_claim(
+            runtime,
+            owner_id=owner_id,
+            fencing_token=fencing_token,
+            now=now,
+        )
+
+    @staticmethod
+    def _work_reference(work: PaperRuntimeWork) -> dict[str, object]:
+        return {
+            "work_id": work.work_id,
+            "work_digest": work.work_digest,
+            "expected_execution_version": work.expected_execution_version,
+        }
+
+    @staticmethod
+    def _checkpoint_reference(
+        checkpoint: PaperRuntimeCheckpoint,
+    ) -> dict[str, object]:
+        return {
+            "checkpoint_id": checkpoint.checkpoint_id,
+            "checkpoint_digest": checkpoint.checkpoint_digest,
+            "observed_execution_version": checkpoint.observed_execution_version,
+        }
+
+    @classmethod
+    def _work_event_payload(
+        cls,
+        *,
+        runtime: PaperRuntime,
+        work: PaperRuntimeWork,
+        checkpoint: PaperRuntimeCheckpoint | None = None,
+    ) -> dict[str, object]:
+        payload: dict[str, object] = {
+            "resulting_runtime": runtime.to_dict(),
+            "work": cls._work_reference(work),
+        }
+        if checkpoint is not None:
+            payload["checkpoint"] = cls._checkpoint_reference(checkpoint)
+        return payload
+
+    @staticmethod
+    def _append_runtime_event(
+        repository: SqlAlchemyPaperRuntimeRepository,
+        *,
+        runtime: PaperRuntime,
+        event_type: str,
+        payload: dict[str, object],
+        recorded_at: datetime,
+    ) -> PaperRuntimeEvent:
+        return repository.append_event(
+            event=create_paper_runtime_event(
+                runtime=runtime,
+                event_sequence=repository.next_event_sequence(
+                    runtime_id=runtime.runtime_id
+                ),
+                event_type=event_type,
+                resulting_runtime_version=runtime.row_version,
+                payload=payload,
+                recorded_at=recorded_at,
+            )
+        )
+
+    @classmethod
+    def _require_exact_work_event(
+        cls,
+        repository: SqlAlchemyPaperRuntimeRepository,
+        *,
+        runtime: PaperRuntime,
+        work: PaperRuntimeWork,
+        event_type: Literal["work_created", "work_observed"],
+        checkpoint: PaperRuntimeCheckpoint | None = None,
+    ) -> PaperRuntimeEvent:
+        events = repository.find_work_events(
+            runtime_id=runtime.runtime_id,
+            work_id=work.work_id,
+            event_type=event_type,
+        )
+        if len(events) != 1:
+            raise PaperRuntimePersistenceCorruptionError()
+        payload = events[0].to_dict()["payload"]
+        if type(payload) is not dict:
+            raise PaperRuntimePersistenceCorruptionError()
+        if payload.get("work") != cls._work_reference(work):
+            raise PaperRuntimePersistenceCorruptionError()
+        if event_type == "work_observed":
+            if checkpoint is None or payload.get("checkpoint") != cls._checkpoint_reference(
+                checkpoint
+            ):
+                raise PaperRuntimePersistenceCorruptionError()
+        elif "checkpoint" in payload:
+            raise PaperRuntimePersistenceCorruptionError()
+        return events[0]
+
+    @classmethod
+    def _audit_work_observations(
+        cls,
+        repository: SqlAlchemyPaperRuntimeRepository,
+        *,
+        runtime: PaperRuntime,
+        canonical_execution_version: int,
+    ) -> PaperRuntimeWork | None:
+        current: PaperRuntimeWork | None = None
+        for work in repository.list_all_work(runtime_id=runtime.runtime_id):
+            cls._require_exact_work_event(
+                repository,
+                runtime=runtime,
+                work=work,
+                event_type="work_created",
+            )
+            checkpoint = repository.get_checkpoint_for_work(work_id=work.work_id)
+            observed_events = repository.find_work_events(
+                runtime_id=runtime.runtime_id,
+                work_id=work.work_id,
+                event_type="work_observed",
+            )
+            if checkpoint is None:
+                if observed_events:
+                    raise PaperRuntimePersistenceCorruptionError()
+            else:
+                cls._require_exact_work_event(
+                    repository,
+                    runtime=runtime,
+                    work=work,
+                    event_type="work_observed",
+                    checkpoint=checkpoint,
+                )
+            if work.expected_execution_version < canonical_execution_version:
+                if checkpoint is None:
+                    raise PaperRuntimeObservationRequiredError()
+            elif work.expected_execution_version == canonical_execution_version:
+                if checkpoint is not None or current is not None:
+                    raise PaperRuntimePersistenceCorruptionError()
+                current = work
+            else:
+                raise PaperRuntimePersistenceCorruptionError()
+        return current
+
+    @staticmethod
+    def _completed_events(
+        repository: SqlAlchemyPaperRuntimeRepository, *, runtime_id: str
+    ) -> tuple[PaperRuntimeEvent, ...]:
+        return tuple(
+            event
+            for event in repository.list_all_events(runtime_id=runtime_id)
+            if event.event_type == "runtime_completed"
+        )
+
+    @classmethod
+    def _transition_completed(
+        cls,
+        repository: SqlAlchemyPaperRuntimeRepository,
+        *,
+        runtime: PaperRuntime,
+        now: datetime,
+    ) -> PaperRuntime:
+        if runtime.observed_state == "completed":
+            if len(cls._completed_events(repository, runtime_id=runtime.runtime_id)) != 1:
+                raise PaperRuntimePersistenceCorruptionError()
+            return runtime
+        if cls._completed_events(repository, runtime_id=runtime.runtime_id):
+            raise PaperRuntimePersistenceCorruptionError()
+        completed = _replace_runtime(
+            runtime,
+            observed_state="completed",
+            row_version=runtime.row_version + 1,
+            updated_at=now,
+        )
+        stored = repository.compare_and_swap_runtime(
+            expected_runtime=runtime, replacement_runtime=completed
+        )
+        cls._append_runtime_event(
+            repository,
+            runtime=stored,
+            event_type="runtime_completed",
+            payload={"resulting_runtime": stored.to_dict()},
+            recorded_at=now,
+        )
+        return stored
+
+    @staticmethod
+    def _transition_observed(
+        repository: SqlAlchemyPaperRuntimeRepository,
+        *,
+        runtime: PaperRuntime,
+        observed_state: Literal["running", "stopped"],
+        now: datetime,
+    ) -> PaperRuntime:
+        if runtime.observed_state == observed_state:
+            return runtime
+        replacement = _replace_runtime(
+            runtime,
+            observed_state=observed_state,
+            row_version=runtime.row_version + 1,
+            updated_at=now,
+        )
+        return repository.compare_and_swap_runtime(
+            expected_runtime=runtime, replacement_runtime=replacement
+        )
+
+    def _phase_a_prepare(
+        self, *, runtime_id: str, owner_id: str, fencing_token: int
+    ) -> _PreparedRuntimeIteration:
+        with self._write() as session:
+            now = self._now()
+            repository = SqlAlchemyPaperRuntimeRepository(session=session)
+            runtime = self._runtime(repository, runtime_id=runtime_id)
+            self._assert_claim(
+                runtime,
+                owner_id=owner_id,
+                fencing_token=fencing_token,
+                now=now,
+            )
+            if runtime.observed_state in ("blocked", "completed"):
+                raise PaperRuntimeRunnerStateError()
+
+            execution = SqlAlchemyPaperExecutionRepository(session=session)
+            history = execution.load_historical_history(
+                execution_order_id=runtime.execution_order_id
+            )
+            if history.order.execution_order_digest != runtime.execution_order_digest:
+                raise PaperRuntimePersistenceCorruptionError()
+            version = history.state.execution_version
+            current_work = self._audit_work_observations(
+                repository,
+                runtime=runtime,
+                canonical_execution_version=version,
+            )
+
+            if runtime.desired_state == "stopped":
+                stopped = self._transition_observed(
+                    repository,
+                    runtime=runtime,
+                    observed_state="stopped",
+                    now=now,
+                )
+                return _PreparedRuntimeIteration("stopped", stopped, None)
+
+            if history.state.terminal:
+                if current_work is not None:
+                    raise PaperRuntimePersistenceCorruptionError()
+                completed = self._transition_completed(
+                    repository, runtime=runtime, now=now
+                )
+                return _PreparedRuntimeIteration("completed", completed, None)
+
+            execution.validate_current_working_authority(history=history)
+            work = current_work
+            if work is None:
+                work = create_paper_runtime_work(
+                    runtime=runtime,
+                    expected_execution_version=version,
+                    created_at=now,
+                )
+                repository.append_work(work=work)
+                running = self._transition_observed(
+                    repository,
+                    runtime=runtime,
+                    observed_state="running",
+                    now=now,
+                )
+                self._append_runtime_event(
+                    repository,
+                    runtime=running,
+                    event_type="work_created",
+                    payload=self._work_event_payload(runtime=running, work=work),
+                    recorded_at=now,
+                )
+                runtime = running
+            else:
+                runtime = self._transition_observed(
+                    repository,
+                    runtime=runtime,
+                    observed_state="running",
+                    now=now,
+                )
+            return _PreparedRuntimeIteration("step", runtime, work)
+
+    def _settle_stopped_before_step(
+        self, *, runtime_id: str, owner_id: str, fencing_token: int
+    ) -> PaperRuntime:
+        with self._write() as session:
+            now = self._now()
+            repository = SqlAlchemyPaperRuntimeRepository(session=session)
+            runtime = self._runtime(repository, runtime_id=runtime_id)
+            self._assert_claim(
+                runtime,
+                owner_id=owner_id,
+                fencing_token=fencing_token,
+                now=now,
+            )
+            if runtime.desired_state != "stopped":
+                raise PaperRuntimeConcurrencyConflictError()
+            return self._transition_observed(
+                repository,
+                runtime=runtime,
+                observed_state="stopped",
+                now=now,
+            )
+
+    def _confirm_step_entry(
+        self,
+        *,
+        runtime_id: str,
+        owner_id: str,
+        fencing_token: int,
+        work: PaperRuntimeWork,
+    ) -> PaperRuntime:
+        runtime = self._ownership_service.assert_active_runtime_claim(
+            runtime_id=runtime_id,
+            owner_id=owner_id,
+            fencing_token=fencing_token,
+        )
+        if runtime.observed_state in ("blocked", "completed"):
+            raise PaperRuntimeRunnerStateError()
+        if (
+            runtime.execution_order_id != work.execution_order_id
+            or runtime.execution_order_digest != work.execution_order_digest
+            or runtime.logical_actor != work.m34_step_actor
+        ):
+            raise PaperRuntimePersistenceCorruptionError()
+        return runtime
+
+    @staticmethod
+    def _verify_step_result(
+        stored: PaperExecutionStoredResult[PaperExecutionStepCommit],
+        *,
+        attempt,
+        fill,
+        settlement_link,
+    ) -> None:
+        if type(stored) is not PaperExecutionStoredResult:
+            raise PaperRuntimePersistenceCorruptionError()
+        commit = stored.result
+        if type(commit) is not PaperExecutionStepCommit:
+            raise PaperRuntimePersistenceCorruptionError()
+        if (
+            commit.step_result.attempt != attempt
+            or commit.step_result.fill != fill
+            or commit.settlement_link != settlement_link
+            or commit.account_event_id
+            != (None if settlement_link is None else settlement_link.account_event_id)
+        ):
+            raise PaperRuntimePersistenceCorruptionError()
+
+    def _phase_c_observe(
+        self,
+        *,
+        runtime_id: str,
+        owner_id: str,
+        fencing_token: int,
+        work: PaperRuntimeWork,
+        step: PaperExecutionStoredResult[PaperExecutionStepCommit],
+    ) -> PaperRuntimeIterationResult:
+        with self._write() as session:
+            now = self._now()
+            repository = SqlAlchemyPaperRuntimeRepository(session=session)
+            runtime = self._runtime(repository, runtime_id=runtime_id)
+            self._assert_claim(
+                runtime,
+                owner_id=owner_id,
+                fencing_token=fencing_token,
+                now=now,
+            )
+            if runtime.observed_state == "blocked":
+                raise PaperRuntimeRunnerStateError()
+            stored_work = repository.get_work(work_id=work.work_id)
+            if stored_work != work:
+                raise PaperRuntimePersistenceCorruptionError()
+            self._require_exact_work_event(
+                repository,
+                runtime=runtime,
+                work=work,
+                event_type="work_created",
+            )
+
+            execution = SqlAlchemyPaperExecutionRepository(session=session)
+            history = execution.load_historical_history(
+                execution_order_id=runtime.execution_order_id
+            )
+            if history.order.execution_order_digest != runtime.execution_order_digest:
+                raise PaperRuntimePersistenceCorruptionError()
+            if runtime.observed_state == "completed" and not history.state.terminal:
+                raise PaperRuntimePersistenceCorruptionError()
+            attempt, fill, link = repository.load_checkpoint_authority(
+                runtime=runtime, work=work
+            )
+            if (
+                history.state.execution_version
+                < work.expected_execution_version + 1
+                or attempt not in history.attempts
+            ):
+                raise PaperRuntimePersistenceCorruptionError()
+            self._verify_step_result(
+                step,
+                attempt=attempt,
+                fill=fill,
+                settlement_link=link,
+            )
+
+            checkpoint = repository.get_checkpoint_for_work(work_id=work.work_id)
+            if checkpoint is None:
+                checkpoint = create_paper_runtime_checkpoint(
+                    runtime=runtime,
+                    work=work,
+                    attempt=attempt,
+                    fill=fill,
+                    settlement_link=link,
+                    observed_at=now,
+                )
+                checkpoint = repository.append_checkpoint(checkpoint=checkpoint)
+                self._append_runtime_event(
+                    repository,
+                    runtime=runtime,
+                    event_type="work_observed",
+                    payload=self._work_event_payload(
+                        runtime=runtime, work=work, checkpoint=checkpoint
+                    ),
+                    recorded_at=now,
+                )
+            else:
+                self._require_exact_work_event(
+                    repository,
+                    runtime=runtime,
+                    work=work,
+                    event_type="work_observed",
+                    checkpoint=checkpoint,
+                )
+
+            if history.state.terminal:
+                runtime = self._transition_completed(
+                    repository, runtime=runtime, now=now
+                )
+                outcome: PaperRuntimeIterationOutcome = "completed"
+            elif runtime.desired_state == "stopped":
+                runtime = self._transition_observed(
+                    repository,
+                    runtime=runtime,
+                    observed_state="stopped",
+                    now=now,
+                )
+                outcome = "stopped"
+            else:
+                runtime = self._transition_observed(
+                    repository,
+                    runtime=runtime,
+                    observed_state="running",
+                    now=now,
+                )
+                outcome = "running"
+            result = PaperRuntimeIterationResult(
+                outcome=outcome,
+                runtime=runtime,
+                work=work,
+                checkpoint=checkpoint,
+                step_replayed=step.replayed,
+            )
+        return result
+
+    def _release(
+        self, *, runtime_id: str, owner_id: str, fencing_token: int
+    ) -> PaperRuntime:
+        return self._ownership_service.release_runtime_claim(
+            runtime_id=runtime_id,
+            owner_id=owner_id,
+            fencing_token=fencing_token,
+        ).runtime
+
+    def run_one_claimed_iteration(
+        self, *, runtime_id: str, owner_id: str, fencing_token: int
+    ) -> PaperRuntimeIterationResult:
+        """Run one serial Phase A / M34 Phase B / Phase C iteration."""
+
+        runtime_identifier = bounded_string(runtime_id, "runtime_id", 96)
+        owner = bounded_string(owner_id, "owner_id", 256)
+        fence = non_negative_int(fencing_token, "fencing_token")
+        prepared = self._phase_a_prepare(
+            runtime_id=runtime_identifier,
+            owner_id=owner,
+            fencing_token=fence,
+        )
+        if prepared.outcome in ("stopped", "completed"):
+            released = self._release(
+                runtime_id=runtime_identifier,
+                owner_id=owner,
+                fencing_token=fence,
+            )
+            return PaperRuntimeIterationResult(
+                outcome=prepared.outcome,
+                runtime=released,
+                work=None,
+                checkpoint=None,
+                step_replayed=None,
+            )
+
+        work = prepared.work
+        if work is None:
+            raise PaperRuntimePersistenceCorruptionError()
+        fresh = self._confirm_step_entry(
+            runtime_id=runtime_identifier,
+            owner_id=owner,
+            fencing_token=fence,
+            work=work,
+        )
+        if fresh.desired_state == "stopped":
+            self._settle_stopped_before_step(
+                runtime_id=runtime_identifier,
+                owner_id=owner,
+                fencing_token=fence,
+            )
+            released = self._release(
+                runtime_id=runtime_identifier,
+                owner_id=owner,
+                fencing_token=fence,
+            )
+            return PaperRuntimeIterationResult(
+                outcome="stopped",
+                runtime=released,
+                work=work,
+                checkpoint=None,
+                step_replayed=None,
+            )
+
+        command = create_step_paper_execution_order_command(
+            execution_order_reference=create_paper_execution_order_reference_from_runtime(
+                fresh
+            ),
+            expected_execution_version=work.expected_execution_version,
+            command_idempotency_key=work.m34_step_idempotency_key,
+            actor=work.m34_step_actor,
+        )
+        step = self._execution_service.step_order(command)
+        result = self._phase_c_observe(
+            runtime_id=runtime_identifier,
+            owner_id=owner,
+            fencing_token=fence,
+            work=work,
+            step=step,
+        )
+        if result.outcome in ("stopped", "completed"):
+            return PaperRuntimeIterationResult(
+                outcome=result.outcome,
+                runtime=self._release(
+                    runtime_id=runtime_identifier,
+                    owner_id=owner,
+                    fencing_token=fence,
+                ),
+                work=result.work,
+                checkpoint=result.checkpoint,
+                step_replayed=result.step_replayed,
+            )
+        fresh = self._ownership_service.assert_active_runtime_claim(
+            runtime_id=runtime_identifier,
+            owner_id=owner,
+            fencing_token=fence,
+        )
+        if fresh.desired_state == "stopped":
+            self._settle_stopped_before_step(
+                runtime_id=runtime_identifier,
+                owner_id=owner,
+                fencing_token=fence,
+            )
+            return PaperRuntimeIterationResult(
+                outcome="stopped",
+                runtime=self._release(
+                    runtime_id=runtime_identifier,
+                    owner_id=owner,
+                    fencing_token=fence,
+                ),
+                work=result.work,
+                checkpoint=result.checkpoint,
+                step_replayed=result.step_replayed,
+            )
+        renewed = self._ownership_service.renew_runtime_claim(
+            runtime_id=runtime_identifier,
+            owner_id=owner,
+            fencing_token=fence,
+        )
+        return PaperRuntimeIterationResult(
+            outcome="running",
+            runtime=renewed,
+            work=result.work,
+            checkpoint=result.checkpoint,
+            step_replayed=result.step_replayed,
+        )
+
+    def run_claimed_runtime(
+        self,
+        *,
+        runtime_id: str,
+        owner_id: str,
+        fencing_token: int,
+        iteration_budget: int | None = None,
+    ) -> PaperRuntimeLoopResult:
+        """Serially run fresh durable iterations until lifecycle or caller control stops."""
+
+        if iteration_budget is not None and (
+            type(iteration_budget) is not int or iteration_budget <= 0
+        ):
+            raise ValueError("iteration_budget must be strictly positive")
+        iterations = 0
+        last: PaperRuntimeIterationResult | None = None
+        while iteration_budget is None or iterations < iteration_budget:
+            last = self.run_one_claimed_iteration(
+                runtime_id=runtime_id,
+                owner_id=owner_id,
+                fencing_token=fencing_token,
+            )
+            iterations += 1
+            if last.outcome in ("stopped", "completed"):
+                return PaperRuntimeLoopResult(
+                    outcome=last.outcome,
+                    runtime=last.runtime,
+                    iterations=iterations,
+                    last_iteration=last,
+                )
+        if last is None:
+            raise PaperRuntimePersistenceCorruptionError()
+        return PaperRuntimeLoopResult(
+            outcome="iteration_budget_exhausted",
+            runtime=last.runtime,
+            iterations=iterations,
+            last_iteration=last,
+        )
+
+
 __all__ = [
     "PaperRuntimeAlreadyExistsError",
     "PaperRuntimeBindingMismatchError",
@@ -850,12 +1599,19 @@ __all__ = [
     "PaperRuntimeControlIdempotencyConflictError",
     "PaperRuntimeControlReplay",
     "PaperRuntimeLeaseExpiredError",
+    "PaperRuntimeIterationOutcome",
+    "PaperRuntimeIterationResult",
     "PaperRuntimeLifecycleConflictError",
     "PaperRuntimeLifecycleResult",
     "PaperRuntimeLifecycleService",
     "PaperRuntimeOwnershipBusyError",
     "PaperRuntimeOwnershipResult",
     "PaperRuntimeOwnershipService",
+    "PaperRuntimeLoopOutcome",
+    "PaperRuntimeLoopResult",
+    "PaperRuntimeObservationRequiredError",
+    "PaperRuntimeRunnerService",
+    "PaperRuntimeRunnerStateError",
     "PaperRuntimeTerminalContinuationError",
     "resolve_paper_runtime_control_replay",
 ]
