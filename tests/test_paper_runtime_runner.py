@@ -528,3 +528,85 @@ def test_stale_live_continuation_refuses_before_work_creation(tmp_path, monkeypa
     _runtime, work, checkpoints, _events, history = _read(factory, claim.runtime_id)
     assert work == checkpoints == history.attempts == ()
     engine.dispose()
+
+
+def test_post_step_live_divergence_is_observed_before_next_step_refuses(
+    tmp_path, monkeypatch
+):
+    engine, factory, order, _lifecycle, _ownership, runner, _clock, claim = (
+        _runner_fixture(tmp_path / "post-step-live-divergence.sqlite3", monkeypatch)
+    )
+    original = runner._execution_service.step_order
+    step_calls = []
+
+    def step_then_diverge_account(command):
+        _runtime, work, checkpoints, events, history = _read(
+            factory, claim.runtime_id
+        )
+        assert len(work) == 1
+        assert (
+            work[0].expected_execution_version
+            == command.expected_execution_version
+        )
+        assert checkpoints == history.attempts == ()
+        assert [event.event_type for event in events].count("work_created") == 1
+
+        committed = original(command)
+        _runtime, committed_work, checkpoints, _events, history = _read(
+            factory, claim.runtime_id
+        )
+        assert committed_work == work
+        assert checkpoints == ()
+        assert len(history.attempts) == 1
+        assert history.attempts[0] == committed.result.step_result.attempt
+        assert history.attempts[0].execution_version_after == 1
+        assert history.attempts[0].post_step_cursor.position == 5
+        step_calls.append(command.command_idempotency_key)
+        _diverge_account(factory, order)
+        return committed
+
+    monkeypatch.setattr(
+        runner._execution_service, "step_order", step_then_diverge_account
+    )
+    observed = _run_one(runner, claim)
+    _runtime, work, checkpoints, events, history = _read(factory, claim.runtime_id)
+    assert observed.outcome == "running"
+    assert observed.checkpoint == checkpoints[0]
+    assert len(work) == len(checkpoints) == len(history.attempts) == 1
+    assert checkpoints[0].attempt_id == history.attempts[0].attempt_id
+    assert checkpoints[0].attempt_digest == history.attempts[0].attempt_digest
+    assert checkpoints[0].post_cursor_position == 5
+    assert history.fills == history.settlement_links == ()
+    assert [event.event_type for event in events].count("work_created") == 1
+    assert [event.event_type for event in events].count("work_observed") == 1
+    assert len(step_calls) == 1
+
+    with pytest.raises(PaperExecutionReconciliationRequiredError) as stale:
+        _run_one(runner, claim)
+    assert type(stale.value) is PaperExecutionReconciliationRequiredError
+
+    _runtime, later_work, later_checkpoints, later_events, later_history = _read(
+        factory, claim.runtime_id
+    )
+    assert later_work == work
+    assert later_checkpoints == checkpoints
+    assert later_history.attempts == history.attempts
+    assert later_history.fills == later_history.settlement_links == ()
+    assert [event.event_type for event in later_events].count("work_created") == 1
+    assert [event.event_type for event in later_events].count("work_observed") == 1
+    assert len(step_calls) == 1
+    with engine.connect() as connection:
+        assert connection.scalar(
+            text(
+                "SELECT COUNT(*) FROM paper_account_events "
+                "WHERE event_type='execution_fill_posted'"
+            )
+        ) == 0
+        assert connection.scalar(
+            text(
+                "SELECT position FROM market_data_replays "
+                "WHERE replay_id=:replay_id"
+            ),
+            {"replay_id": order.market_handoff_reference.replay_id},
+        ) == 5
+    engine.dispose()

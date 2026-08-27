@@ -1342,7 +1342,7 @@ class PaperRuntimeRunnerService:
             )
 
             execution = SqlAlchemyPaperExecutionRepository(session=session)
-            history = execution.load_history(
+            history = execution.load_historical_history(
                 execution_order_id=runtime.execution_order_id
             )
             if history.order.execution_order_digest != runtime.execution_order_digest:
