@@ -18,6 +18,7 @@ from el_psy_quant.api.routes.paper_accounts import (
     router as paper_accounts_router,
 )
 from el_psy_quant.api.routes.paper_jobs import router as paper_jobs_router
+from el_psy_quant.api.routes.paper_runtimes import router as paper_runtimes_router
 from el_psy_quant.api.routes.portfolio_reviews import (
     router as portfolio_reviews_router,
 )
@@ -40,6 +41,7 @@ api_v1_router.include_router(paper_runs_router)
 api_v1_router.include_router(paper_execution_router)
 api_v1_router.include_router(paper_accounts_router)
 api_v1_router.include_router(paper_jobs_router)
+api_v1_router.include_router(paper_runtimes_router)
 api_v1_router.include_router(portfolio_reviews_router)
 api_v1_router.include_router(research_runs_router)
 api_v1_router.include_router(strategies_router)

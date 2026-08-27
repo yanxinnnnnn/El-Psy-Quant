@@ -5768,6 +5768,1053 @@
         "title": "PaperRunCommandResponse",
         "type": "object"
       },
+      "PaperRuntimeAuditEntryResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_id": {
+            "anyOf": [
+              {
+                "pattern": "^prc_[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkpoint Id"
+          },
+          "event_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Event Digest",
+            "type": "string"
+          },
+          "event_id": {
+            "pattern": "^pre_[0-9a-f]{64}$",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_sequence": {
+            "minimum": 0.0,
+            "title": "Event Sequence",
+            "type": "integer"
+          },
+          "event_type": {
+            "enum": [
+              "runtime_created",
+              "start_requested",
+              "stop_requested",
+              "resume_requested",
+              "recover_requested",
+              "claim_acquired",
+              "claim_released",
+              "claim_taken_over",
+              "work_created",
+              "work_observed",
+              "runtime_completed",
+              "runtime_blocked"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "resulting_runtime_version": {
+            "minimum": 0.0,
+            "title": "Resulting Runtime Version",
+            "type": "integer"
+          },
+          "runtime_id": {
+            "pattern": "^prt_[0-9a-f]{64}$",
+            "title": "Runtime Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "work_id": {
+            "anyOf": [
+              {
+                "pattern": "^prw_[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Id"
+          }
+        },
+        "required": [
+          "schema_version",
+          "event_id",
+          "event_digest",
+          "runtime_id",
+          "event_sequence",
+          "event_type",
+          "resulting_runtime_version",
+          "recorded_at",
+          "work_id",
+          "checkpoint_id"
+        ],
+        "title": "PaperRuntimeAuditEntryResponse",
+        "type": "object"
+      },
+      "PaperRuntimeAuditListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaperRuntimeAuditEntryResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PaperRuntimeAuditListResponse",
+        "type": "object"
+      },
+      "PaperRuntimeCheckpointListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaperRuntimeCheckpointResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PaperRuntimeCheckpointListResponse",
+        "type": "object"
+      },
+      "PaperRuntimeCheckpointResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_event_id": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Event Id"
+          },
+          "attempt_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Attempt Digest",
+            "type": "string"
+          },
+          "attempt_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "checkpoint_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Checkpoint Digest",
+            "type": "string"
+          },
+          "checkpoint_id": {
+            "pattern": "^prc_[0-9a-f]{64}$",
+            "title": "Checkpoint Id",
+            "type": "string"
+          },
+          "event_stream_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Event Stream Digest",
+            "type": "string"
+          },
+          "execution_order_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "execution_order_id": {
+            "pattern": "^peo_[0-9a-f]{64}$",
+            "title": "Execution Order Id",
+            "type": "string"
+          },
+          "fill_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fill Digest"
+          },
+          "fill_id": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fill Id"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "observed_execution_version": {
+            "exclusiveMinimum": 0.0,
+            "title": "Observed Execution Version",
+            "type": "integer"
+          },
+          "post_cursor_last_event_id": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Post Cursor Last Event Id"
+          },
+          "post_cursor_position": {
+            "minimum": 0.0,
+            "title": "Post Cursor Position",
+            "type": "integer"
+          },
+          "replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "runtime_id": {
+            "pattern": "^prt_[0-9a-f]{64}$",
+            "title": "Runtime Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "settlement_link_evidence_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settlement Link Evidence Digest"
+          },
+          "settlement_link_id": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settlement Link Id"
+          },
+          "work_id": {
+            "pattern": "^prw_[0-9a-f]{64}$",
+            "title": "Work Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "checkpoint_id",
+          "checkpoint_digest",
+          "runtime_id",
+          "work_id",
+          "execution_order_id",
+          "execution_order_digest",
+          "observed_execution_version",
+          "attempt_id",
+          "attempt_digest",
+          "fill_id",
+          "fill_digest",
+          "settlement_link_id",
+          "settlement_link_evidence_digest",
+          "account_event_id",
+          "replay_id",
+          "event_stream_digest",
+          "post_cursor_position",
+          "post_cursor_last_event_id",
+          "observed_at"
+        ],
+        "title": "PaperRuntimeCheckpointResponse",
+        "type": "object"
+      },
+      "PaperRuntimeCommandResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/PaperRuntimeResponse"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "replayed",
+          "request_id",
+          "runtime"
+        ],
+        "title": "PaperRuntimeCommandResponse",
+        "type": "object"
+      },
+      "PaperRuntimeControlRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "expected_runtime_version": {
+            "minimum": 0.0,
+            "title": "Expected Runtime Version",
+            "type": "integer"
+          },
+          "runtime_binding_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Runtime Binding Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_binding_digest",
+          "expected_runtime_version",
+          "actor"
+        ],
+        "title": "PaperRuntimeControlRequest",
+        "type": "object"
+      },
+      "PaperRuntimeCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Actor",
+            "type": "string"
+          },
+          "execution_order_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "execution_order_id": {
+            "pattern": "^peo_[0-9a-f]{64}$",
+            "title": "Execution Order Id",
+            "type": "string"
+          },
+          "logical_actor": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Logical Actor",
+            "type": "string"
+          },
+          "runtime_policy_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Runtime Policy Id",
+            "type": "string"
+          },
+          "runtime_policy_version": {
+            "minimum": 0.0,
+            "title": "Runtime Policy Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "execution_order_id",
+          "execution_order_digest",
+          "logical_actor",
+          "runtime_policy_id",
+          "runtime_policy_version",
+          "actor"
+        ],
+        "title": "PaperRuntimeCreateRequest",
+        "type": "object"
+      },
+      "PaperRuntimeHealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "block_reason_code": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[a-z0-9_]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block Reason Code"
+          },
+          "blocked": {
+            "title": "Blocked",
+            "type": "boolean"
+          },
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "claimed": {
+            "title": "Claimed",
+            "type": "boolean"
+          },
+          "claimed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed At"
+          },
+          "desired_state": {
+            "enum": [
+              "running",
+              "stopped"
+            ],
+            "title": "Desired State",
+            "type": "string"
+          },
+          "fencing_token": {
+            "minimum": 0.0,
+            "title": "Fencing Token",
+            "type": "integer"
+          },
+          "heartbeat_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heartbeat At"
+          },
+          "lease_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Expires At"
+          },
+          "lease_status": {
+            "enum": [
+              "unowned",
+              "active",
+              "expired"
+            ],
+            "title": "Lease Status",
+            "type": "string"
+          },
+          "observed_state": {
+            "enum": [
+              "ready",
+              "running",
+              "stopped",
+              "completed",
+              "blocked"
+            ],
+            "title": "Observed State",
+            "type": "string"
+          },
+          "row_version": {
+            "minimum": 0.0,
+            "title": "Row Version",
+            "type": "integer"
+          },
+          "runtime_id": {
+            "pattern": "^prt_[0-9a-f]{64}$",
+            "title": "Runtime Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "terminal": {
+            "title": "Terminal",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schema_version",
+          "runtime_id",
+          "desired_state",
+          "observed_state",
+          "row_version",
+          "fencing_token",
+          "claimed",
+          "lease_status",
+          "claimed_at",
+          "heartbeat_at",
+          "lease_expires_at",
+          "terminal",
+          "blocked",
+          "block_reason_code",
+          "checked_at"
+        ],
+        "title": "PaperRuntimeHealthResponse",
+        "type": "object"
+      },
+      "PaperRuntimeListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaperRuntimeResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PaperRuntimeListResponse",
+        "type": "object"
+      },
+      "PaperRuntimeReconciliationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "checkpoint_count": {
+            "minimum": 0.0,
+            "title": "Checkpoint Count",
+            "type": "integer"
+          },
+          "continuation_status": {
+            "enum": [
+              "current",
+              "stale",
+              "not_applicable"
+            ],
+            "title": "Continuation Status",
+            "type": "string"
+          },
+          "event_count": {
+            "minimum": 0.0,
+            "title": "Event Count",
+            "type": "integer"
+          },
+          "execution_order_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "execution_order_id": {
+            "pattern": "^peo_[0-9a-f]{64}$",
+            "title": "Execution Order Id",
+            "type": "string"
+          },
+          "execution_terminal": {
+            "title": "Execution Terminal",
+            "type": "boolean"
+          },
+          "execution_version": {
+            "minimum": 0.0,
+            "title": "Execution Version",
+            "type": "integer"
+          },
+          "historical_coherent": {
+            "const": true,
+            "title": "Historical Coherent",
+            "type": "boolean"
+          },
+          "pending_work_id": {
+            "anyOf": [
+              {
+                "pattern": "^prw_[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Work Id"
+          },
+          "runtime_binding_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Runtime Binding Digest",
+            "type": "string"
+          },
+          "runtime_id": {
+            "pattern": "^prt_[0-9a-f]{64}$",
+            "title": "Runtime Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "coherent_nonterminal",
+              "coherent_terminal",
+              "coherent_stopped",
+              "blocked",
+              "continuation_stale"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "work_count": {
+            "minimum": 0.0,
+            "title": "Work Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "runtime_id",
+          "runtime_binding_digest",
+          "status",
+          "historical_coherent",
+          "continuation_status",
+          "execution_order_id",
+          "execution_order_digest",
+          "execution_version",
+          "execution_terminal",
+          "work_count",
+          "checkpoint_count",
+          "event_count",
+          "pending_work_id"
+        ],
+        "title": "PaperRuntimeReconciliationResponse",
+        "type": "object"
+      },
+      "PaperRuntimeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "block_reason_code": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[a-z0-9_]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block Reason Code"
+          },
+          "claimed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "desired_state": {
+            "enum": [
+              "running",
+              "stopped"
+            ],
+            "title": "Desired State",
+            "type": "string"
+          },
+          "execution_order_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "execution_order_id": {
+            "pattern": "^peo_[0-9a-f]{64}$",
+            "title": "Execution Order Id",
+            "type": "string"
+          },
+          "fencing_token": {
+            "minimum": 0.0,
+            "title": "Fencing Token",
+            "type": "integer"
+          },
+          "heartbeat_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heartbeat At"
+          },
+          "lease_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Expires At"
+          },
+          "logical_actor": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Logical Actor",
+            "type": "string"
+          },
+          "observed_state": {
+            "enum": [
+              "ready",
+              "running",
+              "stopped",
+              "completed",
+              "blocked"
+            ],
+            "title": "Observed State",
+            "type": "string"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "replay_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "row_version": {
+            "minimum": 0.0,
+            "title": "Row Version",
+            "type": "integer"
+          },
+          "runtime_binding_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Runtime Binding Digest",
+            "type": "string"
+          },
+          "runtime_id": {
+            "pattern": "^prt_[0-9a-f]{64}$",
+            "title": "Runtime Id",
+            "type": "string"
+          },
+          "runtime_policy_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Runtime Policy Id",
+            "type": "string"
+          },
+          "runtime_policy_version": {
+            "minimum": 0.0,
+            "title": "Runtime Policy Version",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "trading_session_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "Trading Session Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "runtime_id",
+          "runtime_binding_digest",
+          "execution_order_id",
+          "execution_order_digest",
+          "account_id",
+          "replay_id",
+          "trading_session_id",
+          "logical_actor",
+          "runtime_policy_id",
+          "runtime_policy_version",
+          "desired_state",
+          "observed_state",
+          "owner_id",
+          "fencing_token",
+          "claimed_at",
+          "heartbeat_at",
+          "lease_expires_at",
+          "row_version",
+          "block_reason_code",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PaperRuntimeResponse",
+        "type": "object"
+      },
+      "PaperRuntimeWorkListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PaperRuntimeWorkResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "items",
+          "next_cursor"
+        ],
+        "title": "PaperRuntimeWorkListResponse",
+        "type": "object"
+      },
+      "PaperRuntimeWorkResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_order_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "execution_order_id": {
+            "pattern": "^peo_[0-9a-f]{64}$",
+            "title": "Execution Order Id",
+            "type": "string"
+          },
+          "expected_execution_version": {
+            "minimum": 0.0,
+            "title": "Expected Execution Version",
+            "type": "integer"
+          },
+          "m34_step_actor": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "title": "M34 Step Actor",
+            "type": "string"
+          },
+          "m34_step_idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "M34 Step Idempotency Key",
+            "type": "string"
+          },
+          "runtime_id": {
+            "pattern": "^prt_[0-9a-f]{64}$",
+            "title": "Runtime Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "work_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Work Digest",
+            "type": "string"
+          },
+          "work_id": {
+            "pattern": "^prw_[0-9a-f]{64}$",
+            "title": "Work Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "work_id",
+          "work_digest",
+          "runtime_id",
+          "execution_order_id",
+          "execution_order_digest",
+          "expected_execution_version",
+          "m34_step_idempotency_key",
+          "m34_step_actor",
+          "created_at"
+        ],
+        "title": "PaperRuntimeWorkResponse",
+        "type": "object"
+      },
       "PaperSessionSummaryResponse": {
         "properties": {
           "cash_change": {
@@ -13369,6 +14416,1130 @@
           }
         },
         "summary": "Post Paper Run"
+      }
+    },
+    "/api/v1/paper-runtimes": {
+      "get": {
+        "operationId": "list_paper_runtimes_v1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "replay_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Replay Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "trading_session_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^\\S(?:.*\\S)?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Trading Session Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desired_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "running",
+                    "stopped"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Desired State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "observed_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "ready",
+                    "running",
+                    "stopped",
+                    "completed",
+                    "blocked"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Observed State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Paper Runtimes V1"
+      },
+      "post": {
+        "operationId": "create_paper_runtime_v1",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperRuntimeCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Paper Runtime V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}": {
+      "get": {
+        "operationId": "get_paper_runtime_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Paper Runtime V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/audit": {
+      "get": {
+        "operationId": "list_paper_runtime_audit_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeAuditListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Paper Runtime Audit V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/checkpoints": {
+      "get": {
+        "operationId": "list_paper_runtime_checkpoints_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCheckpointListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Paper Runtime Checkpoints V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/health": {
+      "get": {
+        "operationId": "get_paper_runtime_health_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeHealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Paper Runtime Health V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/reconciliation": {
+      "get": {
+        "operationId": "get_paper_runtime_reconciliation_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeReconciliationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Paper Runtime Reconciliation V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/recover": {
+      "post": {
+        "operationId": "recover_paper_runtime_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperRuntimeControlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Recover Paper Runtime V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/resume": {
+      "post": {
+        "operationId": "resume_paper_runtime_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperRuntimeControlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Resume Paper Runtime V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/start": {
+      "post": {
+        "operationId": "start_paper_runtime_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperRuntimeControlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Start Paper Runtime V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/stop": {
+      "post": {
+        "operationId": "stop_paper_runtime_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperRuntimeControlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeCommandResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Stop Paper Runtime V1"
+      }
+    },
+    "/api/v1/paper-runtimes/{runtime_id}/work": {
+      "get": {
+        "operationId": "list_paper_runtime_work_v1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "runtime_id",
+            "required": true,
+            "schema": {
+              "pattern": "^prt_[0-9a-f]{64}$",
+              "title": "Runtime Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2048,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperRuntimeWorkListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Paper Runtime Work V1"
       }
     },
     "/api/v1/portfolio-reviews": {

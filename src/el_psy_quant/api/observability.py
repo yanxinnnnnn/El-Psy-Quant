@@ -41,6 +41,18 @@ PaperExecutionEvent: TypeAlias = Literal[
     "paper_execution_corruption_refused",
     "paper_execution_reconciliation_checked",
 ]
+PaperRuntimeEvent: TypeAlias = Literal[
+    "paper_runtime_created",
+    "paper_runtime_start_requested",
+    "paper_runtime_stop_requested",
+    "paper_runtime_resume_requested",
+    "paper_runtime_recover_requested",
+    "paper_runtime_idempotent_replay",
+    "paper_runtime_lifecycle_refused",
+    "paper_runtime_corruption_refused",
+    "paper_runtime_health_checked",
+    "paper_runtime_reconciliation_checked",
+]
 
 
 @dataclass(frozen=True)
@@ -228,6 +240,56 @@ API_OPERATIONS: tuple[ApiOperation, ...] = (
         "GET",
         "/api/v1/paper-execution/orders/{execution_order_id}/reconciliation",
         "paper_execution.reconciliation",
+    ),
+    ApiOperation("POST", "/api/v1/paper-runtimes", "paper_runtime.create"),
+    ApiOperation("GET", "/api/v1/paper-runtimes", "paper_runtime.list"),
+    ApiOperation(
+        "GET", "/api/v1/paper-runtimes/{runtime_id}", "paper_runtime.detail"
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-runtimes/{runtime_id}/start",
+        "paper_runtime.start",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-runtimes/{runtime_id}/stop",
+        "paper_runtime.stop",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-runtimes/{runtime_id}/resume",
+        "paper_runtime.resume",
+    ),
+    ApiOperation(
+        "POST",
+        "/api/v1/paper-runtimes/{runtime_id}/recover",
+        "paper_runtime.recover",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-runtimes/{runtime_id}/health",
+        "paper_runtime.health",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-runtimes/{runtime_id}/reconciliation",
+        "paper_runtime.reconciliation",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-runtimes/{runtime_id}/audit",
+        "paper_runtime.audit",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-runtimes/{runtime_id}/work",
+        "paper_runtime.work",
+    ),
+    ApiOperation(
+        "GET",
+        "/api/v1/paper-runtimes/{runtime_id}/checkpoints",
+        "paper_runtime.checkpoints",
     ),
 )
 
@@ -812,6 +874,62 @@ def log_paper_execution_event(
     )
 
 
+def log_paper_runtime_event(
+    *,
+    event: PaperRuntimeEvent,
+    request_id: str,
+    operation: str,
+    http_status: int,
+    runtime_id: str | None = None,
+    desired_state: str | None = None,
+    observed_state: str | None = None,
+    row_version: int | None = None,
+    fencing_token: int | None = None,
+    outcome: str | None = None,
+    replayed: bool | None = None,
+) -> None:
+    """Emit bounded M35 operational identity without command or payload data."""
+
+    level = (
+        logging.WARNING
+        if event in {"paper_runtime_lifecycle_refused", "paper_runtime_corruption_refused"}
+        else logging.INFO
+    )
+    values = {
+        "event": event,
+        "request_id": request_id,
+        "operation": operation,
+        "http_status": http_status,
+        "runtime_id": runtime_id,
+        "desired_state": desired_state,
+        "observed_state": observed_state,
+        "row_version": row_version,
+        "fencing_token": fencing_token,
+        "outcome": outcome,
+        "replayed": replayed,
+    }
+    PRODUCT_LOGGER.log(
+        level,
+        (
+            "%s request_id=%s operation=%s http_status=%s runtime_id=%s "
+            "desired_state=%s observed_state=%s row_version=%s "
+            "fencing_token=%s outcome=%s replayed=%s"
+        ),
+        event,
+        request_id,
+        operation,
+        http_status,
+        runtime_id,
+        desired_state,
+        observed_state,
+        row_version,
+        fencing_token,
+        outcome,
+        replayed,
+        extra=values,
+    )
+
+
 __all__ = [
     "API_OPERATIONS",
     "MAX_DURATION_MS",
@@ -830,6 +948,7 @@ __all__ = [
     "log_paper_job_command_completed",
     "log_paper_job_execution_terminal",
     "log_paper_execution_event",
+    "log_paper_runtime_event",
     "log_portfolio_review_command_completed",
     "log_pre_trade_risk_evaluation_completed",
     "log_strategy_signal_evaluation_completed",

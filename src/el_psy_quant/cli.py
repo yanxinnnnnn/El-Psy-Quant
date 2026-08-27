@@ -5,6 +5,8 @@ import json
 import shutil
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
 
 from el_psy_quant.backtesting import summarize_multi_symbol_results
@@ -26,7 +28,114 @@ from el_psy_quant.local_workspace import (
     verify_local_workspace,
 )
 from el_psy_quant.outputs import create_experiment_output_layout
+from el_psy_quant.application import PaperExecutionApplicationService
+from el_psy_quant.application.paper_runtime import (
+    PaperRuntimeOwnershipBusyError,
+    PaperRuntimeOwnershipService,
+    PaperRuntimeRecoveryService,
+    PaperRuntimeRunnerService,
+)
+from el_psy_quant.persistence import (
+    PaperRuntimeNotFoundError,
+    PaperRuntimePersistenceCorruptionError,
+    PaperRuntimeStorageBusyError,
+    PaperRuntimeStorageFailureError,
+    create_product_database_engine,
+    create_product_session_factory,
+    resolve_product_database_config,
+)
+from el_psy_quant.persistence.schema import (
+    ProductSchemaVerificationError,
+    verify_product_schema,
+)
 from el_psy_quant.strategies import resolve_strategy
+
+
+@dataclass(frozen=True)
+class PaperRuntimeProcessResult:
+    """Bounded process outcome without exposing internal runtime payloads."""
+
+    runtime_id: str
+    recovery_outcome: str
+    runner_outcome: str | None
+    fencing_token: int
+    iterations: int
+
+
+def run_paper_runtime_process(
+    *,
+    database_path: str | Path,
+    runtime_id: str,
+    owner_id: str,
+    lease_seconds: int = 30,
+    iteration_budget: int | None = None,
+) -> PaperRuntimeProcessResult:
+    """Compose S222 recovery then S221 runner over one shared session factory."""
+
+    if type(lease_seconds) is not int or lease_seconds <= 0:
+        raise ValueError("lease_seconds must be strictly positive")
+    if iteration_budget is not None and (
+        type(iteration_budget) is not int or iteration_budget <= 0
+    ):
+        raise ValueError("iteration_budget must be strictly positive")
+    config = resolve_product_database_config(database_path=database_path)
+    verify_product_schema(config.database_path)
+    engine = create_product_database_engine(config=config)
+    try:
+        session_factory = create_product_session_factory(engine=engine)
+        execution = PaperExecutionApplicationService(session_factory=session_factory)
+        ownership = PaperRuntimeOwnershipService(
+            session_factory=session_factory,
+            lease_duration=timedelta(seconds=lease_seconds),
+        )
+        recovery = PaperRuntimeRecoveryService(
+            session_factory=session_factory,
+            execution_service=execution,
+            ownership_service=ownership,
+        )
+        runner = PaperRuntimeRunnerService(
+            session_factory=session_factory,
+            execution_service=execution,
+            ownership_service=ownership,
+        )
+        recovered = recovery.recover_runtime(
+            runtime_id=runtime_id,
+            recovery_owner_id=owner_id,
+        )
+        runner_outcome = None
+        iterations = 0
+        runtime = recovered.runtime
+        if recovered.outcome == "runnable":
+            if runtime.owner_id != owner_id:
+                raise PaperRuntimePersistenceCorruptionError()
+            loop = runner.run_claimed_runtime(
+                runtime_id=runtime.runtime_id,
+                owner_id=owner_id,
+                fencing_token=runtime.fencing_token,
+                iteration_budget=iteration_budget,
+            )
+            runner_outcome = loop.outcome
+            iterations = loop.iterations
+            runtime = loop.runtime
+        return PaperRuntimeProcessResult(
+            runtime_id=runtime.runtime_id,
+            recovery_outcome=recovered.outcome,
+            runner_outcome=runner_outcome,
+            fencing_token=runtime.fencing_token,
+            iterations=iterations,
+        )
+    finally:
+        engine.dispose()
+
+
+def _positive_int(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be a positive integer") from exc
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
 
 
 def run_configured_experiment(
@@ -176,12 +285,58 @@ def _build_parser() -> argparse.ArgumentParser:
     startup_parser.add_argument("--workspace-root", type=Path, required=True)
     startup_parser.add_argument("--alembic-config", type=Path, required=True)
     startup_parser.add_argument("--demo-source-root", type=Path)
+    runtime_parser = subparsers.add_parser(
+        "run-paper-runtime",
+        help="recover then run one durable Paper Runtime",
+    )
+    runtime_parser.add_argument("--database-path", type=Path, required=True)
+    runtime_parser.add_argument("--runtime-id", required=True)
+    runtime_parser.add_argument("--owner-id", required=True)
+    runtime_parser.add_argument("--lease-seconds", type=_positive_int, default=30)
+    runtime_parser.add_argument("--iteration-budget", type=_positive_int)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the command-line interface."""
     args = _build_parser().parse_args(argv)
+    if args.command == "run-paper-runtime":
+        try:
+            result = run_paper_runtime_process(
+                database_path=args.database_path,
+                runtime_id=args.runtime_id,
+                owner_id=args.owner_id,
+                lease_seconds=args.lease_seconds,
+                iteration_budget=args.iteration_budget,
+            )
+        except ProductSchemaVerificationError:
+            print("error: paper runtime schema is incompatible", file=sys.stderr)
+            return 1
+        except PaperRuntimeNotFoundError:
+            print("error: paper runtime was not found", file=sys.stderr)
+            return 1
+        except PaperRuntimeOwnershipBusyError:
+            print("error: paper runtime has an active foreign owner", file=sys.stderr)
+            return 1
+        except PaperRuntimeStorageBusyError:
+            print("error: paper runtime storage is temporarily unavailable", file=sys.stderr)
+            return 1
+        except (
+            PaperRuntimePersistenceCorruptionError,
+            PaperRuntimeStorageFailureError,
+        ):
+            print("error: paper runtime authority is unavailable", file=sys.stderr)
+            return 1
+        except (OSError, RuntimeError, TypeError, ValueError):
+            print("error: paper runtime process input is invalid", file=sys.stderr)
+            return 1
+        runner_outcome = result.runner_outcome or "not_run"
+        print(
+            f"runtime_id={result.runtime_id} recovery={result.recovery_outcome} "
+            f"runner={runner_outcome} fence={result.fencing_token} "
+            f"iterations={result.iterations}"
+        )
+        return 0
     if args.command == "verify-local-workspace":
         try:
             result = verify_local_workspace(
