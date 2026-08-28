@@ -17,6 +17,7 @@ import {
 } from "@/lib/api-client";
 
 type Failure = Readonly<{ code: string; message: string; requestId: string | null; status: number }>;
+type RetryRequest = Readonly<{ filters: PaperRuntimeListFilters; append: boolean }>;
 const desiredStates: readonly PaperRuntimeDesiredState[] = ["running", "stopped"];
 const observedStates: readonly PaperRuntimeObservedState[] = ["ready", "running", "stopped", "completed", "blocked"];
 
@@ -32,6 +33,7 @@ export function PaperRuntimeListView() {
   const [query, setQuery] = useState<PaperRuntimeListFilters>({ limit: 25 });
   const [data, setData] = useState<PaperRuntimeListResponse | null>(null);
   const [error, setError] = useState<Failure | null>(null);
+  const [retryRequest, setRetryRequest] = useState<RetryRequest | null>(null);
   const [loading, setLoading] = useState(false);
   const sequence = useRef(0);
 
@@ -39,6 +41,7 @@ export function PaperRuntimeListView() {
     const requestSequence = ++sequence.current;
     setLoading(true);
     setError(null);
+    setRetryRequest(null);
     try {
       const response = await fetchPaperRuntimes(filters);
       if (requestSequence !== sequence.current) return;
@@ -46,7 +49,10 @@ export function PaperRuntimeListView() {
         ? { ...response.data, items: [...previous.items, ...response.data.items] }
         : response.data);
     } catch (caught) {
-      if (requestSequence === sequence.current) setError(failure(caught));
+      if (requestSequence === sequence.current) {
+        setError(failure(caught));
+        setRetryRequest({ filters, append });
+      }
     } finally {
       if (requestSequence === sequence.current) setLoading(false);
     }
@@ -84,7 +90,7 @@ export function PaperRuntimeListView() {
         <button className="secondary-button" type="submit" disabled={loading}>{t("actions.applyFilters")}</button>
       </form>
       {loading && data === null ? <LoadingState message={t("list.loading")} /> : null}
-      {error ? <ErrorState title={t("list.errorTitle")} code={error.code} message={error.message} requestId={error.requestId} httpStatus={error.status} operation="paper_runtime.list" onRetry={() => void load(query, false)} /> : null}
+      {error ? <ErrorState title={t("list.errorTitle")} code={error.code} message={error.message} requestId={error.requestId} httpStatus={error.status} operation="paper_runtime.list" onRetry={retryRequest ? () => void load(retryRequest.filters, retryRequest.append) : undefined} /> : null}
       {data?.items.length === 0 ? <EmptyState title={t("list.emptyTitle")} message={t("list.emptyMessage")} /> : null}
       {data && data.items.length > 0 ? <ScrollableTable caption={t("list.caption")}><thead><tr>
         {(["runtime_id", "execution_order_id", "account_id", "replay_id", "trading_session_id", "desired_state", "observed_state", "fencing_token", "owner_id", "row_version", "updated_at", "block_reason_code"] as const).map((field) => <th key={field}>{t(`fields.${field}`)}</th>)}<th>{t("list.inspect")}</th>

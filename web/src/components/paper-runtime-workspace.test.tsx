@@ -6,7 +6,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PaperRuntimeCreateView } from "@/components/paper-runtime-create-view";
 import { PaperRuntimeDetailView } from "@/components/paper-runtime-detail-view";
 import { PaperRuntimeListView } from "@/components/paper-runtime-list-view";
-import { ApiClientError, type PaperRuntimeResponse } from "@/lib/api-client";
+import {
+  ApiClientError,
+  type PaperRuntimeAuditListResponse,
+  type PaperRuntimeCheckpointListResponse,
+  type PaperRuntimeResponse,
+  type PaperRuntimeWorkListResponse,
+} from "@/lib/api-client";
 import { executionOrderView } from "@/test/paper-execution-fixtures";
 import {
   paperRuntime,
@@ -51,6 +57,19 @@ function deferred<T>() {
 }
 function runtime(character: string, overrides: Partial<PaperRuntimeResponse> = {}): PaperRuntimeResponse {
   return { ...paperRuntime, runtime_id: `prt_${character.repeat(64)}`, runtime_binding_digest: character.repeat(64), ...overrides };
+}
+function auditPage(character: string, nextCursor: string | null = null): PaperRuntimeAuditListResponse {
+  return { ...paperRuntimeAudit, items: [{ ...paperRuntimeAudit.items[0], event_id: `pre_${character.repeat(64)}` }], next_cursor: nextCursor };
+}
+function workPage(character: string, nextCursor: string | null = null): PaperRuntimeWorkListResponse {
+  return { ...paperRuntimeWork, items: [{ ...paperRuntimeWork.items[0], work_id: `prw_${character.repeat(64)}` }], next_cursor: nextCursor };
+}
+function checkpointPage(character: string, nextCursor: string | null = null): PaperRuntimeCheckpointListResponse {
+  return { ...paperRuntimeCheckpoints, items: [{ ...paperRuntimeCheckpoints.items[0], checkpoint_id: `prc_${character.repeat(64)}` }], next_cursor: nextCursor };
+}
+function evidenceId(page: PaperRuntimeWorkListResponse | PaperRuntimeCheckpointListResponse): string {
+  const item = page.items[0];
+  return "checkpoint_id" in item ? item.checkpoint_id : item.work_id;
 }
 
 beforeEach(() => {
@@ -101,6 +120,29 @@ describe("Paper Runtime list", () => {
       account_id: "account-filter", replay_id: "replay-filter", trading_session_id: "session-filter", desired_state: "stopped", observed_state: "blocked", limit: 25,
     }));
     expect(screen.queryByText(third.runtime_id)).not.toBeInTheDocument();
+  });
+
+  it("retries a failed Load more with the same opaque cursor and appends to the preserved first page", async () => {
+    const user = userEvent.setup();
+    const first = runtime("a");
+    const second = runtime("b");
+    apiMocks.fetchPaperRuntimes
+      .mockReturnValueOnce(result({ schema_version: 1, items: [first], next_cursor: runtimeRaw.cursor }))
+      .mockRejectedValueOnce(new ApiClientError({ status: 503, code: "paper_runtime_storage_busy", publicMessage: "Runtime page busy.", requestId: "list-busy" }))
+      .mockReturnValueOnce(result({ schema_version: 1, items: [second], next_cursor: null }));
+    render(<PaperRuntimeListView />);
+
+    const table = await screen.findByRole("table", { name: /backend order/ });
+    expect(within(table).getByText(first.runtime_id)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Load more" }));
+    expect(await screen.findByText("Runtime page busy.")).toBeVisible();
+    expect(within(table).getByText(first.runtime_id)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await within(table).findByText(second.runtime_id)).toBeVisible();
+    expect(within(table).getByText(first.runtime_id)).toBeVisible();
+    expect(table.textContent!.indexOf(first.runtime_id)).toBeLessThan(table.textContent!.indexOf(second.runtime_id));
+    expect(apiMocks.fetchPaperRuntimes).toHaveBeenNthCalledWith(2, { limit: 25, cursor: runtimeRaw.cursor });
+    expect(apiMocks.fetchPaperRuntimes).toHaveBeenNthCalledWith(3, { limit: 25, cursor: runtimeRaw.cursor });
   });
 });
 
@@ -211,6 +253,94 @@ describe("Paper Runtime detail", () => {
     oldRefresh.resolve({ data: paperRuntime, requestId: runtimeRaw.requestId });
     await waitFor(() => expect(screen.getByRole("button", { name: "Stop" })).toBeVisible());
     expect(screen.queryByRole("button", { name: "Start" })).not.toBeInTheDocument();
+  });
+
+  it("ignores an old Audit Load more after a newer manual Refresh completes", async () => {
+    const user = userEvent.setup();
+    const oldLoadMore = deferred<{ data: PaperRuntimeAuditListResponse; requestId: string }>();
+    const initial = auditPage("a", runtimeRaw.cursor);
+    const fresh = auditPage("b");
+    const stale = auditPage("c");
+    apiMocks.fetchPaperRuntimeAudit
+      .mockReturnValueOnce(result(initial))
+      .mockReturnValueOnce(oldLoadMore.promise)
+      .mockReturnValueOnce(result(fresh));
+    render(<PaperRuntimeDetailView runtimeId={runtimeRaw.runtimeId} />);
+
+    const section = (await screen.findByRole("heading", { name: "Audit" })).closest("section")!;
+    expect(within(section).getByText(initial.items[0].event_id)).toBeVisible();
+    await user.click(within(section).getByRole("button", { name: "Load more" }));
+    await waitFor(() => expect(apiMocks.fetchPaperRuntimeAudit).toHaveBeenCalledTimes(2));
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(await within(section).findByText(fresh.items[0].event_id)).toBeVisible();
+    oldLoadMore.resolve({ data: stale, requestId: runtimeRaw.requestId });
+    await waitFor(() => expect(within(section).queryByText(stale.items[0].event_id)).not.toBeInTheDocument());
+    expect(within(section).getByText(fresh.items[0].event_id)).toBeVisible();
+    expect(within(section).queryByText(initial.items[0].event_id)).not.toBeInTheDocument();
+  });
+
+  it.each(["Work", "Checkpoints"] as const)("ignores an old %s Load more after a newer first-page Refresh", async (kind) => {
+    const user = userEvent.setup();
+    const oldLoadMore = deferred<{ data: PaperRuntimeWorkListResponse | PaperRuntimeCheckpointListResponse; requestId: string }>();
+    const initial = kind === "Work" ? workPage("a", runtimeRaw.cursor) : checkpointPage("a", runtimeRaw.cursor);
+    const fresh = kind === "Work" ? workPage("b") : checkpointPage("b");
+    const stale = kind === "Work" ? workPage("c") : checkpointPage("c");
+    const evidenceMock = kind === "Work" ? apiMocks.fetchPaperRuntimeWork : apiMocks.fetchPaperRuntimeCheckpoints;
+    evidenceMock
+      .mockReturnValueOnce(result(initial))
+      .mockReturnValueOnce(oldLoadMore.promise)
+      .mockReturnValueOnce(result(fresh));
+    render(<PaperRuntimeDetailView runtimeId={runtimeRaw.runtimeId} />);
+
+    const section = (await screen.findByRole("heading", { name: kind })).closest("section")!;
+    const initialId = evidenceId(initial);
+    const freshId = evidenceId(fresh);
+    const staleId = evidenceId(stale);
+    expect(within(section).getByText(initialId)).toBeVisible();
+    await user.click(within(section).getByRole("button", { name: "Load more" }));
+    await waitFor(() => expect(evidenceMock).toHaveBeenCalledTimes(2));
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(await within(section).findByText(freshId)).toBeVisible();
+    oldLoadMore.resolve({ data: stale, requestId: runtimeRaw.requestId });
+    await waitFor(() => expect(within(section).queryByText(staleId)).not.toBeInTheDocument());
+    expect(within(section).getByText(freshId)).toBeVisible();
+    expect(within(section).queryByText(initialId)).not.toBeInTheDocument();
+  });
+
+  it("ignores an old Audit Load more after command success refreshes dependent evidence", async () => {
+    const user = userEvent.setup();
+    const oldLoadMore = deferred<{ data: PaperRuntimeAuditListResponse; requestId: string }>();
+    const initial = auditPage("a", runtimeRaw.cursor);
+    const fresh = auditPage("b");
+    const stale = auditPage("c");
+    const returnedRuntime = { ...paperRuntime, desired_state: "running" as const, row_version: 1 };
+    apiMocks.fetchPaperRuntimeAudit
+      .mockReturnValueOnce(result(initial))
+      .mockReturnValueOnce(oldLoadMore.promise)
+      .mockReturnValueOnce(result(fresh));
+    apiMocks.startPaperRuntime.mockReturnValueOnce(result({ ...paperRuntimeCommand, runtime: returnedRuntime }));
+    render(<PaperRuntimeDetailView runtimeId={runtimeRaw.runtimeId} />);
+
+    const section = (await screen.findByRole("heading", { name: "Audit" })).closest("section")!;
+    await user.click(within(section).getByRole("button", { name: "Load more" }));
+    await waitFor(() => expect(apiMocks.fetchPaperRuntimeAudit).toHaveBeenCalledTimes(2));
+    await user.click(screen.getByRole("button", { name: "Start" }));
+    expect(await within(section).findByText(fresh.items[0].event_id)).toBeVisible();
+    oldLoadMore.resolve({ data: stale, requestId: runtimeRaw.requestId });
+    await waitFor(() => expect(within(section).queryByText(stale.items[0].event_id)).not.toBeInTheDocument());
+    expect(within(section).getByText(fresh.items[0].event_id)).toBeVisible();
+  });
+
+  it("does not synthesize a Health lease owner from the independent runtime snapshot", async () => {
+    const snapshotOwner = "runner-owner-from-runtime-snapshot";
+    apiMocks.fetchPaperRuntimeDetail.mockReturnValue(result({ ...paperRuntime, owner_id: snapshotOwner }));
+    apiMocks.fetchPaperRuntimeHealth.mockReturnValue(result({ ...paperRuntimeHealth, claimed: false, lease_status: "unowned" }));
+    render(<PaperRuntimeDetailView runtimeId={runtimeRaw.runtimeId} />);
+
+    const section = (await screen.findByRole("heading", { name: "Runner lease" })).closest("section")!;
+    expect(within(section).getByText("unowned")).toBeVisible();
+    expect(within(section).queryByText("Owner ID")).not.toBeInTheDocument();
+    expect(within(section).queryByText(snapshotOwner)).not.toBeInTheDocument();
   });
 
   it.each([
