@@ -11,21 +11,19 @@ from typing import Callable, Generic, Iterator, Literal, TypeVar
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
-from el_psy_quant.application.paper_runtime import PaperRuntimeRunnerService
-from el_psy_quant.paper_execution import create_step_paper_execution_order_command
+from el_psy_quant.application.paper_runtime import (
+    PaperRuntimeRunnerService,
+    validate_pending_paper_runtime_work_authority,
+)
 from el_psy_quant.paper_runtime import (
     PaperRuntime,
     PaperRuntimeCheckpoint,
     PaperRuntimeEvent,
     PaperRuntimeWork,
-    create_paper_execution_order_reference_from_runtime,
 )
 from el_psy_quant.paper_runtime._canonical import bounded_string, utc_datetime
 from el_psy_quant.persistence.paper_execution_records import (
-    COMMAND_NAMESPACE_STEP_ORDER,
     PaperExecutionReconciliationRequiredError,
-    PaperExecutionStepCommit,
-    PaperExecutionStoredResult,
 )
 from el_psy_quant.persistence.paper_execution_repository import (
     SqlAlchemyPaperExecutionRepository,
@@ -195,61 +193,6 @@ class PaperRuntimeInspectionService:
             checked_at=checked_at,
         )
 
-    @staticmethod
-    def _validate_pending_work(
-        *,
-        runtime_repository: SqlAlchemyPaperRuntimeRepository,
-        execution_repository: SqlAlchemyPaperExecutionRepository,
-        runtime: PaperRuntime,
-        work: PaperRuntimeWork,
-        history,
-    ) -> None:
-        command = create_step_paper_execution_order_command(
-            execution_order_reference=create_paper_execution_order_reference_from_runtime(
-                runtime
-            ),
-            expected_execution_version=work.expected_execution_version,
-            command_idempotency_key=work.m34_step_idempotency_key,
-            actor=work.m34_step_actor,
-        )
-        attempts = tuple(
-            attempt
-            for attempt in history.attempts
-            if attempt.execution_version_before == work.expected_execution_version
-        )
-        if len(attempts) > 1:
-            raise PaperRuntimePersistenceCorruptionError()
-        if history.state.execution_version == work.expected_execution_version:
-            if attempts:
-                raise PaperRuntimePersistenceCorruptionError()
-        elif history.state.execution_version == work.expected_execution_version + 1:
-            if len(attempts) != 1:
-                raise PaperRuntimePersistenceCorruptionError()
-        else:
-            raise PaperRuntimePersistenceCorruptionError()
-        receipt = execution_repository.get_receipt(
-            namespace=COMMAND_NAMESPACE_STEP_ORDER,
-            command_idempotency_key=work.m34_step_idempotency_key,
-        )
-        if receipt is None:
-            if attempts:
-                raise PaperRuntimePersistenceCorruptionError()
-            return
-        if receipt.command_digest != command.command_digest or not attempts:
-            raise PaperRuntimePersistenceCorruptionError()
-        resolved = execution_repository.resolve_receipt(receipt=receipt)
-        if type(resolved) is not PaperExecutionStepCommit:
-            raise PaperRuntimePersistenceCorruptionError()
-        attempt, fill, link = runtime_repository.load_checkpoint_authority(
-            runtime=runtime, work=work
-        )
-        PaperRuntimeRunnerService._verify_step_result(
-            PaperExecutionStoredResult(result=resolved, replayed=True),
-            attempt=attempt,
-            fill=fill,
-            settlement_link=link,
-        )
-
     def reconcile_runtime(self, *, runtime_id: str) -> PaperRuntimeReconciliation:
         """Validate complete historical evidence and classify live freshness."""
 
@@ -283,7 +226,7 @@ class PaperRuntimeInspectionService:
                 require_complete_runtime_work=True,
             )
             if pending is not None:
-                self._validate_pending_work(
+                validate_pending_paper_runtime_work_authority(
                     runtime_repository=runtime_repository,
                     execution_repository=execution_repository,
                     runtime=runtime,

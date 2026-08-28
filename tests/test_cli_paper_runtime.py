@@ -10,14 +10,19 @@ from el_psy_quant.application.paper_runtime import (
     PaperRuntimeOwnershipService,
     PaperRuntimeRecoveryService,
 )
+from el_psy_quant.persistence import PaperRuntimePersistenceCorruptionError
 from test_paper_runtime_runner import _read, _runner_fixture
-from test_paper_runtime_recovery import _leave_work_without_attempt
+from test_paper_runtime_recovery import (
+    _canonical_side_effects,
+    _leave_work_without_attempt,
+    _recovery,
+)
 
 
 def test_cli_recovery_continues_with_exact_fence_and_iteration_budget(
     tmp_path: Path, monkeypatch
 ) -> None:
-    engine, _factory, _order, _lifecycle, _ownership, _runner, _clock, claim = (
+    engine, factory, order, _lifecycle, _ownership, _runner, _clock, claim = (
         _runner_fixture(tmp_path / "runtime-cli.sqlite3", monkeypatch)
     )
     engine.dispose()
@@ -40,6 +45,40 @@ def test_cli_recovery_continues_with_exact_fence_and_iteration_budget(
     assert result.runner_outcome == "iteration_budget_exhausted"
     assert result.iterations == 1
     assert fences == [result.fencing_token]
+    runtime, work, checkpoints, _events, history = _read(factory, claim.runtime_id)
+    assert runtime.owner_id is None
+    assert runtime.claimed_at is runtime.heartbeat_at is runtime.lease_expires_at is None
+    assert runtime.desired_state == runtime.observed_state == "running"
+    assert runtime.fencing_token == result.fencing_token
+    assert len(work) == len(checkpoints) == len(history.attempts) == 1
+    first_effects = _canonical_side_effects(
+        factory, claim.runtime_id, order.market_handoff_reference.replay_id
+    )
+
+    second = cli.run_paper_runtime_process(
+        database_path=tmp_path / "runtime-cli.sqlite3",
+        runtime_id=claim.runtime_id,
+        owner_id="runtime-cli-second-worker",
+        lease_seconds=30,
+        iteration_budget=1,
+    )
+    assert second.recovery_outcome == "runnable"
+    assert second.runner_outcome == "completed"
+    assert second.fencing_token == result.fencing_token + 1
+    later_runtime, later_work, later_checkpoints, _later_events, later_history = _read(
+        factory, claim.runtime_id
+    )
+    assert later_runtime.owner_id is None
+    assert len(later_work) == len(later_checkpoints) == len(later_history.attempts) == 2
+    assert len(later_history.fills) == len(later_history.settlement_links) == 1
+    second_effects = _canonical_side_effects(
+        factory, claim.runtime_id, order.market_handoff_reference.replay_id
+    )
+    assert second_effects[0] == first_effects[0] + 1
+    assert second_effects[1] == first_effects[1] + 1
+    assert second_effects[2] == first_effects[2] + 1
+    assert second_effects[3] == first_effects[3] + 1
+    assert second_effects[4] == first_effects[4] + 1
 
 
 def test_cli_stopped_runtime_does_not_call_runner(
@@ -171,7 +210,10 @@ def test_cli_recovery_reuses_pending_work_identity(
         _runner_fixture(path, monkeypatch)
     )
     _leave_work_without_attempt(runner, claim, monkeypatch)
-    pending = _read(factory, claim.runtime_id)[1][0]
+    before_runtime, before_work, *_ = _read(factory, claim.runtime_id)
+    pending = before_work[0]
+    assert before_runtime.lease_expires_at is not None
+    assert before_runtime.lease_expires_at < datetime.now(timezone.utc)
     engine.dispose()
     result = cli.run_paper_runtime_process(
         database_path=path,
@@ -185,3 +227,77 @@ def test_cli_recovery_reuses_pending_work_identity(
     assert later_work[0].m34_step_idempotency_key == pending.m34_step_idempotency_key
     assert later_work[0].m34_step_actor == pending.m34_step_actor
     assert later_work[0].expected_execution_version == pending.expected_execution_version
+    assert result.fencing_token == before_runtime.fencing_token + 1
+
+
+def test_cli_terminal_recovery_never_enters_runner_or_creates_following_work(
+    tmp_path: Path, monkeypatch
+) -> None:
+    path = tmp_path / "runtime-cli-terminal.sqlite3"
+    engine, factory, _order, _lifecycle, _ownership, runner, _clock, claim = (
+        _runner_fixture(path, monkeypatch)
+    )
+    completed = runner.run_claimed_runtime(
+        runtime_id=claim.runtime_id,
+        owner_id=claim.owner_id,
+        fencing_token=claim.fencing_token,
+        iteration_budget=3,
+    )
+    assert completed.outcome == "completed"
+    before = _read(factory, claim.runtime_id)
+    engine.dispose()
+
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("terminal recovery must not run S221")
+
+    monkeypatch.setattr(cli.PaperRuntimeRunnerService, "run_claimed_runtime", forbidden)
+    result = cli.run_paper_runtime_process(
+        database_path=path,
+        runtime_id=claim.runtime_id,
+        owner_id="terminal-recovery-worker",
+    )
+    assert result.recovery_outcome == "completed"
+    assert result.runner_outcome is None
+    after = _read(factory, claim.runtime_id)
+    assert after[1] == before[1]
+    assert after[2] == before[2]
+    assert after[4] == before[4]
+
+
+def test_cli_blocked_recovery_never_enters_runner_or_creates_following_work(
+    tmp_path: Path, monkeypatch
+) -> None:
+    path = tmp_path / "runtime-cli-blocked.sqlite3"
+    engine, factory, _order, _lifecycle, ownership, runner, clock, claim = (
+        _runner_fixture(path, monkeypatch)
+    )
+    recovery = _recovery(factory, ownership, runner, clock)
+
+    def corrupt(**_kwargs):
+        raise PaperRuntimePersistenceCorruptionError()
+
+    monkeypatch.setattr(recovery, "_phase_r1_reconcile", corrupt)
+    blocked = recovery.reconcile_claimed_runtime(
+        runtime_id=claim.runtime_id,
+        owner_id=claim.owner_id,
+        fencing_token=claim.fencing_token,
+    )
+    assert blocked.outcome == "blocked"
+    before = _read(factory, claim.runtime_id)
+    engine.dispose()
+
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("blocked recovery must not run S221")
+
+    monkeypatch.setattr(cli.PaperRuntimeRunnerService, "run_claimed_runtime", forbidden)
+    result = cli.run_paper_runtime_process(
+        database_path=path,
+        runtime_id=claim.runtime_id,
+        owner_id="blocked-recovery-worker",
+    )
+    assert result.recovery_outcome == "blocked"
+    assert result.runner_outcome is None
+    after = _read(factory, claim.runtime_id)
+    assert after[1] == before[1] == ()
+    assert after[2] == before[2] == ()
+    assert after[4] == before[4]

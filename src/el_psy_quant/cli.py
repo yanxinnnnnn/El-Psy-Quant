@@ -117,6 +117,12 @@ def run_paper_runtime_process(
             runner_outcome = loop.outcome
             iterations = loop.iterations
             runtime = loop.runtime
+            if loop.outcome == "iteration_budget_exhausted":
+                runtime = ownership.release_runtime_claim(
+                    runtime_id=runtime.runtime_id,
+                    owner_id=owner_id,
+                    fencing_token=runtime.fencing_token,
+                ).runtime
         return PaperRuntimeProcessResult(
             runtime_id=runtime.runtime_id,
             recovery_outcome=recovered.outcome,

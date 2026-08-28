@@ -6,13 +6,30 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 
 from el_psy_quant.api.app import create_app
-from el_psy_quant.application import PaperAccountApplicationService
-from el_psy_quant.application.paper_runtime import PaperRuntimeOwnershipService
+from el_psy_quant.api.dependencies import get_paper_runtime_inspection_service
+from el_psy_quant.application import (
+    PaperAccountApplicationService,
+    PaperExecutionApplicationService,
+)
+from el_psy_quant.application.paper_runtime import (
+    PaperRuntimeOwnershipService,
+    PaperRuntimeRecoveryService,
+)
+from el_psy_quant.application.paper_runtime_inspection import (
+    PaperRuntimeInspectionService,
+)
 from el_psy_quant.paper_account import PaperMoney
+from el_psy_quant.persistence import SqlAlchemyPaperExecutionRepository
 from test_api_paper_execution import AUTH, _Configured, _create
-from test_paper_runtime_runner import _run_one, _runner_fixture
+from test_paper_execution_persistence import _step_command
+from test_paper_runtime_recovery import (
+    _canonical_side_effects,
+    _leave_work_without_attempt,
+)
+from test_paper_runtime_runner import _read, _run_one, _runner_fixture
 
 pytest_plugins = ("test_api_paper_execution",)
 
@@ -160,6 +177,55 @@ def test_lifecycle_replay_conflict_and_http_recover_are_control_intent_only(
         assert all("payload" not in item for item in audit.json()["items"])
 
 
+def test_start_stop_and_resume_transport_preserve_lifecycle_replay(
+    configured: _Configured,
+) -> None:
+    with TestClient(configured.application) as client:
+        created, _order = _create_runtime(
+            client, configured, "lifecycle-transport-create"
+        )
+        current = created.json()["runtime"]
+        expected_states = {
+            "start": ("running", "ready"),
+            "stop": ("stopped", "ready"),
+            "resume": ("running", "stopped"),
+        }
+        for operation in ("start", "stop", "resume"):
+            key = f"lifecycle-transport-{operation}"
+            accepted = _control(client, current, operation, key)
+            assert accepted.status_code == 201, accepted.text
+            result = accepted.json()
+            assert result["replayed"] is False
+            assert (
+                result["runtime"]["desired_state"],
+                result["runtime"]["observed_state"],
+            ) == expected_states[operation]
+
+            replay = _control(client, current, operation, key)
+            assert replay.status_code == 200, replay.text
+            assert replay.json()["replayed"] is True
+            assert replay.json()["runtime"] == result["runtime"]
+            current = result["runtime"]
+            if operation == "stop":
+                factory = configured.application.state.product_session_factory
+                ownership = PaperRuntimeOwnershipService(
+                    session_factory=factory,
+                    lease_duration=timedelta(seconds=30),
+                )
+                settled = PaperRuntimeRecoveryService(
+                    session_factory=factory,
+                    execution_service=PaperExecutionApplicationService(
+                        session_factory=factory
+                    ),
+                    ownership_service=ownership,
+                ).recover_runtime(
+                    runtime_id=current["runtime_id"],
+                    recovery_owner_id="lifecycle-stop-observer",
+                )
+                assert settled.outcome == "stopped"
+                current = settled.runtime.to_dict()
+
+
 def test_detail_list_health_and_reconciliation_are_read_only(
     configured: _Configured,
 ) -> None:
@@ -213,7 +279,9 @@ def test_detail_list_health_and_reconciliation_are_read_only(
         assert stale.json()["execution_order_id"] == order["execution_order_id"]
 
 
-def test_health_classifies_active_claim_without_mutation(configured: _Configured) -> None:
+def test_health_classifies_active_and_expired_claim_without_mutation(
+    configured: _Configured,
+) -> None:
     with TestClient(configured.application) as client:
         created, _order = _create_runtime(client, configured, "health-runtime-create")
         runtime = created.json()["runtime"]
@@ -232,6 +300,148 @@ def test_health_classifies_active_claim_without_mutation(configured: _Configured
     assert response.json()["lease_status"] == "active"
     assert response.json()["claimed"] is True
     assert response.json()["fencing_token"] == claimed.fencing_token
+    before = _read(factory, claimed.runtime_id)
+    assert claimed.lease_expires_at is not None
+    configured.application.dependency_overrides[
+        get_paper_runtime_inspection_service
+    ] = lambda: PaperRuntimeInspectionService(
+        session_factory=factory, clock=lambda: claimed.lease_expires_at
+    )
+    try:
+        with TestClient(configured.application) as client:
+            expired = client.get(
+                f"/api/v1/paper-runtimes/{claimed.runtime_id}/health", auth=AUTH
+            )
+    finally:
+        configured.application.dependency_overrides.pop(
+            get_paper_runtime_inspection_service, None
+        )
+    assert expired.status_code == 200
+    assert expired.json()["lease_status"] == "expired"
+    assert expired.json()["claimed"] is True
+    assert _read(factory, claimed.runtime_id) == before
+
+
+def test_reconciliation_accepts_ambiguous_attempt_then_s222_converges_exact_work(
+    tmp_path, monkeypatch
+) -> None:
+    path = tmp_path / "runtime-ambiguous-inspection.sqlite3"
+    engine, factory, order, _lifecycle, ownership, runner, clock, claim = (
+        _runner_fixture(path, monkeypatch)
+    )
+    _leave_work_without_attempt(runner, claim, monkeypatch)
+    current, works, checkpoints, events, history = _read(factory, claim.runtime_id)
+    assert len(works) == 1
+    pending = works[0]
+    assert checkpoints == history.attempts == ()
+
+    committed = runner._execution_service.step_order(
+        _step_command(
+            order,
+            version=pending.expected_execution_version,
+            key="alternate-command-for-ambiguous-attempt",
+            actor=pending.m34_step_actor,
+        )
+    )
+    assert committed.replayed is False
+    with factory() as session:
+        assert (
+            SqlAlchemyPaperExecutionRepository(session=session).get_receipt(
+                namespace="step_paper_execution_order",
+                command_idempotency_key=pending.m34_step_idempotency_key,
+            )
+            is None
+        )
+
+    application = create_app(
+        product_database_path=path,
+        founder_username=AUTH[0],
+        founder_password=AUTH[1],
+    )
+    before_inspection = _read(factory, claim.runtime_id)
+    effects_after_commit = _canonical_side_effects(
+        factory, claim.runtime_id, order.market_handoff_reference.replay_id
+    )
+    with TestClient(application) as client:
+        response = client.get(
+            f"/api/v1/paper-runtimes/{claim.runtime_id}/reconciliation", auth=AUTH
+        )
+    assert response.status_code == 200, response.text
+    assert response.json()["historical_coherent"] is True
+    assert response.json()["pending_work_id"] == pending.work_id
+    assert _read(factory, claim.runtime_id) == before_inspection
+
+    assert current.lease_expires_at is not None
+    clock.value = current.lease_expires_at
+    recovered = PaperRuntimeRecoveryService(
+        session_factory=factory,
+        execution_service=runner._execution_service,
+        ownership_service=ownership,
+        clock=clock,
+    ).recover_runtime(
+        runtime_id=claim.runtime_id,
+        recovery_owner_id="ambiguous-convergence-worker",
+    )
+    runtime, later_work, later_checkpoints, later_events, later_history = _read(
+        factory, claim.runtime_id
+    )
+    assert recovered.outcome == "runnable"
+    assert recovered.work == pending == later_work[0]
+    assert recovered.step_replayed is True
+    assert len(later_work) == len(later_checkpoints) == len(later_history.attempts) == 1
+    assert later_checkpoints[0].work_id == pending.work_id
+    assert [event.event_type for event in later_events].count("work_observed") == 1
+    assert runtime.fencing_token == claim.fencing_token + 1
+    assert (
+        _canonical_side_effects(
+            factory, claim.runtime_id, order.market_handoff_reference.replay_id
+        )
+        == effects_after_commit
+    )
+    engine.dispose()
+
+
+def test_reconciliation_corruption_is_sanitized_and_fail_closed(
+    tmp_path, monkeypatch
+) -> None:
+    path = tmp_path / "runtime-corrupt-inspection.sqlite3"
+    engine, _factory, _order, _lifecycle, _ownership, runner, _clock, claim = (
+        _runner_fixture(path, monkeypatch)
+    )
+    _leave_work_without_attempt(runner, claim, monkeypatch)
+    with engine.begin() as connection:
+        connection.execute(text("DROP TRIGGER trg_paper_runtime_work_no_update"))
+        connection.execute(
+            text(
+                "UPDATE paper_runtime_work SET payload_json=:payload "
+                "WHERE runtime_id=:runtime_id"
+            ),
+            {
+                "payload": '{"secret":"C:/private/runtime.sqlite3"}',
+                "runtime_id": claim.runtime_id,
+            },
+        )
+        connection.execute(
+            text(
+                "CREATE TRIGGER trg_paper_runtime_work_no_update "
+                "BEFORE UPDATE ON paper_runtime_work BEGIN SELECT RAISE(ABORT, "
+                "'paper_runtime_work is append-only'); END"
+            )
+        )
+    application = create_app(
+        product_database_path=path,
+        founder_username=AUTH[0],
+        founder_password=AUTH[1],
+    )
+    with TestClient(application) as client:
+        response = client.get(
+            f"/api/v1/paper-runtimes/{claim.runtime_id}/reconciliation", auth=AUTH
+        )
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "paper_runtime_authority_corrupt"
+    assert "private" not in response.text.lower()
+    assert "payload" not in response.text.lower()
+    engine.dispose()
 
 
 def test_runtime_schema_unavailable_is_distinct_and_sanitized(tmp_path) -> None:

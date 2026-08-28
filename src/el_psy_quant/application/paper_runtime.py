@@ -1675,6 +1675,69 @@ class PaperRuntimeRunnerService:
         )
 
 
+def validate_pending_paper_runtime_work_authority(
+    *,
+    runtime_repository: SqlAlchemyPaperRuntimeRepository,
+    execution_repository: SqlAlchemyPaperExecutionRepository,
+    runtime: PaperRuntime,
+    work: PaperRuntimeWork,
+    history,
+) -> None:
+    """Validate pending Work without converging or mutating canonical authority."""
+
+    if (
+        work.runtime_id != runtime.runtime_id
+        or work.execution_order_id != runtime.execution_order_id
+        or work.execution_order_digest != runtime.execution_order_digest
+        or work.m34_step_actor != runtime.logical_actor
+    ):
+        raise PaperRuntimePersistenceCorruptionError()
+    command = create_step_paper_execution_order_command(
+        execution_order_reference=create_paper_execution_order_reference_from_runtime(
+            runtime
+        ),
+        expected_execution_version=work.expected_execution_version,
+        command_idempotency_key=work.m34_step_idempotency_key,
+        actor=work.m34_step_actor,
+    )
+    attempts = tuple(
+        attempt
+        for attempt in history.attempts
+        if attempt.execution_version_before == work.expected_execution_version
+    )
+    if len(attempts) > 1:
+        raise PaperRuntimePersistenceCorruptionError()
+    if history.state.execution_version == work.expected_execution_version:
+        if attempts:
+            raise PaperRuntimePersistenceCorruptionError()
+    elif history.state.execution_version == work.expected_execution_version + 1:
+        if len(attempts) != 1:
+            raise PaperRuntimePersistenceCorruptionError()
+    else:
+        raise PaperRuntimePersistenceCorruptionError()
+
+    receipt = execution_repository.get_receipt(
+        namespace=COMMAND_NAMESPACE_STEP_ORDER,
+        command_idempotency_key=work.m34_step_idempotency_key,
+    )
+    if receipt is None:
+        return
+    if receipt.command_digest != command.command_digest or not attempts:
+        raise PaperRuntimePersistenceCorruptionError()
+    resolved = execution_repository.resolve_receipt(receipt=receipt)
+    if type(resolved) is not PaperExecutionStepCommit:
+        raise PaperRuntimePersistenceCorruptionError()
+    attempt, fill, link = runtime_repository.load_checkpoint_authority(
+        runtime=runtime, work=work
+    )
+    PaperRuntimeRunnerService._verify_step_result(
+        PaperExecutionStoredResult(result=resolved, replayed=True),
+        attempt=attempt,
+        fill=fill,
+        settlement_link=link,
+    )
+
+
 @dataclass(frozen=True)
 class _PreparedRuntimeRecovery:
     outcome: Literal["step", "runnable", "stopped", "completed", "blocked"]
@@ -1802,42 +1865,12 @@ class PaperRuntimeRecoveryService:
         work: PaperRuntimeWork,
         history,
     ) -> None:
-        command = self._work_command(runtime, work)
-        attempts = tuple(
-            attempt
-            for attempt in history.attempts
-            if attempt.execution_version_before == work.expected_execution_version
-        )
-        if len(attempts) > 1:
-            raise PaperRuntimePersistenceCorruptionError()
-        if history.state.execution_version == work.expected_execution_version:
-            if attempts:
-                raise PaperRuntimePersistenceCorruptionError()
-        elif history.state.execution_version == work.expected_execution_version + 1:
-            if len(attempts) != 1:
-                raise PaperRuntimePersistenceCorruptionError()
-        else:
-            raise PaperRuntimePersistenceCorruptionError()
-
-        receipt = execution_repository.get_receipt(
-            namespace=COMMAND_NAMESPACE_STEP_ORDER,
-            command_idempotency_key=work.m34_step_idempotency_key,
-        )
-        if receipt is None:
-            return
-        if receipt.command_digest != command.command_digest or not attempts:
-            raise PaperRuntimePersistenceCorruptionError()
-        resolved = execution_repository.resolve_receipt(receipt=receipt)
-        if type(resolved) is not PaperExecutionStepCommit:
-            raise PaperRuntimePersistenceCorruptionError()
-        attempt, fill, link = runtime_repository.load_checkpoint_authority(
-            runtime=runtime, work=work
-        )
-        self._runner_service._verify_step_result(
-            PaperExecutionStoredResult(result=resolved, replayed=True),
-            attempt=attempt,
-            fill=fill,
-            settlement_link=link,
+        validate_pending_paper_runtime_work_authority(
+            runtime_repository=runtime_repository,
+            execution_repository=execution_repository,
+            runtime=runtime,
+            work=work,
+            history=history,
         )
 
     def _confirm_recovery_step_entry(
@@ -2259,4 +2292,5 @@ __all__ = [
     "PaperRuntimeRunnerStateError",
     "PaperRuntimeTerminalContinuationError",
     "resolve_paper_runtime_control_replay",
+    "validate_pending_paper_runtime_work_authority",
 ]
