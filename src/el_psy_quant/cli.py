@@ -30,12 +30,26 @@ from el_psy_quant.local_workspace import (
 from el_psy_quant.outputs import create_experiment_output_layout
 from el_psy_quant.application import PaperExecutionApplicationService
 from el_psy_quant.application.paper_runtime import (
+    PaperRuntimeClaimMismatchError,
+    PaperRuntimeLeaseExpiredError,
+    PaperRuntimeObservationRequiredError,
     PaperRuntimeOwnershipBusyError,
     PaperRuntimeOwnershipService,
     PaperRuntimeRecoveryService,
+    PaperRuntimeRunnerStateError,
     PaperRuntimeRunnerService,
 )
 from el_psy_quant.persistence import (
+    PaperExecutionConcurrencyConflictError,
+    PaperExecutionCorruptAuthorityError,
+    PaperExecutionIdempotencyConflictError,
+    PaperExecutionNotFoundError,
+    PaperExecutionOperationConflictError,
+    PaperExecutionReconciliationRequiredError,
+    PaperExecutionStaleAuthorityError,
+    PaperExecutionStorageBusyError,
+    PaperExecutionStorageFailureError,
+    PaperRuntimeConcurrencyConflictError,
     PaperRuntimeNotFoundError,
     PaperRuntimePersistenceCorruptionError,
     PaperRuntimeStorageBusyError,
@@ -60,6 +74,58 @@ class PaperRuntimeProcessResult:
     runner_outcome: str | None
     fencing_token: int
     iterations: int
+
+
+_PAPER_RUNTIME_PROCESS_CLAIM_ERRORS = (
+    PaperRuntimeClaimMismatchError,
+    PaperRuntimeLeaseExpiredError,
+)
+_PAPER_RUNTIME_PROCESS_STALE_ERRORS = (
+    PaperExecutionReconciliationRequiredError,
+    PaperExecutionStaleAuthorityError,
+)
+_PAPER_RUNTIME_PROCESS_CONFLICT_ERRORS = (
+    PaperRuntimeConcurrencyConflictError,
+    PaperRuntimeObservationRequiredError,
+    PaperRuntimeRunnerStateError,
+    PaperExecutionConcurrencyConflictError,
+    PaperExecutionOperationConflictError,
+)
+_PAPER_RUNTIME_PROCESS_BUSY_ERRORS = (
+    PaperRuntimeStorageBusyError,
+    PaperExecutionStorageBusyError,
+)
+_PAPER_RUNTIME_PROCESS_AUTHORITY_ERRORS = (
+    PaperRuntimePersistenceCorruptionError,
+    PaperRuntimeStorageFailureError,
+    PaperExecutionNotFoundError,
+    PaperExecutionIdempotencyConflictError,
+    PaperExecutionCorruptAuthorityError,
+    PaperExecutionStorageFailureError,
+)
+_PAPER_RUNTIME_PROCESS_DOMAIN_ERRORS = (
+    *_PAPER_RUNTIME_PROCESS_CLAIM_ERRORS,
+    *_PAPER_RUNTIME_PROCESS_STALE_ERRORS,
+    *_PAPER_RUNTIME_PROCESS_CONFLICT_ERRORS,
+    *_PAPER_RUNTIME_PROCESS_BUSY_ERRORS,
+    *_PAPER_RUNTIME_PROCESS_AUTHORITY_ERRORS,
+)
+
+
+def _paper_runtime_process_error_message(error: Exception) -> str:
+    """Return one fixed message for an explicitly expected process failure."""
+
+    if isinstance(error, _PAPER_RUNTIME_PROCESS_CLAIM_ERRORS):
+        return "error: paper runtime claim is no longer current"
+    if isinstance(error, _PAPER_RUNTIME_PROCESS_STALE_ERRORS):
+        return "error: paper runtime live continuation is stale"
+    if isinstance(error, _PAPER_RUNTIME_PROCESS_CONFLICT_ERRORS):
+        return "error: paper runtime operation conflicts with current authority"
+    if isinstance(error, _PAPER_RUNTIME_PROCESS_BUSY_ERRORS):
+        return "error: paper runtime storage is temporarily unavailable"
+    if isinstance(error, _PAPER_RUNTIME_PROCESS_AUTHORITY_ERRORS):
+        return "error: paper runtime authority is unavailable"
+    raise TypeError("unsupported paper runtime process error")
 
 
 def run_paper_runtime_process(
@@ -324,14 +390,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         except PaperRuntimeOwnershipBusyError:
             print("error: paper runtime has an active foreign owner", file=sys.stderr)
             return 1
-        except PaperRuntimeStorageBusyError:
-            print("error: paper runtime storage is temporarily unavailable", file=sys.stderr)
-            return 1
-        except (
-            PaperRuntimePersistenceCorruptionError,
-            PaperRuntimeStorageFailureError,
-        ):
-            print("error: paper runtime authority is unavailable", file=sys.stderr)
+        except _PAPER_RUNTIME_PROCESS_DOMAIN_ERRORS as error:
+            print(_paper_runtime_process_error_message(error), file=sys.stderr)
             return 1
         except (OSError, RuntimeError, TypeError, ValueError):
             print("error: paper runtime process input is invalid", file=sys.stderr)

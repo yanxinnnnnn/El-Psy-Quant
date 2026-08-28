@@ -5,12 +5,23 @@ from __future__ import annotations
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from el_psy_quant import cli
 from el_psy_quant.application.paper_runtime import (
+    PaperRuntimeClaimMismatchError,
+    PaperRuntimeLeaseExpiredError,
     PaperRuntimeOwnershipService,
     PaperRuntimeRecoveryService,
 )
-from el_psy_quant.persistence import PaperRuntimePersistenceCorruptionError
+from el_psy_quant.persistence import (
+    PaperExecutionConcurrencyConflictError,
+    PaperExecutionReconciliationRequiredError,
+    PaperExecutionStorageBusyError,
+    PaperExecutionStorageFailureError,
+    PaperRuntimeConcurrencyConflictError,
+    PaperRuntimePersistenceCorruptionError,
+)
 from test_paper_runtime_runner import _read, _runner_fixture
 from test_paper_runtime_recovery import (
     _canonical_side_effects,
@@ -301,3 +312,141 @@ def test_cli_blocked_recovery_never_enters_runner_or_creates_following_work(
     assert after[1] == before[1] == ()
     assert after[2] == before[2] == ()
     assert after[4] == before[4]
+
+
+_SECRET_ERROR = "C:/private/runtime.sqlite3 SELECT secret FROM payload"
+
+
+def _assert_sanitized_failure(capsys, *, expected_stderr: str) -> None:
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == expected_stderr + "\n"
+    assert _SECRET_ERROR not in captured.err
+    assert "traceback" not in captured.err.lower()
+    assert "sqlite3" not in captured.err.lower()
+    assert "select" not in captured.err.lower()
+    assert "payload" not in captured.err.lower()
+
+
+@pytest.mark.parametrize(
+    "error_type",
+    (PaperRuntimeClaimMismatchError, PaperRuntimeLeaseExpiredError),
+)
+def test_cli_budget_release_fencing_failures_are_fixed_and_sanitized(
+    tmp_path: Path, monkeypatch, capsys, error_type: type[Exception]
+) -> None:
+    path = tmp_path / f"runtime-cli-{error_type.__name__}.sqlite3"
+    engine, _factory, _order, _lifecycle, _ownership, _runner, _clock, claim = (
+        _runner_fixture(path, monkeypatch)
+    )
+    engine.dispose()
+    capsys.readouterr()
+
+    def fail_release(*_args, **_kwargs):
+        raise error_type(_SECRET_ERROR)
+
+    monkeypatch.setattr(
+        cli.PaperRuntimeOwnershipService, "release_runtime_claim", fail_release
+    )
+    assert (
+        cli.main(
+            [
+                "run-paper-runtime",
+                "--database-path",
+                str(path),
+                "--runtime-id",
+                claim.runtime_id,
+                "--owner-id",
+                "fencing-failure-worker",
+                "--iteration-budget",
+                "1",
+            ]
+        )
+        == 1
+    )
+    _assert_sanitized_failure(
+        capsys, expected_stderr="error: paper runtime claim is no longer current"
+    )
+
+
+@pytest.mark.parametrize(
+    ("error_type", "expected_stderr"),
+    (
+        (
+            PaperExecutionReconciliationRequiredError,
+            "error: paper runtime live continuation is stale",
+        ),
+        (
+            PaperRuntimeConcurrencyConflictError,
+            "error: paper runtime operation conflicts with current authority",
+        ),
+        (
+            PaperExecutionConcurrencyConflictError,
+            "error: paper runtime operation conflicts with current authority",
+        ),
+        (
+            PaperExecutionStorageBusyError,
+            "error: paper runtime storage is temporarily unavailable",
+        ),
+        (
+            PaperExecutionStorageFailureError,
+            "error: paper runtime authority is unavailable",
+        ),
+    ),
+)
+def test_cli_runner_operational_failures_are_fixed_and_sanitized(
+    tmp_path: Path,
+    monkeypatch,
+    capsys,
+    error_type: type[Exception],
+    expected_stderr: str,
+) -> None:
+    path = tmp_path / f"runtime-cli-{error_type.__name__}.sqlite3"
+    engine, _factory, _order, _lifecycle, _ownership, _runner, _clock, claim = (
+        _runner_fixture(path, monkeypatch)
+    )
+    engine.dispose()
+    capsys.readouterr()
+
+    def fail_runner(*_args, **_kwargs):
+        raise error_type(_SECRET_ERROR)
+
+    monkeypatch.setattr(
+        cli.PaperRuntimeRunnerService, "run_claimed_runtime", fail_runner
+    )
+    assert (
+        cli.main(
+            [
+                "run-paper-runtime",
+                "--database-path",
+                str(path),
+                "--runtime-id",
+                claim.runtime_id,
+                "--owner-id",
+                "runner-failure-worker",
+            ]
+        )
+        == 1
+    )
+    _assert_sanitized_failure(capsys, expected_stderr=expected_stderr)
+
+
+def test_cli_process_boundary_does_not_hide_programmer_errors(
+    tmp_path: Path, monkeypatch
+) -> None:
+    def fail_programmer_error(**_kwargs):
+        raise AssertionError("programmer error remains visible to tests")
+
+    monkeypatch.setattr(cli, "run_paper_runtime_process", fail_programmer_error)
+    with pytest.raises(AssertionError, match="programmer error remains visible"):
+        cli.main(
+            [
+                "run-paper-runtime",
+                "--database-path",
+                str(tmp_path / "unused.sqlite3"),
+                "--runtime-id",
+                "prt_" + "0" * 64,
+                "--owner-id",
+                "programmer-error-worker",
+            ]
+        )
