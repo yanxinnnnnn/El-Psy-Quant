@@ -50,6 +50,16 @@ import {
   isPaperExecutionReconciliationResponse,
   isPaperExecutionStepCommandResponse,
 } from "@/lib/paper-execution-validators";
+import {
+  isPaperRuntimeAuditListResponse,
+  isPaperRuntimeCheckpointListResponse,
+  isPaperRuntimeCommandResponse,
+  isPaperRuntimeHealthResponse,
+  isPaperRuntimeListResponse,
+  isPaperRuntimeReconciliationResponse,
+  isPaperRuntimeResponse,
+  isPaperRuntimeWorkListResponse,
+} from "@/lib/paper-runtime-validators";
 
 const API_BASE_PATH = "/api/backend";
 const HEALTH_PATH = "/api/v1/health";
@@ -122,6 +132,19 @@ const PAPER_EXECUTION_FILL_DETAIL_PATH =
   "/api/v1/paper-execution/fills/{fill_id}";
 const PAPER_EXECUTION_RECONCILIATION_PATH =
   "/api/v1/paper-execution/orders/{execution_order_id}/reconciliation";
+const PAPER_RUNTIMES_PATH = "/api/v1/paper-runtimes";
+const PAPER_RUNTIME_DETAIL_PATH = "/api/v1/paper-runtimes/{runtime_id}";
+const PAPER_RUNTIME_START_PATH = "/api/v1/paper-runtimes/{runtime_id}/start";
+const PAPER_RUNTIME_STOP_PATH = "/api/v1/paper-runtimes/{runtime_id}/stop";
+const PAPER_RUNTIME_RESUME_PATH = "/api/v1/paper-runtimes/{runtime_id}/resume";
+const PAPER_RUNTIME_RECOVER_PATH = "/api/v1/paper-runtimes/{runtime_id}/recover";
+const PAPER_RUNTIME_HEALTH_PATH = "/api/v1/paper-runtimes/{runtime_id}/health";
+const PAPER_RUNTIME_RECONCILIATION_PATH =
+  "/api/v1/paper-runtimes/{runtime_id}/reconciliation";
+const PAPER_RUNTIME_AUDIT_PATH = "/api/v1/paper-runtimes/{runtime_id}/audit";
+const PAPER_RUNTIME_WORK_PATH = "/api/v1/paper-runtimes/{runtime_id}/work";
+const PAPER_RUNTIME_CHECKPOINTS_PATH =
+  "/api/v1/paper-runtimes/{runtime_id}/checkpoints";
 const REQUEST_ID_HEADER = "X-Request-ID";
 const MAX_CODE_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 240;
@@ -368,6 +391,27 @@ export type PaperExecutionAttemptListFilters = GetQueryParameters<
 export type PaperExecutionFillListFilters = GetQueryParameters<
   typeof PAPER_EXECUTION_FILLS_PATH
 >;
+export type PaperRuntimeListResponse = SuccessResponse<typeof PAPER_RUNTIMES_PATH>;
+export type PaperRuntimeResponse = SuccessResponse<typeof PAPER_RUNTIME_DETAIL_PATH>;
+export type PaperRuntimeHealthResponse = SuccessResponse<typeof PAPER_RUNTIME_HEALTH_PATH>;
+export type PaperRuntimeReconciliationResponse = SuccessResponse<
+  typeof PAPER_RUNTIME_RECONCILIATION_PATH
+>;
+export type PaperRuntimeAuditListResponse = SuccessResponse<typeof PAPER_RUNTIME_AUDIT_PATH>;
+export type PaperRuntimeWorkListResponse = SuccessResponse<typeof PAPER_RUNTIME_WORK_PATH>;
+export type PaperRuntimeCheckpointListResponse = SuccessResponse<
+  typeof PAPER_RUNTIME_CHECKPOINTS_PATH
+>;
+export type PaperRuntimeCreateRequest = PostRequestBody<typeof PAPER_RUNTIMES_PATH>;
+export type PaperRuntimeControlRequest = PostRequestBody<typeof PAPER_RUNTIME_START_PATH>;
+export type PaperRuntimeCommandResponse = PostSuccessResponse<
+  typeof PAPER_RUNTIME_START_PATH,
+  200
+>;
+export type PaperRuntimeListFilters = GetQueryParameters<typeof PAPER_RUNTIMES_PATH>;
+export type PaperRuntimeEvidenceListFilters = GetQueryParameters<typeof PAPER_RUNTIME_AUDIT_PATH>;
+export type PaperRuntimeDesiredState = NonNullable<PaperRuntimeListFilters["desired_state"]>;
+export type PaperRuntimeObservedState = NonNullable<PaperRuntimeListFilters["observed_state"]>;
 
 export type ApiResult<Response> = {
   data: Response;
@@ -2362,6 +2406,169 @@ export function fetchPaperExecutionReconciliation(
     validate: isPaperExecutionReconciliationResponse,
     fetchImplementation,
   });
+}
+
+function paperRuntimePath(template: string, runtimeId: string): string {
+  if (!/^prt_[0-9a-f]{64}$/.test(runtimeId)) {
+    throw new TypeError("Paper Runtime identifier is invalid.");
+  }
+  return template.replace("{runtime_id}", encodeURIComponent(runtimeId));
+}
+
+function validatePaperRuntimePaging(
+  limit: number | undefined,
+  cursor: string | null | undefined,
+): void {
+  if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 200)) {
+    throw new TypeError("Paper Runtime limit must be an integer between 1 and 200.");
+  }
+  if (cursor !== undefined && cursor !== null
+    && (cursor.length > 2048 || cursor !== cursor.trim())) {
+    throw new TypeError("Paper Runtime cursor is invalid.");
+  }
+}
+
+function setPaperRuntimeFilter(
+  query: URLSearchParams,
+  key: string,
+  value: string | null | undefined,
+): void {
+  if (value === undefined || value === null) return;
+  if (value.length === 0 || value.length > 512 || value !== value.trim()) {
+    throw new TypeError(`Paper Runtime ${key} filter is invalid.`);
+  }
+  query.set(key, value);
+}
+
+function paperRuntimePagingSuffix(filters: PaperRuntimeEvidenceListFilters): string {
+  validatePaperRuntimePaging(filters.limit, filters.cursor);
+  const query = new URLSearchParams();
+  if (filters.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters.cursor !== undefined && filters.cursor !== null) {
+    query.set("cursor", filters.cursor);
+  }
+  return query.size === 0 ? "" : `?${query.toString()}`;
+}
+
+export function fetchPaperRuntimes(
+  filters: PaperRuntimeListFilters = {},
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperRuntimeListResponse>> {
+  validatePaperRuntimePaging(filters.limit, filters.cursor);
+  const query = new URLSearchParams();
+  setPaperRuntimeFilter(query, "account_id", filters.account_id);
+  setPaperRuntimeFilter(query, "replay_id", filters.replay_id);
+  setPaperRuntimeFilter(query, "trading_session_id", filters.trading_session_id);
+  if (filters.desired_state !== undefined && filters.desired_state !== null) {
+    if (filters.desired_state !== "running" && filters.desired_state !== "stopped") {
+      throw new TypeError("Paper Runtime desired_state filter is invalid.");
+    }
+    query.set("desired_state", filters.desired_state);
+  }
+  if (filters.observed_state !== undefined && filters.observed_state !== null) {
+    if (!["ready", "running", "stopped", "completed", "blocked"].includes(filters.observed_state)) {
+      throw new TypeError("Paper Runtime observed_state filter is invalid.");
+    }
+    query.set("observed_state", filters.observed_state);
+  }
+  if (filters.limit !== undefined) query.set("limit", String(filters.limit));
+  if (filters.cursor !== undefined && filters.cursor !== null) query.set("cursor", filters.cursor);
+  const suffix = query.size === 0 ? "" : `?${query.toString()}`;
+  return requestJson({
+    path: `${PAPER_RUNTIMES_PATH}${suffix}`,
+    validate: isPaperRuntimeListResponse,
+    fetchImplementation,
+  });
+}
+
+export function createPaperRuntime(
+  request: PaperRuntimeCreateRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperRuntimeCommandResponse>> {
+  return requestJson({
+    path: PAPER_RUNTIMES_PATH,
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isPaperRuntimeCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function fetchPaperRuntimeDetail(
+  runtimeId: string,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<ApiResult<PaperRuntimeResponse>> {
+  return requestJson({
+    path: paperRuntimePath(PAPER_RUNTIME_DETAIL_PATH, runtimeId),
+    validate: isPaperRuntimeResponse,
+    fetchImplementation,
+  });
+}
+
+type PaperRuntimeControlAction = "start" | "stop" | "resume" | "recover";
+
+const PAPER_RUNTIME_CONTROL_PATHS: Readonly<Record<PaperRuntimeControlAction, string>> = {
+  start: PAPER_RUNTIME_START_PATH,
+  stop: PAPER_RUNTIME_STOP_PATH,
+  resume: PAPER_RUNTIME_RESUME_PATH,
+  recover: PAPER_RUNTIME_RECOVER_PATH,
+};
+
+function controlPaperRuntime(
+  action: PaperRuntimeControlAction,
+  runtimeId: string,
+  request: PaperRuntimeControlRequest,
+  idempotencyKey: string,
+  fetchImplementation: typeof fetch,
+): Promise<ApiResult<PaperRuntimeCommandResponse>> {
+  return requestJson({
+    path: paperRuntimePath(PAPER_RUNTIME_CONTROL_PATHS[action], runtimeId),
+    method: "POST",
+    expectedStatuses: [200, 201],
+    requestBody: request,
+    headers: requireIdempotencyKey(idempotencyKey),
+    validate: isPaperRuntimeCommandResponse,
+    fetchImplementation,
+  });
+}
+
+export function startPaperRuntime(runtimeId: string, request: PaperRuntimeControlRequest, idempotencyKey: string, fetchImplementation: typeof fetch = fetch) {
+  return controlPaperRuntime("start", runtimeId, request, idempotencyKey, fetchImplementation);
+}
+
+export function stopPaperRuntime(runtimeId: string, request: PaperRuntimeControlRequest, idempotencyKey: string, fetchImplementation: typeof fetch = fetch) {
+  return controlPaperRuntime("stop", runtimeId, request, idempotencyKey, fetchImplementation);
+}
+
+export function resumePaperRuntime(runtimeId: string, request: PaperRuntimeControlRequest, idempotencyKey: string, fetchImplementation: typeof fetch = fetch) {
+  return controlPaperRuntime("resume", runtimeId, request, idempotencyKey, fetchImplementation);
+}
+
+export function recoverPaperRuntime(runtimeId: string, request: PaperRuntimeControlRequest, idempotencyKey: string, fetchImplementation: typeof fetch = fetch) {
+  return controlPaperRuntime("recover", runtimeId, request, idempotencyKey, fetchImplementation);
+}
+
+export function fetchPaperRuntimeHealth(runtimeId: string, fetchImplementation: typeof fetch = fetch): Promise<ApiResult<PaperRuntimeHealthResponse>> {
+  return requestJson({ path: paperRuntimePath(PAPER_RUNTIME_HEALTH_PATH, runtimeId), validate: isPaperRuntimeHealthResponse, fetchImplementation });
+}
+
+export function fetchPaperRuntimeReconciliation(runtimeId: string, fetchImplementation: typeof fetch = fetch): Promise<ApiResult<PaperRuntimeReconciliationResponse>> {
+  return requestJson({ path: paperRuntimePath(PAPER_RUNTIME_RECONCILIATION_PATH, runtimeId), validate: isPaperRuntimeReconciliationResponse, fetchImplementation });
+}
+
+export function fetchPaperRuntimeAudit(runtimeId: string, filters: PaperRuntimeEvidenceListFilters = {}, fetchImplementation: typeof fetch = fetch): Promise<ApiResult<PaperRuntimeAuditListResponse>> {
+  return requestJson({ path: `${paperRuntimePath(PAPER_RUNTIME_AUDIT_PATH, runtimeId)}${paperRuntimePagingSuffix(filters)}`, validate: isPaperRuntimeAuditListResponse, fetchImplementation });
+}
+
+export function fetchPaperRuntimeWork(runtimeId: string, filters: PaperRuntimeEvidenceListFilters = {}, fetchImplementation: typeof fetch = fetch): Promise<ApiResult<PaperRuntimeWorkListResponse>> {
+  return requestJson({ path: `${paperRuntimePath(PAPER_RUNTIME_WORK_PATH, runtimeId)}${paperRuntimePagingSuffix(filters)}`, validate: isPaperRuntimeWorkListResponse, fetchImplementation });
+}
+
+export function fetchPaperRuntimeCheckpoints(runtimeId: string, filters: PaperRuntimeEvidenceListFilters = {}, fetchImplementation: typeof fetch = fetch): Promise<ApiResult<PaperRuntimeCheckpointListResponse>> {
+  return requestJson({ path: `${paperRuntimePath(PAPER_RUNTIME_CHECKPOINTS_PATH, runtimeId)}${paperRuntimePagingSuffix(filters)}`, validate: isPaperRuntimeCheckpointListResponse, fetchImplementation });
 }
 
 export function fetchPortfolioReviews(
