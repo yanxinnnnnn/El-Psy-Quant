@@ -714,6 +714,194 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/paper-runtimes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Paper Runtimes V1 */
+        get: operations["list_paper_runtimes_v1"];
+        put?: never;
+        /** Create Paper Runtime V1 */
+        post: operations["create_paper_runtime_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper Runtime V1 */
+        get: operations["get_paper_runtime_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Paper Runtime Audit V1 */
+        get: operations["list_paper_runtime_audit_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/checkpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Paper Runtime Checkpoints V1 */
+        get: operations["list_paper_runtime_checkpoints_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper Runtime Health V1 */
+        get: operations["get_paper_runtime_health_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper Runtime Reconciliation V1 */
+        get: operations["get_paper_runtime_reconciliation_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/recover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recover Paper Runtime V1 */
+        post: operations["recover_paper_runtime_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume Paper Runtime V1 */
+        post: operations["resume_paper_runtime_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Paper Runtime V1 */
+        post: operations["start_paper_runtime_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop Paper Runtime V1 */
+        post: operations["stop_paper_runtime_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/paper-runtimes/{runtime_id}/work": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Paper Runtime Work V1 */
+        get: operations["list_paper_runtime_work_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portfolio-reviews": {
         parameters: {
             query?: never;
@@ -3189,6 +3377,354 @@ export interface components {
             request_schema_version: 1;
             /** Run Id */
             run_id: string;
+        };
+        /** PaperRuntimeAuditEntryResponse */
+        PaperRuntimeAuditEntryResponse: {
+            /** Checkpoint Id */
+            checkpoint_id: string | null;
+            /** Event Digest */
+            event_digest: string;
+            /** Event Id */
+            event_id: string;
+            /** Event Sequence */
+            event_sequence: number;
+            /**
+             * Event Type
+             * @enum {string}
+             */
+            event_type: "runtime_created" | "start_requested" | "stop_requested" | "resume_requested" | "recover_requested" | "claim_acquired" | "claim_released" | "claim_taken_over" | "work_created" | "work_observed" | "runtime_completed" | "runtime_blocked";
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Resulting Runtime Version */
+            resulting_runtime_version: number;
+            /** Runtime Id */
+            runtime_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Work Id */
+            work_id: string | null;
+        };
+        /** PaperRuntimeAuditListResponse */
+        PaperRuntimeAuditListResponse: {
+            /** Items */
+            items: components["schemas"]["PaperRuntimeAuditEntryResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperRuntimeCheckpointListResponse */
+        PaperRuntimeCheckpointListResponse: {
+            /** Items */
+            items: components["schemas"]["PaperRuntimeCheckpointResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperRuntimeCheckpointResponse */
+        PaperRuntimeCheckpointResponse: {
+            /** Account Event Id */
+            account_event_id: string | null;
+            /** Attempt Digest */
+            attempt_digest: string;
+            /** Attempt Id */
+            attempt_id: string;
+            /** Checkpoint Digest */
+            checkpoint_digest: string;
+            /** Checkpoint Id */
+            checkpoint_id: string;
+            /** Event Stream Digest */
+            event_stream_digest: string;
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Execution Order Id */
+            execution_order_id: string;
+            /** Fill Digest */
+            fill_digest: string | null;
+            /** Fill Id */
+            fill_id: string | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Observed Execution Version */
+            observed_execution_version: number;
+            /** Post Cursor Last Event Id */
+            post_cursor_last_event_id: string | null;
+            /** Post Cursor Position */
+            post_cursor_position: number;
+            /** Replay Id */
+            replay_id: string;
+            /** Runtime Id */
+            runtime_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Settlement Link Evidence Digest */
+            settlement_link_evidence_digest: string | null;
+            /** Settlement Link Id */
+            settlement_link_id: string | null;
+            /** Work Id */
+            work_id: string;
+        };
+        /** PaperRuntimeCommandResponse */
+        PaperRuntimeCommandResponse: {
+            /** Replayed */
+            replayed: boolean;
+            /** Request Id */
+            request_id: string;
+            runtime: components["schemas"]["PaperRuntimeResponse"];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperRuntimeControlRequest */
+        PaperRuntimeControlRequest: {
+            /** Actor */
+            actor: string;
+            /** Expected Runtime Version */
+            expected_runtime_version: number;
+            /** Runtime Binding Digest */
+            runtime_binding_digest: string;
+        };
+        /** PaperRuntimeCreateRequest */
+        PaperRuntimeCreateRequest: {
+            /** Actor */
+            actor: string;
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Execution Order Id */
+            execution_order_id: string;
+            /** Logical Actor */
+            logical_actor: string;
+            /** Runtime Policy Id */
+            runtime_policy_id: string;
+            /** Runtime Policy Version */
+            runtime_policy_version: number;
+        };
+        /** PaperRuntimeHealthResponse */
+        PaperRuntimeHealthResponse: {
+            /** Block Reason Code */
+            block_reason_code: string | null;
+            /** Blocked */
+            blocked: boolean;
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /** Claimed */
+            claimed: boolean;
+            /** Claimed At */
+            claimed_at: string | null;
+            /**
+             * Desired State
+             * @enum {string}
+             */
+            desired_state: "running" | "stopped";
+            /** Fencing Token */
+            fencing_token: number;
+            /** Heartbeat At */
+            heartbeat_at: string | null;
+            /** Lease Expires At */
+            lease_expires_at: string | null;
+            /**
+             * Lease Status
+             * @enum {string}
+             */
+            lease_status: "unowned" | "active" | "expired";
+            /**
+             * Observed State
+             * @enum {string}
+             */
+            observed_state: "ready" | "running" | "stopped" | "completed" | "blocked";
+            /** Row Version */
+            row_version: number;
+            /** Runtime Id */
+            runtime_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Terminal */
+            terminal: boolean;
+        };
+        /** PaperRuntimeListResponse */
+        PaperRuntimeListResponse: {
+            /** Items */
+            items: components["schemas"]["PaperRuntimeResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperRuntimeReconciliationResponse */
+        PaperRuntimeReconciliationResponse: {
+            /** Checkpoint Count */
+            checkpoint_count: number;
+            /**
+             * Continuation Status
+             * @enum {string}
+             */
+            continuation_status: "current" | "stale" | "not_applicable";
+            /** Event Count */
+            event_count: number;
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Execution Order Id */
+            execution_order_id: string;
+            /** Execution Terminal */
+            execution_terminal: boolean;
+            /** Execution Version */
+            execution_version: number;
+            /**
+             * Historical Coherent
+             * @constant
+             */
+            historical_coherent: true;
+            /** Pending Work Id */
+            pending_work_id: string | null;
+            /** Runtime Binding Digest */
+            runtime_binding_digest: string;
+            /** Runtime Id */
+            runtime_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "coherent_nonterminal" | "coherent_terminal" | "coherent_stopped" | "blocked" | "continuation_stale";
+            /** Work Count */
+            work_count: number;
+        };
+        /** PaperRuntimeResponse */
+        PaperRuntimeResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Block Reason Code */
+            block_reason_code: string | null;
+            /** Claimed At */
+            claimed_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Desired State
+             * @enum {string}
+             */
+            desired_state: "running" | "stopped";
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Execution Order Id */
+            execution_order_id: string;
+            /** Fencing Token */
+            fencing_token: number;
+            /** Heartbeat At */
+            heartbeat_at: string | null;
+            /** Lease Expires At */
+            lease_expires_at: string | null;
+            /** Logical Actor */
+            logical_actor: string;
+            /**
+             * Observed State
+             * @enum {string}
+             */
+            observed_state: "ready" | "running" | "stopped" | "completed" | "blocked";
+            /** Owner Id */
+            owner_id: string | null;
+            /** Replay Id */
+            replay_id: string;
+            /** Row Version */
+            row_version: number;
+            /** Runtime Binding Digest */
+            runtime_binding_digest: string;
+            /** Runtime Id */
+            runtime_id: string;
+            /** Runtime Policy Id */
+            runtime_policy_id: string;
+            /** Runtime Policy Version */
+            runtime_policy_version: number;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Trading Session Id */
+            trading_session_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** PaperRuntimeWorkListResponse */
+        PaperRuntimeWorkListResponse: {
+            /** Items */
+            items: components["schemas"]["PaperRuntimeWorkResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+        };
+        /** PaperRuntimeWorkResponse */
+        PaperRuntimeWorkResponse: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Execution Order Id */
+            execution_order_id: string;
+            /** Expected Execution Version */
+            expected_execution_version: number;
+            /** M34 Step Actor */
+            m34_step_actor: string;
+            /** M34 Step Idempotency Key */
+            m34_step_idempotency_key: string;
+            /** Runtime Id */
+            runtime_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: 1;
+            /** Work Digest */
+            work_digest: string;
+            /** Work Id */
+            work_id: string;
         };
         /** PaperSessionSummaryResponse */
         PaperSessionSummaryResponse: {
@@ -6656,6 +7192,727 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_paper_runtimes_v1: {
+        parameters: {
+            query?: {
+                account_id?: string | null;
+                replay_id?: string | null;
+                trading_session_id?: string | null;
+                desired_state?: ("running" | "stopped") | null;
+                observed_state?: ("ready" | "running" | "stopped" | "completed" | "blocked") | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeListResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    create_paper_runtime_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperRuntimeCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_paper_runtime_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    list_paper_runtime_audit_v1: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeAuditListResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    list_paper_runtime_checkpoints_v1: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCheckpointListResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_paper_runtime_health_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeHealthResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    get_paper_runtime_reconciliation_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeReconciliationResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    recover_paper_runtime_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperRuntimeControlRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    resume_paper_runtime_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperRuntimeControlRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    start_paper_runtime_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperRuntimeControlRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    stop_paper_runtime_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperRuntimeControlRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeCommandResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    list_paper_runtime_work_v1: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                runtime_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperRuntimeWorkListResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
         };

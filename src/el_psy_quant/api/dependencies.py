@@ -16,6 +16,10 @@ from el_psy_quant.application import (
     PortfolioReviewArtifactRootUnavailableError,
     StrategyOrderApplicationService,
 )
+from el_psy_quant.application.paper_runtime import PaperRuntimeLifecycleService
+from el_psy_quant.application.paper_runtime_inspection import (
+    PaperRuntimeInspectionService,
+)
 from el_psy_quant.application.paper_jobs import validate_paper_artifact_root
 from el_psy_quant.portfolio_review import validate_portfolio_review_artifact_root
 from el_psy_quant.persistence.schema import product_schema_is_compatible
@@ -66,6 +70,22 @@ def paper_execution_schema_incompatible() -> PublicApiError:
         status_code=HTTPStatus.SERVICE_UNAVAILABLE,
         code="paper_execution_schema_incompatible",
         message="Paper Execution schema is incompatible",
+    )
+
+
+def paper_runtime_authority_unavailable() -> PublicApiError:
+    return PublicApiError(
+        status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+        code="paper_runtime_authority_unavailable",
+        message="Paper Runtime authority is unavailable",
+    )
+
+
+def paper_runtime_schema_incompatible() -> PublicApiError:
+    return PublicApiError(
+        status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+        code="paper_runtime_schema_incompatible",
+        message="Paper Runtime schema is incompatible",
     )
 
 
@@ -222,6 +242,50 @@ def get_paper_execution_application_service(
 ) -> PaperExecutionApplicationService:
     """Construct one explicit request-scoped M34 application service."""
     return PaperExecutionApplicationService(session_factory=session_factory)
+
+
+def get_paper_runtime_session_factory(
+    request: Request,
+) -> sessionmaker[Session]:
+    """Resolve M35 storage with distinct availability and schema failures."""
+
+    path = getattr(request.app.state, "product_database_path", None)
+    factory = getattr(request.app.state, "product_session_factory", None)
+    try:
+        storage_available = (
+            isinstance(path, Path)
+            and path.exists()
+            and path.is_file()
+            and isinstance(factory, sessionmaker)
+        )
+    except OSError as exc:
+        raise paper_runtime_authority_unavailable() from exc
+    if not storage_available:
+        raise paper_runtime_authority_unavailable()
+    try:
+        if not _product_schema_is_compatible(path):
+            raise paper_runtime_schema_incompatible()
+    except PublicApiError:
+        raise
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise paper_runtime_schema_incompatible() from exc
+    return factory
+
+
+def get_paper_runtime_lifecycle_service(
+    session_factory: Annotated[
+        sessionmaker[Session], Depends(get_paper_runtime_session_factory)
+    ],
+) -> PaperRuntimeLifecycleService:
+    return PaperRuntimeLifecycleService(session_factory=session_factory)
+
+
+def get_paper_runtime_inspection_service(
+    session_factory: Annotated[
+        sessionmaker[Session], Depends(get_paper_runtime_session_factory)
+    ],
+) -> PaperRuntimeInspectionService:
+    return PaperRuntimeInspectionService(session_factory=session_factory)
 
 
 def get_server_utc_timestamp() -> datetime:

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Protocol
 
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from el_psy_quant.paper_execution import (
@@ -59,6 +60,7 @@ from el_psy_quant.persistence.paper_runtime_model import (
 from el_psy_quant.persistence.paper_runtime_records import (
     PAPER_RUNTIME_LIST_LIMIT_MAXIMUM,
     PaperRuntimeConcurrencyConflictError,
+    PaperRuntimeNotFoundError,
     PaperRuntimePersistenceCorruptionError,
 )
 
@@ -201,6 +203,83 @@ class SqlAlchemyPaperRuntimeRepository:
             self._validate_runtime_authority(runtime_from_row(row)) for row in rows
         )
 
+    def list_runtimes_page(
+        self,
+        *,
+        limit: int,
+        cursor_created_at: datetime | None = None,
+        cursor_runtime_id: str | None = None,
+        account_id: str | None = None,
+        replay_id: str | None = None,
+        trading_session_id: str | None = None,
+        desired_state: str | None = None,
+        observed_state: str | None = None,
+    ) -> tuple[tuple[PaperRuntime, ...], bool]:
+        """Return one bounded deterministic runtime page without mutating state."""
+
+        page_limit = self._limit(limit)
+        if (cursor_created_at is None) is not (cursor_runtime_id is None):
+            raise ValueError("runtime cursor anchor is incomplete")
+        statement = select(PaperRuntimeRow)
+        for column, value, name in (
+            (PaperRuntimeRow.account_id, account_id, "account_id"),
+            (PaperRuntimeRow.replay_id, replay_id, "replay_id"),
+            (
+                PaperRuntimeRow.trading_session_id,
+                trading_session_id,
+                "trading_session_id",
+            ),
+        ):
+            if value is not None:
+                statement = statement.where(column == bounded_string(value, name, 512))
+        if desired_state is not None:
+            if desired_state not in ("running", "stopped"):
+                raise ValueError("desired state filter is invalid")
+            statement = statement.where(PaperRuntimeRow.desired_state == desired_state)
+        if observed_state is not None:
+            if observed_state not in (
+                "ready",
+                "running",
+                "stopped",
+                "completed",
+                "blocked",
+            ):
+                raise ValueError("observed state filter is invalid")
+            statement = statement.where(PaperRuntimeRow.observed_state == observed_state)
+        if cursor_created_at is not None:
+            if (
+                type(cursor_created_at) is not datetime
+                or cursor_created_at.tzinfo is None
+                or cursor_created_at.utcoffset() is None
+                or cursor_created_at.utcoffset().total_seconds() != 0
+            ):
+                raise ValueError("runtime cursor timestamp is invalid")
+            identity = bounded_string(cursor_runtime_id, "cursor_runtime_id", 96)
+            statement = statement.where(
+                or_(
+                    PaperRuntimeRow.created_at < cursor_created_at,
+                    and_(
+                        PaperRuntimeRow.created_at == cursor_created_at,
+                        PaperRuntimeRow.runtime_id > identity,
+                    ),
+                )
+            )
+        rows = tuple(
+            self._session.scalars(
+                statement.order_by(
+                    PaperRuntimeRow.created_at.desc(),
+                    PaperRuntimeRow.runtime_id.asc(),
+                ).limit(page_limit + 1)
+            ).all()
+        )
+        return (
+            tuple(
+                self._validate_runtime_authority(runtime_from_row(row))
+                for row in rows[:page_limit]
+            ),
+            len(rows) > page_limit,
+        )
+
     def append_runtime(self, *, runtime: PaperRuntime) -> PaperRuntime:
         self._validate_runtime_authority(runtime)
         current = self.get_runtime(runtime_id=runtime.runtime_id)
@@ -324,6 +403,46 @@ class SqlAlchemyPaperRuntimeRepository:
             for row in rows
             if (item := self.get_work(work_id=row.work_id)) is not None
         )
+
+    def list_work_page(
+        self,
+        *,
+        runtime_id: str,
+        limit: int,
+        cursor_expected_execution_version: int | None = None,
+    ) -> tuple[tuple[PaperRuntimeWork, ...], bool]:
+        page_limit = self._limit(limit)
+        runtime = self.get_runtime(runtime_id=runtime_id)
+        if runtime is None:
+            raise PaperRuntimeNotFoundError()
+        statement = select(PaperRuntimeWorkRow).where(
+            PaperRuntimeWorkRow.runtime_id == runtime.runtime_id
+        )
+        if cursor_expected_execution_version is not None:
+            if (
+                type(cursor_expected_execution_version) is not int
+                or cursor_expected_execution_version < 0
+            ):
+                raise ValueError("Work cursor version is invalid")
+            statement = statement.where(
+                PaperRuntimeWorkRow.expected_execution_version
+                > cursor_expected_execution_version
+            )
+        rows = tuple(
+            self._session.scalars(
+                statement.order_by(PaperRuntimeWorkRow.expected_execution_version).limit(
+                    page_limit + 1
+                )
+            ).all()
+        )
+        items = tuple(
+            item
+            for row in rows[:page_limit]
+            if (item := self.get_work(work_id=row.work_id)) is not None
+        )
+        if len(items) != min(len(rows), page_limit):
+            raise PaperRuntimePersistenceCorruptionError()
+        return items, len(rows) > page_limit
 
     def list_all_work(self, *, runtime_id: str) -> tuple[PaperRuntimeWork, ...]:
         """Read every Work exactly for runner recovery gates, without truncation."""
@@ -483,6 +602,42 @@ class SqlAlchemyPaperRuntimeRepository:
         ).all()
         return tuple(self._reconstruct_checkpoint(row) for row in rows)
 
+    def list_checkpoints_page(
+        self,
+        *,
+        runtime_id: str,
+        limit: int,
+        cursor_observed_execution_version: int | None = None,
+    ) -> tuple[tuple[PaperRuntimeCheckpoint, ...], bool]:
+        page_limit = self._limit(limit)
+        runtime = self.get_runtime(runtime_id=runtime_id)
+        if runtime is None:
+            raise PaperRuntimeNotFoundError()
+        statement = select(PaperRuntimeCheckpointRow).where(
+            PaperRuntimeCheckpointRow.runtime_id == runtime.runtime_id
+        )
+        if cursor_observed_execution_version is not None:
+            if (
+                type(cursor_observed_execution_version) is not int
+                or cursor_observed_execution_version < 0
+            ):
+                raise ValueError("checkpoint cursor version is invalid")
+            statement = statement.where(
+                PaperRuntimeCheckpointRow.observed_execution_version
+                > cursor_observed_execution_version
+            )
+        rows = tuple(
+            self._session.scalars(
+                statement.order_by(
+                    PaperRuntimeCheckpointRow.observed_execution_version
+                ).limit(page_limit + 1)
+            ).all()
+        )
+        return (
+            tuple(self._reconstruct_checkpoint(row) for row in rows[:page_limit]),
+            len(rows) > page_limit,
+        )
+
     def list_all_checkpoints(
         self, *, runtime_id: str
     ) -> tuple[PaperRuntimeCheckpoint, ...]:
@@ -583,6 +738,45 @@ class SqlAlchemyPaperRuntimeRepository:
         if tuple(event.event_sequence for event in events) != tuple(range(len(events))):
             raise PaperRuntimePersistenceCorruptionError()
         return events
+
+    def list_events_page(
+        self,
+        *,
+        runtime_id: str,
+        limit: int,
+        cursor_event_sequence: int | None = None,
+    ) -> tuple[tuple[PaperRuntimeEvent, ...], bool]:
+        page_limit = self._limit(limit)
+        runtime = self.get_runtime(runtime_id=runtime_id)
+        if runtime is None:
+            raise PaperRuntimeNotFoundError()
+        statement = select(PaperRuntimeEventRow).where(
+            PaperRuntimeEventRow.runtime_id == runtime.runtime_id
+        )
+        if cursor_event_sequence is not None:
+            if type(cursor_event_sequence) is not int or cursor_event_sequence < 0:
+                raise ValueError("event cursor sequence is invalid")
+            statement = statement.where(
+                PaperRuntimeEventRow.event_sequence > cursor_event_sequence
+            )
+        rows = tuple(
+            self._session.scalars(
+                statement.order_by(PaperRuntimeEventRow.event_sequence).limit(
+                    page_limit + 1
+                )
+            ).all()
+        )
+        events = tuple(
+            event_from_row(row, runtime=runtime) for row in rows[:page_limit]
+        )
+        if events and cursor_event_sequence is None and events[0].event_sequence != 0:
+            raise PaperRuntimePersistenceCorruptionError()
+        if any(
+            right.event_sequence != left.event_sequence + 1
+            for left, right in zip(events, events[1:])
+        ):
+            raise PaperRuntimePersistenceCorruptionError()
+        return events, len(rows) > page_limit
 
     def find_work_events(
         self, *, runtime_id: str, work_id: str, event_type: str

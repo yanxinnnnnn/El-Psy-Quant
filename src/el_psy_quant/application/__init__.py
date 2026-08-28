@@ -157,6 +157,16 @@ from el_psy_quant.application.paper_runtime import (
     PaperRuntimeTerminalContinuationError,
     resolve_paper_runtime_control_replay,
 )
+from el_psy_quant.application.paper_runtime_inspection import (
+    PaperRuntimeAuditEntry,
+    PaperRuntimeContinuationStatus,
+    PaperRuntimeHealth,
+    PaperRuntimeInspectionService,
+    PaperRuntimeLeaseStatus,
+    PaperRuntimePage,
+    PaperRuntimeReconciliation,
+    PaperRuntimeReconciliationStatus,
+)
 from el_psy_quant.application.portfolio_reviews import (
     PortfolioReviewArtifactConflictError,
     PortfolioReviewArtifactInvalidError,
@@ -248,6 +258,14 @@ __all__ = [
     "PaperRuntimeRunnerService",
     "PaperRuntimeRunnerStateError",
     "PaperRuntimeTerminalContinuationError",
+    "PaperRuntimeAuditEntry",
+    "PaperRuntimeContinuationStatus",
+    "PaperRuntimeHealth",
+    "PaperRuntimeInspectionService",
+    "PaperRuntimeLeaseStatus",
+    "PaperRuntimePage",
+    "PaperRuntimeReconciliation",
+    "PaperRuntimeReconciliationStatus",
     "PaperAccountStateCommandInput",
     "PaperAccountStateView",
     "PaperFillCommandInput",
