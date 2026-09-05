@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+from threading import Barrier
+
 import pytest
 from sqlalchemy import text
 
@@ -128,8 +130,10 @@ def test_active_foreign_owner_rejects_and_concurrent_unowned_recovery_has_one_wi
         owner_id=claim.owner_id,
         fencing_token=claim.fencing_token,
     )
+    barrier = Barrier(2)
 
     def recover(owner):
+        barrier.wait(timeout=10)
         try:
             return recovery.recover_runtime(
                 runtime_id=claim.runtime_id, recovery_owner_id=owner
@@ -138,7 +142,10 @@ def test_active_foreign_owner_rejects_and_concurrent_unowned_recovery_has_one_wi
             return exc
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        outcomes = tuple(pool.map(recover, ("worker-a", "worker-b")))
+        futures = tuple(
+            pool.submit(recover, owner) for owner in ("worker-a", "worker-b")
+        )
+        outcomes = tuple(future.result(timeout=15) for future in futures)
     winners = tuple(item for item in outcomes if not isinstance(item, Exception))
     losers = tuple(item for item in outcomes if isinstance(item, Exception))
     assert len(winners) == len(losers) == 1
@@ -179,9 +186,7 @@ def test_crash_b_running_reuses_exact_work_across_expired_takeover(
     engine.dispose()
 
 
-def test_crash_b_stopped_pending_work_does_not_step_and_releases(
-    tmp_path, monkeypatch
-):
+def test_crash_b_stopped_pending_work_does_not_step_and_releases(tmp_path, monkeypatch):
     engine, factory, _order, lifecycle, ownership, runner, clock, claim = (
         _runner_fixture(tmp_path / "crash-b-stopped.sqlite3", monkeypatch)
     )
@@ -505,10 +510,9 @@ def test_crash_f_blocks_once_without_repair_and_block_event_failure_rolls_back(
     )
     assert repeated.outcome == "blocked"
     assert repeated.runtime.owner_id is None
-    assert [
-        event.event_type
-        for event in _read(factory, claim.runtime_id)[3]
-    ].count("runtime_blocked") == 1
+    assert [event.event_type for event in _read(factory, claim.runtime_id)[3]].count(
+        "runtime_blocked"
+    ) == 1
     engine.dispose()
 
     engine, factory, _order, _lifecycle, ownership, runner, clock, claim = (
@@ -523,7 +527,9 @@ def test_crash_f_blocks_once_without_repair_and_block_event_failure_rolls_back(
             raise RuntimeError("simulated blocked event failure")
         return original(self, event=event)
 
-    monkeypatch.setattr(SqlAlchemyPaperRuntimeRepository, "append_event", fail_block_event)
+    monkeypatch.setattr(
+        SqlAlchemyPaperRuntimeRepository, "append_event", fail_block_event
+    )
     with pytest.raises(RuntimeError, match="simulated blocked event failure"):
         recovery.reconcile_claimed_runtime(
             runtime_id=claim.runtime_id,
@@ -639,19 +645,25 @@ def test_terminal_fill_recovery_has_one_attempt_fill_settlement_and_progression(
     assert [event.event_type for event in events].count("work_observed") == 2
     assert [event.event_type for event in events].count("runtime_completed") == 1
     with engine.connect() as connection:
-        assert connection.scalar(
-            text(
-                "SELECT COUNT(*) FROM paper_account_events "
-                "WHERE event_type='execution_fill_posted'"
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT COUNT(*) FROM paper_account_events "
+                    "WHERE event_type='execution_fill_posted'"
+                )
             )
-        ) == 1
-        assert connection.scalar(
-            text(
-                "SELECT position FROM market_data_replays "
-                "WHERE replay_id=:replay_id"
-            ),
-            {"replay_id": order.market_handoff_reference.replay_id},
-        ) == 6
+            == 1
+        )
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT position FROM market_data_replays "
+                    "WHERE replay_id=:replay_id"
+                ),
+                {"replay_id": order.market_handoff_reference.replay_id},
+            )
+            == 6
+        )
     engine.dispose()
 
 
@@ -697,7 +709,9 @@ def test_catchup_observation_failure_rolls_back_checkpoint_and_event(
             raise RuntimeError("simulated observation event failure")
         return original(self, event=event)
 
-    monkeypatch.setattr(SqlAlchemyPaperRuntimeRepository, "append_event", fail_observation)
+    monkeypatch.setattr(
+        SqlAlchemyPaperRuntimeRepository, "append_event", fail_observation
+    )
     with pytest.raises(RuntimeError, match="simulated observation event failure"):
         _recovery(factory, ownership, runner, clock).recover_runtime(
             runtime_id=claim.runtime_id, recovery_owner_id="rollback-worker"
@@ -773,7 +787,9 @@ def test_completed_transition_event_failure_rolls_back_catchup_and_lifecycle(
             raise RuntimeError("simulated completion event failure")
         return original(self, event=event)
 
-    monkeypatch.setattr(SqlAlchemyPaperRuntimeRepository, "append_event", fail_completion)
+    monkeypatch.setattr(
+        SqlAlchemyPaperRuntimeRepository, "append_event", fail_completion
+    )
     with pytest.raises(RuntimeError, match="simulated completion event failure"):
         recovery.recover_runtime(
             runtime_id=claim.runtime_id, recovery_owner_id="completion-worker"

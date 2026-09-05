@@ -52,8 +52,8 @@ def _copy(runtime: PaperRuntime, **changes: object) -> PaperRuntime:
 
 
 def _fixture(path, monkeypatch, *, terminal: bool = False):
-    engine, factory, order, _commit, _runtime, _work, _event, _receipt = (
-        _authorities(path, monkeypatch, step=terminal)
+    engine, factory, order, _commit, _runtime, _work, _event, _receipt = _authorities(
+        path, monkeypatch, step=terminal
     )
     clock = _Clock(AUDIT + timedelta(hours=1))
     service = PaperRuntimeLifecycleService(session_factory=factory, clock=clock)
@@ -157,11 +157,20 @@ def test_create_has_exact_initial_runtime_event_receipt_and_no_execution_side_ef
         )
         assert not work and not checkpoints
         with engine.connect() as connection:
-            assert connection.scalar(text("SELECT COUNT(*) FROM paper_execution_attempts")) == 0
-            assert connection.scalar(text("SELECT COUNT(*) FROM paper_execution_fills")) == 0
-            assert connection.scalar(
-                text("SELECT COUNT(*) FROM paper_execution_settlement_links")
-            ) == 0
+            assert (
+                connection.scalar(text("SELECT COUNT(*) FROM paper_execution_attempts"))
+                == 0
+            )
+            assert (
+                connection.scalar(text("SELECT COUNT(*) FROM paper_execution_fills"))
+                == 0
+            )
+            assert (
+                connection.scalar(
+                    text("SELECT COUNT(*) FROM paper_execution_settlement_links")
+                )
+                == 0
+            )
     finally:
         engine.dispose()
 
@@ -371,9 +380,7 @@ def test_resume_requires_observed_stopped_and_live_freshness(tmp_path, monkeypat
         ).runtime
         observed_stopped = _replace(factory, claimed, observed_state="stopped")
         clock.value = observed_stopped.updated_at + timedelta(minutes=1)
-        resumed = service.resume_runtime(
-            **_command(observed_stopped, key="resume")
-        )
+        resumed = service.resume_runtime(**_command(observed_stopped, key="resume"))
         assert (resumed.runtime.desired_state, resumed.runtime.observed_state) == (
             "running",
             "stopped",
@@ -445,7 +452,10 @@ def test_recover_request_preserves_state_claim_and_fence(tmp_path, monkeypatch, 
         )
         assert not work and not checkpoints
         with engine.connect() as connection:
-            assert connection.scalar(text("SELECT COUNT(*) FROM paper_execution_attempts")) == 0
+            assert (
+                connection.scalar(text("SELECT COUNT(*) FROM paper_execution_attempts"))
+                == 0
+            )
     finally:
         engine.dispose()
 
@@ -516,14 +526,15 @@ def test_exact_start_race_has_one_mutation_and_one_historical_replay(
     command = _command(created.runtime, key="racing-start")
 
     def start(_index):
-        barrier.wait()
+        barrier.wait(timeout=10)
         return PaperRuntimeLifecycleService(
             session_factory=factory, clock=clock
         ).start_runtime(**command)
 
     try:
         with ThreadPoolExecutor(max_workers=2) as pool:
-            results = tuple(pool.map(start, range(2)))
+            futures = tuple(pool.submit(start, index) for index in range(2))
+            results = tuple(future.result(timeout=15) for future in futures)
         assert sorted(result.replayed for result in results) == [False, True]
         assert results[0].runtime == results[1].runtime
         current, events, receipts, _work, _checkpoints = _read(
@@ -568,7 +579,12 @@ def test_expected_version_fences_conflicting_controls_and_event_sequence_is_inde
             factory, stopped.runtime.runtime_id
         )
         assert tuple(event.event_sequence for event in events) == tuple(range(4))
-        assert tuple(event.resulting_runtime_version for event in events) == (0, 1, 2, 4)
+        assert tuple(event.resulting_runtime_version for event in events) == (
+            0,
+            1,
+            2,
+            4,
+        )
     finally:
         engine.dispose()
 
@@ -601,9 +617,7 @@ def test_start_and_recover_require_live_nonterminal_m34_authority(
         _diverge_account(recover_factory, recover_order)
         recover_clock.value += timedelta(minutes=1)
         with pytest.raises(PaperExecutionReconciliationRequiredError):
-            recover_service.recover_runtime(
-                **_command(started.runtime, key="recover")
-            )
+            recover_service.recover_runtime(**_command(started.runtime, key="recover"))
         assert _read(recover_factory, started.runtime.runtime_id)[0] == started.runtime
     finally:
         recover_engine.dispose()
@@ -671,7 +685,9 @@ def test_stop_fails_closed_on_historical_m34_corruption(tmp_path, monkeypatch):
         clock.value += timedelta(minutes=1)
         started = service.start_runtime(**_command(created.runtime, key="start"))
         with engine.begin() as connection:
-            connection.execute(text("DROP TRIGGER trg_paper_execution_orders_no_update"))
+            connection.execute(
+                text("DROP TRIGGER trg_paper_execution_orders_no_update")
+            )
             connection.execute(
                 text(
                     "UPDATE paper_execution_orders SET payload_json='{}' "
@@ -727,13 +743,16 @@ def test_concurrent_create_with_different_keys_converges_to_one_runtime(
     barrier = Barrier(2)
 
     def create(key: str):
-        barrier.wait()
+        barrier.wait(timeout=10)
         service = PaperRuntimeLifecycleService(session_factory=factory, clock=clock)
         return _create(service, order, key=key)
 
     try:
         with ThreadPoolExecutor(max_workers=2) as pool:
-            results = tuple(pool.map(create, ("create-a", "create-b")))
+            futures = tuple(
+                pool.submit(create, key) for key in ("create-a", "create-b")
+            )
+            results = tuple(future.result(timeout=15) for future in futures)
         assert sorted(result.replayed for result in results) == [False, True]
         assert results[0].runtime == results[1].runtime
         _current, events, receipts, _work, _checkpoints = _read(
@@ -755,18 +774,12 @@ def test_every_lifecycle_namespace_replays_immutable_history_after_progression(
         clock.value += timedelta(minutes=1)
         started = service.start_runtime(**_command(created.runtime, key="start"))
         clock.value += timedelta(minutes=1)
-        recovered = service.recover_runtime(
-            **_command(started.runtime, key="recover")
-        )
+        recovered = service.recover_runtime(**_command(started.runtime, key="recover"))
         clock.value += timedelta(minutes=1)
         stopped = service.stop_runtime(**_command(recovered.runtime, key="stop"))
-        observed_stopped = _replace(
-            factory, stopped.runtime, observed_state="stopped"
-        )
+        observed_stopped = _replace(factory, stopped.runtime, observed_state="stopped")
         clock.value = observed_stopped.updated_at + timedelta(minutes=1)
-        resumed = service.resume_runtime(
-            **_command(observed_stopped, key="resume")
-        )
+        resumed = service.resume_runtime(**_command(observed_stopped, key="resume"))
         before = _read(factory, resumed.runtime.runtime_id)
 
         replays = (

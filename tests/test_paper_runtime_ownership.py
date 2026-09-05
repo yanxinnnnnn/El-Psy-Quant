@@ -97,9 +97,12 @@ def test_exact_cas_updates_payload_and_indexes_and_remains_caller_owned(
     try:
         session = factory()
         repository = SqlAlchemyPaperRuntimeRepository(session=session)
-        assert repository.compare_and_swap_runtime(
-            expected_runtime=runtime, replacement_runtime=replacement
-        ) == replacement
+        assert (
+            repository.compare_and_swap_runtime(
+                expected_runtime=runtime, replacement_runtime=replacement
+            )
+            == replacement
+        )
         row = session.execute(
             text(
                 "SELECT desired_state, observed_state, row_version, payload_json "
@@ -117,9 +120,7 @@ def test_exact_cas_updates_payload_and_indexes_and_remains_caller_owned(
         current, _events, _receipts = _read(factory, runtime.runtime_id)
         assert current == runtime
         with factory.begin() as session:
-            SqlAlchemyPaperRuntimeRepository(
-                session=session
-            ).compare_and_swap_runtime(
+            SqlAlchemyPaperRuntimeRepository(session=session).compare_and_swap_runtime(
                 expected_runtime=runtime, replacement_runtime=replacement
             )
 
@@ -270,7 +271,9 @@ def test_first_claim_convergence_and_competing_owner_rejection(tmp_path, monkeyp
     clock = _Clock(AUDIT + timedelta(minutes=1))
     service = _service(factory, clock)
     try:
-        claimed = service.claim_runtime(runtime_id=runtime.runtime_id, owner_id="worker-a")
+        claimed = service.claim_runtime(
+            runtime_id=runtime.runtime_id, owner_id="worker-a"
+        )
         assert claimed.converged is False
         assert claimed.event is not None
         assert claimed.event.event_type == "claim_acquired"
@@ -465,11 +468,20 @@ def test_release_and_guard_preserve_fence_and_do_not_mutate_on_failure(
             "claim_released",
         )
         with engine.connect() as connection:
-            assert connection.scalar(text("SELECT COUNT(*) FROM paper_execution_attempts")) == 0
-            assert connection.scalar(text("SELECT COUNT(*) FROM paper_execution_fills")) == 0
-            assert connection.scalar(
-                text("SELECT COUNT(*) FROM paper_execution_settlement_links")
-            ) == 0
+            assert (
+                connection.scalar(text("SELECT COUNT(*) FROM paper_execution_attempts"))
+                == 0
+            )
+            assert (
+                connection.scalar(text("SELECT COUNT(*) FROM paper_execution_fills"))
+                == 0
+            )
+            assert (
+                connection.scalar(
+                    text("SELECT COUNT(*) FROM paper_execution_settlement_links")
+                )
+                == 0
+            )
     finally:
         engine.dispose()
 
@@ -496,9 +508,7 @@ def test_claim_event_failure_rolls_back_runtime_mutation(tmp_path, monkeypatch):
         engine.dispose()
 
 
-def test_concurrent_claim_has_one_winner_one_fence_and_one_event(
-    tmp_path, monkeypatch
-):
+def test_concurrent_claim_has_one_winner_one_fence_and_one_event(tmp_path, monkeypatch):
     engine, factory, runtime, _event, _receipt = _stored_runtime(
         tmp_path / "concurrent.sqlite3", monkeypatch
     )
@@ -506,7 +516,7 @@ def test_concurrent_claim_has_one_winner_one_fence_and_one_event(
     barrier = Barrier(2)
 
     def claim(owner: str):
-        barrier.wait()
+        barrier.wait(timeout=10)
         try:
             result = _service(factory, clock).claim_runtime(
                 runtime_id=runtime.runtime_id, owner_id=owner
@@ -517,7 +527,10 @@ def test_concurrent_claim_has_one_winner_one_fence_and_one_event(
 
     try:
         with ThreadPoolExecutor(max_workers=2) as pool:
-            outcomes = tuple(pool.map(claim, ("worker-a", "worker-b")))
+            futures = tuple(
+                pool.submit(claim, owner) for owner in ("worker-a", "worker-b")
+            )
+            outcomes = tuple(future.result(timeout=15) for future in futures)
         assert sorted(outcome for outcome, _owner in outcomes) == ["lost", "won"]
         current, events, _receipts = _read(factory, runtime.runtime_id)
         assert current is not None
@@ -595,9 +608,7 @@ def test_control_digest_and_historical_key_or_digest_replay(tmp_path, monkeypatc
             updated_at=AUDIT + timedelta(minutes=1),
         )
         with factory.begin() as session:
-            SqlAlchemyPaperRuntimeRepository(
-                session=session
-            ).compare_and_swap_runtime(
+            SqlAlchemyPaperRuntimeRepository(session=session).compare_and_swap_runtime(
                 expected_runtime=runtime, replacement_runtime=advanced
             )
         historical = service.resolve_control_replay(
@@ -687,7 +698,9 @@ def test_corrupt_control_receipt_or_event_fails_closed(
     try:
         with engine.begin() as connection:
             if corruption == "receipt":
-                connection.execute(text("DROP TRIGGER trg_paper_runtime_receipts_no_update"))
+                connection.execute(
+                    text("DROP TRIGGER trg_paper_runtime_receipts_no_update")
+                )
                 connection.execute(
                     text(
                         "UPDATE paper_runtime_command_receipts "
@@ -696,7 +709,9 @@ def test_corrupt_control_receipt_or_event_fails_closed(
                     {"digest": "e" * 64, "namespace": receipt.namespace},
                 )
             else:
-                connection.execute(text("DROP TRIGGER trg_paper_runtime_events_no_update"))
+                connection.execute(
+                    text("DROP TRIGGER trg_paper_runtime_events_no_update")
+                )
                 connection.execute(
                     text(
                         "UPDATE paper_runtime_events SET payload_json='{}' "

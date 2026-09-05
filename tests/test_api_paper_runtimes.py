@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 import sqlite3
 from datetime import datetime, timedelta, timezone
+from threading import Barrier
 
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 
 from el_psy_quant.api.app import create_app
 from el_psy_quant.api.dependencies import get_paper_runtime_inspection_service
+from el_psy_quant.api.paper_runtime_pagination import (
+    encode_paper_runtime_list_cursor,
+)
 from el_psy_quant.application import (
     PaperAccountApplicationService,
     PaperExecutionApplicationService,
@@ -45,7 +50,9 @@ def _runtime_payload(order: dict[str, object]) -> dict[str, object]:
     }
 
 
-def _create_runtime(client: TestClient, value: _Configured, key: str = "runtime-create"):
+def _create_runtime(
+    client: TestClient, value: _Configured, key: str = "runtime-create"
+):
     order = _create(client, value, "runtime-order").json()["result"]["order"]
     response = client.post(
         "/api/v1/paper-runtimes",
@@ -81,6 +88,18 @@ def _counts(path) -> tuple[int, ...]:
                 "paper_execution_settlement_links",
                 "paper_account_events",
             )
+        )
+
+
+def _runtime_evidence_counts(path) -> tuple[int, int]:
+    with sqlite3.connect(path) as connection:
+        return (
+            connection.execute("SELECT COUNT(*) FROM paper_runtime_events").fetchone()[
+                0
+            ],
+            connection.execute(
+                "SELECT COUNT(*) FROM paper_runtime_command_receipts"
+            ).fetchone()[0],
         )
 
 
@@ -226,6 +245,55 @@ def test_start_stop_and_resume_transport_preserve_lifecycle_replay(
                 current = settled.runtime.to_dict()
 
 
+def test_concurrent_api_start_retries_converge_once_and_changed_digest_is_409(
+    configured: _Configured,
+) -> None:
+    with TestClient(configured.application) as client:
+        created, _order = _create_runtime(
+            client, configured, "concurrent-api-runtime-create"
+        )
+    runtime = created.json()["runtime"]
+    barrier = Barrier(2)
+
+    def start():
+        with TestClient(configured.application) as client:
+            barrier.wait(timeout=10)
+            response = _control(
+                client, runtime, "start", "concurrent-api-runtime-start"
+            )
+            return response.status_code, response.json()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = tuple(pool.submit(start) for _index in range(2))
+        results = tuple(future.result(timeout=15) for future in futures)
+    assert sorted(status for status, _body in results) == [200, 201]
+    assert sorted(body["replayed"] for _status, body in results) == [False, True]
+    assert results[0][1]["runtime"] == results[1][1]["runtime"]
+    assert _runtime_evidence_counts(configured.database_path) == (2, 2)
+
+    before = (
+        _counts(configured.database_path),
+        _runtime_evidence_counts(configured.database_path),
+    )
+    with TestClient(configured.application) as client:
+        conflict = client.post(
+            f"/api/v1/paper-runtimes/{runtime['runtime_id']}/start",
+            auth=AUTH,
+            headers={"Idempotency-Key": "concurrent-api-runtime-start"},
+            json={
+                "runtime_binding_digest": runtime["runtime_binding_digest"],
+                "expected_runtime_version": runtime["row_version"],
+                "actor": "different-founder",
+            },
+        )
+    assert conflict.status_code == 409
+    assert conflict.json()["error"]["code"] == "paper_runtime_idempotency_conflict"
+    assert (
+        _counts(configured.database_path),
+        _runtime_evidence_counts(configured.database_path),
+    ) == before
+
+
 def test_detail_list_health_and_reconciliation_are_read_only(
     configured: _Configured,
 ) -> None:
@@ -287,11 +355,15 @@ def test_health_classifies_active_and_expired_claim_without_mutation(
         runtime = created.json()["runtime"]
     factory = configured.application.state.product_session_factory
     now = datetime.now(timezone.utc)
-    claimed = PaperRuntimeOwnershipService(
-        session_factory=factory,
-        lease_duration=timedelta(days=1),
-        clock=lambda: now,
-    ).claim_runtime(runtime_id=runtime["runtime_id"], owner_id="health-worker").runtime
+    claimed = (
+        PaperRuntimeOwnershipService(
+            session_factory=factory,
+            lease_duration=timedelta(days=1),
+            clock=lambda: now,
+        )
+        .claim_runtime(runtime_id=runtime["runtime_id"], owner_id="health-worker")
+        .runtime
+    )
     with TestClient(configured.application) as client:
         response = client.get(
             f"/api/v1/paper-runtimes/{claimed.runtime_id}/health", auth=AUTH
@@ -499,4 +571,139 @@ def test_audit_work_and_checkpoint_transport_is_bounded_ordered_and_sanitized(
             if cursor is None:
                 break
         assert sequences == list(range(len(sequences)))
+    engine.dispose()
+
+
+def test_all_runtime_pages_are_exact_mutation_free_and_reject_forged_anchors(
+    tmp_path, monkeypatch
+) -> None:
+    path = tmp_path / "runtime-page-hardening.sqlite3"
+    engine, factory, _order, _lifecycle, _ownership, runner, _clock, claim = (
+        _runner_fixture(path, monkeypatch)
+    )
+    completed = runner.run_claimed_runtime(
+        runtime_id=claim.runtime_id,
+        owner_id=claim.owner_id,
+        fencing_token=claim.fencing_token,
+        iteration_budget=3,
+    )
+    assert completed.outcome == "completed"
+    application = create_app(
+        product_database_path=path,
+        founder_username=AUTH[0],
+        founder_password=AUTH[1],
+    )
+    before = (
+        _read(factory, claim.runtime_id),
+        _counts(path),
+        _runtime_evidence_counts(path),
+    )
+
+    def collect(client, collection: str, identity_field: str):
+        items = []
+        cursor = None
+        while True:
+            suffix = "" if cursor is None else f"&cursor={cursor}"
+            response = client.get(
+                f"/api/v1/paper-runtimes/{claim.runtime_id}/{collection}"
+                f"?limit=1{suffix}",
+                auth=AUTH,
+            )
+            assert response.status_code == 200, response.text
+            page = response.json()
+            items.extend(page["items"])
+            cursor = page["next_cursor"]
+            if cursor is None:
+                break
+        identities = [item[identity_field] for item in items]
+        assert len(identities) == len(set(identities))
+        return items
+
+    with TestClient(application) as client:
+        audit = collect(client, "audit", "event_id")
+        work = collect(client, "work", "work_id")
+        checkpoints = collect(client, "checkpoints", "checkpoint_id")
+        assert [item["event_sequence"] for item in audit] == list(range(len(audit)))
+        assert [item["expected_execution_version"] for item in work] == [0, 1]
+        assert [item["observed_execution_version"] for item in checkpoints] == [1, 2]
+        for collection in ("audit", "work", "checkpoints"):
+            assert (
+                client.get(
+                    f"/api/v1/paper-runtimes/{claim.runtime_id}/{collection}?limit=0",
+                    auth=AUTH,
+                ).status_code
+                == 422
+            )
+            assert (
+                client.get(
+                    f"/api/v1/paper-runtimes/{claim.runtime_id}/{collection}?limit=201",
+                    auth=AUTH,
+                ).status_code
+                == 422
+            )
+
+        context = {"runtime_id": claim.runtime_id}
+        forged = (
+            (
+                "audit",
+                encode_paper_runtime_list_cursor(
+                    collection_kind="paper_runtime_audit",
+                    resource_id="pre_" + "0" * 64,
+                    position=0,
+                    query_context=context,
+                ),
+            ),
+            (
+                "work",
+                encode_paper_runtime_list_cursor(
+                    collection_kind="paper_runtime_work",
+                    resource_id="prw_" + "0" * 64,
+                    position=0,
+                    query_context=context,
+                ),
+            ),
+            (
+                "checkpoints",
+                encode_paper_runtime_list_cursor(
+                    collection_kind="paper_runtime_checkpoints",
+                    resource_id="prc_" + "0" * 64,
+                    position=1,
+                    query_context=context,
+                ),
+            ),
+        )
+        for collection, cursor in forged:
+            response = client.get(
+                f"/api/v1/paper-runtimes/{claim.runtime_id}/{collection}"
+                f"?limit=1&cursor={cursor}",
+                auth=AUTH,
+            )
+            assert response.status_code == 422
+            assert response.json()["error"]["code"] == "paper_runtime_invalid_cursor"
+            assert "sqlite" not in response.text.lower()
+
+        runtime = completed.runtime
+        runtime_cursor = encode_paper_runtime_list_cursor(
+            collection_kind="paper_runtimes",
+            resource_id="prt_" + "0" * 64,
+            created_at=runtime.created_at,
+            query_context={
+                "account_id": None,
+                "replay_id": None,
+                "trading_session_id": None,
+                "desired_state": None,
+                "observed_state": None,
+            },
+        )
+        response = client.get(
+            f"/api/v1/paper-runtimes?limit=1&cursor={runtime_cursor}", auth=AUTH
+        )
+        assert response.status_code == 422
+        assert response.json()["error"]["code"] == "paper_runtime_invalid_cursor"
+
+    assert (
+        _read(factory, claim.runtime_id),
+        _counts(path),
+        _runtime_evidence_counts(path),
+    ) == before
     engine.dispose()
