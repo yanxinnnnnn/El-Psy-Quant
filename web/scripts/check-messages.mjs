@@ -19,6 +19,7 @@ export const REQUIRED_NAMESPACES = Object.freeze([
   "market-time",
   "strategy-to-risk",
   "paper-execution",
+  "paper-runtimes",
   "lifecycle",
   "errors",
 ]);
@@ -344,6 +345,7 @@ export async function validateMessageCatalogs(messagesRoot) {
             : namespace === "market-time" ? "marketTime"
               : namespace === "strategy-to-risk" ? "strategyToRisk"
                 : namespace === "paper-execution" ? "paperExecution"
+                  : namespace === "paper-runtimes" ? "paperRuntimes"
           : namespace] = parsed;
     }
     const translator = createTranslator({ locale, messages });
