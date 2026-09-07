@@ -109,6 +109,85 @@ def _replace(factory, runtime: PaperRuntime, **changes: object) -> PaperRuntime:
         )
 
 
+def _downstream_authority_snapshot(engine):
+    tables = (
+        "paper_runtime_work",
+        "paper_runtime_checkpoints",
+        "paper_execution_orders",
+        "paper_execution_attempts",
+        "paper_execution_fills",
+        "paper_execution_settlement_links",
+        "paper_execution_command_receipts",
+        "paper_accounts",
+        "paper_account_events",
+        "paper_cash_ledger_entries",
+        "paper_position_ledger_entries",
+        "paper_account_creation_keys",
+        "paper_account_projections",
+        "paper_account_position_projections",
+        "paper_account_snapshots",
+        "paper_account_reconciliations",
+        "market_data_replays",
+        "market_data_replay_events",
+    )
+    with engine.connect() as connection:
+        return tuple(
+            (
+                table,
+                tuple(
+                    tuple(row)
+                    for row in connection.execute(
+                        text(f"SELECT * FROM {table} ORDER BY rowid")
+                    )
+                ),
+            )
+            for table in tables
+        )
+
+
+def _assert_exact_lifecycle_race(
+    *,
+    factory,
+    engine,
+    results,
+    namespace: str,
+    event_type: str,
+    command_key: str,
+    expected_runtime_version: int,
+    expected_states: tuple[str, str],
+    downstream_before,
+) -> None:
+    assert sorted(result.replayed for result in results) == [False, True]
+    assert results[0].runtime == results[1].runtime
+    assert results[0].event == results[1].event
+    assert results[0].receipt == results[1].receipt
+    assert results[0].receipt.command_digest == results[1].receipt.command_digest
+    assert results[0].receipt.command_idempotency_key == command_key
+    assert results[0].receipt.namespace == namespace
+
+    canonical = results[0]
+    current, events, receipts, work, checkpoints = _read(
+        factory, canonical.runtime.runtime_id
+    )
+    command_events = tuple(event for event in events if event.event_type == event_type)
+    command_receipts = tuple(
+        receipt
+        for receipt in receipts
+        if receipt.namespace == namespace
+        and receipt.command_idempotency_key == command_key
+    )
+    assert current == canonical.runtime
+    assert current.row_version == expected_runtime_version
+    assert (current.desired_state, current.observed_state) == expected_states
+    assert command_events == (canonical.event,)
+    assert command_receipts == (canonical.receipt,)
+    assert canonical.receipt.result_event_id == canonical.event.event_id
+    assert not work and not checkpoints
+    with engine.connect() as connection:
+        assert connection.scalar(text("SELECT COUNT(*) FROM paper_runtimes")) == 1
+    assert _downstream_authority_snapshot(engine) == downstream_before
+
+
 def _diverge_account(factory, order) -> None:
     with factory() as session:
         account = SqlAlchemyPaperAccountRepository(session=session).get_account(
@@ -524,6 +603,7 @@ def test_exact_start_race_has_one_mutation_and_one_historical_replay(
     clock.value += timedelta(minutes=1)
     barrier = Barrier(2)
     command = _command(created.runtime, key="racing-start")
+    downstream_before = _downstream_authority_snapshot(engine)
 
     def start(_index):
         barrier.wait(timeout=10)
@@ -535,13 +615,186 @@ def test_exact_start_race_has_one_mutation_and_one_historical_replay(
         with ThreadPoolExecutor(max_workers=2) as pool:
             futures = tuple(pool.submit(start, index) for index in range(2))
             results = tuple(future.result(timeout=15) for future in futures)
-        assert sorted(result.replayed for result in results) == [False, True]
-        assert results[0].runtime == results[1].runtime
-        current, events, receipts, _work, _checkpoints = _read(
-            factory, created.runtime.runtime_id
+        _assert_exact_lifecycle_race(
+            factory=factory,
+            engine=engine,
+            results=results,
+            namespace="start_paper_runtime",
+            event_type="start_requested",
+            command_key="racing-start",
+            expected_runtime_version=created.runtime.row_version + 1,
+            expected_states=("running", "ready"),
+            downstream_before=downstream_before,
         )
-        assert current is not None and current.row_version == 1
-        assert len(events) == len(receipts) == 2
+    finally:
+        engine.dispose()
+
+
+@pytest.mark.parametrize(
+    ("operation", "namespace", "event_type", "expected_states"),
+    (
+        (
+            "create",
+            "create_paper_runtime",
+            "runtime_created",
+            ("stopped", "ready"),
+        ),
+        (
+            "stop",
+            "stop_paper_runtime",
+            "stop_requested",
+            ("stopped", "ready"),
+        ),
+        (
+            "resume",
+            "resume_paper_runtime",
+            "resume_requested",
+            ("running", "stopped"),
+        ),
+        (
+            "recover",
+            "recover_paper_runtime",
+            "recover_requested",
+            ("running", "ready"),
+        ),
+    ),
+)
+def test_exact_same_key_lifecycle_races_converge_to_one_historical_result(
+    tmp_path,
+    monkeypatch,
+    operation,
+    namespace,
+    event_type,
+    expected_states,
+):
+    engine, factory, order, clock, service = _fixture(
+        tmp_path / f"{operation}-same-key-race.sqlite3", monkeypatch
+    )
+    command_key = f"racing-{operation}"
+    command = None
+    before = None
+    try:
+        if operation != "create":
+            created = _create(service, order)
+            before = created.runtime
+            if operation in ("stop", "recover"):
+                clock.value += timedelta(minutes=1)
+                before = service.start_runtime(
+                    **_command(before, key=f"prepare-{operation}-start")
+                ).runtime
+            elif operation == "resume":
+                before = _replace(factory, before, observed_state="stopped")
+                assert (before.desired_state, before.observed_state) == (
+                    "stopped",
+                    "stopped",
+                )
+            clock.value = before.updated_at + timedelta(minutes=1)
+            command = _command(before, key=command_key)
+
+        expected_runtime_version = 0 if before is None else before.row_version + 1
+        downstream_before = _downstream_authority_snapshot(engine)
+        barrier = Barrier(2)
+
+        def mutate(_index):
+            barrier.wait(timeout=10)
+            race_service = PaperRuntimeLifecycleService(
+                session_factory=factory, clock=clock
+            )
+            if operation == "create":
+                return _create(race_service, order, key=command_key)
+            assert command is not None
+            return getattr(race_service, f"{operation}_runtime")(**command)
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = tuple(pool.submit(mutate, index) for index in range(2))
+            results = tuple(future.result(timeout=15) for future in futures)
+
+        _assert_exact_lifecycle_race(
+            factory=factory,
+            engine=engine,
+            results=results,
+            namespace=namespace,
+            event_type=event_type,
+            command_key=command_key,
+            expected_runtime_version=expected_runtime_version,
+            expected_states=expected_states,
+            downstream_before=downstream_before,
+        )
+    finally:
+        engine.dispose()
+
+
+@pytest.mark.parametrize(
+    ("operation", "namespace", "event_type"),
+    (
+        ("create", "create_paper_runtime", "runtime_created"),
+        ("start", "start_paper_runtime", "start_requested"),
+        ("stop", "stop_paper_runtime", "stop_requested"),
+        ("resume", "resume_paper_runtime", "resume_requested"),
+        ("recover", "recover_paper_runtime", "recover_requested"),
+    ),
+)
+def test_changed_material_digest_conflicts_without_second_lifecycle_mutation(
+    tmp_path, monkeypatch, operation, namespace, event_type
+):
+    engine, factory, order, clock, service = _fixture(
+        tmp_path / f"{operation}-changed-digest.sqlite3", monkeypatch
+    )
+    command_key = f"{operation}-changed-digest"
+    command = None
+    try:
+        if operation == "create":
+            canonical = _create(service, order, key=command_key)
+        else:
+            created = _create(service, order)
+            before = created.runtime
+            if operation in ("stop", "recover"):
+                clock.value += timedelta(minutes=1)
+                before = service.start_runtime(
+                    **_command(before, key=f"prepare-{operation}-start")
+                ).runtime
+            elif operation == "resume":
+                before = _replace(factory, before, observed_state="stopped")
+            clock.value = before.updated_at + timedelta(minutes=1)
+            command = _command(before, key=command_key)
+            canonical = getattr(service, f"{operation}_runtime")(**command)
+
+        before_conflict = _read(factory, canonical.runtime.runtime_id)
+        downstream_before = _downstream_authority_snapshot(engine)
+        with pytest.raises(PaperRuntimeControlIdempotencyConflictError):
+            if operation == "create":
+                service.create_runtime(
+                    execution_order_id=order.execution_order_id,
+                    execution_order_digest=order.execution_order_digest,
+                    logical_actor="changed-paper-runtime",
+                    runtime_policy_id="durable-runtime-v1",
+                    runtime_policy_version=1,
+                    command_idempotency_key=command_key,
+                    command_actor="founder",
+                )
+            else:
+                assert command is not None
+                changed_command = {
+                    **command,
+                    "expected_runtime_version": command["expected_runtime_version"] + 1,
+                }
+                getattr(service, f"{operation}_runtime")(**changed_command)
+
+        after_conflict = _read(factory, canonical.runtime.runtime_id)
+        current, events, receipts, work, checkpoints = after_conflict
+        assert after_conflict == before_conflict
+        assert current == canonical.runtime
+        assert tuple(event for event in events if event.event_type == event_type) == (
+            canonical.event,
+        )
+        assert tuple(
+            receipt
+            for receipt in receipts
+            if receipt.namespace == namespace
+            and receipt.command_idempotency_key == command_key
+        ) == (canonical.receipt,)
+        assert not work and not checkpoints
+        assert _downstream_authority_snapshot(engine) == downstream_before
     finally:
         engine.dispose()
 

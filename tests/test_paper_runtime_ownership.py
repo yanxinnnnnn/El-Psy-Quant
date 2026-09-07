@@ -373,19 +373,63 @@ def test_heartbeat_requires_exact_active_claim_and_creates_no_event(
         claimed = service.claim_runtime(
             runtime_id=runtime.runtime_id, owner_id="worker-a"
         ).runtime
-        clock.value += timedelta(seconds=10)
-        renewed = service.renew_runtime_claim(
-            runtime_id=runtime.runtime_id,
-            owner_id="worker-a",
-            fencing_token=claimed.fencing_token,
+        immutable_binding = tuple(
+            getattr(claimed, field)
+            for field in (
+                "runtime_id",
+                "runtime_binding_digest",
+                "execution_order_id",
+                "execution_order_digest",
+                "account_id",
+                "replay_id",
+                "trading_session_id",
+                "logical_actor",
+                "runtime_policy_id",
+                "runtime_policy_version",
+                "created_at",
+            )
         )
-        assert renewed.claimed_at == claimed.claimed_at
-        assert renewed.fencing_token == claimed.fencing_token
-        assert renewed.heartbeat_at == clock.value
-        assert renewed.lease_expires_at == clock.value + LEASE
-        assert renewed.row_version == claimed.row_version + 1
-        _current, events, _receipts = _read(factory, runtime.runtime_id)
-        assert len(events) == 2
+        _current, claim_events, _receipts = _read(factory, runtime.runtime_id)
+        assert len(claim_events) == 2
+        renewed = claimed
+        for renewal_index, advancement in enumerate((5, 7, 9, 3), start=1):
+            prior = renewed
+            clock.value += timedelta(seconds=advancement)
+            renewed = service.renew_runtime_claim(
+                runtime_id=runtime.runtime_id,
+                owner_id="worker-a",
+                fencing_token=claimed.fencing_token,
+            )
+            assert renewed.claimed_at == claimed.claimed_at
+            assert renewed.fencing_token == claimed.fencing_token
+            assert renewed.heartbeat_at == clock.value
+            assert renewed.heartbeat_at > prior.heartbeat_at
+            assert renewed.lease_expires_at == clock.value + LEASE
+            assert renewed.lease_expires_at > prior.lease_expires_at
+            assert renewed.row_version == claimed.row_version + renewal_index
+            assert (
+                tuple(
+                    getattr(renewed, field)
+                    for field in (
+                        "runtime_id",
+                        "runtime_binding_digest",
+                        "execution_order_id",
+                        "execution_order_digest",
+                        "account_id",
+                        "replay_id",
+                        "trading_session_id",
+                        "logical_actor",
+                        "runtime_policy_id",
+                        "runtime_policy_version",
+                        "created_at",
+                    )
+                )
+                == immutable_binding
+            )
+            current, events, _receipts = _read(factory, runtime.runtime_id)
+            assert current == renewed
+            assert events == claim_events
+            assert all("heartbeat" not in event.event_type for event in events)
 
         for owner, fence in (("worker-b", 1), ("worker-a", 0)):
             with pytest.raises(PaperRuntimeClaimMismatchError):
@@ -408,7 +452,8 @@ def test_heartbeat_requires_exact_active_claim_and_creates_no_event(
                 )
         current, events, _receipts = _read(factory, runtime.runtime_id)
         assert current == renewed
-        assert len(events) == 2
+        assert events == claim_events
+        assert all("heartbeat" not in event.event_type for event in events)
     finally:
         engine.dispose()
 
