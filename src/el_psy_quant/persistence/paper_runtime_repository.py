@@ -111,7 +111,9 @@ class PaperRuntimeRepository(Protocol):
     ) -> PaperRuntimeCheckpoint: ...
     def load_checkpoint_authority(
         self, *, runtime: PaperRuntime, work: PaperRuntimeWork
-    ) -> tuple[PaperExecutionAttempt, PaperExecutionFill | None, ExecutionSettlementLink | None]: ...
+    ) -> tuple[
+        PaperExecutionAttempt, PaperExecutionFill | None, ExecutionSettlementLink | None
+    ]: ...
     def list_all_checkpoints(
         self, *, runtime_id: str
     ) -> tuple[PaperRuntimeCheckpoint, ...]: ...
@@ -245,7 +247,9 @@ class SqlAlchemyPaperRuntimeRepository:
                 "blocked",
             ):
                 raise ValueError("observed state filter is invalid")
-            statement = statement.where(PaperRuntimeRow.observed_state == observed_state)
+            statement = statement.where(
+                PaperRuntimeRow.observed_state == observed_state
+            )
         if cursor_created_at is not None:
             if (
                 type(cursor_created_at) is not datetime
@@ -255,6 +259,14 @@ class SqlAlchemyPaperRuntimeRepository:
             ):
                 raise ValueError("runtime cursor timestamp is invalid")
             identity = bounded_string(cursor_runtime_id, "cursor_runtime_id", 96)
+            anchor = self._session.scalar(
+                statement.where(
+                    PaperRuntimeRow.runtime_id == identity,
+                    PaperRuntimeRow.created_at == cursor_created_at,
+                )
+            )
+            if anchor is None:
+                raise ValueError("runtime cursor anchor is not canonical")
             statement = statement.where(
                 or_(
                     PaperRuntimeRow.created_at < cursor_created_at,
@@ -409,12 +421,15 @@ class SqlAlchemyPaperRuntimeRepository:
         *,
         runtime_id: str,
         limit: int,
+        cursor_work_id: str | None = None,
         cursor_expected_execution_version: int | None = None,
     ) -> tuple[tuple[PaperRuntimeWork, ...], bool]:
         page_limit = self._limit(limit)
         runtime = self.get_runtime(runtime_id=runtime_id)
         if runtime is None:
             raise PaperRuntimeNotFoundError()
+        if (cursor_work_id is None) is not (cursor_expected_execution_version is None):
+            raise ValueError("Work cursor anchor is incomplete")
         statement = select(PaperRuntimeWorkRow).where(
             PaperRuntimeWorkRow.runtime_id == runtime.runtime_id
         )
@@ -424,15 +439,25 @@ class SqlAlchemyPaperRuntimeRepository:
                 or cursor_expected_execution_version < 0
             ):
                 raise ValueError("Work cursor version is invalid")
+            identity = bounded_string(cursor_work_id, "cursor_work_id", 96)
+            anchor = self._session.scalar(
+                statement.where(
+                    PaperRuntimeWorkRow.work_id == identity,
+                    PaperRuntimeWorkRow.expected_execution_version
+                    == cursor_expected_execution_version,
+                )
+            )
+            if anchor is None:
+                raise ValueError("Work cursor anchor is not canonical")
             statement = statement.where(
                 PaperRuntimeWorkRow.expected_execution_version
                 > cursor_expected_execution_version
             )
         rows = tuple(
             self._session.scalars(
-                statement.order_by(PaperRuntimeWorkRow.expected_execution_version).limit(
-                    page_limit + 1
-                )
+                statement.order_by(
+                    PaperRuntimeWorkRow.expected_execution_version
+                ).limit(page_limit + 1)
             ).all()
         )
         items = tuple(
@@ -524,8 +549,7 @@ class SqlAlchemyPaperRuntimeRepository:
             attempts = tuple(
                 attempt
                 for attempt in history.attempts
-                if attempt.execution_version_before
-                == work.expected_execution_version
+                if attempt.execution_version_before == work.expected_execution_version
             )
             if len(attempts) != 1:
                 raise PaperRuntimePersistenceCorruptionError()
@@ -607,12 +631,17 @@ class SqlAlchemyPaperRuntimeRepository:
         *,
         runtime_id: str,
         limit: int,
+        cursor_checkpoint_id: str | None = None,
         cursor_observed_execution_version: int | None = None,
     ) -> tuple[tuple[PaperRuntimeCheckpoint, ...], bool]:
         page_limit = self._limit(limit)
         runtime = self.get_runtime(runtime_id=runtime_id)
         if runtime is None:
             raise PaperRuntimeNotFoundError()
+        if (cursor_checkpoint_id is None) is not (
+            cursor_observed_execution_version is None
+        ):
+            raise ValueError("checkpoint cursor anchor is incomplete")
         statement = select(PaperRuntimeCheckpointRow).where(
             PaperRuntimeCheckpointRow.runtime_id == runtime.runtime_id
         )
@@ -622,6 +651,16 @@ class SqlAlchemyPaperRuntimeRepository:
                 or cursor_observed_execution_version < 0
             ):
                 raise ValueError("checkpoint cursor version is invalid")
+            identity = bounded_string(cursor_checkpoint_id, "cursor_checkpoint_id", 96)
+            anchor = self._session.scalar(
+                statement.where(
+                    PaperRuntimeCheckpointRow.checkpoint_id == identity,
+                    PaperRuntimeCheckpointRow.observed_execution_version
+                    == cursor_observed_execution_version,
+                )
+            )
+            if anchor is None:
+                raise ValueError("checkpoint cursor anchor is not canonical")
             statement = statement.where(
                 PaperRuntimeCheckpointRow.observed_execution_version
                 > cursor_observed_execution_version
@@ -744,18 +783,30 @@ class SqlAlchemyPaperRuntimeRepository:
         *,
         runtime_id: str,
         limit: int,
+        cursor_event_id: str | None = None,
         cursor_event_sequence: int | None = None,
     ) -> tuple[tuple[PaperRuntimeEvent, ...], bool]:
         page_limit = self._limit(limit)
         runtime = self.get_runtime(runtime_id=runtime_id)
         if runtime is None:
             raise PaperRuntimeNotFoundError()
+        if (cursor_event_id is None) is not (cursor_event_sequence is None):
+            raise ValueError("event cursor anchor is incomplete")
         statement = select(PaperRuntimeEventRow).where(
             PaperRuntimeEventRow.runtime_id == runtime.runtime_id
         )
         if cursor_event_sequence is not None:
             if type(cursor_event_sequence) is not int or cursor_event_sequence < 0:
                 raise ValueError("event cursor sequence is invalid")
+            identity = bounded_string(cursor_event_id, "cursor_event_id", 96)
+            anchor = self._session.scalar(
+                statement.where(
+                    PaperRuntimeEventRow.event_id == identity,
+                    PaperRuntimeEventRow.event_sequence == cursor_event_sequence,
+                )
+            )
+            if anchor is None:
+                raise ValueError("event cursor anchor is not canonical")
             statement = statement.where(
                 PaperRuntimeEventRow.event_sequence > cursor_event_sequence
             )
@@ -821,9 +872,7 @@ class SqlAlchemyPaperRuntimeRepository:
             .order_by(PaperRuntimeEventRow.event_sequence)
         ).all()
         events = tuple(event_from_row(row, runtime=runtime) for row in rows)
-        if tuple(event.event_sequence for event in events) != tuple(
-            range(len(events))
-        ):
+        if tuple(event.event_sequence for event in events) != tuple(range(len(events))):
             raise PaperRuntimePersistenceCorruptionError()
         return events
 
@@ -859,9 +908,8 @@ class SqlAlchemyPaperRuntimeRepository:
                 == bounded_string(runtime_id, "runtime_id", 96)
             )
         ).one()
-        if (
-            (count == 0 and (minimum is not None or maximum is not None))
-            or (count > 0 and (minimum != 0 or maximum != count - 1))
+        if (count == 0 and (minimum is not None or maximum is not None)) or (
+            count > 0 and (minimum != 0 or maximum != count - 1)
         ):
             raise PaperRuntimePersistenceCorruptionError()
         return count, minimum, maximum

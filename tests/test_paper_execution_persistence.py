@@ -114,6 +114,8 @@ def _migrate(path: Path, monkeypatch: pytest.MonkeyPatch, revision: str) -> None
 def _fixture(
     path: Path,
     *,
+    fixture_id: str = "s211",
+    calendar_version: int = 1,
     signal_prices: tuple[object, ...] = (3, 2, 1, 4),
     extra_events: tuple[tuple[str, str, dict[str, object], int], ...] = (
         ("XNYS:MSFT", "trade", {"price": 9}, 5),
@@ -131,7 +133,7 @@ def _fixture(
 
     def identifier(kind: str) -> str:
         counter[kind] = counter.get(kind, 0) + 1
-        return f"{kind}-s211-{counter[kind]}"
+        return f"{kind}-{fixture_id}-{counter[kind]}"
 
     account = (
         PaperAccountApplicationService(
@@ -143,7 +145,7 @@ def _fixture(
             display_name="Sprint 211 account",
             base_currency="USD",
             initial_cash=PaperMoney.parse("2000"),
-            creation_idempotency_key="create-account-s211",
+            creation_idempotency_key=f"create-account-{fixture_id}",
             actor="founder",
         )
         .account
@@ -158,7 +160,7 @@ def _fixture(
             .post_position_adjustment(
                 account_id=account.account_id,
                 expected_account_version=account.head_version,
-                command_idempotency_key="opening-position-s211",
+                command_idempotency_key=f"opening-position-{fixture_id}",
                 actor="founder",
                 reason="deterministic Sprint 211 fixture",
                 symbol=INSTRUMENT,
@@ -169,14 +171,14 @@ def _fixture(
             .account
         )
     calendar = create_trading_calendar(
-        id="calendar-s211",
+        id=f"calendar-{fixture_id}",
         market="XNYS",
         timezone="UTC",
-        calendar_version=1,
+        calendar_version=calendar_version,
         created_at=CREATED,
     )
     trading_session = create_trading_session(
-        id="session-s211",
+        id=f"session-{fixture_id}",
         calendar_id=calendar.id,
         trading_date=date(2026, 8, 19),
         open_time=CREATED,
@@ -185,29 +187,29 @@ def _fixture(
     )
     signal_events = tuple(
         create_market_data_event(
-            event_id=f"event-s211-{index}",
+            event_id=f"event-{fixture_id}-{index}",
             instrument_id=INSTRUMENT,
             event_time=CREATED + timedelta(minutes=index),
             event_type="trade",
             payload={"price": price},
-            source="fixture:s211",
+            source=f"fixture:{fixture_id}",
         )
         for index, price in enumerate(signal_prices, start=1)
     )
     events = signal_events + tuple(
         create_market_data_event(
-            event_id=f"event-s211-{index + len(signal_events)}",
+            event_id=f"event-{fixture_id}-{index + len(signal_events)}",
             instrument_id=instrument_id,
             event_time=CREATED + timedelta(minutes=minute),
             event_type=event_type,
             payload=payload,
-            source="fixture:s211",
+            source=f"fixture:{fixture_id}",
         )
         for index, (instrument_id, event_type, payload, minute) in enumerate(
             extra_events, start=1
         )
     )
-    replay = MarketDataReplayEngine(replay_id="replay-s211", events=events)
+    replay = MarketDataReplayEngine(replay_id=f"replay-{fixture_id}", events=events)
     replay.start()
     for _ in range(4):
         assert replay.next_event() is not None
@@ -236,7 +238,7 @@ def _fixture(
         expected_cursor_position=4,
         expected_signal_event_id=events[3].event_id,
         instrument_id=INSTRUMENT,
-        command_idempotency_key="signal-s211",
+        command_idempotency_key=f"signal-{fixture_id}",
         actor="founder",
         created_at=AUDIT,
     ).result
@@ -246,7 +248,7 @@ def _fixture(
         expected_account_head_version=account.head_version,
         expected_account_head_event_id=account.head_event_id,
         expected_account_head_chain_digest=account.head_chain_digest,
-        command_idempotency_key="intent-s211",
+        command_idempotency_key=f"intent-{fixture_id}",
         actor="founder",
         created_at=AUDIT + timedelta(minutes=1),
     ).result
@@ -264,7 +266,7 @@ def _fixture(
         expected_cursor_position=4,
         expected_current_event_id=events[3].event_id,
         expected_instrument_id=INSTRUMENT,
-        command_idempotency_key="risk-s211",
+        command_idempotency_key=f"risk-{fixture_id}",
         actor="founder",
         created_at=AUDIT + timedelta(minutes=2),
     ).result
@@ -287,7 +289,7 @@ def _fixture(
             decision=decision, intent=intent
         ),
         execution_policy_reference=policy,
-        command_idempotency_key="create-order-s211",
+        command_idempotency_key=f"create-order-{fixture_id}",
         actor="founder",
     )
     return engine, factory, create_command

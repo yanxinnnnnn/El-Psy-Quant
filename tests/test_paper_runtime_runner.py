@@ -42,9 +42,7 @@ def _runner_fixture(path, monkeypatch, *, lease: timedelta = timedelta(minutes=1
     _migrate(path, monkeypatch, "head")
     engine, factory, create_order_command = _fixture(path)
     clock = _Clock(AUDIT + timedelta(hours=1))
-    execution = PaperExecutionApplicationService(
-        session_factory=factory, clock=clock
-    )
+    execution = PaperExecutionApplicationService(session_factory=factory, clock=clock)
     order = execution.create_order(create_order_command).result
     lifecycle = PaperRuntimeLifecycleService(session_factory=factory, clock=clock)
     created = lifecycle.create_runtime(
@@ -164,26 +162,35 @@ def test_loop_observes_fill_settlement_completion_then_releases_claim(
     assert len(work) == len(checkpoints) == len(history.attempts) == 2
     assert checkpoints[0].fill_id is None
     assert checkpoints[1].fill_id == history.fills[0].fill_id
-    assert checkpoints[1].settlement_link_id == history.settlement_links[0].settlement_link_id
+    assert (
+        checkpoints[1].settlement_link_id
+        == history.settlement_links[0].settlement_link_id
+    )
     assert history.state.terminal
     assert [event.event_type for event in events].count("work_created") == 2
     assert [event.event_type for event in events].count("work_observed") == 2
     assert [event.event_type for event in events].count("runtime_completed") == 1
     assert [event.event_type for event in events].count("claim_released") == 1
     with engine.connect() as connection:
-        assert connection.scalar(
-            text(
-                "SELECT COUNT(*) FROM paper_account_events "
-                "WHERE event_type='execution_fill_posted'"
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT COUNT(*) FROM paper_account_events "
+                    "WHERE event_type='execution_fill_posted'"
+                )
             )
-        ) == 1
-        assert connection.scalar(
-            text(
-                "SELECT position FROM market_data_replays "
-                "WHERE replay_id=:replay_id"
-            ),
-            {"replay_id": order.market_handoff_reference.replay_id},
-        ) == 6
+            == 1
+        )
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT position FROM market_data_replays "
+                    "WHERE replay_id=:replay_id"
+                ),
+                {"replay_id": order.market_handoff_reference.replay_id},
+            )
+            == 6
+        )
     engine.dispose()
 
 
@@ -219,9 +226,7 @@ def test_stop_after_work_commit_but_before_step_keeps_work_without_attempt(
     original = runner._confirm_step_entry
 
     def stop_then_confirm(**kwargs):
-        runtime, work, checkpoints, _events, history = _read(
-            factory, claim.runtime_id
-        )
+        runtime, work, checkpoints, _events, history = _read(factory, claim.runtime_id)
         assert len(work) == 1
         assert checkpoints == history.attempts == ()
         lifecycle.stop_runtime(
@@ -389,7 +394,9 @@ def test_m34_failure_leaves_stable_work_durable_and_retry_reuses_exact_identity(
     )
     assert result.outcome == "running"
     assert second_work == first_work
-    assert result.work.m34_step_idempotency_key == first_work[0].m34_step_idempotency_key
+    assert (
+        result.work.m34_step_idempotency_key == first_work[0].m34_step_idempotency_key
+    )
     assert len(checkpoints) == len(history.attempts) == 1
     assert [event.event_type for event in events].count("work_created") == 1
     engine.dispose()
@@ -474,7 +481,8 @@ def test_same_claim_runners_converge_to_one_attempt_checkpoint_and_heartbeat(
 
     monkeypatch.setattr(runner._execution_service, "step_order", racing_step)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = tuple(pool.map(lambda _index: _run_one(runner, claim), range(2)))
+        futures = tuple(pool.submit(_run_one, runner, claim) for _index in range(2))
+        results = tuple(future.result(timeout=15) for future in futures)
     runtime, work, checkpoints, events, history = _read(factory, claim.runtime_id)
     assert {result.outcome for result in results} == {"running"}
     assert {result.work.work_id for result in results} == {work[0].work_id}
@@ -540,14 +548,9 @@ def test_post_step_live_divergence_is_observed_before_next_step_refuses(
     step_calls = []
 
     def step_then_diverge_account(command):
-        _runtime, work, checkpoints, events, history = _read(
-            factory, claim.runtime_id
-        )
+        _runtime, work, checkpoints, events, history = _read(factory, claim.runtime_id)
         assert len(work) == 1
-        assert (
-            work[0].expected_execution_version
-            == command.expected_execution_version
-        )
+        assert work[0].expected_execution_version == command.expected_execution_version
         assert checkpoints == history.attempts == ()
         assert [event.event_type for event in events].count("work_created") == 1
 
@@ -596,17 +599,23 @@ def test_post_step_live_divergence_is_observed_before_next_step_refuses(
     assert [event.event_type for event in later_events].count("work_observed") == 1
     assert len(step_calls) == 1
     with engine.connect() as connection:
-        assert connection.scalar(
-            text(
-                "SELECT COUNT(*) FROM paper_account_events "
-                "WHERE event_type='execution_fill_posted'"
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT COUNT(*) FROM paper_account_events "
+                    "WHERE event_type='execution_fill_posted'"
+                )
             )
-        ) == 0
-        assert connection.scalar(
-            text(
-                "SELECT position FROM market_data_replays "
-                "WHERE replay_id=:replay_id"
-            ),
-            {"replay_id": order.market_handoff_reference.replay_id},
-        ) == 5
+            == 0
+        )
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT position FROM market_data_replays "
+                    "WHERE replay_id=:replay_id"
+                ),
+                {"replay_id": order.market_handoff_reference.replay_id},
+            )
+            == 5
+        )
     engine.dispose()

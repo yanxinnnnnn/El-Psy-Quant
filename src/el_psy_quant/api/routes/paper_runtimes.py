@@ -15,6 +15,7 @@ from el_psy_quant.api.errors import PublicApiError
 from el_psy_quant.api.observability import log_paper_runtime_event
 from el_psy_quant.api.paper_runtime_errors import (
     PaperRuntimeApiOperation,
+    PaperRuntimeInvalidCursorError,
     raise_paper_runtime_api_error,
 )
 from el_psy_quant.api.paper_runtime_pagination import (
@@ -249,16 +250,21 @@ def list_paper_runtimes_v1(
                 query_context=context,
             )
         )
-        page = service.list_runtimes(
-            limit=limit,
-            cursor_created_at=None if decoded is None else decoded.created_at,
-            cursor_runtime_id=None if decoded is None else decoded.resource_id,
-            account_id=account_id,
-            replay_id=replay_id,
-            trading_session_id=trading_session_id,
-            desired_state=desired_state,
-            observed_state=observed_state,
-        )
+        try:
+            page = service.list_runtimes(
+                limit=limit,
+                cursor_created_at=None if decoded is None else decoded.created_at,
+                cursor_runtime_id=None if decoded is None else decoded.resource_id,
+                account_id=account_id,
+                replay_id=replay_id,
+                trading_session_id=trading_session_id,
+                desired_state=desired_state,
+                observed_state=observed_state,
+            )
+        except ValueError as exc:
+            if decoded is not None:
+                _invalid_cursor_on_bad_anchor(exc)
+            raise
         next_cursor = None
         if page.has_more:
             last = page.items[-1]
@@ -475,6 +481,10 @@ def _runtime_context(runtime_id: str) -> dict[str, str | None]:
     return {"runtime_id": runtime_id}
 
 
+def _invalid_cursor_on_bad_anchor(exc: ValueError) -> None:
+    raise PaperRuntimeInvalidCursorError() from exc
+
+
 @router.get(
     "/{runtime_id}/audit",
     response_model=PaperRuntimeAuditListResponse,
@@ -503,11 +513,17 @@ def list_paper_runtime_audit_v1(
                 query_context=context,
             )
         )
-        page = service.list_audit(
-            runtime_id=runtime_id,
-            limit=limit,
-            cursor_event_sequence=None if decoded is None else decoded.position,
-        )
+        try:
+            page = service.list_audit(
+                runtime_id=runtime_id,
+                limit=limit,
+                cursor_event_id=None if decoded is None else decoded.resource_id,
+                cursor_event_sequence=None if decoded is None else decoded.position,
+            )
+        except ValueError as exc:
+            if decoded is not None:
+                _invalid_cursor_on_bad_anchor(exc)
+            raise
         next_cursor = None
         if page.has_more:
             last = page.items[-1]
@@ -568,13 +584,19 @@ def list_paper_runtime_work_v1(
                 query_context=context,
             )
         )
-        page = service.list_work(
-            runtime_id=runtime_id,
-            limit=limit,
-            cursor_expected_execution_version=(
-                None if decoded is None else decoded.position
-            ),
-        )
+        try:
+            page = service.list_work(
+                runtime_id=runtime_id,
+                limit=limit,
+                cursor_work_id=None if decoded is None else decoded.resource_id,
+                cursor_expected_execution_version=(
+                    None if decoded is None else decoded.position
+                ),
+            )
+        except ValueError as exc:
+            if decoded is not None:
+                _invalid_cursor_on_bad_anchor(exc)
+            raise
         next_cursor = None
         if page.has_more:
             last = page.items[-1]
@@ -586,7 +608,10 @@ def list_paper_runtime_work_v1(
             )
         return PaperRuntimeWorkListResponse(
             schema_version=1,
-            items=[PaperRuntimeWorkResponse.model_validate(item.to_dict()) for item in page.items],
+            items=[
+                PaperRuntimeWorkResponse.model_validate(item.to_dict())
+                for item in page.items
+            ],
             next_cursor=next_cursor,
         )
     except Exception as exc:
@@ -621,13 +646,19 @@ def list_paper_runtime_checkpoints_v1(
                 query_context=context,
             )
         )
-        page = service.list_checkpoints(
-            runtime_id=runtime_id,
-            limit=limit,
-            cursor_observed_execution_version=(
-                None if decoded is None else decoded.position
-            ),
-        )
+        try:
+            page = service.list_checkpoints(
+                runtime_id=runtime_id,
+                limit=limit,
+                cursor_checkpoint_id=(None if decoded is None else decoded.resource_id),
+                cursor_observed_execution_version=(
+                    None if decoded is None else decoded.position
+                ),
+            )
+        except ValueError as exc:
+            if decoded is not None:
+                _invalid_cursor_on_bad_anchor(exc)
+            raise
         next_cursor = None
         if page.has_more:
             last = page.items[-1]

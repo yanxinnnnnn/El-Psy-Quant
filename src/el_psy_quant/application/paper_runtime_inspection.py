@@ -244,9 +244,10 @@ class PaperRuntimeInspectionService:
                 or len(blocked_events) > 1
                 or (runtime.observed_state == "completed")
                 != (len(completed_events) == 1)
-                or (runtime.observed_state == "blocked")
-                != (len(blocked_events) == 1)
-                or (runtime.observed_state == "completed" and not history.state.terminal)
+                or (runtime.observed_state == "blocked") != (len(blocked_events) == 1)
+                or (
+                    runtime.observed_state == "completed" and not history.state.terminal
+                )
             ):
                 raise PaperRuntimePersistenceCorruptionError()
 
@@ -270,7 +271,10 @@ class PaperRuntimeInspectionService:
                 status = "continuation_stale"
             elif runtime.observed_state == "completed" or history.state.terminal:
                 status = "coherent_terminal"
-            elif runtime.desired_state == "stopped" or runtime.observed_state == "stopped":
+            elif (
+                runtime.desired_state == "stopped"
+                or runtime.observed_state == "stopped"
+            ):
                 status = "coherent_stopped"
             else:
                 status = "coherent_nonterminal"
@@ -292,6 +296,7 @@ class PaperRuntimeInspectionService:
         *,
         runtime_id: str,
         limit: int,
+        cursor_work_id: str | None = None,
         cursor_expected_execution_version: int | None = None,
     ) -> PaperRuntimePage[PaperRuntimeWork]:
         with self._read() as session:
@@ -300,6 +305,7 @@ class PaperRuntimeInspectionService:
             ).list_work_page(
                 runtime_id=runtime_id,
                 limit=limit,
+                cursor_work_id=cursor_work_id,
                 cursor_expected_execution_version=cursor_expected_execution_version,
             )
             return PaperRuntimePage(items=items, has_more=has_more)
@@ -309,6 +315,7 @@ class PaperRuntimeInspectionService:
         *,
         runtime_id: str,
         limit: int,
+        cursor_checkpoint_id: str | None = None,
         cursor_observed_execution_version: int | None = None,
     ) -> PaperRuntimePage[PaperRuntimeCheckpoint]:
         with self._read() as session:
@@ -317,6 +324,7 @@ class PaperRuntimeInspectionService:
             ).list_checkpoints_page(
                 runtime_id=runtime_id,
                 limit=limit,
+                cursor_checkpoint_id=cursor_checkpoint_id,
                 cursor_observed_execution_version=cursor_observed_execution_version,
             )
             return PaperRuntimePage(items=items, has_more=has_more)
@@ -326,6 +334,7 @@ class PaperRuntimeInspectionService:
         *,
         runtime_id: str,
         limit: int,
+        cursor_event_id: str | None = None,
         cursor_event_sequence: int | None = None,
     ) -> PaperRuntimePage[PaperRuntimeAuditEntry]:
         with self._read() as session:
@@ -334,6 +343,7 @@ class PaperRuntimeInspectionService:
             ).list_events_page(
                 runtime_id=runtime_id,
                 limit=limit,
+                cursor_event_id=cursor_event_id,
                 cursor_event_sequence=cursor_event_sequence,
             )
             entries = []
@@ -352,7 +362,9 @@ class PaperRuntimeInspectionService:
                         event=event,
                         work_id=None if work is None else work.get("work_id"),
                         checkpoint_id=(
-                            None if checkpoint is None else checkpoint.get("checkpoint_id")
+                            None
+                            if checkpoint is None
+                            else checkpoint.get("checkpoint_id")
                         ),
                     )
                 )
