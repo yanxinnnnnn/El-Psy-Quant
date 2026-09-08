@@ -123,6 +123,25 @@ def _authority_snapshot(root: Path, runtime_id: str):
         engine.dispose()
 
 
+def _assert_exact_work_events(work, events) -> None:
+    work_ids = tuple(item.work_id for item in work)
+    created_ids = tuple(
+        json.loads(item.payload_json)["work"]["work_id"]
+        for item in events
+        if item.event_type == "work_created"
+    )
+    observed_ids = tuple(
+        json.loads(item.payload_json)["work"]["work_id"]
+        for item in events
+        if item.event_type == "work_observed"
+    )
+
+    assert created_ids == work_ids
+    assert observed_ids == work_ids
+    assert all(created_ids.count(work_id) == 1 for work_id in work_ids)
+    assert all(observed_ids.count(work_id) == 1 for work_id in work_ids)
+
+
 def test_fresh_demo_v7_runtime_is_exact_idempotent_and_inspectable(
     demo_v7: tuple[Path, DemoWorkspaceDescriptorResponse],
 ) -> None:
@@ -259,7 +278,7 @@ def test_demo_v7_real_process_restart_control_fill_and_completion(
         iteration_budget=1,
     )
     after_first = _authority_snapshot(root, reference.runtime_id)
-    runtime, work, checkpoints, _events, history, position, last_event, account = (
+    runtime, work, checkpoints, events, history, position, last_event, account = (
         after_first
     )
     assert first.runner_outcome == "iteration_budget_exhausted"
@@ -267,6 +286,9 @@ def test_demo_v7_real_process_restart_control_fill_and_completion(
     assert (runtime.desired_state, runtime.observed_state) == ("running", "running")
     assert runtime.owner_id is None
     assert len(work) == len(checkpoints) == len(history.attempts) == 1
+    _assert_exact_work_events(work, events)
+    assert tuple(item.event_type for item in events).count("work_created") == 1
+    assert tuple(item.event_type for item in events).count("work_observed") == 1
     assert work[0].expected_execution_version == 0
     assert checkpoints[0].fill_id is None
     assert history.attempts[0].attempt_result == "no_fill"
@@ -281,7 +303,7 @@ def test_demo_v7_real_process_restart_control_fill_and_completion(
         iteration_budget=1,
     )
     after_second = _authority_snapshot(root, reference.runtime_id)
-    runtime, work, checkpoints, _events, history, position, last_event, account = (
+    runtime, work, checkpoints, events, history, position, last_event, account = (
         after_second
     )
     assert second.runner_outcome == "iteration_budget_exhausted"
@@ -290,6 +312,9 @@ def test_demo_v7_real_process_restart_control_fill_and_completion(
     assert runtime.owner_id is None
     assert tuple(item.expected_execution_version for item in work) == (0, 1)
     assert len(work) == len(checkpoints) == len(history.attempts) == 2
+    _assert_exact_work_events(work, events)
+    assert tuple(item.event_type for item in events).count("work_created") == 2
+    assert tuple(item.event_type for item in events).count("work_observed") == 2
     assert len(history.fills) == len(history.settlement_links) == 1
     assert checkpoints[1].fill_id == history.fills[0].fill_id
     assert (position, last_event) == (6, "demo-runtime-event-006")
@@ -337,7 +362,7 @@ def test_demo_v7_real_process_restart_control_fill_and_completion(
         iteration_budget=1,
     )
     final = _authority_snapshot(root, reference.runtime_id)
-    runtime, work, checkpoints, _events, history, position, last_event, account = final
+    runtime, work, checkpoints, events, history, position, last_event, account = final
     assert completed.runner_outcome == "completed"
     assert completed.fencing_token > stopped_process.fencing_token
     assert runtime.desired_state == "running"
@@ -345,6 +370,10 @@ def test_demo_v7_real_process_restart_control_fill_and_completion(
     assert runtime.owner_id is None
     assert tuple(item.expected_execution_version for item in work) == (0, 1, 2)
     assert len(work) == len(checkpoints) == len(history.attempts) == 3
+    _assert_exact_work_events(work, events)
+    assert tuple(item.event_type for item in events).count("work_created") == 3
+    assert tuple(item.event_type for item in events).count("work_observed") == 3
+    assert tuple(item.event_type for item in events).count("runtime_completed") == 1
     assert tuple(item.attempt_result for item in history.attempts) == (
         "no_fill",
         "fill",
@@ -371,6 +400,70 @@ def test_demo_v7_real_process_restart_control_fill_and_completion(
     assert repeated_final[0].fencing_token > final[0].fencing_token
     assert repeated_final[1:3] == final[1:3]
     assert repeated_final[4:] == final[4:]
+    _assert_exact_work_events(repeated_final[1], repeated_final[3])
+    assert (
+        tuple(item.event_type for item in repeated_final[3]).count("work_created") == 3
+    )
+    assert (
+        tuple(item.event_type for item in repeated_final[3]).count("work_observed") == 3
+    )
+    assert (
+        tuple(item.event_type for item in repeated_final[3]).count("runtime_completed")
+        == 1
+    )
+
+    before_inspection = repeated_final
+    with TestClient(application) as client:
+        responses = {
+            name: client.get(
+                f"/api/v1/paper-runtimes/{reference.runtime_id}/{name}?limit=100"
+                if name in ("audit", "work", "checkpoints")
+                else f"/api/v1/paper-runtimes/{reference.runtime_id}/{name}",
+                auth=AUTH,
+            )
+            for name in ("health", "reconciliation", "audit", "work", "checkpoints")
+        }
+    assert all(response.status_code == 200 for response in responses.values())
+    health = responses["health"].json()
+    reconciliation = responses["reconciliation"].json()
+    audit = responses["audit"].json()
+    work_page = responses["work"].json()
+    checkpoint_page = responses["checkpoints"].json()
+    assert health["terminal"] is True
+    assert health["blocked"] is False
+    assert health["claimed"] is False
+    assert health["lease_status"] == "unowned"
+    assert health["observed_state"] == "completed"
+    assert reconciliation["status"] == "coherent_terminal"
+    assert reconciliation["historical_coherent"] is True
+    assert reconciliation["continuation_status"] == "not_applicable"
+    assert reconciliation["execution_terminal"] is True
+    assert reconciliation["work_count"] == reconciliation["checkpoint_count"] == 3
+    assert reconciliation["event_count"] == len(before_inspection[3])
+    assert reconciliation["pending_work_id"] is None
+    assert audit["next_cursor"] is None
+    assert len(audit["items"]) == len(before_inspection[3]) <= 100
+    assert [item["event_sequence"] for item in audit["items"]] == list(
+        range(len(audit["items"]))
+    )
+    assert all(
+        "payload" not in item and "payload_json" not in item for item in audit["items"]
+    )
+    assert [item["event_type"] for item in audit["items"]].count("work_created") == 3
+    assert [item["event_type"] for item in audit["items"]].count("work_observed") == 3
+    assert [item["event_type"] for item in audit["items"]].count(
+        "runtime_completed"
+    ) == 1
+    assert work_page["next_cursor"] is None
+    assert checkpoint_page["next_cursor"] is None
+    assert len(work_page["items"]) == len(checkpoint_page["items"]) == 3
+    assert [item["work_id"] for item in work_page["items"]] == [
+        item.work_id for item in before_inspection[1]
+    ]
+    assert [item["work_id"] for item in checkpoint_page["items"]] == [
+        item.work_id for item in before_inspection[2]
+    ]
+    assert _authority_snapshot(root, reference.runtime_id) == before_inspection
 
     validated = validate_installed_demo_workspace(root)
     assert validated.to_dict()["paper_runtime"]["runtime_id"] == reference.runtime_id
@@ -417,9 +510,11 @@ def test_demo_v7_process_recovery_converges_ambiguous_attempt_without_work_recei
     monkeypatch.setattr(PaperExecutionApplicationService, "step_order", original_step)
 
     pending = _authority_snapshot(root, reference.runtime_id)
-    runtime, work, checkpoints, _events, history, *_ = pending
+    runtime, work, checkpoints, events, history, *_ = pending
     assert len(work) == 1
     assert checkpoints == history.attempts == ()
+    assert tuple(item.event_type for item in events).count("work_created") == 1
+    assert tuple(item.event_type for item in events).count("work_observed") == 0
     pending_work = work[0]
     pending_command = PaperRuntimeRecoveryService._work_command(runtime, pending_work)
     engine = create_product_database_engine(
@@ -452,6 +547,10 @@ def test_demo_v7_process_recovery_converges_ambiguous_attempt_without_work_recei
     after_commit = _authority_snapshot(root, reference.runtime_id)
     assert len(after_commit[1]) == len(after_commit[4].attempts) == 1
     assert after_commit[2] == ()
+    assert tuple(item.event_type for item in after_commit[3]).count("work_created") == 1
+    assert (
+        tuple(item.event_type for item in after_commit[3]).count("work_observed") == 0
+    )
     with TestClient(application) as client:
         current = client.get(
             f"/api/v1/paper-runtimes/{reference.runtime_id}", auth=AUTH
@@ -471,6 +570,9 @@ def test_demo_v7_process_recovery_converges_ambiguous_attempt_without_work_recei
     assert final[1] == after_commit[1]
     assert len(final[2]) == 1
     assert final[2][0].work_id == pending_work.work_id
+    _assert_exact_work_events(final[1], final[3])
+    assert tuple(item.event_type for item in final[3]).count("work_created") == 1
+    assert tuple(item.event_type for item in final[3]).count("work_observed") == 1
     assert final[4].attempts == after_commit[4].attempts
     assert final[4].fills == after_commit[4].fills
     assert final[5:] == after_commit[5:]
@@ -489,3 +591,21 @@ def test_demo_v7_process_recovery_converges_ambiguous_attempt_without_work_recei
         assert receipt.attempt_id == final[4].attempts[0].attempt_id
     finally:
         engine.dispose()
+
+    repeated = run_paper_runtime_process(
+        database_path=database,
+        runtime_id=reference.runtime_id,
+        owner_id="demo-recovery-worker-reentry",
+        iteration_budget=1,
+    )
+    assert repeated.recovery_outcome == "stopped"
+    repeated_final = _authority_snapshot(root, reference.runtime_id)
+    assert repeated_final[1:3] == final[1:3]
+    assert repeated_final[4:] == final[4:]
+    _assert_exact_work_events(repeated_final[1], repeated_final[3])
+    assert (
+        tuple(item.event_type for item in repeated_final[3]).count("work_created") == 1
+    )
+    assert (
+        tuple(item.event_type for item in repeated_final[3]).count("work_observed") == 1
+    )

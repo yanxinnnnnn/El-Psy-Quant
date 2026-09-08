@@ -310,7 +310,7 @@ Read the exact `runtime_id` and example owner from `GET /api/v1/demo-workspace`,
 then run one external iteration inside the established backend service:
 
 ```powershell
-docker compose -f compose.yaml -f compose.demo.yaml exec backend uv run el-psy-quant run-paper-runtime --database-path /data/workspace/product.sqlite3 --runtime-id <runtime_id> --owner-id <owner_id> --iteration-budget 1
+docker compose -f compose.yaml -f compose.demo.yaml exec backend el-psy-quant run-paper-runtime --database-path /data/workspace/product.sqlite3 --runtime-id <runtime_id> --owner-id <owner_id> --iteration-budget 1
 ```
 
 Founder acceptance proceeds one iteration at a time:
@@ -319,21 +319,26 @@ Founder acceptance proceeds one iteration at a time:
 2. Confirm `/paper-runtimes` shows the descriptor runtime stopped, ready,
    unowned, live-fresh, with zero Work/checkpoint.
 3. Start in the browser and confirm only desired state changes.
-4. Run one external iteration and confirm one no-Fill Attempt, one Work, one
+4. While the runtime is still unowned and observed ready, request Recover in
+   the browser and confirm it records control intent only: no claim, Work,
+   checkpoint, Attempt, Fill, account posting, or replay progression.
+5. Run one external iteration and confirm one no-Fill Attempt, one Work, one
    checkpoint, and replay position 4 to 5.
-5. Restart with a different owner and run one iteration; confirm a monotonic
+6. Restart with a different owner and run one iteration; confirm a monotonic
    fence, one partial Fill, one SettlementLink, one
    `execution_fill_posted`, and replay position 5 to 6.
-6. Stop before the next Step and confirm the external process records the
+7. Stop before the next Step and confirm the external process records the
    cooperative stop without new Work or execution effects.
-7. Resume and request Recover in the browser; confirm both remain control-only
-   until the external process is invoked.
-8. Run the external process again; confirm the out-of-session boundary Attempt
+8. Resume in the browser and confirm desired state returns to running while
+   observed state remains stopped, with no new execution effect. Continue by
+   invoking the external process; an immediate HTTP Recover request is not part
+   of this stopped-to-running continuation.
+9. Run the external process again; confirm the out-of-session boundary Attempt
    completes the runtime without another Fill, settlement, or cursor advance.
-9. Inspect health, reconciliation, audit, Work, and checkpoints, then invoke
+10. Inspect health, reconciliation, audit, Work, and checkpoints, then invoke
    the process once more and confirm completion does not create another Work or
    M34/M31/M32 effect.
-10. Restart where practical, re-check durable evidence, return to Standard, and
+11. Restart where practical, re-check durable evidence, return to Standard, and
     confirm Standard remains unchanged before the Founder decides whether to
     merge.
 

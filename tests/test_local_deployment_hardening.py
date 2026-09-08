@@ -856,6 +856,35 @@ def test_backend_image_uses_locked_builder_and_runtime_only_final_stage() -> Non
     assert "RUN npm ci" in web_dockerfile
 
 
+def test_s226_founder_runtime_command_uses_installed_container_entrypoint() -> None:
+    dockerfile = (PROJECT_ROOT / "Dockerfile").read_text(encoding="utf-8")
+    runtime_requirements = (
+        PROJECT_ROOT / "requirements-runtime.txt"
+    ).read_text(encoding="utf-8")
+    operations = (PROJECT_ROOT / "docs" / "founder-mvp-local-operations.md").read_text(
+        encoding="utf-8"
+    )
+    _builder, runtime = dockerfile.split(
+        "FROM python:3.11-slim AS runtime",
+        maxsplit=1,
+    )
+    command = (
+        "docker compose -f compose.yaml -f compose.demo.yaml exec backend "
+        "el-psy-quant run-paper-runtime --database-path "
+        "/data/workspace/product.sqlite3 --runtime-id <runtime_id> "
+        "--owner-id <owner_id> --iteration-budget 1"
+    )
+
+    assert command in operations
+    assert "exec backend uv run el-psy-quant run-paper-runtime" not in operations
+    assert "/wheelhouse/el_psy_quant-*.whl" in runtime
+    assert 'CMD ["el-psy-quant", "start-local-backend"' in runtime
+    assert "uv run el-psy-quant" not in runtime
+    assert all(
+        not line.startswith("uv==") for line in runtime_requirements.splitlines()
+    )
+
+
 def test_build_and_runtime_exports_match_lock_and_ci_refuses_lock_drift() -> None:
     generated_runtime = subprocess.run(
         RUNTIME_EXPORT_COMMAND,
