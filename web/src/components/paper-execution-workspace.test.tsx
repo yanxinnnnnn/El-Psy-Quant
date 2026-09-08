@@ -135,7 +135,7 @@ async function completeCreateDraft(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("Paper Execution workspace", () => {
-  it("loads exact Demo v6 references and policy only after replacement confirmation", async () => {
+  it("loads exact Demo v7 references and policy only after replacement confirmation", async () => {
     const user = userEvent.setup();
     apiMocks.fetchDemoWorkspace.mockReturnValue(result({
       paper_execution: {
@@ -158,7 +158,7 @@ describe("Paper Execution workspace", () => {
     } as unknown as DemoWorkspaceDescriptorResponse));
     render(<PaperExecutionWorkspace />);
 
-    const load = await screen.findByRole("button", { name: "Load Demo v6 example" });
+    const load = await screen.findByRole("button", { name: "Load Demo v7 example" });
     expect(load).toBeDisabled();
     await user.click(screen.getByLabelText(/Replace the current candidate/));
     await user.click(load);

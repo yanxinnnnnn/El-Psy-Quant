@@ -1322,6 +1322,46 @@ export interface components {
             idempotency_key: string;
             request: components["schemas"]["PaperRunCommandRequest"];
         };
+        /** DemoPaperRuntimeReferenceResponse */
+        DemoPaperRuntimeReferenceResponse: {
+            /** Account Id */
+            account_id: string;
+            /** Example Owner Id */
+            example_owner_id: string;
+            /** Execution Order Digest */
+            execution_order_digest: string;
+            /** Execution Order Id */
+            execution_order_id: string;
+            /** Intent Digest */
+            intent_digest: string;
+            /** Intent Id */
+            intent_id: string;
+            /** Replay Id */
+            replay_id: string;
+            /** Risk Decision Digest */
+            risk_decision_digest: string;
+            /** Risk Decision Id */
+            risk_decision_id: string;
+            /** Runtime Binding Digest */
+            runtime_binding_digest: string;
+            /** Runtime Id */
+            runtime_id: string;
+            /** Runtime Policy Id */
+            runtime_policy_id: string;
+            /** Runtime Policy Version */
+            runtime_policy_version: number;
+            /** Signal Digest */
+            signal_digest: string;
+            /** Signal Id */
+            signal_id: string;
+            /** Trading Session Id */
+            trading_session_id: string;
+            /**
+             * Workspace Path
+             * @constant
+             */
+            workspace_path: "/paper-runtimes";
+        };
         /** DemoPortfolioReviewExampleResponse */
         DemoPortfolioReviewExampleResponse: {
             /** Create Idempotency Key */
@@ -1418,13 +1458,14 @@ export interface components {
             paper_job_submission_example: components["schemas"]["DemoPaperJobSubmissionExampleResponse"];
             /** Paper Jobs */
             paper_jobs: components["schemas"]["DemoPaperJobReferenceResponse"][];
+            paper_runtime: components["schemas"]["DemoPaperRuntimeReferenceResponse"];
             portfolio_review_example: components["schemas"]["DemoPortfolioReviewExampleResponse"];
             research_run: components["schemas"]["DemoResearchRunReferenceResponse"];
             /**
              * Schema Version
              * @constant
              */
-            schema_version: 6;
+            schema_version: 7;
             strategy_order: components["schemas"]["DemoStrategyOrderReferenceResponse"];
             /** Warning */
             warning: string;

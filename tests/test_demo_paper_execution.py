@@ -1,4 +1,4 @@
-"""Focused Sprint 214 Demo v6 and Sprint 215 isolation/corruption evidence."""
+"""Focused Demo v7 execution/runtime orchestration and isolation evidence."""
 
 from __future__ import annotations
 
@@ -59,17 +59,23 @@ def _install(target: Path) -> None:
     )
 
 
-def test_demo_v6_uses_only_public_m34_application_orchestration() -> None:
+def test_demo_v7_uses_only_public_m34_m35_application_orchestration() -> None:
     source = inspect.getsource(demo_workspace_module)
 
     assert "PaperExecutionApplicationService" in source
     assert "create_order_from_references" in source
     assert "step_order_from_reference" in source
+    assert "PaperRuntimeLifecycleService" in source
+    assert "create_runtime" in source
     assert "PaperExecutionOrderRow" not in source
     assert "PaperExecutionAttemptRow" not in source
     assert "PaperExecutionFillRow" not in source
     assert "PaperExecutionSettlementLinkRow" not in source
+    assert "PaperRuntimeRow" not in source
+    assert "PaperRuntimeWorkRow" not in source
+    assert "PaperRuntimeCheckpointRow" not in source
     assert "INSERT INTO paper_execution" not in source
+    assert "INSERT INTO paper_runtime" not in source
 
 
 @pytest.mark.parametrize(
@@ -139,7 +145,7 @@ def test_demo_v6_source_uses_exact_quantity_and_money_precision_contracts(
             validate_demo_workspace_source(source)
 
 
-def test_demo_v6_four_scenarios_reconstruct_exact_e2e_authority(
+def test_demo_v7_preserves_four_m34_scenarios_with_exact_e2e_authority(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "demo-v6"
@@ -359,7 +365,7 @@ def test_progressed_manual_scenario_survives_supported_demo_restart(
         mode="demo",
         schema_revision=CURRENT_PRODUCT_SCHEMA_REVISION,
         dataset_id="founder-demo-workspace",
-        dataset_version=6,
+        dataset_version=7,
     )
     assert startup == verified == expected_verification
     assert served == ["serve"]
@@ -502,7 +508,7 @@ def test_s215_demo_progression_and_restart_never_change_standard_workspace(
     engine.dispose()
 
     _install(demo)
-    assert verify_local_workspace(mode="demo", workspace_root=demo).dataset_version == 6
+    assert verify_local_workspace(mode="demo", workspace_root=demo).dataset_version == 7
     assert verify_local_workspace(mode="standard", workspace_root=standard).mode == (
         "standard"
     )

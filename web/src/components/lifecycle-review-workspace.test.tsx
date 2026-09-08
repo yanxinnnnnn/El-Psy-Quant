@@ -39,16 +39,27 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
   const rejectCommand = strategyOrder.reject_risk as Record<string, unknown>;
   const paperExecution = demoSourceJson("paper_execution/execution-journey.json");
   const executionScenarios = paperExecution.scenarios as Array<{
+    account: { account_id: string };
+    market: { replay_id: string; session: { id: string } };
     execution_policy: DemoWorkspaceDescriptorResponse["paper_execution"]["policy_draft"];
+    paper_runtime?: {
+      runtime_policy_id: string;
+      runtime_policy_version: number;
+      example_owner_id: string;
+    };
+    runtime_expected?: {
+      signal: { id: string; digest: string };
+      runtime: { id: string; digest: string };
+    };
     expected: {
       intent: { id: string; digest: string };
       allow_decision: { id: string; digest: string };
       order: { id: string; digest: string } | null;
     };
   }>;
-  const [manual, completed, risk, exhaustion] = executionScenarios;
+  const [manual, completed, risk, exhaustion, paperRuntime] = executionScenarios;
   return {
-    schema_version: manifest.schema_version as 6,
+    schema_version: manifest.schema_version as 7,
     dataset_id: manifest.dataset_id as string,
     dataset_version: manifest.dataset_version as number,
     display_name: manifest.display_name as string,
@@ -118,6 +129,25 @@ function demoDescriptorFromVersionedSource(): DemoWorkspaceDescriptorResponse {
       completed_order: completed.expected.order!,
       risk_rejection_order: risk.expected.order!,
       exhaustion_order: exhaustion.expected.order!,
+    },
+    paper_runtime: {
+      workspace_path: "/paper-runtimes",
+      runtime_id: paperRuntime.runtime_expected!.runtime.id,
+      runtime_binding_digest: paperRuntime.runtime_expected!.runtime.digest,
+      execution_order_id: paperRuntime.expected.order!.id,
+      execution_order_digest: paperRuntime.expected.order!.digest,
+      account_id: paperRuntime.account.account_id,
+      replay_id: paperRuntime.market.replay_id,
+      trading_session_id: paperRuntime.market.session.id,
+      signal_id: paperRuntime.runtime_expected!.signal.id,
+      signal_digest: paperRuntime.runtime_expected!.signal.digest,
+      intent_id: paperRuntime.expected.intent.id,
+      intent_digest: paperRuntime.expected.intent.digest,
+      risk_decision_id: paperRuntime.expected.allow_decision.id,
+      risk_decision_digest: paperRuntime.expected.allow_decision.digest,
+      runtime_policy_id: paperRuntime.paper_runtime!.runtime_policy_id,
+      runtime_policy_version: paperRuntime.paper_runtime!.runtime_policy_version,
+      example_owner_id: paperRuntime.paper_runtime!.example_owner_id,
     },
   };
 }

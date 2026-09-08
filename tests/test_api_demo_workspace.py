@@ -52,8 +52,8 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
 
     assert response.status_code == 200
     descriptor = DemoWorkspaceDescriptorResponse.model_validate(response.json())
-    assert descriptor.schema_version == 6
-    assert descriptor.dataset_version == 6
+    assert descriptor.schema_version == 7
+    assert descriptor.dataset_version == 7
     assert descriptor.dataset_id == "founder-demo-workspace"
     assert descriptor.comparison_candidate_job_ids == [
         "16000000-0000-4000-8000-000000000001",
@@ -118,6 +118,16 @@ def test_enabled_descriptor_is_valid_path_free_and_ordered(
     assert descriptor.paper_execution.completed_order.id.startswith("peo_")
     assert descriptor.paper_execution.risk_rejection_order.id.startswith("peo_")
     assert descriptor.paper_execution.exhaustion_order.id.startswith("peo_")
+    assert descriptor.paper_runtime.workspace_path == "/paper-runtimes"
+    assert descriptor.paper_runtime.runtime_id.startswith("prt_")
+    assert descriptor.paper_runtime.execution_order_id.startswith("peo_")
+    assert descriptor.paper_runtime.account_id == "demo-runtime-account-001"
+    assert descriptor.paper_runtime.replay_id == "demo-runtime-replay-001"
+    assert descriptor.paper_runtime.trading_session_id == "demo-runtime-session-001"
+    assert descriptor.paper_runtime.signal_id.startswith("sig_")
+    assert descriptor.paper_runtime.intent_id.startswith("oi_")
+    assert descriptor.paper_runtime.risk_decision_id.startswith("risk_decision_")
+    assert descriptor.paper_runtime.example_owner_id == "demo-runtime-worker"
     assert "idempotency" not in json.dumps(
         descriptor.paper_execution.model_dump(), sort_keys=True
     )

@@ -809,6 +809,7 @@ function isDemoWorkspaceDescriptor(
     "market_time",
     "strategy_order",
     "paper_execution",
+    "paper_runtime",
   ])) {
     return false;
   }
@@ -819,9 +820,9 @@ function isDemoWorkspaceDescriptor(
         .filter(isString)
     : [];
   return (
-    value.schema_version === 6 &&
+    value.schema_version === 7 &&
     isString(value.dataset_id) &&
-    value.dataset_version === 6 &&
+    value.dataset_version === 7 &&
     isString(value.display_name) &&
     isString(value.warning) &&
     isString(value.canonical_strategy_name) &&
@@ -1043,7 +1044,54 @@ function isDemoWorkspaceDescriptor(
       typeof reference.digest === "string" &&
       /^[0-9a-f]{64}$/.test(reference.digest) &&
       reference.id.endsWith(reference.digest)
-    )
+    ) &&
+    isObject(value.paper_runtime) &&
+    hasOnlyKeys(value.paper_runtime, [
+      "workspace_path",
+      "runtime_id",
+      "runtime_binding_digest",
+      "execution_order_id",
+      "execution_order_digest",
+      "account_id",
+      "replay_id",
+      "trading_session_id",
+      "signal_id",
+      "signal_digest",
+      "intent_id",
+      "intent_digest",
+      "risk_decision_id",
+      "risk_decision_digest",
+      "runtime_policy_id",
+      "runtime_policy_version",
+      "example_owner_id",
+    ]) &&
+    value.paper_runtime.workspace_path === "/paper-runtimes" &&
+    [
+      value.paper_runtime.runtime_id,
+      value.paper_runtime.execution_order_id,
+      value.paper_runtime.account_id,
+      value.paper_runtime.replay_id,
+      value.paper_runtime.trading_session_id,
+      value.paper_runtime.signal_id,
+      value.paper_runtime.intent_id,
+      value.paper_runtime.risk_decision_id,
+      value.paper_runtime.runtime_policy_id,
+      value.paper_runtime.example_owner_id,
+    ].every(isNormalizedNonblankString) &&
+    [
+      value.paper_runtime.runtime_binding_digest,
+      value.paper_runtime.execution_order_digest,
+      value.paper_runtime.signal_digest,
+      value.paper_runtime.intent_digest,
+      value.paper_runtime.risk_decision_digest,
+    ].every((digest) => typeof digest === "string" && /^[0-9a-f]{64}$/.test(digest)) &&
+    value.paper_runtime.runtime_id === `prt_${value.paper_runtime.runtime_binding_digest}` &&
+    value.paper_runtime.execution_order_id === `peo_${value.paper_runtime.execution_order_digest}` &&
+    value.paper_runtime.signal_id === `sig_${value.paper_runtime.signal_digest}` &&
+    value.paper_runtime.intent_id === `oi_${value.paper_runtime.intent_digest}` &&
+    value.paper_runtime.risk_decision_id === `risk_decision_${value.paper_runtime.risk_decision_digest}` &&
+    Number.isInteger(value.paper_runtime.runtime_policy_version) &&
+    (value.paper_runtime.runtime_policy_version as number) >= 0
   );
 }
 
