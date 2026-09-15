@@ -19,8 +19,10 @@ is deployed.
 - The human Founder makes final product decisions, performs local runtime
   acceptance, and manually merges pull requests.
 - ChatGPT acts as CTO for milestone planning, architecture boundaries, GitHub
-  Issue creation, documentation-only planning and closeout work, and PR review.
+  Issue creation, documentation-only planning/closeout work, and PR review.
 - Codex acts as implementation developer for coding sprints.
+- Documentation-only planning and closeout work is CTO-owned; do not delegate it
+  to Codex unless the Founder explicitly requests otherwise.
 - The CTO and Codex must not merge PRs unless the Founder explicitly requests it.
 - The GitHub Issue body is the authoritative implementation specification.
 - Implementation and closeout PR bodies must begin exactly with
@@ -74,212 +76,122 @@ Compose startup, container startup, container smoke tests, and volume removal.
 The Founder owns Standard/Demo Docker startup, browser acceptance, data backup,
 Demo reset, return-to-Standard verification, and the merge decision.
 
-## Quant and Governance Principles
+## Authority Chain Through M35
 
-- Never claim a strategy is profitable without evidence.
-- Avoid look-ahead and survivorship bias where applicable.
-- Distinguish research, backtesting, Paper Trading, and future live execution.
-- Risk and audit context matter as much as return metrics.
-- Lifecycle proposals remain non-executing.
-- Human review records are governance evidence, not proof that execution occurred.
-- Product guidance must not become strategy ranking, approval, or capital advice.
-- Paper Job success is an operational outcome, not a financial conclusion.
-- Portfolio-review approval is governance evidence, not capital allocation,
-  account mutation, order authorization, or execution.
-- Portfolio-review scenario weights are assumptions, not Paper Account holdings.
-- M31 balances and positions derive from immutable ledger authority, not mutable
-  duplicated fields.
-- M32 calendar/session/event/replay values remain market-time authority.
-- M33 Signal/Intent/Risk evidence remains immutable strategy-to-risk authority
-  and must not be treated as execution or account mutation.
-- M34 Order/Attempt/Fill evidence remains immutable execution authority while
-  linked M31 ledger events/postings remain financial authority.
+```text
+M31 immutable ledger/account authority
+  + M32 calendar/session/event/replay authority
+  + M33 immutable Signal/Intent/Risk authority
+    -> M34 immutable Order/Attempt/Fill execution authority
+      -> M35 durable operational runtime orchestration
+        -> exact existing M34 one-event Step
+```
+
+- M31 ledger events/postings remain financial authority and ledger replay remains
+  Paper Account state authority.
+- M32 calendar/session/event/replay remain market-time and cursor authority.
+- M33 Signal/Intent/Risk evidence remains immutable strategy-to-risk authority.
+- M34 Order/Attempt/Fill remain immutable execution authority; linked M31
+  settlement remains financial truth.
+- M35 owns runtime/work/claim/lease/fence/checkpoint/audit orchestration only.
+  It does not own execution price, fills, settlement, M31 state, M32 cursor, or
+  M33 authority.
+- There is exactly one execution path: M35 invokes the existing M34 Step.
+- M35 operational checkpoints may catch up coherent missing observation but must
+  never repair canonical M31–M34 corruption.
 
 ## Definition of Done
 
-A task is complete only when:
-
-- scope matches the authoritative Issue;
-- deterministic tests are included where appropriate;
-- documentation matches behavior;
-- assumptions and limitations are explicit;
-- authority boundaries remain intact;
-- required verification passes;
-- approved static checks pass where applicable;
-- the PR is Ready for review; and
-- the PR is not merged by Codex or the CTO.
+A task is complete only when scope matches the authoritative Issue, documentation
+matches behavior, assumptions and limitations are explicit, authority boundaries
+remain intact, required verification passes, the PR is Ready for review, and the
+PR is not merged by Codex or the CTO.
 
 ## Completed Foundations
 
-Milestones 1–33 are Complete. Milestone 34 is Complete after the Sprint 216
-closeout PR is merged.
+Milestones 1–34 are Complete. Milestone 35 is closing through Sprint 227 and is
+Complete after the S227 closeout PR is merged.
 
-The recent productization and Paper Trading authority chain is:
+Recent Paper Trading milestones:
 
 ```text
-M25 — S137      Paper Trading Productization Planning
-M26 — S138-S144 Paper Trading Application Service Foundation
-M27 — S145-S151 Persistence and Paper Job Control Foundation
-M28 — S152-S160 Founder Paper Trading Web Workspace
-M29 — S161-S168 Product Feedback and Hardening
 M30 — S169-S178 Portfolio-Level Decision Review Foundation
 M31 — S179-S188 Stateful Paper Account and Ledger Foundation
 M32 — S189-S196 Market Data Replay, Trading Calendar, and Session Clock
 M33 — S197-S206 Strategy-to-Order and Pre-Trade Risk Pipeline
 M34 — S207-S216 Paper Execution Simulator and First True Paper Trading
+M35 — S217-S227 Durable Paper Runtime and Recovery
 ```
 
-### M29 delivered
+### M35 delivered
 
-- complete English and Simplified Chinese product support;
-- a modern responsive Founder decision workspace;
-- a bounded Founder Dashboard;
-- explicit Paper Job replay, Run, Retry, Recover, conflict, and audit behavior;
-- stable bilingual error presentation and sanitized local correlation events;
-- fail-closed Standard/Demo startup and read-only verification;
-- locked build/runtime inputs;
-- isolated Standard and Demo volumes; and
-- cold-backup, upgrade, Demo reset, and return-to-Standard guidance.
+- one `PaperRuntime` immutably bound to one exact existing M34 Order;
+- desired/observed lifecycle with control-only Start/Resume/Recover-request and
+  cooperative Stop;
+- database-backed one-winner claims, leases, heartbeat, and monotonic fencing;
+- one durable `PaperRuntimeWork` per execution version with stable M34 Step
+  key/actor/version across retry, restart, and takeover;
+- an M35-before / exact-M34-Step / M35-after transaction boundary;
+- crash/restart/stale-lease recovery across windows A–F;
+- mutation-free reconciliation and fail-closed no-repair behavior;
+- migration `0012_durable_paper_runtime`;
+- exactly twelve runtime HTTP operations plus dedicated `run-paper-runtime` CLI;
+- bilingual `/paper-runtimes` control/inspection workspace;
+- concurrency/idempotency/recovery/observability/isolation hardening; and
+- deterministic Demo v7 E2E plus Founder Docker/browser acceptance.
 
-### M30 delivered
-
-- immutable portfolio review source/analysis/human-decision evidence;
-- exact aligned historical observations and explicit static scenarios;
-- concentration, exposure, interaction, contribution, drawdown, and impact
-  evidence;
-- compact SQLite metadata/idempotency;
-- four versioned API operations and bilingual Founder workflows; and
-- deterministic isolated Demo evidence.
-
-M30 review decisions remain governance evidence, not capital allocation or
-execution authority.
-
-### M31 delivered
-
-- durable Paper Account identity and lifecycle;
-- immutable cash and position ledger events/postings;
-- exact Decimal money/quantity and deterministic ledger replay;
-- projection rebuild/verification, snapshot, and reconciliation;
-- append-only SQLite persistence and command idempotency/concurrency;
-- exactly ten versioned Paper Account operations;
-- bilingual Founder Paper Account workflows; and
-- isolated Demo/recovery/upgrade evidence.
-
-M31 ledger events/postings remain financial authority and ledger replay remains
-Paper Account state authority.
-
-### M32 delivered
-
-- immutable Trading Calendar and Trading Session definitions;
-- canonical `MarketDataEvent` values;
-- deterministic replay ordering, cursor, lifecycle, and stream binding;
-- durable persistence/restart recovery;
-- read-only market-time APIs;
-- bilingual Founder replay inspection; and
-- isolated Demo/recovery evidence.
-
-M32 remains market-time authority and does not mutate M31 financial state.
-
-### M33 delivered
-
-- one closed versioned moving-average runtime adapter and deterministic
-  StrategySignal evaluation from an exact M32 replay prefix;
-- immutable advisory StrategySignal identity/digest;
-- exact account-bound buy/sell/no-action conversion from verified M31 state;
-- immutable risk-pending M33 OrderIntent identity/idempotency;
-- explicit long-only cash risk policy, latest-trade risk-price evidence, exact
-  notional, four ordered rules, and immutable allow/reject Decision evidence;
-- migration `0010_strategy_order_risk` with append-only Signal, Intent,
-  Decision, and scoped receipt persistence;
-- strict reconstruction, bounded reads, one-winner transactions, restart-safe
-  replay, stale refusal, and corruption/no-repair;
-- exactly nine versioned M33 API operations, stable errors/audit, OpenAPI, and
-  generated TypeScript;
-- one bilingual generated-contract-only `/strategy-to-risk` workspace; and
-- deterministic isolated Demo v5 install/replay/restart/concurrency/upgrade/
-  corruption-recovery/Standard-isolation evidence.
-
-The final reviewed S205 CI baseline was Python `3061 passed` and Web
-`449 passed / 47 files`; the final M33 migration head was
-`0010_strategy_order_risk`.
-
-M33 closes without execution order, fill, reservation, execution pricing/fees,
-fill-caused ledger mutation, replay progression, worker/scheduler, broker, live,
-or real-money behavior.
-
-### M34 delivered
-
-- a separate immutable `paper_execution` Order/Attempt/Fill authority boundary;
-- exact M31/M32/M33 handoff and execution-time freshness validation;
-- future-event one-step execution with deterministic no-fill, partial/full fill,
-  risk rejection, and session/replay exhaustion semantics;
-- `consumed_trade_event_price_v1`, `fixed_bps_slippage_v1`, and
-  `per_fill_bps_costs_v1` execution evidence;
-- execution-time `long_only_cash_risk_v1` revalidation without mutating M33;
-- atomic one-Fill-to-one-M31 `execution_fill_posted` settlement and one-to-one
-  SettlementLink reconciliation;
-- migration `0011_paper_execution` with append-only Order/Attempt/Fill/link and
-  scoped receipt persistence;
-- strict historical/live reconstruction, M31/M32 CAS, idempotency, one-winner
-  concurrency, and read-only reconciliation;
-- exactly nine Paper Execution API operations with stable errors/audit, OpenAPI,
-  and generated TypeScript;
-- one bilingual generated-contract-only `/paper-execution` Founder workspace;
-- isolated Demo v6 first-true-paper-trading evidence through real application
-  paths; and
-- adversarial concurrency, SQLite busy, populated upgrade, fault rollback,
-  corruption/no-repair, restart/recovery, API, and Standard/Demo isolation
-  evidence.
-
-The final reviewed S215 CI baseline was Python `3257 passed` and Web
-`471 passed / 49 files`. Demo remains v6 and the migration head remains
-`0011_paper_execution`.
-
-M34 remains manually stepped and synchronous. It does not own durable runtime
-claims/leases, background execution loops, automatic recovery, or multi-day
-operations.
-
-Closeout records include:
+Final accepted S226 baseline:
 
 ```text
-docs/closeouts/milestone-029-product-feedback-and-hardening-closeout.md
-docs/closeouts/milestone-030-portfolio-level-decision-review-foundation-closeout.md
-docs/closeouts/milestone-031-stateful-paper-account-and-ledger-foundation-closeout.md
-docs/closeouts/milestone-032-market-data-replay-trading-calendar-and-session-clock-closeout.md
-docs/closeouts/milestone-033-strategy-to-order-and-pre-trade-risk-pipeline-closeout.md
-docs/closeouts/milestone-034-paper-execution-simulator-and-first-true-paper-trading-closeout.md
+Python: 3396 passed
+Web: 501 passed / 51 files
+migration head: 0012_durable_paper_runtime
+Demo: v7
+```
+
+Canonical M35 records:
+
+```text
+docs/milestones/milestone-035-durable-paper-runtime-and-recovery.md
+docs/closeouts/milestone-035-durable-paper-runtime-and-recovery-closeout.md
 ```
 
 ## Current Focus
 
-Sprint 216 is the documentation-only closeout and M35 handoff Sprint under
-Issue #425. S207–S215 are Complete. After the S216 PR is merged, Milestones
-1–34 and S207–S216 are Complete.
+Sprint 227 is the documentation-only Milestone 35 closeout and M36 handoff under
+Issue #448. S217–S226 are Complete. After the S227 PR is merged, Milestones
+1–35 and S217–S227 are Complete.
 
 The exact next milestone is:
 
 ```text
-M35 — Durable Paper Runtime and Recovery
+M36 — Multi-day Paper Operations and Acceptance
 ```
 
-M35 must reuse the merged M34 Create/Step/Attempt/Fill/settlement primitives.
-It must not invent a second execution path or silently redefine M31/M32/M33/M34
-authority.
-
-The exact next Sprint after S216 merge is the CTO-owned planning gate:
+The expected next Sprint is the CTO-owned planning gate:
 
 ```text
-Sprint 217 — Plan Milestone 35: Durable Paper Runtime and Recovery
+Sprint 228 — Plan Milestone 36: Multi-day Paper Operations and Acceptance
 ```
 
-S217 must freeze durable work identity, claim/lease ownership, start/stop/resume
-controls, loop/checkpoint and crash-recovery semantics, observability,
-API/Web/Demo boundaries, migration needs, acceptance, and the detailed M35
-Sprint sequence before any M35 runtime implementation begins.
+S228 must define multi-day operating identity, session/day rollover,
+overnight/closed-market behavior, M32 continuation across days, EOD checkpoints,
+cross-day restart/recovery, M31 freshness, future M33/M34 creation boundaries,
+higher-level orchestration over one-Order M35 runtimes, scheduling, concurrency,
+idempotency, reconciliation, API/Web/Demo evolution, migration needs, isolation,
+and the detailed M36 sprint sequence before implementation begins.
 
-The current migration head remains `0011_paper_execution`. Demo remains v6.
-M36 remains future multi-session/multi-day Paper Trading operations and
-acceptance.
+Current migration head:
+
+```text
+0012_durable_paper_runtime
+```
+
+Current Demo source/descriptor/dataset:
+
+```text
+v7
+```
 
 ## Approved Route to Genuine Paper Trading
 
@@ -288,23 +200,10 @@ M30 Portfolio-Level Decision Review Foundation — Complete
   -> M31 Stateful Paper Account and Ledger Foundation — Complete
   -> M32 Market Data Replay, Trading Calendar, and Session Clock — Complete
   -> M33 Strategy-to-Order and Pre-Trade Risk Pipeline — Complete
-  -> M34 Paper Execution Simulator and First True Paper Trading — Complete after S216 merge
-  -> M35 Durable Paper Runtime and Recovery — exact next milestone
-  -> M36 Multi-day Paper Operations and Acceptance — future
+  -> M34 Paper Execution Simulator and First True Paper Trading — Complete
+  -> M35 Durable Paper Runtime and Recovery — Complete after S227 merge
+  -> M36 Multi-day Paper Operations and Acceptance — exact next milestone
 ```
-
-### M34 product gate
-
-M34 is the first genuine Paper Trading execution gate. Verified market, account,
-Signal, Intent, and Risk evidence drives simulated execution Orders, Attempts,
-Fills, and atomic durable Paper Account effects. The Founder no longer
-pre-supplies orders and fills as the transaction script.
-
-### M36 product gate
-
-M36 is the continuous multi-day Paper Trading gate. The same account must
-advance across sessions with durable checkpoints, reconciliation, explicit
-controls, duplicate prevention, and interruption recovery.
 
 Authoritative runtime roadmap:
 
@@ -312,37 +211,11 @@ Authoritative runtime roadmap:
 docs/strategy/paper-trading-runtime-roadmap.md
 ```
 
-## Preserved Architecture
-
-```text
-Browser
-  -> Next.js Founder Workspace
-  -> fixed same-origin /api/backend gateway
-  -> versioned FastAPI API
-  -> thin application services
-  -> domain modules and artifact readers/writers
-  -> compact SQLite state and authoritative artifact roots
-```
-
-- Domain modules remain quantitative and governance authority.
-- Completed files remain full artifact payload authority.
-- M31 ledger events/postings and replay remain financial/account authority.
-- M32 calendar/session/event/replay remain market-time authority.
-- M33 Signal/Intent/Risk records remain immutable strategy-to-risk authority.
-- M34 Order/Attempt/Fill records remain immutable execution evidence; M31 linked
-  settlement remains financial truth.
-- SQLite remains compact durable state and must not introduce competing
-  authority.
-- Raw IDs, states, versions, timestamps, values, digests, and artifact content
-  remain untranslated.
-- Standard and Demo storage remain isolated.
-- The browser never directly accesses SQLite, artifact directories, Python,
-  QMT, MiniQMT, or a broker.
-
 ## Explicitly Deferred
 
 Unless a future authoritative milestone approves them:
 
+- multi-day Paper Trading policy before M36 planning;
 - broker, QMT, or MiniQMT integration;
 - real-money execution;
 - automatic strategy ranking, approval, optimization, or capital allocation;
