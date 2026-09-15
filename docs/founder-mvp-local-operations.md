@@ -152,10 +152,10 @@ governance evidence and does not create mutable current state. The optional
 Paper Job example only fills the form after an explicit user action; it never
 submits automatically.
 
-Demo dataset/descriptor v6 preserves the deterministic seeded portfolio
+Demo dataset/descriptor v7 preserves the deterministic seeded portfolio
 review and one exact create-example prefill. Loading requires explicit
 replace-draft confirmation and never submits or chooses a decision. An installed
-earlier Demo source conflicts with v6; use only the Demo reset below. Demo v6
+earlier Demo source conflicts with v7; use only the Demo reset below. Demo v7
 also seeds one synthetic Paper Account through the existing application
 service. Its five immutable events, ledger-derived projection, immutable
 snapshot, and matched reconciliation are verified on install and exact restart
@@ -163,7 +163,7 @@ replay. The opening position is an explicit adjustment, not an order, fill,
 execution, PnL, or equity calculation. Standard and
 Demo keep separate project names, databases, artifact roots, and volumes.
 
-Demo v6 additionally preserves the immutable market-time calendar, ordered
+Demo v7 additionally preserves the immutable market-time calendar, ordered
 sessions, five canonical events, and one replay paused at position 4. Startup
 and explicit verification restore the exact stream/cursor, prove the final
 event completes on an in-memory copy, and confirm the durable paused checkpoint
@@ -226,18 +226,18 @@ explicitly reset the disposable earlier-version Demo volume when required
 Founder owns these Docker/container/browser steps and the merge decision. Codex
 owns deterministic checks and static Compose rendering only.
 
-## Sprint 214 Demo v6 First True Paper Trading Acceptance
+## Sprint 214 Journey Preserved in Demo v7
 
 After CTO code review, use only the supported isolated Demo commands in
 `Isolated Demo Workspace Startup` above. Stop Standard, reset only the
-disposable Demo volume when its installed dataset predates v6, then start the
+disposable Demo volume when its installed dataset predates v7, then start the
 Demo overlay. Codex does not perform these Docker or browser steps.
 
 Founder acceptance checklist:
 
 1. Install/reset the isolated Demo through the documented Compose overlay and
-   confirm the persistent Demo identity reports dataset/descriptor v6.
-2. Open `/paper-execution` and choose `Load Demo v6 example`; confirm the
+   confirm the persistent Demo identity reports dataset/descriptor v7.
+2. Open `/paper-execution` and choose `Load Demo v7 example`; confirm the
    explicit replacement checkbox is required and loading performs no POST.
 3. Confirm the loaded fresh historical M33 Intent/allow Decision references and
    exact policy strings match the descriptor and remain labeled as historical,
@@ -274,7 +274,7 @@ one-winner behavior, changed-content idempotency conflicts, bounded SQLite busy
 refusal and retry, populated Standard `0010_strategy_order_risk` to
 `0011_paper_execution` preservation, atomic rollback fault injection,
 corruption/no-repair refusal, lifecycle restart/recovery, sanitized API errors,
-and Standard/Demo v6 isolation.
+and Standard/Demo v7 isolation.
 
 After CTO review, the Founder retains the same supported local acceptance
 boundary:
@@ -283,7 +283,7 @@ boundary:
    Standard startup/verification flow and confirm the head is
    `0011_paper_execution` with existing M31/M32/M33 authority intact.
 2. Reset only an explicitly disposable Demo volume when needed, install Demo
-   v6 through the documented overlay, and repeat the Sprint 214 manual
+   v7 through the documented overlay, and repeat the Sprint 214 manual
    execution/restart/reconciliation journey.
 3. Return to the preserved Standard workspace and confirm its identity,
    artifacts, accounts, replay, M33, and M34 evidence are unchanged.
@@ -294,6 +294,57 @@ boundary:
 Codex runs no Docker build, pull, Compose/container startup, runtime reset,
 volume removal, browser acceptance, or other runtime acceptance for S215.
 S216 closeout and all M35 automation remain separate future work.
+
+## Sprint 226 Demo v7 Durable Paper Runtime Acceptance
+
+Demo v7 adds one isolated M35 journey without replacing the preserved M34
+examples. The descriptor exposes the exact runtime, Order, account, replay,
+session, M33, policy, and example owner references. The installed runtime is
+stopped/ready/unowned and has no Work or checkpoint. Browser Start, Stop,
+Resume, and Recover remain control intent only; the browser never claims a
+lease or runs execution.
+
+After CTO review, the Founder may reset only the disposable Demo volume and
+start the Demo overlay with the commands in `Isolated Demo Workspace Startup`.
+Read the exact `runtime_id` and example owner from `GET /api/v1/demo-workspace`,
+then run one external iteration inside the established backend service:
+
+```powershell
+docker compose -f compose.yaml -f compose.demo.yaml exec backend el-psy-quant run-paper-runtime --database-path /data/workspace/product.sqlite3 --runtime-id <runtime_id> --owner-id <owner_id> --iteration-budget 1
+```
+
+Founder acceptance proceeds one iteration at a time:
+
+1. Confirm descriptor/source/dataset v7 and Standard isolation.
+2. Confirm `/paper-runtimes` shows the descriptor runtime stopped, ready,
+   unowned, live-fresh, with zero Work/checkpoint.
+3. Start in the browser and confirm only desired state changes.
+4. While the runtime is still unowned and observed ready, request Recover in
+   the browser and confirm it records control intent only: no claim, Work,
+   checkpoint, Attempt, Fill, account posting, or replay progression.
+5. Run one external iteration and confirm one no-Fill Attempt, one Work, one
+   checkpoint, and replay position 4 to 5.
+6. Restart with a different owner and run one iteration; confirm a monotonic
+   fence, one partial Fill, one SettlementLink, one
+   `execution_fill_posted`, and replay position 5 to 6.
+7. Stop before the next Step and confirm the external process records the
+   cooperative stop without new Work or execution effects.
+8. Resume in the browser and confirm desired state returns to running while
+   observed state remains stopped, with no new execution effect. Continue by
+   invoking the external process; an immediate HTTP Recover request is not part
+   of this stopped-to-running continuation.
+9. Run the external process again; confirm the out-of-session boundary Attempt
+   completes the runtime without another Fill, settlement, or cursor advance.
+10. Inspect health, reconciliation, audit, Work, and checkpoints, then invoke
+   the process once more and confirm completion does not create another Work or
+   M34/M31/M32 effect.
+11. Restart where practical, re-check durable evidence, return to Standard, and
+    confirm Standard remains unchanged before the Founder decides whether to
+    merge.
+
+Migration head remains `0012_durable_paper_runtime`. No HTTP runner endpoint,
+browser lease ownership, daemon, scheduler, broker, or live-trading behavior is
+introduced.
 
 Existing-volume recovery must use the same preserved Standard volume and
 retained cold backup. Do not reset, replace, stamp, downgrade, rebuild a

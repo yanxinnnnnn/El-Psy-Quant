@@ -92,8 +92,8 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
     )
     assert len(set(source.manifest.comparison_candidate_job_ids)) == 2
     descriptor = source.descriptor.to_dict()
-    assert descriptor["schema_version"] == 6
-    assert descriptor["dataset_version"] == 6
+    assert descriptor["schema_version"] == 7
+    assert descriptor["dataset_version"] == 7
     assert descriptor["portfolio_review_example"]["create_idempotency_key"] == (
         "demo-portfolio-review-create-v1"
     )
@@ -148,6 +148,19 @@ def test_versioned_source_validates_every_authoritative_contract() -> None:
     assert descriptor["strategy_order"]["reject_decision"]["reason_codes"] == [
         "maximum_order_quantity_exceeded"
     ]
+
+
+def test_demo_v6_source_identity_is_not_accepted_as_v7(tmp_path: Path) -> None:
+    source = tmp_path / "demo-v6-source"
+    shutil.copytree(DEMO_SOURCE, source)
+    manifest_path = source / "workspace-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["schema_version"] = 6
+    manifest["dataset_version"] = 6
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(DemoWorkspaceSourceInvalidError):
+        validate_demo_workspace_source(source)
 
 
 def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) -> None:
@@ -205,15 +218,9 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         assert review.analysis.proposed_component_id == "demo-msft-sleeve"
         assert review.decision is None
         service = PaperAccountApplicationService(session_factory=factory)
-        detail = service.get_account_detail(
-            account_id="demo-paper-account-001"
-        )
-        history = service.get_account_history(
-            account_id="demo-paper-account-001"
-        )
-        snapshot = service.get_snapshot(
-            snapshot_id="demo-paper-account-snapshot-001"
-        )
+        detail = service.get_account_detail(account_id="demo-paper-account-001")
+        history = service.get_account_history(account_id="demo-paper-account-001")
+        snapshot = service.get_snapshot(snapshot_id="demo-paper-account-snapshot-001")
         reconciliation = service.get_reconciliation(
             reconciliation_id="demo-paper-account-reconciliation-001"
         )
@@ -232,15 +239,9 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         assert reconciliation.mismatch_codes == ()
         with factory() as session:
             market_time = SqlAlchemyMarketTimeRepository(session=session)
-            calendar = market_time.get_calendar(
-                calendar_id="demo-xnys-2026-v1"
-            )
-            sessions = market_time.list_sessions(
-                calendar_id="demo-xnys-2026-v1"
-            )
-            durable_replay = market_time.get_replay(
-                replay_id="demo-market-replay-001"
-            )
+            calendar = market_time.get_calendar(calendar_id="demo-xnys-2026-v1")
+            sessions = market_time.list_sessions(calendar_id="demo-xnys-2026-v1")
+            durable_replay = market_time.get_replay(replay_id="demo-market-replay-001")
         assert calendar is not None
         assert [item.id for item in sessions] == [
             "demo-xnys-2026-07-28-regular",
@@ -260,9 +261,9 @@ def test_installer_success_replay_and_two_authoritative_results(tmp_path: Path) 
         ]
         assert recovered.session.status == "completed"
         with factory() as session:
-            unchanged = SqlAlchemyMarketTimeRepository(
-                session=session
-            ).get_replay(replay_id="demo-market-replay-001")
+            unchanged = SqlAlchemyMarketTimeRepository(session=session).get_replay(
+                replay_id="demo-market-replay-001"
+            )
         assert unchanged == durable_replay
     finally:
         engine.dispose()
@@ -275,9 +276,11 @@ def test_demo_v6_restart_exact_replay_conflict_and_concurrent_convergence(
     _install(DEMO_SOURCE, target)
     engine, factory, journey = _demo_m33(target)
     descriptor = load_demo_workspace_descriptor(target).to_dict()
-    account = PaperAccountApplicationService(session_factory=factory).get_account_detail(
-        account_id=journey["account_id"]
-    ).account
+    account = (
+        PaperAccountApplicationService(session_factory=factory)
+        .get_account_detail(account_id=journey["account_id"])
+        .account
+    )
     market = descriptor["market_time"]
     runtime = create_moving_average_crossover_runtime_reference(
         fast_window=2,
@@ -363,15 +366,18 @@ def test_demo_v6_restart_exact_replay_conflict_and_concurrent_convergence(
         assert replayed.result.decision_id == journey[name]["id"]
         assert replayed.result.decision_digest == journey[name]["digest"]
     with reopened.connect() as connection:
-        assert tuple(
-            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
-            for table in (
-                "strategy_signals",
-                "order_intents",
-                "pre_trade_risk_decisions",
-                "strategy_order_command_receipts",
+        assert (
+            tuple(
+                connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+                for table in (
+                    "strategy_signals",
+                    "order_intents",
+                    "pre_trade_risk_decisions",
+                    "strategy_order_command_receipts",
+                )
             )
-        ) == before_counts
+            == before_counts
+        )
     with pytest.raises(StrategyOrderIdempotencyConflictError):
         service.evaluate_and_store_strategy_signal(
             strategy_runtime_reference=create_moving_average_crossover_runtime_reference(
@@ -450,10 +456,13 @@ def test_demo_v6_restart_exact_replay_conflict_and_concurrent_convergence(
         blocker.rollback()
         blocker.close()
     with reopened.connect() as connection:
-        assert tuple(
-            connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
-            for table in ("order_intents", "strategy_order_command_receipts")
-        ) == after_duplicate
+        assert (
+            tuple(
+                connection.exec_driver_sql(f"SELECT COUNT(*) FROM {table}").scalar_one()
+                for table in ("order_intents", "strategy_order_command_receipts")
+            )
+            == after_duplicate
+        )
     reopened.dispose()
 
 
@@ -493,7 +502,7 @@ def test_demo_v6_duplicate_signal_race_creates_one_absent_authority(
     actor = "demo-absent-signal-race"
     created_at = datetime(2030, 1, 11, tzinfo=timezone.utc)
     signals_before = signal_service.list_strategy_signals(limit=10).items
-    assert len(signals_before) == 5
+    assert len(signals_before) == 6
     original_signal = next(
         item for item in signals_before if item.signal_id == journey["signal"]["id"]
     )
@@ -589,9 +598,7 @@ def test_demo_v6_duplicate_signal_race_creates_one_absent_authority(
     assert duplicate_authority == 1
     assert orphan_receipts == 0
 
-    account_after = account_service.get_account_detail(
-        account_id=journey["account_id"]
-    )
+    account_after = account_service.get_account_detail(account_id=journey["account_id"])
     history_after = account_service.get_account_history(
         account_id=journey["account_id"]
     )
@@ -697,7 +704,9 @@ def test_demo_v6_stale_authority_and_corruption_fail_closed_without_repair(
             expected_calendar_version=1,
             trading_session_id=journey["trading_session_id"],
             replay_id=descriptor["market_time"]["replay_id"],
-            expected_event_stream_digest=descriptor["market_time"]["event_stream_digest"],
+            expected_event_stream_digest=descriptor["market_time"][
+                "event_stream_digest"
+            ],
             expected_cursor_position=4,
             expected_signal_event_id="demo-market-event-004",
             instrument_id=journey["instrument_id"],
@@ -730,8 +739,7 @@ def test_populated_0009_upgrade_is_seed_free_and_v6_reinstall_fails_closed(
             "strategy_order_command_receipts",
         ):
             assert connection.execute(
-                "SELECT COUNT(*) FROM sqlite_master "
-                "WHERE type = 'table' AND name = ?",
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?",
                 (table,),
             ).fetchone() == (0,)
         account_count = connection.execute(
@@ -759,12 +767,14 @@ def test_populated_0009_upgrade_is_seed_free_and_v6_reinstall_fails_closed(
                 "paper_execution_settlement_links",
             )
         ) == (0, 0, 0, 0, 0, 0, 0, 0)
-        assert connection.execute(
-            "SELECT COUNT(*) FROM paper_accounts"
-        ).fetchone() == account_count
-        assert connection.execute(
-            "SELECT COUNT(*) FROM market_data_replays"
-        ).fetchone() == replay_count
+        assert (
+            connection.execute("SELECT COUNT(*) FROM paper_accounts").fetchone()
+            == account_count
+        )
+        assert (
+            connection.execute("SELECT COUNT(*) FROM market_data_replays").fetchone()
+            == replay_count
+        )
 
     with pytest.raises(DemoWorkspaceUnavailableError):
         _install(DEMO_SOURCE, target)
@@ -778,7 +788,7 @@ def test_prior_dataset_marker_is_refused_without_reinstall_or_mutation(
     paths = DemoWorkspacePaths.from_root(target)
     marker_path = target / ".demo-workspace-install.json"
     marker = json.loads(marker_path.read_text(encoding="utf-8"))
-    marker["dataset_version"] = 2
+    marker["dataset_version"] = 6
     marker_path.write_text(json.dumps(marker), encoding="utf-8")
     artifacts_before = {
         path.relative_to(target).as_posix(): path.read_bytes()
@@ -945,9 +955,7 @@ def test_paper_account_source_mutations_fail_before_target_creation(
     elif case == "wrong_version":
         journey["position_adjustment"]["expected_account_version"] = 3
     elif case == "duplicate_authority_id":
-        journey["authority_ids"][1]["value"] = journey["authority_ids"][0][
-            "value"
-        ]
+        journey["authority_ids"][1]["value"] = journey["authority_ids"][0]["value"]
     elif case == "wrong_event_order":
         journey["expected"]["event_types"].reverse()
     else:  # pragma: no cover - the parameter list is exhaustive
@@ -1017,15 +1025,15 @@ def test_conflicting_dataset_replay_is_refused_without_changes(
         _install(source, target)
 
     assert (target / ".demo-workspace-install.json").read_bytes() == marker_before
-    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 6
+    assert load_demo_workspace_descriptor(target).to_dict()["dataset_version"] == 7
 
 
-def test_descriptor_requires_exact_dataset_version_six(tmp_path: Path) -> None:
+def test_descriptor_requires_exact_dataset_version_seven(tmp_path: Path) -> None:
     target = tmp_path / "demo-workspace"
     _install(DEMO_SOURCE, target)
     descriptor_path = target / "workspace-descriptor.json"
     descriptor = json.loads(descriptor_path.read_text(encoding="utf-8"))
-    descriptor["dataset_version"] = 2
+    descriptor["dataset_version"] = 6
     descriptor_path.write_text(json.dumps(descriptor), encoding="utf-8")
 
     with pytest.raises(DemoWorkspaceUnavailableError):
@@ -1119,17 +1127,11 @@ def test_demo_install_never_changes_separate_standard_storage(
     standard_artifact = standard / "founder-evidence.json"
     standard_database.write_bytes(b"standard-database-sentinel")
     standard_artifact.write_bytes(b'{"standard":true}\n')
-    before = {
-        path.name: path.read_bytes()
-        for path in standard.iterdir()
-    }
+    before = {path.name: path.read_bytes() for path in standard.iterdir()}
 
     _install(DEMO_SOURCE, tmp_path / "demo-workspace")
 
-    assert {
-        path.name: path.read_bytes()
-        for path in standard.iterdir()
-    } == before
+    assert {path.name: path.read_bytes() for path in standard.iterdir()} == before
 
 
 def test_non_demo_and_nonempty_targets_are_refused(tmp_path: Path) -> None:

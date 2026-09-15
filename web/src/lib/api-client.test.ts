@@ -47,8 +47,10 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
   const rejectCommand = strategyOrder.reject_risk as Record<string, unknown>;
   const executionJourney = demoSourceJson("paper_execution/execution-journey.json");
   const executionScenarios = executionJourney.scenarios as Array<Record<string, unknown>>;
-  const [manual, completed, risk, exhaustion] = executionScenarios;
+  const [manual, completed, risk, exhaustion, paperRuntime] = executionScenarios;
   const manualExpected = manual.expected as Record<string, Record<string, unknown>>;
+  const runtimeExpected = paperRuntime.runtime_expected as Record<string, Record<string, unknown>>;
+  const runtimeCommand = paperRuntime.paper_runtime as Record<string, unknown>;
   const orderExpected = (scenario: Record<string, unknown>) =>
     (scenario.expected as Record<string, Record<string, unknown>>).order;
   return {
@@ -122,6 +124,25 @@ function demoDescriptorFromVersionedSource(): Record<string, unknown> {
       completed_order: orderExpected(completed),
       risk_rejection_order: orderExpected(risk),
       exhaustion_order: orderExpected(exhaustion),
+    },
+    paper_runtime: {
+      workspace_path: "/paper-runtimes",
+      runtime_id: runtimeExpected.runtime.id,
+      runtime_binding_digest: runtimeExpected.runtime.digest,
+      execution_order_id: orderExpected(paperRuntime).id,
+      execution_order_digest: orderExpected(paperRuntime).digest,
+      account_id: (paperRuntime.account as Record<string, unknown>).account_id,
+      replay_id: (paperRuntime.market as Record<string, unknown>).replay_id,
+      trading_session_id: ((paperRuntime.market as Record<string, unknown>).session as Record<string, unknown>).id,
+      signal_id: runtimeExpected.signal.id,
+      signal_digest: runtimeExpected.signal.digest,
+      intent_id: (paperRuntime.expected as Record<string, Record<string, unknown>>).intent.id,
+      intent_digest: (paperRuntime.expected as Record<string, Record<string, unknown>>).intent.digest,
+      risk_decision_id: (paperRuntime.expected as Record<string, Record<string, unknown>>).allow_decision.id,
+      risk_decision_digest: (paperRuntime.expected as Record<string, Record<string, unknown>>).allow_decision.digest,
+      runtime_policy_id: runtimeCommand.runtime_policy_id,
+      runtime_policy_version: runtimeCommand.runtime_policy_version,
+      example_owner_id: runtimeCommand.example_owner_id,
     },
   };
 }
@@ -306,8 +327,8 @@ describe("fetchDemoWorkspace", () => {
     const result = await fetchDemoWorkspace(fetcher);
 
     expect(result.data.dataset_id).toBe(descriptor.dataset_id);
-    expect(result.data.schema_version).toBe(6);
-    expect(result.data.dataset_version).toBe(6);
+    expect(result.data.schema_version).toBe(7);
+    expect(result.data.dataset_version).toBe(7);
     expect(result.data.comparison_candidate_job_ids).toHaveLength(2);
     expect(result.data.portfolio_review_example.request.review_id).toBe(
       "demo-portfolio-review-001",

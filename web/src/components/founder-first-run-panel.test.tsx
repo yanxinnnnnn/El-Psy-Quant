@@ -46,9 +46,9 @@ const proposal = {
 };
 
 const descriptor: DemoWorkspaceDescriptorResponse = {
-  schema_version: 6,
+  schema_version: 7,
   dataset_id: "dataset-from-api",
-  dataset_version: 6,
+  dataset_version: 7,
   display_name: "Founder Demo Workspace",
   warning: "Disposable example evidence, not real user data.",
   canonical_strategy_name: "strategy-from-api",
@@ -163,6 +163,25 @@ const descriptor: DemoWorkspaceDescriptorResponse = {
     completed_order: { id: `peo_${"7".repeat(64)}`, digest: "7".repeat(64) },
     risk_rejection_order: { id: `peo_${"8".repeat(64)}`, digest: "8".repeat(64) },
     exhaustion_order: { id: `peo_${"9".repeat(64)}`, digest: "9".repeat(64) },
+  },
+  paper_runtime: {
+    workspace_path: "/paper-runtimes",
+    runtime_id: `prt_${"a".repeat(64)}`,
+    runtime_binding_digest: "a".repeat(64),
+    execution_order_id: `peo_${"b".repeat(64)}`,
+    execution_order_digest: "b".repeat(64),
+    account_id: "demo-runtime-account",
+    replay_id: "demo-runtime-replay",
+    trading_session_id: "demo-runtime-session",
+    signal_id: `sig_${"c".repeat(64)}`,
+    signal_digest: "c".repeat(64),
+    intent_id: `oi_${"d".repeat(64)}`,
+    intent_digest: "d".repeat(64),
+    risk_decision_id: `risk_decision_${"e".repeat(64)}`,
+    risk_decision_digest: "e".repeat(64),
+    runtime_policy_id: "durable-runtime-v1",
+    runtime_policy_version: 1,
+    example_owner_id: "demo-runtime-worker",
   },
 };
 

@@ -425,6 +425,100 @@
         "title": "DemoPaperJobSubmissionExampleResponse",
         "type": "object"
       },
+      "DemoPaperRuntimeReferenceResponse": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "example_owner_id": {
+            "title": "Example Owner Id",
+            "type": "string"
+          },
+          "execution_order_digest": {
+            "title": "Execution Order Digest",
+            "type": "string"
+          },
+          "execution_order_id": {
+            "title": "Execution Order Id",
+            "type": "string"
+          },
+          "intent_digest": {
+            "title": "Intent Digest",
+            "type": "string"
+          },
+          "intent_id": {
+            "title": "Intent Id",
+            "type": "string"
+          },
+          "replay_id": {
+            "title": "Replay Id",
+            "type": "string"
+          },
+          "risk_decision_digest": {
+            "title": "Risk Decision Digest",
+            "type": "string"
+          },
+          "risk_decision_id": {
+            "title": "Risk Decision Id",
+            "type": "string"
+          },
+          "runtime_binding_digest": {
+            "title": "Runtime Binding Digest",
+            "type": "string"
+          },
+          "runtime_id": {
+            "title": "Runtime Id",
+            "type": "string"
+          },
+          "runtime_policy_id": {
+            "title": "Runtime Policy Id",
+            "type": "string"
+          },
+          "runtime_policy_version": {
+            "title": "Runtime Policy Version",
+            "type": "integer"
+          },
+          "signal_digest": {
+            "title": "Signal Digest",
+            "type": "string"
+          },
+          "signal_id": {
+            "title": "Signal Id",
+            "type": "string"
+          },
+          "trading_session_id": {
+            "title": "Trading Session Id",
+            "type": "string"
+          },
+          "workspace_path": {
+            "const": "/paper-runtimes",
+            "title": "Workspace Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_path",
+          "runtime_id",
+          "runtime_binding_digest",
+          "execution_order_id",
+          "execution_order_digest",
+          "account_id",
+          "replay_id",
+          "trading_session_id",
+          "signal_id",
+          "signal_digest",
+          "intent_id",
+          "intent_digest",
+          "risk_decision_id",
+          "risk_decision_digest",
+          "runtime_policy_id",
+          "runtime_policy_version",
+          "example_owner_id"
+        ],
+        "title": "DemoPaperRuntimeReferenceResponse",
+        "type": "object"
+      },
       "DemoPortfolioReviewExampleResponse": {
         "properties": {
           "create_idempotency_key": {
@@ -673,6 +767,9 @@
             "title": "Paper Jobs",
             "type": "array"
           },
+          "paper_runtime": {
+            "$ref": "#/components/schemas/DemoPaperRuntimeReferenceResponse"
+          },
           "portfolio_review_example": {
             "$ref": "#/components/schemas/DemoPortfolioReviewExampleResponse"
           },
@@ -680,7 +777,7 @@
             "$ref": "#/components/schemas/DemoResearchRunReferenceResponse"
           },
           "schema_version": {
-            "const": 6,
+            "const": 7,
             "title": "Schema Version",
             "type": "integer"
           },
@@ -710,7 +807,8 @@
           "paper_account",
           "market_time",
           "strategy_order",
-          "paper_execution"
+          "paper_execution",
+          "paper_runtime"
         ],
         "title": "DemoWorkspaceDescriptorResponse",
         "type": "object"

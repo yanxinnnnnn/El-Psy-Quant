@@ -150,8 +150,28 @@ class DemoPaperExecutionReferenceResponse(BaseModel):
     exhaustion_order: DemoPaperExecutionAuthorityResponse
 
 
+class DemoPaperRuntimeReferenceResponse(BaseModel):
+    workspace_path: Literal["/paper-runtimes"]
+    runtime_id: str
+    runtime_binding_digest: str
+    execution_order_id: str
+    execution_order_digest: str
+    account_id: str
+    replay_id: str
+    trading_session_id: str
+    signal_id: str
+    signal_digest: str
+    intent_id: str
+    intent_digest: str
+    risk_decision_id: str
+    risk_decision_digest: str
+    runtime_policy_id: str
+    runtime_policy_version: int
+    example_owner_id: str
+
+
 class DemoWorkspaceDescriptorResponse(BaseModel):
-    schema_version: Literal[6]
+    schema_version: Literal[7]
     dataset_id: str
     dataset_version: int
     display_name: str
@@ -169,3 +189,4 @@ class DemoWorkspaceDescriptorResponse(BaseModel):
     market_time: DemoMarketTimeReferenceResponse
     strategy_order: DemoStrategyOrderReferenceResponse
     paper_execution: DemoPaperExecutionReferenceResponse
+    paper_runtime: DemoPaperRuntimeReferenceResponse

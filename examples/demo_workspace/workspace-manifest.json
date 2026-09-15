@@ -1,7 +1,7 @@
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "dataset_id": "founder-demo-workspace",
-  "dataset_version": 6,
+  "dataset_version": 7,
   "display_name": "Founder Demo Workspace",
   "warning": "DEMO ONLY — disposable example evidence, not real user data or trading advice.",
   "canonical_strategy_name": "moving_average_crossover",
